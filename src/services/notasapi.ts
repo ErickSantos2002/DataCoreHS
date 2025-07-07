@@ -26,6 +26,6 @@ export const fetchNotasMensais = async (ano: number, mes: number) => {
   naturezaOperacao.forEach((n) => params.append("natureza_operacao", n));
   params.append("descricao_situacao", "Emitida DANFE");
 
-  const res = await notasApi.get(`/api/notas_fiscais?${params.toString()}`);
+  const res = await notasApi.get(`/notas_fiscais?${params.toString()}`);
   return res.data;
 };
