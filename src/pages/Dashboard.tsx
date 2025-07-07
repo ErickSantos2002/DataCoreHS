@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { fetchNotasMensais } from "../services/notasapi";
+import { fetchNotas } from "../services/notasapi";
 
 type FaturamentoMensal = {
   mes: string;
@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
         const nomeMes = data.toLocaleString("pt-BR", { month: "long" });
 
         try {
-          const notas = await fetchNotasMensais(ano, mes);
+          const notas = await fetchNotas(ano, mes, "intervalo");
           const total = notas.reduce((acc: number, nota: any) => {
             const valor = parseFloat(nota.valor_faturado || "0");
             return acc + (isNaN(valor) ? 0 : valor);
@@ -58,7 +58,9 @@ const Dashboard: React.FC = () => {
       </p>
 
       <div className="mt-8 p-6 rounded-xl bg-white shadow">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Faturamento dos últimos 4 meses</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          Faturamento dos últimos 4 meses
+        </h2>
         <ul className="list-disc list-inside text-gray-600">
           {dadosMensais.map((item) => (
             <li key={item.mes}>

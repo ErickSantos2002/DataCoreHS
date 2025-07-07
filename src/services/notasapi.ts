@@ -1,8 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://tinyapi.healthsafetytech.com";
-// Cria instância sem baseURL — usaremos proxy do Vite
-const notasApi = axios.create({ baseURL });
+const notasApi = axios.create();
 
 notasApi.interceptors.request.use(
   (config) => {
@@ -15,17 +13,27 @@ notasApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Exemplo de chamada para usar no Dashboard
-export const fetchNotasMensais = async (ano: number, mes: number) => {
-  const dataEmissao = `${ano}-${String(mes).padStart(2, "0")}-01`;
-
-  const naturezaOperacao = ["6102", "5102", "6108", "5108"];
+export const fetchNotas = async (
+  ano: number,
+  mes: number,
+  modo: "intervalo" | "dia" = "intervalo"
+) => {
+  const dataBase = `${ano}-${String(mes).padStart(2, "0")}-01`;
   const params = new URLSearchParams();
 
-  params.append("data_emissao", dataEmissao);
-  naturezaOperacao.forEach((n) => params.append("natureza_operacao", n));
+  if (modo === "dia") {
+    params.append("data_emissao", dataBase);
+  } else {
+    params.append("data_inicio", dataBase);
+    const dataFim = new Date(ano, mes, 0).toISOString().slice(0, 10);
+    params.append("data_fim", dataFim);
+  }
+
+  const naturezas = ["6102", "5102", "6108", "5108"];
+  naturezas.forEach((n) => params.append("natureza_operacao", n));
+
   params.append("descricao_situacao", "Emitida DANFE");
 
-  const res = await notasApi.get(`/notas_fiscais?${params.toString()}`);
+  const res = await notasApi.get(`/api/notas_fiscais?${params.toString()}`);
   return res.data;
 };
