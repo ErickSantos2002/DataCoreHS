@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "https://tinyapi.healthsafetytech.com/"; // agora passando pelo NGINX
+const baseURL = "/tinyapi"; // chama o nginx local
 
 const notasApi = axios.create({ baseURL });
 

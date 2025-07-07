@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   root: ".", // garante que a raiz é o diretório atual (opcional, só para evitar erros)
   server: {
-    port: 5173,
+    port: 5174,
     proxy: {
       '/api': {
         target: 'https://tinyapi.healthsafetytech.com',
