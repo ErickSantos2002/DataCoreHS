@@ -1,7 +1,8 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL || "https://tinyapi.healthsafetytech.com";
 // Cria instância sem baseURL — usaremos proxy do Vite
-const notasApi = axios.create();
+const notasApi = axios.create({ baseURL });
 
 notasApi.interceptors.request.use(
   (config) => {
