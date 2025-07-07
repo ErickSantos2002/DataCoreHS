@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://tinyapi.healthsafetytech.com";
+const baseURL = "https://tinyapi.healthsafetytech.com/"; // agora passando pelo NGINX
 
 const notasApi = axios.create({ baseURL });
 
