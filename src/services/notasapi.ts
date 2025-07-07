@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const notasApi = axios.create();
+const baseURL = import.meta.env.VITE_API_URL || "https://tinyapi.healthsafetytech.com";
+
+const notasApi = axios.create({ baseURL });
 
 notasApi.interceptors.request.use(
   (config) => {
@@ -34,6 +36,6 @@ export const fetchNotas = async (
 
   params.append("descricao_situacao", "Emitida DANFE");
 
-  const res = await notasApi.get(`/api/notas_fiscais?${params.toString()}`);
+  const res = await axios.get(`${baseURL}/notas_fiscais`, { params });
   return res.data;
 };
