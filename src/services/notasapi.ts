@@ -36,6 +36,7 @@ export const fetchNotas = async (
 
   params.append("descricao_situacao", "Emitida DANFE");
 
-  const res = await axios.get(`${baseURL}/notas_fiscais`, { params });
+  // ✅ aqui usamos a instância com interceptors
+  const res = await notasApi.get("/notas_fiscais", { params });
   return res.data;
 };
