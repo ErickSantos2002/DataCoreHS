@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "/tinyapi"; // chama o nginx local
+const baseURL = import.meta.env.VITE_NOTAS_URL || "https://tinyapi.healthsafetytech.com";
 
 const notasApi = axios.create({ baseURL });
 
