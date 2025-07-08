@@ -38,5 +38,6 @@ export const fetchNotas = async (
 
   // ✅ aqui usamos a instância com interceptors
   const res = await notasApi.get("/notas_fiscais", { params });
+  console.log("🔎 FETCH:", params.toString());
   return res.data;
 };

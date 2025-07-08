@@ -13,8 +13,10 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("")
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true })
-  }, [user, navigate])
+    if (user && location.pathname !== "/dashboard") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate, location.pathname]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

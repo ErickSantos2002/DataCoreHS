@@ -15,6 +15,8 @@ type FaturamentoMensal = {
 
 const META = 5000000;
 
+console.log("🌀 Renderizou Dashboard");
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dadosMensais, setDadosMensais] = useState<FaturamentoMensal[]>([]);

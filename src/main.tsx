@@ -8,11 +8,9 @@ import { AuthProvider } from "./context/AuthContext";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
         <App />
       </BrowserRouter>
     </AuthProvider>
-  </React.StrictMode>
 );
