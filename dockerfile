@@ -1,31 +1,32 @@
-# Etapa de build
+# Etapa 1: build
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Copia os arquivos necessários
 COPY package*.json ./
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
-
-RUN npm install
-
 COPY . .
 
-RUN find node_modules/.bin -type f -exec chmod +x {} \;
+# Instala as dependências e compila o projeto
+RUN npm install && npm run build
 
-RUN npm run build
+# Etapa 2: imagem final com Nginx
+FROM nginx:alpine
 
-# Etapa final: container leve para servir arquivos estáticos
-FROM node:20-alpine
+# Remove config padrão e adiciona sua
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-WORKDIR /app
+# Remove configuração padrão do Nginx
+RUN rm /etc/nginx/conf.d/default.conf
 
-RUN npm install -g http-server
+# Adiciona sua configuração personalizada do Nginx
+COPY traefik/nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY --from=builder /app/dist .
-
+# Exponha a porta padrão do Nginx
 EXPOSE 80
 
-CMD ["http-server", "-p", "80"]
+CMD ["nginx", "-g", "daemon off;"]
