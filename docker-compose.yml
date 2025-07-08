@@ -1,27 +1,24 @@
-version: '3.9'
+version: "3.9"
+
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: frontend
-    volumes:
-      - ./dist:/usr/share/nginx/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
-    depends_on:
-      - authapi
-      - tinyapi
+      - "8080:8080" # painel do Traefik (opcional)
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-  authapi:
-    image: sua-imagem-authapi
-    container_name: authapi
+  app:
+    build: .
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`localhost`)" # ajuste conforme seu domínio
+      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
     expose:
-      - "8000"
-
-  tinyapi:
-    image: sua-imagem-tinyapi
-    container_name: tinyapi
-    expose:
-      - "8000"
+      - "80"
