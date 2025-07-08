@@ -13,8 +13,8 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("")
 
   useEffect(() => {
-    if (user && location.pathname !== "/dashboard") {
-      navigate("/dashboard", { replace: true });
+    if (user && location.pathname !== "/inicio") {
+      navigate("/inicio", { replace: true });
     }
   }, [user, navigate, location.pathname]);
 

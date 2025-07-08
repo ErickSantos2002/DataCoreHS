@@ -2,9 +2,10 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_NOTAS_URL || "https://tinyapi.healthsafetytech.com";
 
-const notasApi = axios.create({ baseURL });
+const api = axios.create({ baseURL });
 
-notasApi.interceptors.request.use(
+// Aplica token automaticamente
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
     if (token && config.headers) {
@@ -15,29 +16,20 @@ notasApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export const fetchNotas = async (
-  ano: number,
-  mes: number,
-  modo: "intervalo" | "dia" = "intervalo"
-) => {
-  const dataBase = `${ano}-${String(mes).padStart(2, "0")}-01`;
-  const params = new URLSearchParams();
+// Notas Fiscais
+export const fetchNotas = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/notas_fiscais/", { params });
+  return response.data;
+};
 
-  if (modo === "dia") {
-    params.append("data_emissao", dataBase);
-  } else {
-    params.append("data_inicio", dataBase);
-    const dataFim = new Date(ano, mes, 0).toISOString().slice(0, 10);
-    params.append("data_fim", dataFim);
-  }
+// Clientes
+export const fetchClientes = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/clientes/", { params });
+  return response.data;
+};
 
-  const naturezas = ["6102", "5102", "6108", "5108"];
-  naturezas.forEach((n) => params.append("natureza_operacao", n));
-
-  params.append("descricao_situacao", "Emitida DANFE");
-
-  // ✅ aqui usamos a instância com interceptors
-  const res = await notasApi.get("/notas_fiscais", { params });
-  console.log("🔎 FETCH:", params.toString());
-  return res.data;
+// Itens da Nota
+export const fetchItensNota = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/itens_nota/", { params });
+  return response.data;
 };
