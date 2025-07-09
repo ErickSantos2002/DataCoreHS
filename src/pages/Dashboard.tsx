@@ -18,53 +18,73 @@ const Dashboard: React.FC = () => {
     const carregarQuadrimestreAtual = async () => {
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
-      const meses = [5, 6, 7, 8];
-      const dataInicio = `${anoAtual}-${String(meses[0]).padStart(2, "0")}-01`;
-      const dataFim = new Date(anoAtual, meses[meses.length - 1], 0).toISOString().slice(0, 10);
+      const meses = [4, 5, 6, 7]; // Maio a Agosto (base 0)
+      const cfopValidos = ["6102", "5102", "6108", "5108"];
+      const resultados: FaturamentoMensal[] = [];
 
-      const naturezas = ["6102", "5102", "6108", "5108"];
+      for (const mesIndex of meses) {
+        const dataInicio = new Date(anoAtual, mesIndex, 1);
+        const dataFim = new Date(anoAtual, mesIndex + 1, 0);
 
-      try {
-        const notasTodas = await fetchNotas({
-          data_inicio: dataInicio,
-          data_fim: dataFim,
+        try {
+          const notas = await fetchNotas({
+            data_inicio: dataInicio.toISOString().slice(0, 10),
+            data_fim: dataFim.toISOString().slice(0, 10),
+          });
+
+          const notasFiltradas = notas.filter((nota: any) => {
+          const situacaoOk = (nota.descricao_situacao || "").toLowerCase().trim() === "emitida danfe";
+          const cfop = extrairCFOP(nota.natureza_operacao);
+          const naturezaOk = cfopValidos.includes(cfop);
+
+          const marcadoresInvalidos = [
+            "cancelar",
+            "cliente não quis o produto",
+            "nf devolvida",
+            "nf cancelada",
+            "nf recusada",
+            "nf recusada. cliente solicitou frete",
+            "inutilizada",
+          ];
+
+          const marcadorOk =
+            !nota.marcadores ||
+            nota.marcadores.every((m: any) => {
+              const desc = (m?.descricao || "").toLowerCase().trim();
+              return !marcadoresInvalidos.includes(desc);
+            });
+
+          const valor = parseFloat(nota.valor_nota || "0");
+
+          return naturezaOk && situacaoOk && marcadorOk && !isNaN(valor) && valor > 0;
         });
 
-        const notasFiltradas = notasTodas.filter((nota: any) => {
-          const naturezaOk = naturezaValida(nota.natureza_operacao, naturezas);
-          const situacaoOk = (nota.descricao_situacao || "").toLowerCase().includes("emitida danfe");
-          const marcadorOk = !nota.marcadores || nota.marcadores.every((m: any) => !m?.descricao || m.descricao.trim() === "");
-          const valor = parseFloat(nota.valor_nota || nota.valor_faturado || "0");
-          const valorValido = !isNaN(valor) && valor > 0;
-          return naturezaOk && situacaoOk && marcadorOk && valorValido;
-        });
+          const totalMes = notasFiltradas.reduce((acc: number, nota: any) => {
+            const valor = parseFloat(nota.valor_nota || "0");
+            return acc + valor;
+          }, 0);
 
-        const agrupado: Record<string, number> = {};
-        for (const nota of notasFiltradas) {
-          const data = new Date(nota.data_emissao);
-          const mes = data.toLocaleString("pt-BR", { month: "long" });
-          const chave = `${mes[0].toUpperCase()}${mes.slice(1)}/${data.getFullYear()}`;
-          const valor = parseFloat(nota.valor_nota || nota.valor_faturado || "0");
-          agrupado[chave] = (agrupado[chave] || 0) + valor;
+          const nomeMes = dataInicio.toLocaleString("pt-BR", { month: "long" });
+          resultados.push({
+            mes: `${nomeMes[0].toUpperCase()}${nomeMes.slice(1)}/${anoAtual}`,
+            total: totalMes,
+          });
+        } catch (err) {
+          console.error(`Erro ao buscar notas de ${mesIndex + 1}/${anoAtual}`, err);
         }
-
-        const dadosArray = Object.entries(agrupado).map(([mes, total]) => ({ mes, total }));
-        const somaTotal = dadosArray.reduce((acc, cur) => acc + cur.total, 0);
-
-        setDadosAtual(dadosArray);
-        setTotalAtual(somaTotal);
-      } catch (err) {
-        console.error("Erro ao buscar notas fiscais:", err);
       }
+
+      setDadosAtual(resultados);
+      setTotalAtual(resultados.reduce((acc, cur) => acc + cur.total, 0));
     };
 
     carregarQuadrimestreAtual();
   }, []);
 
-  const naturezaValida = (texto: string | null | undefined, codigos: string[]) => {
-    if (!texto) return false;
-    const normalizado = texto.toLowerCase();
-    return codigos.some(cod => normalizado.includes(cod));
+  const extrairCFOP = (texto: string | null | undefined): string => {
+    if (!texto) return "";
+    const match = texto.match(/\b(\d{4})\b/);
+    return match ? match[1] : "";
   };
 
   const progressoAtual = Math.min((totalAtual / META) * 100, 100);
