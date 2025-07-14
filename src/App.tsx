@@ -13,11 +13,11 @@ const App: React.FC = () => {
   const hideLayout = noLayoutRoutes.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {!hideLayout && <Header />}
-      <div className="flex">
-        {!hideLayout && <Sidebar />}
-        <main className={`flex-1 ${hideLayout ? "" : "p-6"}`}>
+    <div className="h-screen flex flex-col">
+      <Header />
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto p-6">
           <AppRoutes />
         </main>
       </div>

@@ -45,7 +45,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-56 bg-white shadow h-screen sticky top-0 flex flex-col">
+    <aside className="hidden lg:flex w-56 bg-white shadow h-screen sticky top-0 flex-col">
       <nav className="flex-1 py-6">
         <ul className="space-y-2">
           {menuItems.map((item) => (

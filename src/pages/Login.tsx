@@ -25,11 +25,11 @@ const Login: React.FC = () => {
 
   return (
     <div
-      className="w-screen h-screen flex items-center justify-center bg-cover bg-center"
+      className="fixed inset-0 flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${fundo})` }}
     >
       <div
-        className="w-full max-w-[320px] bg-white dborder border-black/50 rounded-[15px] shadow-2xl relative z-10"
+        className="w-full max-w-[320px] bg-white rounded-[15px] shadow-2xl relative z-10 overflow-hidden"
       >
         <div className="px-6 py-8">
           {/* Logo */}
