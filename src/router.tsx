@@ -1,11 +1,19 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Configuracoes from "./pages/Configuracoes";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
+
+import Clientes from "./pages/Clientes";
+import Estoque from "./pages/Estoque";
+import Servicos from "./pages/Servicos";
+import Vendas from "./pages/Vendas";
+import Vendedores from "./pages/Vendedores";
+
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
 
 const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -19,8 +27,6 @@ const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         Acesso negado. Esta página é restrita a administradores.
       </div>
     );
-    // ou redirecionar:
-    // return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -49,6 +55,51 @@ const AppRoutes: React.FC = () => (
     />
 
     <Route
+      path="/clientes"
+      element={
+        <ProtectedRoute>
+          <Clientes />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/estoque"
+      element={
+        <ProtectedRoute>
+          <Estoque />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/servicos"
+      element={
+        <ProtectedRoute>
+          <Servicos />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/vendas"
+      element={
+        <ProtectedRoute>
+          <Vendas />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/vendedores"
+      element={
+        <ProtectedRoute>
+          <Vendedores />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
       path="/configuracoes"
       element={
         <ProtectedRoute>
@@ -60,7 +111,6 @@ const AppRoutes: React.FC = () => (
     />
 
     <Route path="/" element={<Navigate to="/inicio" />} />
-
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

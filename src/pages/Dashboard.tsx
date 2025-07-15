@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
     const centerX = 80;
     const centerY = 80;
     const circumference = Math.PI * radius;
-    const dash = (safeProgress / 140) * circumference;
+    const dash = (safeProgress / 100) * circumference;
 
     const markerPercentages = [60, 70, 80, 90, 100];
     const bonificacoes = [
@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
     const centerX = 80;
     const centerY = 80;
     const circumference = Math.PI * radius;
-    const dash = (safeProgress / 140) * circumference;
+    const dash = (safeProgress / 100) * circumference;
 
     const markerPercentages = [60, 70, 80, 90, 100];
     const bonificacoes = [

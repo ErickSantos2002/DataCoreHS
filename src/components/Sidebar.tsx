@@ -6,7 +6,6 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Não exibe Sidebar na página de login
   if (location.pathname === "/login") return null;
 
   const menuItems = [
@@ -28,7 +27,51 @@ const Sidebar: React.FC = () => {
         </svg>
       ),
     },
-    // Só exibe se for admin (role === "1")
+    {
+      label: "Vendas",
+      to: "/vendas",
+      icon: (
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M9 21V10m6 11V10" />
+        </svg>
+      ),
+    },
+    {
+      label: "Serviços",
+      to: "/servicos",
+      icon: (
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-6h6v6m-3-12a9 9 0 100 18 9 9 0 000-18z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Clientes",
+      to: "/clientes",
+      icon: (
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1117.804 5.121 7 7 0 005.121 17.804z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Vendedores",
+      to: "/vendedores",
+      icon: (
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-6 8h4a4 4 0 014 4v1H6v-1a4 4 0 014-4z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Estoque",
+      to: "/estoque",
+      icon: (
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V5a2 2 0 00-2-2H6a2 2 0 00-2 2v8m16 0H4m16 0l-2 6H6l-2-6" />
+        </svg>
+      ),
+    },
     ...(user?.role === "admin"
       ? [
           {

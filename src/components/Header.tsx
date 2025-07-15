@@ -1,7 +1,8 @@
 import React from "react";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -47,10 +48,17 @@ const Header: React.FC = () => {
       {menuAberto && (
         <div className="absolute top-16 left-0 w-64 bg-white shadow-lg z-50 p-4 lg:hidden">
           <nav className="flex flex-col space-y-2">
-            <a href="/inicio" className="text-gray-700 font-medium">Inicio</a>
-            <a href="/dashboard" className="text-gray-700 font-medium">Dashboard</a>
-            <a href="/configuracoes" className="text-gray-700 font-medium">Configurações</a>
-            {/* Adicione mais links conforme necessário */}
+            <Link to="/inicio" className="text-gray-700 font-medium">Início</Link>
+            <Link to="/dashboard" className="text-gray-700 font-medium">Dashboard</Link>
+            <Link to="/vendas" className="text-gray-700 font-medium">Vendas</Link>
+            <Link to="/servicos" className="text-gray-700 font-medium">Serviços</Link>
+            <Link to="/clientes" className="text-gray-700 font-medium">Clientes</Link>
+            <Link to="/vendedores" className="text-gray-700 font-medium">Vendedores</Link>
+            <Link to="/estoque" className="text-gray-700 font-medium">Estoque</Link>
+
+            {user?.role === "admin" && (
+              <Link to="/configuracoes" className="text-gray-700 font-medium">Configurações</Link>
+            )}
           </nav>
         </div>
       )}
