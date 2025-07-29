@@ -9,10 +9,10 @@ const Dashboard: React.FC = () => {
   const { configuracoes } = useConfiguracoes();
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
-  const META = parseFloat(metaConfig?.valor || "3000000");
-  const META1 = parseFloat(metaConfig?.valor || "3000000") * 0.9;
-  const META2 = parseFloat(metaConfig?.valor || "3000000") * 1.2;
-  const META3 = parseFloat(metaConfig?.valor || "3000000") * 1.4;
+  const META = parseFloat(metaConfig?.valor || "0");
+  const META1 = parseFloat(metaConfig?.valor || "0") * 0.9;
+  const META2 = parseFloat(metaConfig?.valor || "0") * 1.2;
+  const META3 = parseFloat(metaConfig?.valor || "0") * 1.4;
 
   const progresso80 = Math.min((total / META1) * 100, 100);
   const progresso100 = Math.min((total / META2) * 100, 100);
@@ -100,8 +100,20 @@ const Dashboard: React.FC = () => {
             {safeProgress.toFixed(1)}%
           </p>
           <p className="text-sm text-gray-500">
-            (R$ {value.toLocaleString("pt-BR")})
+            Valor Atual: (R$ {value.toLocaleString("pt-BR")})
           </p>
+          {META1 - value > 0 ? (
+            <p className="text-sm text-gray-500">
+              Diferença até a meta: (R$ {(META1 - value).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })})
+            </p>
+          ) : (
+            <p className="text-sm text-green-600 font-semibold">
+              Meta atingida! 🎉
+            </p>
+          )}
         </div>
       </div>
     );
@@ -189,8 +201,20 @@ const Dashboard: React.FC = () => {
             {safeProgress.toFixed(1)}%
           </p>
           <p className="text-sm text-gray-500">
-            (R$ {value.toLocaleString("pt-BR")})
+            Valor Atual: (R$ {value.toLocaleString("pt-BR")})
           </p>
+          {META2 - value > 0 ? (
+            <p className="text-sm text-gray-500">
+              Diferença até a meta: (R$ {(META2 - value).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })})
+            </p>
+          ) : (
+            <p className="text-sm text-green-600 font-semibold">
+              Meta atingida! 🎉
+            </p>
+          )}
         </div>
       </div>
     );
@@ -278,8 +302,20 @@ const Dashboard: React.FC = () => {
             {safeProgress.toFixed(1)}%
           </p>
           <p className="text-sm text-gray-500">
-            (R$ {value.toLocaleString("pt-BR")})
+            Valor Atual: (R$ {value.toLocaleString("pt-BR")})
           </p>
+          {META3 - value > 0 ? (
+            <p className="text-sm text-gray-500">
+              Diferença até a meta: (R$ {(META3 - value).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })})
+            </p>
+          ) : (
+            <p className="text-sm text-green-600 font-semibold">
+              Meta atingida! 🎉
+            </p>
+          )}
         </div>
       </div>
     );
@@ -344,13 +380,13 @@ const Dashboard: React.FC = () => {
 
             {/* Velocímetros */}
             <div className="w-full sm:w-auto">
-              <Speedometer1 progress={progresso80} goal={META} value={total} />
+              <Speedometer1 progress={progresso80} goal={META1} value={total} />
             </div>
             <div className="w-full sm:w-auto">
-              <Speedometer2 progress={progresso100} goal={META} value={total} />
+              <Speedometer2 progress={progresso100} goal={META2} value={total} />
             </div>
             <div className="w-full sm:w-auto">
-              <Speedometer3 progress={progresso140} goal={META} value={total} />
+              <Speedometer3 progress={progresso140} goal={META3} value={total} />
             </div>
           </div>
         </div>
