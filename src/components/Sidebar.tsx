@@ -1,10 +1,12 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../context/ThemeContext"; // 🔥 importa o contexto
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme(); // 🔥 pega estado e função
 
   if (location.pathname === "/login") return null;
 
@@ -88,7 +90,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="hidden lg:flex w-56 bg-white shadow h-screen sticky top-0 flex-col">
+    <aside className="hidden lg:flex w-56 bg-white dark:bg-darkBlue shadow h-screen sticky top-0 flex-col transition-colors">
       <nav className="flex-1 py-6">
         <ul className="space-y-2">
           {menuItems.map((item) => (
@@ -99,7 +101,7 @@ const Sidebar: React.FC = () => {
                   `flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
                     isActive
                       ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-blue-50"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700"
                   }`
                 }
                 end
@@ -109,6 +111,26 @@ const Sidebar: React.FC = () => {
               </NavLink>
             </li>
           ))}
+
+          {/* 🔥 Opção de modo noturno com switch */}
+          <li className="flex items-center justify-between px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700 transition">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+              </svg>
+              <span>Modo Noturno</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={darkMode}
+                onChange={toggleDarkMode}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
+              <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
+            </label>
+          </li>
         </ul>
       </nav>
     </aside>

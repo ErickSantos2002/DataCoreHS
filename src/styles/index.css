@@ -6,4 +6,40 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+
+  /* 🔥 fundo padrão (modo claro) */
+  @apply bg-white text-black transition-colors;
+}
+
+.dark body {
+  /* 🔥 fundo modo noturno */
+  @apply bg-darkBlue text-white;
+}
+
+/* Scrollbar customizado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* fundo do track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* cinza médio */
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #2563eb; /* azul mais vivo no hover */
+}
+
+/* Dark mode */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #6b7280; /* cinza claro no dark */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #3b82f6; /* azul no hover no dark */
 }
