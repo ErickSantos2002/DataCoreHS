@@ -90,7 +90,8 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="hidden lg:flex w-56 bg-white dark:bg-darkBlue shadow h-screen sticky top-0 flex-col transition-colors">
+    <aside className="hidden lg:flex w-56 bg-white dark:bg-darkBlue shadow sticky top-0 flex-col transition-colors">
+      {/* Menu */}
       <nav className="flex-1 py-6">
         <ul className="space-y-2">
           {menuItems.map((item) => (
@@ -111,28 +112,59 @@ const Sidebar: React.FC = () => {
               </NavLink>
             </li>
           ))}
-
-          {/* 🔥 Opção de modo noturno com switch */}
-          <li className="flex items-center justify-between px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700 transition">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-              </svg>
-              <span>Modo Noturno</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={toggleDarkMode}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
-              <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
-            </label>
-          </li>
         </ul>
       </nav>
+
+      {/* 🔥 Switch de modo noturno no rodapé */}
+      <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700 transition px-2 py-2">
+          <div className="flex items-center">
+            {darkMode ? (
+              // ☀️ Ícone Sol
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4V2m0 20v-2m8-8h2M2 12h2m15.364 6.364l1.414 1.414M4.222 4.222l1.414 1.414m12.728 0l1.414-1.414M4.222 19.778l1.414-1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+            ) : (
+              // 🌙 Ícone Lua
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
+                />
+              </svg>
+            )}
+            <span>{darkMode ? "" : ""}</span>
+          </div>
+
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={darkMode}
+              onChange={toggleDarkMode}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
+            <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
+          </label>
+        </div>
+      </div>
     </aside>
   );
 };
