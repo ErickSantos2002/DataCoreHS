@@ -57,3 +57,9 @@ export const createConfiguracao = async (chave: string, valor: string) => {
   const response = await api.post("/configuracoes/", { chave, valor });
   return response.data;
 };
+
+// Estoque
+export const fetchEstoque = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/estoque/", { params });
+  return response.data;
+};
