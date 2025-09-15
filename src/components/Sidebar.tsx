@@ -144,7 +144,7 @@ const Sidebar: React.FC = () => {
       </nav>
 
       {/* Switch de modo noturno */}
-      <div className="px-4 py-3 border-t border-blue-800 dark:border-gray-700">
+      <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between font-medium text-gray-800 dark:text-white">
           <div className="flex items-center gap-2">
             {darkMode ? (

@@ -686,12 +686,16 @@ const Vendas: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={rankingProdutos}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="produto" angle={-45} textAnchor="end" height={80} />
+                <XAxis dataKey="produto" angle={-45} textAnchor="end" height={0} />
                 <YAxis
-                    tickFormatter={(value) => formatarValorAbreviado(value)}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => formatarValorAbreviado(value)}
+                  tick={({ x, y, payload }) => (
+                    <text x={x} y={y} textAnchor="end" fontSize={10} fill="#555">
+                      {formatarValorAbreviado(payload.value)}
+                    </text>
+                  )}
+                />
+                <Tooltip
+                  formatter={(value: number) => formatarValorAbreviado(value)}
                   />
                 <Bar dataKey="valor" fill={CORES.laranja} />
               </BarChart>

@@ -46,7 +46,7 @@ const Dashboard: React.FC = () => {
           <path
             d="M20 80 A60 60 0 0 1 140 80"
             fill="none"
-            stroke="#374151" // cinza mais visível no dark
+            stroke="#e0e0e0" // cinza mais visível no dark
             strokeWidth="12"
           />
           <path
