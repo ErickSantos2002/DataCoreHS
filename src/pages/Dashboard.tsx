@@ -104,22 +104,20 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-6 h-full bg-gray-100 dark:bg-darkBlue transition-colors">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-        Dashboard
-      </h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-1">
-        Bem-vindo,{" "}
-        <span className="font-semibold text-gray-800 dark:text-yellow-300">
-          {user?.username}
-        </span>
-        !
-      </p>
-      <p className="mb-6 text-gray-600 dark:text-gray-300">
-        Sua permissão:{" "}
-        <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 text-sm px-2 py-1 rounded">
-          {user?.role}
-        </span>
-      </p>
+      {/* Cabeçalho */}
+      <div className="bg-white shadow-sm rounded-xl border-b">
+        <div className="px-6 py-4">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Meta Quadrimestral - Dashboard
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            Acompanhe o quanto falta para a empresa atingir a meta.
+          </p>
+        </div>
+      </div>
 
       {/* CARD PRINCIPAL */}
       <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow p-8 mt-6 w-full max-w-[1600px] mx-auto transition-colors">
