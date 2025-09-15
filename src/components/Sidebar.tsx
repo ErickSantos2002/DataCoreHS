@@ -1,77 +1,100 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../context/ThemeContext"; // 🔥 importa o contexto
+import { useTheme } from "../context/ThemeContext";
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme(); // 🔥 pega estado e função
+  const { darkMode, toggleDarkMode } = useTheme();
 
   if (location.pathname === "/login") return null;
+
+  const iconBaseClass = "w-5 h-5 mr-2 transition-colors";
+
+  const getColor = (isActive: boolean) => {
+    if (darkMode) {
+      return "FFFFFF"; // ícones brancos no dark
+    }
+    return isActive ? "1E3A8A" : "1D4ED8"; // ativo azul mais escuro, normal azul leal
+  };
 
   const menuItems = [
     {
       label: "Início",
       to: "/inicio",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=83326&format=png&color=${getColor(isActive)}`}
+          alt="Início"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Dashboard",
       to: "/dashboard",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h4v-2H3v2zm6 8h2v-2h-2v2zm0-18v2h2V3h-2zm12 7v2h-2v-2h2zm-8-4V3h-2v2h2zm-2 14v2h2v-2h-2zm4-2v2h2v-2h-2z" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=udjU_YS4lMXL&format=png&color=${getColor(isActive)}`}
+          alt="Dashboard"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Vendas",
       to: "/vendas",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M9 21V10m6 11V10" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=js1Qz0RqXlSO&format=png&color=${getColor(isActive)}`}
+          alt="Vendas"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Serviços",
       to: "/servicos",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-6h6v6m-3-12a9 9 0 100 18 9 9 0 000-18z" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=30379&format=png&color=${getColor(isActive)}`}
+          alt="Serviços"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Clientes",
       to: "/clientes",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1117.804 5.121 7 7 0 005.121 17.804z" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=59220&format=png&color=${getColor(isActive)}`}
+          alt="Clientes"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Vendedores",
       to: "/vendedores",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-6 8h4a4 4 0 014 4v1H6v-1a4 4 0 014-4z" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=JWjVwvCeYGIZ&format=png&color=${getColor(isActive)}`}
+          alt="Vendedores"
+          className={iconBaseClass}
+        />
       ),
     },
     {
       label: "Estoque",
       to: "/estoque",
-      icon: (
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V5a2 2 0 00-2-2H6a2 2 0 00-2 2v8m16 0H4m16 0l-2 6H6l-2-6" />
-        </svg>
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=8286&format=png&color=${getColor(isActive)}`}
+          alt="Estoque"
+          className={iconBaseClass}
+        />
       ),
     },
     ...(user?.role === "admin"
@@ -79,10 +102,12 @@ const Sidebar: React.FC = () => {
           {
             label: "Configurações",
             to: "/configuracoes",
-            icon: (
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m0 14v1m8-8h1M4 12H3m15.36 6.36l-.71-.71M6.34 6.34l-.71-.71m12.02 0l-.71.71M6.34 17.66l-.71.71" />
-              </svg>
+            icon: (isActive: boolean) => (
+              <img
+                src={`https://img.icons8.com/?size=100&id=2969&format=png&color=${getColor(isActive)}`}
+                alt="Configurações"
+                className={iconBaseClass}
+              />
             ),
           },
         ]
@@ -90,8 +115,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="hidden lg:flex w-56 bg-white dark:bg-darkBlue shadow sticky top-0 flex-col transition-colors">
-      {/* Menu */}
+    <aside className="hidden lg:flex w-56 bg-white dark:bg-[#0a192f] text-gray-900 dark:text-gray-100 shadow sticky top-0 flex-col transition-colors">
       <nav className="flex-1 py-6">
         <ul className="space-y-2">
           {menuItems.map((item) => (
@@ -101,56 +125,43 @@ const Sidebar: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700"
+                      ? "bg-gray-200 text-blue-700 dark:bg-white/10 dark:text-white"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-blue-700"
                   }`
                 }
                 end
               >
-                {item.icon}
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    {item.icon(isActive)}
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* 🔥 Switch de modo noturno no rodapé */}
-      <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between rounded-lg font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700 transition px-2 py-2">
-          <div className="flex items-center">
+      {/* Switch de modo noturno */}
+      <div className="px-4 py-3 border-t border-blue-800 dark:border-gray-700">
+        <div className="flex items-center justify-between font-medium text-gray-800 dark:text-white">
+          <div className="flex items-center gap-2">
             {darkMode ? (
-              // ☀️ Ícone Sol
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4V2m0 20v-2m8-8h2M2 12h2m15.364 6.364l1.414 1.414M4.222 4.222l1.414 1.414m12.728 0l1.414-1.414M4.222 19.778l1.414-1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
+              // ☀️ Sol amarelo
+              <img
+                src="https://img.icons8.com/?size=100&id=s6SybfgfYCLU&format=png&color=FFD700"
+                alt="Modo Claro"
+                className="w-6 h-6 drop-shadow-md"
+              />
             ) : (
-              // 🌙 Ícone Lua
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
-                />
-              </svg>
+              // 🌙 Lua azul no modo claro
+              <img
+                src="https://img.icons8.com/?size=100&id=11404&format=png&color=2563EB"
+                alt="Modo Escuro"
+                className="w-6 h-6 drop-shadow-md"
+              />
             )}
-            <span>{darkMode ? "" : ""}</span>
           </div>
 
           <label className="relative inline-flex items-center cursor-pointer">
@@ -160,8 +171,10 @@ const Sidebar: React.FC = () => {
               onChange={toggleDarkMode}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
-            <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
+            {/* trilha */}
+            <div className="w-12 h-7 bg-gray-400 dark:bg-gray-700 rounded-full peer-checked:bg-blue-700 transition-all"></div>
+            {/* bolinha */}
+            <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full border shadow-md transition-transform peer-checked:translate-x-5"></div>
           </label>
         </div>
       </div>
