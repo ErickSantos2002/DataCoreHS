@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { fetchEstoque } from "../services/notasapi";
+import React, { useMemo, useState, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useEstoque } from "../context/EstoqueContext";
 import {
   BarChart,
   Bar,
@@ -7,220 +8,867 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  CartesianGrid,
 } from "recharts";
+import {
+  Package,
+  DollarSign,
+  AlertTriangle,
+  TrendingUp,
+  Filter,
+  Download,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  Activity,
+} from "lucide-react";
+import * as XLSX from "xlsx";
 
-interface EstoqueItem {
+// Tipagem do Produto do Estoque
+interface ProdutoEstoque {
   id: number;
   nome: string;
-  codigo: number;
+  codigo: string;
+  unidade: string;
   preco: number;
-  preco_promocional: number;
   saldo: number;
-  localizacao: string;
-  situacao: string;
+  situacao: "A" | "I";
 }
 
-export default function Estoque() {
-  const [estoque, setEstoque] = useState<EstoqueItem[]>([]);
-  const [loading, setLoading] = useState(true);
+// Cores padrão para gráficos
+const CORES = {
+  azul: "#2563eb",
+  verde: "#10b981",
+  roxo: "#8b5cf6",
+  laranja: "#f97316",
+  vermelho: "#ef4444",
+  amarelo: "#eab308",
+  rosa: "#ec4899",
+  cyan: "#06b6d4",
+};
 
-  useEffect(() => {
-    const carregar = async () => {
-      try {
-        const data = await fetchEstoque();
-        setEstoque(data);
-      } catch (error) {
-        console.error("Erro ao carregar estoque", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    carregar();
-  }, []);
+const CORES_GRAFICO = [
+  CORES.azul,
+  CORES.verde,
+  CORES.roxo,
+  CORES.laranja,
+  CORES.vermelho,
+  CORES.amarelo,
+  CORES.rosa,
+  CORES.cyan,
+];
 
-  if (loading)
-    return (
-      <p className="text-gray-600 dark:text-gray-300">Carregando estoque...</p>
+const Estoque: React.FC = () => {
+  const { user } = useAuth();
+  const { produtos, carregando } = useEstoque();
+
+  // Estados dos filtros
+  const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
+  const [filtroSituacao, setFiltroSituacao] = useState<string>("todos");
+  const [filtroSaldo, setFiltroSaldo] = useState<string>("todos");
+
+  // Estados da tabela
+  const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
+    campo: 'nome',
+    direcao: 'asc'
+  });
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina] = useState(15);
+  const [pesquisaTabela, setPesquisaTabela] = useState("");
+
+  // Listas únicas para filtros
+  const produtosUnicos = useMemo(() => 
+    Array.from(new Set(produtos.map(p => p.nome).filter(Boolean))).sort(),
+    [produtos]
+  );
+
+  // Aplicação dos filtros
+  const produtosFiltrados = useMemo(() => {
+    return produtos.filter(p => {
+      // Filtro de produto
+      const produtoOk = filtroProduto.length === 0 || 
+        filtroProduto.includes(p.nome);
+      
+      // Filtro de situação
+      const situacaoOk = filtroSituacao === "todos" ||
+        (filtroSituacao === "A" && p.situacao === "A") ||
+        (filtroSituacao === "I" && p.situacao === "I");
+      
+      // Filtro de saldo
+      const saldoOk = filtroSaldo === "todos" ||
+        (filtroSaldo === "comSaldo" && p.saldo > 0) ||
+        (filtroSaldo === "semSaldo" && p.saldo === 0) ||
+        (filtroSaldo === "Negativo" && p.saldo < 0);;
+      
+      return produtoOk && situacaoOk && saldoOk;
+    });
+  }, [produtos, filtroProduto, filtroSituacao, filtroSaldo]);
+
+  // KPIs Calculados
+  const kpis = useMemo(() => {
+    const produtosAtivos = produtosFiltrados.filter(p => p.situacao === "A").length;
+    const produtosSemSaldo = produtosFiltrados.filter(p => p.saldo === 0).length;
+    const valorTotalEstoque = produtosFiltrados.reduce(
+      (acc, p) => acc + (p.saldo * p.preco),
+      0
     );
 
-  // --- Métricas para os cards ---
-  const valorTotal = estoque.reduce(
-    (acc, item) => acc + item.preco * item.saldo,
-    0
-  );
-  const numeroItens = estoque.length;
-  const margemMedia = (
-    estoque.reduce(
-      (acc, item) => acc + (item.preco - item.preco_promocional),
-      0
-    ) / numeroItens || 0
-  ).toFixed(2);
+    // Produto com maior valor em estoque
+    const produtoMaiorValor = produtosFiltrados
+      .map(p => ({ ...p, valor: p.saldo * p.preco }))
+      .sort((a, b) => b.valor - a.valor)[0];
 
-  // --- Gráfico Produtos mais estocados ---
-  const topProdutos = [...estoque]
-    .sort((a, b) => b.saldo - a.saldo)
-    .slice(0, 6)
-    .map((item) => ({ nome: item.nome, saldo: item.saldo }));
+    return {
+      produtosAtivos,
+      produtosSemSaldo,
+      valorTotalEstoque,
+      produtoTop: produtoMaiorValor ? {
+        nome: produtoMaiorValor.nome,
+        valor: produtoMaiorValor.valor,
+        unidade: produtoMaiorValor.unidade,
+        saldo: produtoMaiorValor.saldo
+      } : null
+    };
+  }, [produtosFiltrados]);
 
-  // --- Ranking de Produtos por Valor ---
-  const rankingValorProdutos = estoque
-    .map((item) => ({
-      nome: item.nome,
-      valor: item.preco * item.saldo,
-    }))
-    .sort((a, b) => b.valor - a.valor)
-    .slice(0, 6);
+  // Dados para ranking de produtos (Top 10)
+  const rankingProdutos = useMemo(() => {
+    return produtosFiltrados
+      .filter(p => p.saldo > 0 && p.preco > 0)
+      .map(p => ({
+        nome: p.nome.length > 20 ? p.nome.substring(0, 20) + "..." : p.nome,
+        valor: p.saldo * p.preco,
+        unidade: p.unidade
+      }))
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 10);
+  }, [produtosFiltrados]);
+
+  // Dados para distribuição de valor
+  const distribuicaoValor = useMemo(() => {
+    return produtosFiltrados
+      .filter(p => p.saldo > 0 && p.preco > 0)
+      .map(p => ({
+        name: p.nome.length > 15 ? p.nome.substring(0, 15) + "..." : p.nome,
+        value: p.saldo * p.preco
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8); // Top 8 para visualização
+  }, [produtosFiltrados]);
+
+  // Dados para situação dos produtos
+  const situacaoProdutos = useMemo(() => {
+    const ativos = produtosFiltrados.filter(p => p.situacao === "A").length;
+    const inativos = produtosFiltrados.filter(p => p.situacao === "I").length;
+    
+    return [
+      { name: "Ativos", value: ativos },
+      { name: "Inativos", value: inativos }
+    ].filter(item => item.value > 0);
+  }, [produtosFiltrados]);
+
+  // Tabela com pesquisa e ordenação
+  const produtosTabela = useMemo(() => {
+    let filtrados = [...produtosFiltrados];
+
+    // Aplicar pesquisa
+    if (pesquisaTabela) {
+      const termo = pesquisaTabela.toLowerCase();
+      filtrados = filtrados.filter(p =>
+        p.nome.toLowerCase().includes(termo) ||
+        String(p.codigo).toLowerCase().includes(termo) ||  // corrigido
+        p.unidade.toLowerCase().includes(termo)
+      );
+    }
+
+    // Aplicar ordenação
+    filtrados.sort((a, b) => {
+      let aVal: any, bVal: any;
+      
+      switch(ordenacao.campo) {
+        case 'nome':
+          aVal = a.nome.toLowerCase();
+          bVal = b.nome.toLowerCase();
+          break;
+        case 'codigo':
+          aVal = a.codigo.toLowerCase();
+          bVal = b.codigo.toLowerCase();
+          break;
+        case 'preco':
+          aVal = a.preco;
+          bVal = b.preco;
+          break;
+        case 'saldo':
+          aVal = a.saldo;
+          bVal = b.saldo;
+          break;
+        case 'situacao':
+          aVal = a.situacao;
+          bVal = b.situacao;
+          break;
+        default:
+          return 0;
+      }
+
+      if (ordenacao.direcao === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+
+    return filtrados;
+  }, [produtosFiltrados, pesquisaTabela, ordenacao]);
+
+  // Paginação
+  const produtosPaginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    return produtosTabela.slice(inicio, fim);
+  }, [produtosTabela, paginaAtual, itensPorPagina]);
+
+  const totalPaginas = Math.ceil(produtosTabela.length / itensPorPagina);
+
+  // Formatação de valores
+  const formatarValorAbreviado = (valor: number) => {
+    if (valor >= 1_000_000) {
+      return `R$ ${(valor / 1_000_000).toFixed(1)}M`;
+    } else if (valor >= 1_000) {
+      return `R$ ${(valor / 1_000).toFixed(1)}K`;
+    }
+    return `R$ ${valor.toFixed(2)}`;
+  };
+
+  // Função para alternar ordenação
+  const alternarOrdenacao = (campo: string) => {
+    setOrdenacao(prev => ({
+      campo,
+      direcao: prev.campo === campo && prev.direcao === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  // Exportação para Excel
+  const exportarExcel = useCallback(() => {
+    const dadosExport = produtosFiltrados.map(p => ({
+      'Nome': p.nome,
+      'Código': p.codigo,
+      'Unidade': p.unidade,
+      'Preço': p.preco,
+      'Saldo': p.saldo,
+      'Situação': p.situacao === 'A' ? 'Ativo' : 'Inativo',
+      'Valor Total': p.saldo * p.preco
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dadosExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Estoque");
+    XLSX.writeFile(wb, `estoque_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }, [produtosFiltrados]);
+
+  // Componente de MultiSelect customizado
+  const MultiSelect = ({ 
+    options, 
+    selected, 
+    onChange, 
+    placeholder 
+  }: {
+    options: string[];
+    selected: string[];
+    onChange: (val: string[]) => void;
+    placeholder: string;
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const toggleOption = (option: string) => {
+      if (selected.includes(option)) {
+        onChange(selected.filter(s => s !== option));
+      } else {
+        onChange([...selected, option]);
+      }
+    };
+
+    const filteredOptions = options.filter((option) =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-3 py-2 text-left border rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <span className="text-sm">
+            {selected.length > 0 
+              ? `${selected.length} selecionado(s)` 
+              : placeholder}
+          </span>
+        </button>
+        
+        {isOpen && (
+          <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+            <div className="p-2 border-b">
+              <input
+                type="text"
+                placeholder="Pesquisar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            <div className="p-2">
+              <button
+                onClick={() => onChange([])}
+                className="w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+              >
+                Limpar seleção
+              </button>
+            </div>
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <label
+                  key={option}
+                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-100"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(option)}
+                    onChange={() => toggleOption(option)}
+                    className="mr-2"
+                  />
+                  {option}
+                </label>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando dados do estoque...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 h-full bg-gray-100 dark:bg-darkBlue transition-colors flex flex-col gap-4">
-      {/* Cards de resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-shrink-0">
-        <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow transition-colors">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            VALOR TOTAL DO ESTOQUE
-          </h3>
-          <p className="text-2xl font-bold text-blue-600 dark:text-yellow-300">
-            R$ {valorTotal.toLocaleString()}
+    <div className="min-h-screen bg-gray-50">
+      {/* Cabeçalho */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="px-6 py-4">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Estoque - Dashboard
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
           </p>
-        </div>
-        <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow transition-colors">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            NÚMERO DE ITENS
-          </h3>
-          <p className="text-2xl font-bold text-blue-600 dark:text-yellow-300">
-            {numeroItens}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow transition-colors">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            MARGEM MÉDIA
-          </h3>
-          <p className="text-2xl font-bold text-blue-600 dark:text-yellow-300">
-            {margemMedia}%
+          <p className="text-gray-500 text-sm mt-2">
+            Confira a posição atual do estoque e visualize os produtos disponíveis.
           </p>
         </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-shrink-0 overflow-hidden">
-        <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow transition-colors">
-          <h3 className="font-medium mb-4 text-gray-700 dark:text-gray-200">
-            PRODUTOS MAIS ESTOCADOS
-          </h3>
-          <ResponsiveContainer width="99%" height={200}>
-            <BarChart
-              data={topProdutos}
-              margin={{ top: 10, right: 20, left: 40, bottom: 5 }}
-            >
-              <XAxis
-                dataKey="nome"
-                stroke="currentColor"
-                className="text-gray-700 dark:text-gray-300"
+      <div className="p-6">
+        {/* Filtros */}
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <div className="flex items-center mb-4">
+            <Filter className="w-5 h-5 mr-2 text-gray-600" />
+            <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Produtos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Produtos
+              </label>
+              <MultiSelect
+                options={produtosUnicos}
+                selected={filtroProduto}
+                onChange={setFiltroProduto}
+                placeholder="Todos os produtos"
               />
-              <YAxis
-                stroke="currentColor"
-                className="text-gray-700 dark:text-gray-300"
-                tickFormatter={(value) => value.toLocaleString("pt-BR")}
-              />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1e293b", color: "#f8fafc" }}
-              />
-              <Bar dataKey="saldo" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow transition-colors">
-          <h3 className="font-medium mb-4 text-gray-700 dark:text-gray-200">
-            PRODUTOS MAIS VALIOSOS
-          </h3>
-          <ResponsiveContainer width="99%" height={200}>
-            <BarChart
-              data={rankingValorProdutos}
-              margin={{ top: 10, right: 20, left: 50, bottom: 5 }}
-            >
-              <XAxis
-                dataKey="nome"
-                stroke="currentColor"
-                className="text-gray-700 dark:text-gray-300"
-              />
-              <YAxis
-                stroke="currentColor"
-                className="text-gray-700 dark:text-gray-300"
-                tickFormatter={(value) =>
-                  `R$ ${(value / 1000000).toFixed(1)}M`
-                }
-              />
-              <Tooltip
-                formatter={(value: number) => `R$ ${value.toLocaleString()}`}
-                contentStyle={{ backgroundColor: "#1e293b", color: "#f8fafc" }}
-              />
-              <Bar dataKey="valor" fill="#f59e0b" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+            </div>
 
-      {/* Tabela */}
-      <div className="bg-white dark:bg-[#0f172a] p-4 rounded-lg shadow flex flex-col transition-colors">
-        <h3 className="font-medium mb-2 text-gray-700 dark:text-gray-200">
-          Lista de Estoque
-        </h3>
+            {/* Situação */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Situação
+              </label>
+              <select
+                value={filtroSituacao}
+                onChange={(e) => setFiltroSituacao(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="todos">Todos</option>
+                <option value="A">Ativo</option>
+                <option value="I">Inativo</option>
+              </select>
+            </div>
 
-        {/* 🔥 Scroll interno, altura controlada */}
-        <div className="flex-1 overflow-y-auto max-h-[240px]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-800">
-                <th className="p-2 text-gray-700 dark:text-gray-300">Nome</th>
-                <th className="p-2 text-gray-700 dark:text-gray-300">Código</th>
-                <th className="p-2 text-gray-700 dark:text-gray-300">Preço</th>
-                <th className="p-2 text-gray-700 dark:text-gray-300">
-                  Preço Promocional
-                </th>
-                <th className="p-2 text-gray-700 dark:text-gray-300">Saldo</th>
-                <th className="p-2 text-gray-700 dark:text-gray-300">
-                  Situação
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {estoque.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-b border-gray-200 dark:border-gray-700"
+            {/* Saldo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Saldo
+              </label>
+              <select
+                value={filtroSaldo}
+                onChange={(e) => setFiltroSaldo(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="todos">Todos</option>
+                <option value="comSaldo">Somente com saldo</option>
+                <option value="semSaldo">Somente sem saldo</option>
+                <option value="Negativo">Somente saldo negativo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Produtos Ativos */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Produtos Ativos</p>
+                <p className="text-2xl font-bold text-green-600 mt-2">
+                  {kpis.produtosAtivos}
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-full">
+                <Activity className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Produtos sem Saldo */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Produtos sem Saldo</p>
+                <p className="text-2xl font-bold text-red-600 mt-2">
+                  {kpis.produtosSemSaldo}
+                </p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Valor Total em Estoque */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Valor Total em Estoque</p>
+                <p className="text-2xl font-bold text-blue-600 mt-2">
+                  R$ {kpis.valorTotalEstoque.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-full">
+                <DollarSign className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Produto com Maior Saldo */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Produto Top</p>
+                <p className="text-lg font-bold text-orange-600 mt-2 truncate">
+                  {kpis.produtoTop?.nome || "N/A"}
+                </p>
+                <p className="text-sm text-gray-500">
+                    R$ {kpis.produtoTop?.valor.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })} ({kpis.produtoTop?.unidade})
+                  </p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-full">
+                <Package className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Top 10 Produtos */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4"> 
+              Top 10 Produtos em Estoque
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart 
+                data={rankingProdutos} 
+                layout="vertical"
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  tickFormatter={(value) => `${value}`}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="nome" 
+                  width={150}
+                />
+                <Tooltip
+                  formatter={(value: number) => 
+                    `R$ ${value.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })}`
+                  }
+                />
+                <Bar dataKey="valor" fill={CORES.laranja} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Distribuição de Valor */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Distribuição de Valor em Estoque
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={distribuicaoValor}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent = 0 }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
                 >
-                  <td className="p-2 text-gray-800 dark:text-gray-200">
-                    {item.nome}
-                  </td>
-                  <td className="p-2 text-gray-800 dark:text-gray-200">
-                    {item.codigo}
-                  </td>
-                  <td className="p-2 text-gray-800 dark:text-gray-200">
-                    R$ {item.preco}
-                  </td>
-                  <td className="p-2 text-gray-800 dark:text-gray-200">
-                    R$ {item.preco_promocional}
-                  </td>
-                  <td className="p-2 text-gray-800 dark:text-gray-200">
-                    {item.saldo}
-                  </td>
-                  <td className="p-2">
-                    {item.situacao === "A" ? (
-                      <span className="text-green-600 dark:text-green-400 font-medium">
-                        Ativo
-                      </span>
-                    ) : (
-                      <span className="text-red-600 dark:text-red-400 font-medium">
-                        Inativo
-                      </span>
-                    )}
-                  </td>
+                  {distribuicaoValor.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => formatarValorAbreviado(value)}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Situação dos Produtos */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Situação dos Produtos
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={situacaoProdutos}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value, percent = 0 }) =>
+                    `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {situacaoProdutos.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho} 
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Estatísticas Adicionais */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Estatísticas do Estoque
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Total de Produtos</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {produtosFiltrados.length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Preço Médio</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  R$ {produtosFiltrados.length > 0 
+                    ? (produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) / produtosFiltrados.length).toFixed(2)
+                    : '0,00'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Saldo Médio</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {produtosFiltrados.length > 0 
+                    ? (produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) / produtosFiltrados.length).toFixed(1)
+                    : '0'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Maior Preço</span>
+                <span className="text-sm font-semibold text-blue-600">
+                  R$ {produtosFiltrados.length > 0 
+                    ? Math.max(...produtosFiltrados.map(p => p.preco)).toFixed(2)
+                    : '0,00'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabela de Produtos */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
+              Detalhamento do Estoque
+            </h3>
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:flex-initial">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Pesquisar..."
+                  value={pesquisaTabela}
+                  onChange={(e) => setPesquisaTabela(e.target.value)}
+                  className="pl-10 pr-3 py-2 border rounded-lg w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                onClick={exportarExcel}
+                className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar Excel
+              </button>
+            </div>
+          </div>
+
+          {/* Tabela */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th 
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
+                    onClick={() => alternarOrdenacao('nome')}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700">Nome</span>
+                      {ordenacao.campo === 'nome' && (
+                        ordenacao.direcao === 'desc' ? 
+                          <ChevronDown className="w-4 h-4 ml-1" /> : 
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
+                    onClick={() => alternarOrdenacao('codigo')}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700">Código</span>
+                      {ordenacao.campo === 'codigo' && (
+                        ordenacao.direcao === 'desc' ? 
+                          <ChevronDown className="w-4 h-4 ml-1" /> : 
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left">
+                    <span className="font-medium text-gray-700">Unidade</span>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
+                    onClick={() => alternarOrdenacao('preco')}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700">Preço</span>
+                      {ordenacao.campo === 'preco' && (
+                        ordenacao.direcao === 'desc' ? 
+                          <ChevronDown className="w-4 h-4 ml-1" /> : 
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
+                    onClick={() => alternarOrdenacao('saldo')}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700">Saldo</span>
+                      {ordenacao.campo === 'saldo' && (
+                        ordenacao.direcao === 'desc' ? 
+                          <ChevronDown className="w-4 h-4 ml-1" /> : 
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
+                    onClick={() => alternarOrdenacao('situacao')}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700">Situação</span>
+                      {ordenacao.campo === 'situacao' && (
+                        ordenacao.direcao === 'desc' ? 
+                          <ChevronDown className="w-4 h-4 ml-1" /> : 
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left">
+                    <span className="font-medium text-gray-700">Valor Total</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {produtosPaginados.map((produto, index) => (
+                  <tr 
+                    key={produto.id} 
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {produto.nome}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {produto.codigo}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {produto.unidade}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-semibold text-blue-600">
+                        R$ {produto.preco.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-sm font-semibold ${
+                        produto.saldo > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {produto.saldo.toLocaleString("pt-BR")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        produto.situacao === 'A' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {produto.situacao === 'A' ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-semibold text-purple-600">
+                        R$ {(produto.saldo * produto.preco).toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginação */}
+          {totalPaginas > 1 && (
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-gray-600">
+                Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
+                {Math.min(paginaAtual * itensPorPagina, produtosTabela.length)} de{" "}
+                {produtosTabela.length} registros
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                  disabled={paginaAtual === 1}
+                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                
+                {/* Números de página */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                    let pageNum;
+                    if (totalPaginas <= 5) {
+                      pageNum = i + 1;
+                    } else if (paginaAtual <= 3) {
+                      pageNum = i + 1;
+                    } else if (paginaAtual >= totalPaginas - 2) {
+                      pageNum = totalPaginas - 4 + i;
+                    } else {
+                      pageNum = paginaAtual - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPaginaAtual(pageNum)}
+                        className={`px-3 py-1 border rounded-lg ${
+                          paginaAtual === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próximo
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Estoque;
