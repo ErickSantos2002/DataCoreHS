@@ -378,6 +378,7 @@ const Vendas: React.FC = () => {
     placeholder: string;
   }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const toggleOption = (option: string) => {
       if (selected.includes(option)) {
@@ -386,6 +387,10 @@ const Vendas: React.FC = () => {
         onChange([...selected, option]);
       }
     };
+
+    const filteredOptions = options.filter((option) =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
       <div className="relative">
@@ -402,6 +407,16 @@ const Vendas: React.FC = () => {
         
         {isOpen && (
           <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+            {/* Campo de pesquisa */}
+            <div className="p-2 border-b">
+              <input
+                type="text"
+                placeholder="Pesquisar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
             <div className="p-2">
               <button
                 onClick={() => onChange([])}
@@ -410,20 +425,25 @@ const Vendas: React.FC = () => {
                 Limpar seleção
               </button>
             </div>
-            {options.map(option => (
-              <label
-                key={option}
-                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(option)}
-                  onChange={() => toggleOption(option)}
-                  className="mr-2"
-                />
-                <span className="text-sm">{option}</span>
-              </label>
-            ))}
+            {/* Lista filtrada com checkboxes */}
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <label
+                  key={option}
+                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-100"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(option)}
+                    onChange={() => toggleOption(option)}
+                    className="mr-2"
+                  />
+                  {option}
+                </label>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
+            )}
           </div>
         )}
       </div>
@@ -684,7 +704,10 @@ const Vendas: React.FC = () => {
               Top 5 Vendedores
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={rankingVendedores} layout="horizontal">
+              <BarChart 
+                data={rankingVendedores} 
+                layout="vertical"  // 🔥 ALTERADO de horizontal para vertical
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   type="number"
@@ -693,7 +716,11 @@ const Vendas: React.FC = () => {
                 <Tooltip
                   formatter={(value: number) => formatarValorAbreviado(value)}
                 />
-                <YAxis type="category" dataKey="vendedor" width={150} />
+                <YAxis 
+                  type="category" 
+                  dataKey="vendedor" 
+                  width={150} 
+                />
                 <Bar dataKey="valor" fill={CORES.verde} />
               </BarChart>
             </ResponsiveContainer>
@@ -951,7 +978,7 @@ const Vendas: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Total de Vendedores</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {new Set(notasFiltradas.map(n => n.nome_vendedor)).size}
+                  {new Set(notasFiltradas.map(n => n.nome_vendedor)).size-1}
                 </span>
               </div>
               <div className="flex justify-between">
