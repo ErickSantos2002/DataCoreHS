@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { fetchVendas } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
+import { useVendas } from "../context/VendasContext";
 import {
   BarChart,
   Bar,
@@ -71,8 +72,7 @@ const CORES_GRAFICO = [
 
 const Vendas: React.FC = () => {
   const { user } = useAuth();
-  const [notas, setNotas] = useState<Nota[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const { notas, carregando } = useVendas();
 
   // Estados dos filtros
   const [filtroEmpresa, setFiltroEmpresa] = useState<string[]>([]);
@@ -90,21 +90,6 @@ const Vendas: React.FC = () => {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina] = useState(10);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
-
-  // Busca as notas na API
-  useEffect(() => {
-    const carregarNotas = async () => {
-      try {
-        const data = await fetchVendas();
-        setNotas(data);
-      } catch (error) {
-        console.error("Erro ao buscar notas:", error);
-      } finally {
-        setCarregando(false);
-      }
-    };
-    carregarNotas();
-  }, []);
 
   // Gerenciador de presets de período
   useEffect(() => {
