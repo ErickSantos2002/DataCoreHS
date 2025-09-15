@@ -34,12 +34,12 @@ const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 import Bloqueio from "./pages/Bloqueio"; // importe o novo componente
 
-const RequireVendasOuAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const RequireVendas: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
 
-  if (!user || (user.role !== "admin" && user.role !== "vendas")) {
+  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro" && user.role !== "qualidade")) {
     return <Bloqueio />;
   }
 
@@ -99,9 +99,9 @@ const AppRoutes: React.FC = () => (
       path="/vendas"
       element={
         <ProtectedRoute>
-          <RequireVendasOuAdmin>
+          <RequireVendas>
             <Vendas />
-          </RequireVendasOuAdmin>
+          </RequireVendas>
         </ProtectedRoute>
       }
     />
