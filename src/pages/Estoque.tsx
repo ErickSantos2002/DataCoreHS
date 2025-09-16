@@ -91,6 +91,8 @@ const Estoque: React.FC = () => {
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
   const [filtroSituacao, setFiltroSituacao] = useState<string>("todos");
   const [filtroSaldo, setFiltroSaldo] = useState<string>("todos");
+  const [filtroPersonalizado, setFiltroPersonalizado] = useState<string>("nenhum");
+  const codigosRapidos = ["99", "1", "161", "319", "210", "24", "186", "156", "63"];
 
   // Estados da tabela
   const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
@@ -111,23 +113,28 @@ const Estoque: React.FC = () => {
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
       // Filtro de produto
-      const produtoOk = filtroProduto.length === 0 || 
-        filtroProduto.includes(p.nome);
-      
+      const produtoOk = filtroProduto.length === 0 || filtroProduto.includes(p.nome);
+
       // Filtro de situação
       const situacaoOk = filtroSituacao === "todos" ||
         (filtroSituacao === "A" && p.situacao === "A") ||
         (filtroSituacao === "I" && p.situacao === "I");
-      
+
       // Filtro de saldo
       const saldoOk = filtroSaldo === "todos" ||
         (filtroSaldo === "comSaldo" && p.saldo > 0) ||
         (filtroSaldo === "semSaldo" && p.saldo === 0) ||
-        (filtroSaldo === "Negativo" && p.saldo < 0);;
-      
-      return produtoOk && situacaoOk && saldoOk;
+        (filtroSaldo === "Negativo" && p.saldo < 0);
+
+      // Filtro personalizado
+      const personalizadoOk =
+        filtroPersonalizado === "nenhum" ||
+        (filtroPersonalizado === "rapido" &&
+          codigosRapidos.includes(String(p.codigo)));
+
+      return produtoOk && situacaoOk && saldoOk && personalizadoOk;
     });
-  }, [produtos, filtroProduto, filtroSituacao, filtroSaldo]);
+  }, [produtos, filtroProduto, filtroSituacao, filtroSaldo, filtroPersonalizado]);
 
   // KPIs Calculados
   const kpis = useMemo(() => {
@@ -448,7 +455,7 @@ const Estoque: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Produtos */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -492,6 +499,21 @@ const Estoque: React.FC = () => {
                 <option value="comSaldo">Somente com saldo</option>
                 <option value="semSaldo">Somente sem saldo</option>
                 <option value="Negativo">Somente saldo negativo</option>
+              </select>
+            </div>
+
+            {/* Filtros Personalizados */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Filtros Personalizados
+              </label>
+              <select
+                value={filtroPersonalizado}
+                onChange={(e) => setFiltroPersonalizado(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="nenhum">Nenhum</option>
+                <option value="rapido">Principais</option>
               </select>
             </div>
           </div>
