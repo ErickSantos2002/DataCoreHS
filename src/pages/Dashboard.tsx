@@ -107,7 +107,7 @@ const Dashboard: React.FC = () => {
       {/* Cabeçalho */}
       <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
         <div className="px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-300">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Meta Quadrimestral - Dashboard
           </h1>
           <p className="text-gray-600 dark:text-white mt-1">
@@ -129,14 +129,14 @@ const Dashboard: React.FC = () => {
             </h2>
             <p className="text-gray-700 dark:text-gray-300 max-w-sm text-justify">
               Esta página exibe o{" "}
-              <strong className="text-gray-900 dark:text-yellow-300">
+              <strong className="text-gray-900 dark:text-yellow-400">
                 faturamento total do quadrimestre atual
               </strong>
               , considerando as Notas Fiscais de Venda e Serviço. Ao lado, temos
-              um <strong className="dark:text-yellow-300">gráfico velocímetro</strong>{" "}
+              um <strong className="dark:text-yellow-400">gráfico velocímetro</strong>{" "}
               com faixas de bonificação. Ao atingir cada marcação, a equipe
               receberá um{" "}
-              <strong className="dark:text-yellow-300">PL proporcional</strong>{" "}
+              <strong className="dark:text-yellow-400">PL proporcional</strong>{" "}
               à porcentagem alcançada da meta.
             </p>
           </div>
@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
                   {dados.map((item) => (
                     <li key={item.mes}>
                       <span className="font-medium">{item.mes}:</span>{" "}
-                      <span className="font-bold text-blue-700 dark:text-yellow-300">
+                      <span className="font-bold text-blue-700 dark:text-yellow-400">
                         R${" "}
                         {item.total.toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,

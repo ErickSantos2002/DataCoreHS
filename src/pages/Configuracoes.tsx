@@ -26,13 +26,13 @@ const Configuracoes: React.FC = () => {
 
   // Se ainda está carregando auth
   if (loading) {
-    return <div className="p-6 text-gray-500">Verificando permissões...</div>;
+    return <div className="p-6 text-gray-500 dark:text-gray-300">Verificando permissões...</div>;
   }
 
   // Se não for admin
   if (!user || user.role !== "admin") {
     return (
-      <div className="p-6 text-red-600 text-center font-semibold">
+      <div className="p-6 text-red-600 dark:text-red-400 text-center font-semibold">
         Acesso negado. Esta página é restrita a administradores.
       </div>
     );
@@ -43,7 +43,7 @@ const Configuracoes: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="p-6 text-gray-500">
+      <div className="p-6 text-gray-500 dark:text-gray-300">
         Carregando configurações...
       </div>
     );
@@ -51,27 +51,39 @@ const Configuracoes: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Configurações</h1>
-      <p className="text-gray-600 mb-6">Gerencie os parâmetros utilizados no Dashboard.</p>
+      {/* Card de título e descrição */}
+      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl p-6 mb-6 transition-colors">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400 mb-2">
+          Configurações
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Gerencie os parâmetros utilizados no Dashboard.
+        </p>
+      </div>
 
-      <div className="bg-white rounded-xl shadow p-4">
+      {/* Lista de configurações */}
+      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow p-4 transition-colors">
         {configuracoes.map((cfg) => (
           <div
             key={cfg.id}
-            className="border-b py-4 w-full flex flex-col gap-4 md:flex-row md:items-center"
+            className="border-b border-gray-200 dark:border-gray-700 py-4 w-full flex flex-col gap-4 md:flex-row md:items-center"
           >
             <div className="flex-1">
-              <p className="text-sm text-gray-500 font-semibold mb-1">{cfg.chave}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mb-1">
+                {cfg.chave}
+              </p>
               {editandoId === cfg.id ? (
                 <input
                   type="text"
                   value={novoValor}
                   onChange={(e) => setNovoValor(e.target.value)}
-                  className="w-full overflow-x-auto whitespace-nowrap p-3 text-sm rounded-lg border border-blue-300 bg-blue-50 text-gray-800 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+                  className="w-full overflow-x-auto whitespace-nowrap p-3 text-sm rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-[#1e293b] text-gray-800 dark:text-gray-200 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-[#0f172a] transition"
                   spellCheck={false}
                 />
               ) : (
-                <p className="text-gray-800 text-sm mt-1 whitespace-pre-line break-words">{cfg.valor}</p>
+                <p className="text-gray-800 dark:text-gray-200 text-sm mt-1 whitespace-pre-line break-words">
+                  {cfg.valor}
+                </p>
               )}
             </div>
 
@@ -80,13 +92,13 @@ const Configuracoes: React.FC = () => {
                 <>
                   <button
                     onClick={() => salvarEdicao(cfg.id, cfg.chave)}
-                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition"
                   >
                     Salvar
                   </button>
                   <button
                     onClick={cancelarEdicao}
-                    className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
+                    className="px-3 py-1 bg-gray-400 dark:bg-gray-600 text-white rounded hover:bg-gray-500 dark:hover:bg-gray-700 text-sm transition"
                   >
                     Cancelar
                   </button>
@@ -94,7 +106,7 @@ const Configuracoes: React.FC = () => {
               ) : (
                 <button
                   onClick={() => iniciarEdicao(cfg.id, cfg.valor)}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm transition"
                 >
                   Editar
                 </button>

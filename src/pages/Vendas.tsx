@@ -697,314 +697,288 @@ const Vendas: React.FC = () => {
 
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Evolução das Vendas */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Evolução das Vendas
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={dadosEvolucao}>
-                {/* Grid mais visível no dark */}
-                <CartesianGrid 
-                  strokeDasharray="3 3" 
-                  stroke="#334155" // slate-700 (mais claro no dark)
-                />
-                
-                {/* Eixo X */}
-                <XAxis 
-                  dataKey="mes" 
-                  tick={{ fill: "#e2e8f0", fontSize: 12 }} // text-slate-200
-                  axisLine={{ stroke: "#475569" }} // slate-600
-                />
-                
-                {/* Eixo Y */}
-                <YAxis
-                  tickFormatter={(value) => formatarValorAbreviado(value)}
-                  tick={{ fill: "#e2e8f0", fontSize: 12 }}
-                  axisLine={{ stroke: "#475569" }}
-                />
-                
-                {/* Tooltip melhorado */}
-                <Tooltip
-                  contentStyle={{ 
-                    backgroundColor: "#1e293b", // slate-800
-                    border: "1px solid #475569", 
-                    borderRadius: "8px",
-                    color: "#f8fafc" // text-slate-50
-                  }}
-                  itemStyle={{ color: "#60a5fa" }} // azul claro
-                  labelStyle={{ color: "#f1f5f9" }}
-                  formatter={(value: number) => formatarValorAbreviado(value)}
-                />
+  {/* Evolução das Vendas */}
+  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+      Evolução das Vendas
+    </h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={dadosEvolucao}>
+        {/* Grid */}
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
 
-                {/* Linha destacada */}
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#3b82f6" // azul-500 mais vibrante
-                  strokeWidth={3}
-                  dot={{ fill: "#60a5fa", r: 4 }} // azul claro
-                  activeDot={{ r: 6, fill: "#2563eb" }} // azul-600 no ponto ativo
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        {/* Eixo X */}
+        <XAxis
+          dataKey="mes"
+          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+          axisLine={{ stroke: "var(--chart-axis)" }}
+        />
 
-          {/* Ranking de Produtos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Top 5 Produtos
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={rankingProdutos} barCategoryGap="20%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+        {/* Eixo Y */}
+        <YAxis
+          tickFormatter={(value) => formatarValorAbreviado(value)}
+          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+          axisLine={{ stroke: "var(--chart-axis)" }}
+        />
 
-                {/* Eixo X */}
-                <XAxis
-                  dataKey="produto"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  tick={{ fill: "#e2e8f0", fontSize: 12 }}
-                  axisLine={{ stroke: "#475569" }}
-                  tickFormatter={(value) =>
-                    value.length > 15 ? value.substring(0, 15) + "..." : value
-                  }
-                />
+        {/* Tooltip */}
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#1e293b",
+            border: "1px solid var(--chart-axis)",
+            borderRadius: "8px",
+            color: "var(--chart-text)",
+          }}
+          itemStyle={{ color: "#60a5fa" }}
+          labelStyle={{ color: "var(--chart-text)" }}
+          formatter={(value: number) => formatarValorAbreviado(value)}
+        />
 
-                {/* Eixo Y */}
-                <YAxis
-                  tick={({ x, y, payload }) => (
-                    <text
-                      x={x}
-                      y={y}
-                      textAnchor="end"
-                      fontSize={11}
-                      fill="#e2e8f0"
-                    >
-                      {formatarValorAbreviado(payload.value)}
-                    </text>
-                  )}
-                  axisLine={{ stroke: "#475569" }}
-                />
+        {/* Linha */}
+        <Line
+          type="monotone"
+          dataKey="total"
+          stroke="#3b82f6"
+          strokeWidth={3}
+          dot={{ fill: "#60a5fa", r: 4 }}
+          activeDot={{ r: 6, fill: "#2563eb" }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
 
-                {/* Tooltip customizado */}
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: "#1e293b",
-                            border: "1px solid #475569",
-                            borderRadius: "8px",
-                            color: "#f8fafc",
-                            padding: "8px 12px",
-                            maxWidth: "220px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          <p
-                            style={{
-                              fontWeight: 600,
-                              marginBottom: "4px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            title={label}   // aqui quebra o React
-                            {label}
-                          </p>
-                          <p style={{ color: "#fb923c" }}>
-                            valor : {formatarValorAbreviado(payload[0].value as number)}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+  {/* Ranking de Produtos */}
+  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+      Top 5 Produtos
+    </h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={rankingProdutos} barCategoryGap="20%">
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
 
-                {/* Barras sem fundo cinza */}
-                <Bar
-                  dataKey="valor"
-                  fill={CORES.laranja}
-                  radius={[6, 6, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <XAxis
+          dataKey="produto"
+          angle={-45}
+          textAnchor="end"
+          height={60}
+          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+          axisLine={{ stroke: "var(--chart-axis)" }}
+          tickFormatter={(value) =>
+            value.length > 15 ? value.substring(0, 15) + "..." : value
+          }
+        />
 
+        <YAxis
+          tick={({ x, y, payload }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="end"
+              fontSize={11}
+              fill="var(--chart-text)"
+            >
+              {formatarValorAbreviado(payload.value)}
+            </text>
+          )}
+          axisLine={{ stroke: "var(--chart-axis)" }}
+        />
 
-          {/* Ranking de Vendedores */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Top 5 Vendedores
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={rankingVendedores} 
-                layout="vertical"
-                barCategoryGap="20%" // 🔥 evita fundo cinza
-              >
-                {/* Grid */}
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-
-                {/* Eixo X */}
-                <XAxis
-                  type="number"
-                  tickFormatter={(value) => formatarValorAbreviado(value)}
-                  axisLine={{ stroke: "#475569" }}
-                  tick={{ fill: "#e2e8f0" }}
-                />
-
-                {/* Tooltip customizado */}
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: "#1e293b",
-                            border: "1px solid #475569",
-                            borderRadius: "8px",
-                            color: "#f8fafc",
-                            padding: "8px 12px",
-                            maxWidth: "220px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          <p
-                            style={{
-                              fontWeight: 600,
-                              marginBottom: "4px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                            title={String(label)}
-                          >
-                            {label}
-                          </p>
-                          <p style={{ color: "#22c55e" }}>
-                            valor : {formatarValorAbreviado(payload[0].value as number)}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-
-                {/* Eixo Y com truncate */}
-                <YAxis 
-                  type="category" 
-                  dataKey="vendedor" 
-                  width={150}
-                  tick={({ x, y, payload }) => (
-                    <text
-                      x={x}
-                      y={y}
-                      dy={4}
-                      fontSize={12}
-                      fill="#e2e8f0"
-                      textAnchor="end"
-                    >
-                      {payload.value.length > 15 
-                        ? payload.value.substring(0, 15) + "..." 
-                        : payload.value}
-                    </text>
-                  )}
-                />
-
-                {/* Barras */}
-                <Bar 
-                  dataKey="valor" 
-                  fill={CORES.verde} 
-                  radius={[0, 6, 6, 0]} 
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Distribuição por Empresa */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Distribuição por Empresa
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={distribuicaoEmpresas}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent = 0 }) =>
-                    `${(name || "").substring(0, 15)}${name && name.length > 15 ? "..." : ""} ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {distribuicaoEmpresas.map((entry, index) => (
-                    //<Cell
-                    //  key={`cell-${index}`}
-                    //  fill={CORES_PIZZA[index % CORES_PIZZA.length]}
-                    ///>
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
-                    />
-                  ))}
-                </Pie>
-
-                {/* Tooltip estilizado */}
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const { name, value } = payload[0].payload;
-
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: "#1e293b",
-                            border: "1px solid #475569",
-                            borderRadius: "8px",
-                            color: "#f8fafc",
-                            padding: "8px 12px",
-                            maxWidth: "220px",   // 🔥 largura máxima
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                          title={name} // 🔥 mostra nome completo no hover
-                        >
-                          <p
-                            style={{
-                              fontWeight: 600,
-                              marginBottom: "4px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {name}
-                          </p>
-                          <p style={{ color: "#38bdf8" }}>
-                            valor: {formatarValorAbreviado(value)}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        <Tooltip
+  content={({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div
+          style={{
+            backgroundColor: "#1e293b",
+            border: "1px solid var(--chart-axis)",
+            borderRadius: "8px",
+            color: "var(--chart-text)",
+            padding: "8px 12px",
+            maxWidth: "220px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={String(label)}
+        >
+          <p
+            style={{
+              fontWeight: 600,
+              marginBottom: "4px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {label}
+          </p>
+          <p style={{ color: "#22c55e" }}>
+            valor: {formatarValorAbreviado(payload[0].value as number)}
+          </p>
         </div>
+      );
+    }
+    return null;
+  }}
+/>
+
+
+        <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+
+  {/* Ranking de Vendedores */}
+  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+      Top 5 Vendedores
+    </h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={rankingVendedores} layout="vertical" barCategoryGap="20%">
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
+
+        <XAxis
+          type="number"
+          tickFormatter={(value) => formatarValorAbreviado(value)}
+          axisLine={{ stroke: "var(--chart-axis)" }}
+          tick={{ fill: "var(--chart-text)" }}
+        />
+
+        <Tooltip
+          content={({ active, payload, label }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div
+                  style={{
+                    backgroundColor: "#1e293b",
+                    border: "1px solid var(--chart-axis)",
+                    borderRadius: "8px",
+                    color: "var(--chart-text)",
+                    padding: "8px 12px",
+                    maxWidth: "220px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                  title={String(label)}
+                >
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {label}
+                  </p>
+                  <p style={{ color: "#22c55e" }}>
+                    valor : {formatarValorAbreviado(payload[0].value as number)}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+
+        <YAxis
+          type="category"
+          dataKey="vendedor"
+          width={150}
+          tick={({ x, y, payload }) => (
+            <text
+              x={x}
+              y={y}
+              dy={4}
+              fontSize={12}
+              fill="var(--chart-text)"
+              textAnchor="end"
+            >
+              {payload.value.length > 15
+                ? payload.value.substring(0, 15) + "..."
+                : payload.value}
+            </text>
+          )}
+        />
+
+        <Bar dataKey="valor" fill={CORES.verde} radius={[0, 6, 6, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+
+  {/* Distribuição por Empresa */}
+  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+      Distribuição por Empresa
+    </h3>
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={distribuicaoEmpresas}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          label={({ name, percent = 0 }) =>
+            `${(name || "").substring(0, 15)}${
+              name && name.length > 15 ? "..." : ""
+            } ${(percent * 100).toFixed(0)}%`
+          }
+          outerRadius={80}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {distribuicaoEmpresas.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+            />
+          ))}
+        </Pie>
+
+        <Tooltip
+          content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              const { name, value } = payload[0].payload;
+
+              return (
+                <div
+                  style={{
+                    backgroundColor: "#1e293b",
+                    border: "1px solid var(--chart-axis)",
+                    borderRadius: "8px",
+                    color: "var(--chart-text)",
+                    padding: "8px 12px",
+                    maxWidth: "220px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                  title={name}
+                >
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {name}
+                  </p>
+                  <p style={{ color: "#38bdf8" }}>
+                    valor: {formatarValorAbreviado(value)}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  </div>
+</div>
+
 
         {/* Tabela de Últimas Vendas */}
         <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
