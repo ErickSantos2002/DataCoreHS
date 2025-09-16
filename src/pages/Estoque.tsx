@@ -26,6 +26,9 @@ import {
   Activity,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import SolicitacaoComprasModal from "../components/SolicitacaoComprasModal";
 
 // Tipagem do Produto do Estoque
 interface ProdutoEstoque {
@@ -64,6 +67,25 @@ const CORES_GRAFICO = [
 const Estoque: React.FC = () => {
   const { user } = useAuth();
   const { produtos, carregando } = useEstoque();
+
+  // Modal de solicitação de compra
+  const [modalAberto, setModalAberto] = useState(false);
+  const [solicitacao, setSolicitacao] = useState<{ id: number; quantidade: number }[]>([]);
+  const abrirModal = () => setModalAberto(true);
+  const fecharModal = () => setModalAberto(false);
+
+  const atualizarQuantidade = (id: number, quantidade: number) => {
+    setSolicitacao((prev) => {
+      const existe = prev.find((item) => item.id === id);
+      if (existe) {
+        return prev.map((item) =>
+          item.id === id ? { ...item, quantidade } : item
+        );
+      } else {
+        return [...prev, { id, quantidade }];
+      }
+    });
+  };
 
   // Estados dos filtros
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
@@ -267,6 +289,45 @@ const Estoque: React.FC = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Estoque");
     XLSX.writeFile(wb, `estoque_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [produtosFiltrados]);
+
+  // Geração de PDF da solicitação de compra
+  const gerarPDF = () => {
+    const doc = new jsPDF();
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text("Solicitação de Compras", 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 28);
+
+    // Montar tabela
+    const dadosTabela = solicitacao.map((item) => {
+      const produto = produtos.find((p) => p.id === item.id);
+      return [
+        produto?.nome || "",
+        produto?.saldo ?? 0,
+        item.quantidade,
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Produto", "Saldo Atual", "Quantidade Solicitada"]],
+      body: dadosTabela,
+    });
+
+    // Rodapé
+    doc.setFontSize(12);
+    doc.text(
+      `Solicitante: ${user?.username || "Usuário"}`,
+      14,
+      doc.internal.pageSize.height - 10
+    );
+
+    // Salvar
+    doc.save(`solicitacao_compras_${new Date().toISOString().split("T")[0]}.pdf`);
+    fecharModal();
+  };
 
   // Componente de MultiSelect customizado
   const MultiSelect = ({ 
@@ -668,6 +729,18 @@ const Estoque: React.FC = () => {
                 <Download className="w-4 h-4 mr-2" />
                 Exportar Excel
               </button>
+              <button
+                onClick={abrirModal}
+                className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Solicitação de Compras
+              </button>
+              <SolicitacaoComprasModal
+                aberto={modalAberto}
+                fechar={() => setModalAberto(false)}
+                produtos={produtos}
+                solicitante={user?.username || "Usuário"}
+              />
             </div>
           </div>
 
