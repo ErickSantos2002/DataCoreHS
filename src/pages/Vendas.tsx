@@ -70,6 +70,18 @@ const CORES_GRAFICO = [
   CORES.cyan,
 ];
 
+// 🎨 Novas cores para o gráfico de pizza (tons de azul/cinza)
+  const CORES_PIZZA = [
+    "#3b82f6", // azul médio
+    "#60a5fa", // azul claro
+    "#1e40af", // azul escuro
+    "#1d4ed8", // azul forte
+    "#0ea5e9", // azul/ciano
+    "#475569", // cinza-ardósia
+    "#64748b", // cinza claro
+    "#94a3b8", // cinza mais suave
+];
+
 const Vendas: React.FC = () => {
   const { user } = useAuth();
   const { notas, carregando } = useVendas();
@@ -396,41 +408,57 @@ const Vendas: React.FC = () => {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 text-left border rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-left border rounded-lg 
+                    bg-white dark:bg-[#0f172a] 
+                    hover:bg-gray-50 dark:hover:bg-gray-700 
+                    border-gray-300 dark:border-gray-600 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <span className="text-sm">
-            {selected.length > 0 
-              ? `${selected.length} selecionado(s)` 
-              : placeholder}
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
           </span>
         </button>
-        
+
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 
+                          bg-white dark:bg-[#0f172a] 
+                          border border-gray-200 dark:border-gray-600 
+                          rounded-lg shadow-lg 
+                          max-h-60 overflow-auto">
             {/* Campo de pesquisa */}
-            <div className="p-2 border-b">
+            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
               <input
                 type="text"
                 placeholder="Pesquisar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1 border rounded"
+                className="w-full px-2 py-1 border rounded 
+                          border-gray-300 dark:border-gray-600 
+                          bg-white dark:bg-gray-800 
+                          text-gray-700 dark:text-gray-200 
+                          placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
+
             <div className="p-2">
               <button
                 onClick={() => onChange([])}
-                className="w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                className="w-full text-left px-2 py-1 text-sm 
+                          text-gray-600 dark:text-gray-300 
+                          hover:bg-gray-100 dark:hover:bg-gray-700 
+                          rounded"
               >
                 Limpar seleção
               </button>
             </div>
+
             {/* Lista filtrada com checkboxes */}
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-100"
+                  className="flex items-center px-4 py-2 cursor-pointer 
+                            hover:bg-blue-100 dark:hover:bg-gray-700"
                 >
                   <input
                     type="checkbox"
@@ -438,11 +466,13 @@ const Vendas: React.FC = () => {
                     onChange={() => toggleOption(option)}
                     className="mr-2"
                   />
-                  {option}
+                  <span className="text-gray-700 dark:text-gray-200">{option}</span>
                 </label>
               ))
             ) : (
-              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
+              <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                Nenhum resultado encontrado
+              </div>
             )}
           </div>
         )}
@@ -452,44 +482,50 @@ const Vendas: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando dados de vendas...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            Carregando dados de vendas...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Cabeçalho */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Vendas - Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
-          </p>
-          <p className="text-gray-500 text-sm mt-2">
-            Acompanhe as principais métricas, evolução e detalhes das vendas em tempo real.
-          </p>
-        </div>
-      </div>
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+  {/* Cabeçalho */}
+  <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
+    <div className="px-6 py-4">
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
+        Vendas - Dashboard
+      </h1>
+      <p className="text-gray-600 dark:text-gray-200 mt-1">
+        Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
+      </p>
+      <p className="text-gray-500 dark:text-gray-300 text-sm mt-2">
+        Acompanhe as principais métricas, evolução e detalhes das vendas em tempo real.
+      </p>
+    </div>
+  </div>
 
-      <div className="p-6">
+
+
+      <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">
-            <Filter className="w-5 h-5 mr-2 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
+            <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              Filtros
+            </h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             {/* Empresas */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Empresas
               </label>
               <MultiSelect
@@ -502,7 +538,7 @@ const Vendas: React.FC = () => {
 
             {/* Vendedores */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Vendedores
               </label>
               <MultiSelect
@@ -515,7 +551,7 @@ const Vendas: React.FC = () => {
 
             {/* Produtos */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Produtos
               </label>
               <MultiSelect
@@ -528,13 +564,15 @@ const Vendas: React.FC = () => {
 
             {/* Preset de Período */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Período Rápido
               </label>
               <select
                 value={presetPeriodo}
                 onChange={(e) => setPresetPeriodo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-darkBlue 
+                          dark:text-gray-200 dark:border-gray-600 
+                          focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="todos">Todos</option>
                 <option value="7dias">Últimos 7 dias</option>
@@ -546,7 +584,7 @@ const Vendas: React.FC = () => {
 
             {/* Data Início */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Data Início
               </label>
               <input
@@ -556,13 +594,15 @@ const Vendas: React.FC = () => {
                   setDataInicio(e.target.value);
                   setPresetPeriodo("custom");
                 }}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg 
+                          bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600 
+                          focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Data Fim */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Data Fim
               </label>
               <input
@@ -572,7 +612,9 @@ const Vendas: React.FC = () => {
                   setDataFim(e.target.value);
                   setPresetPeriodo("custom");
                 }}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg 
+                          bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600 
+                          focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -581,70 +623,73 @@ const Vendas: React.FC = () => {
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Faturamento Total */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Faturamento Total</p>
-                <p className="text-2xl font-bold text-blue-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Faturamento Total</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-yellow-300 mt-2">
                   R$ {kpis.totalFaturado.toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
                 </p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+              <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
+                <DollarSign className="w-6 h-6 text-blue-600 dark:text-yellow-300" />
               </div>
             </div>
           </div>
 
           {/* Número de Vendas */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Número de Vendas</p>
-                <p className="text-2xl font-bold text-green-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Número de Vendas</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
                   {kpis.totalVendas}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <ShoppingCart className="w-6 h-6 text-green-600" />
+              <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
+                <ShoppingCart className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </div>
 
           {/* Ticket Médio */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Ticket Médio</p>
-                <p className="text-2xl font-bold text-purple-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Ticket Médio</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
                   R$ {kpis.ticketMedio.toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
                 </p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
+                <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </div>
 
           {/* Produto Mais Vendido */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Produto Top</p>
-                <p className="text-lg font-bold text-orange-600 mt-2 truncate">
+              <div className="min-w-0"> {/* 🔥 garante que o truncate funcione */}
+                <p className="text-sm text-gray-600 dark:text-gray-400">Produto Top</p>
+                <p
+                  className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-2 truncate max-w-[180px]" 
+                  title={kpis.produtoMaisVendido?.nome || "N/A"} // Tooltip com o nome completo
+                >
                   {kpis.produtoMaisVendido?.nome || "N/A"}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-300">
                   R$ {kpis.produtoMaisVendido?.valor?.toLocaleString("pt-BR") || "0"}
                 </p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Package className="w-6 h-6 text-orange-600" />
+              <div className="flex-shrink-0 bg-orange-100 dark:bg-orange-900 p-3 rounded-full">
+                <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </div>
@@ -653,86 +698,241 @@ const Vendas: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Evolução das Vendas */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Evolução das Vendas
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dadosEvolucao}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
+                {/* Grid mais visível no dark */}
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke="#334155" // slate-700 (mais claro no dark)
+                />
+                
+                {/* Eixo X */}
+                <XAxis 
+                  dataKey="mes" 
+                  tick={{ fill: "#e2e8f0", fontSize: 12 }} // text-slate-200
+                  axisLine={{ stroke: "#475569" }} // slate-600
+                />
+                
+                {/* Eixo Y */}
                 <YAxis
-                    tickFormatter={(value) => formatarValorAbreviado(value)}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => formatarValorAbreviado(value)}
-                  />
+                  tickFormatter={(value) => formatarValorAbreviado(value)}
+                  tick={{ fill: "#e2e8f0", fontSize: 12 }}
+                  axisLine={{ stroke: "#475569" }}
+                />
+                
+                {/* Tooltip melhorado */}
+                <Tooltip
+                  contentStyle={{ 
+                    backgroundColor: "#1e293b", // slate-800
+                    border: "1px solid #475569", 
+                    borderRadius: "8px",
+                    color: "#f8fafc" // text-slate-50
+                  }}
+                  itemStyle={{ color: "#60a5fa" }} // azul claro
+                  labelStyle={{ color: "#f1f5f9" }}
+                  formatter={(value: number) => formatarValorAbreviado(value)}
+                />
+
+                {/* Linha destacada */}
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke={CORES.azul}
+                  stroke="#3b82f6" // azul-500 mais vibrante
                   strokeWidth={3}
-                  dot={{ fill: CORES.azul }}
+                  dot={{ fill: "#60a5fa", r: 4 }} // azul claro
+                  activeDot={{ r: 6, fill: "#2563eb" }} // azul-600 no ponto ativo
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           {/* Ranking de Produtos */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top 5 Produtos
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={rankingProdutos}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="produto" angle={-45} textAnchor="end" height={0} />
+              <BarChart data={rankingProdutos} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+
+                {/* Eixo X */}
+                <XAxis
+                  dataKey="produto"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  tick={{ fill: "#e2e8f0", fontSize: 12 }}
+                  axisLine={{ stroke: "#475569" }}
+                  tickFormatter={(value) =>
+                    value.length > 15 ? value.substring(0, 15) + "..." : value
+                  }
+                />
+
+                {/* Eixo Y */}
                 <YAxis
                   tick={({ x, y, payload }) => (
-                    <text x={x} y={y} textAnchor="end" fontSize={10} fill="#555">
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="end"
+                      fontSize={11}
+                      fill="#e2e8f0"
+                    >
                       {formatarValorAbreviado(payload.value)}
                     </text>
                   )}
+                  axisLine={{ stroke: "#475569" }}
                 />
+
+                {/* Tooltip customizado */}
                 <Tooltip
-                  formatter={(value: number) => formatarValorAbreviado(value)}
-                  />
-                <Bar dataKey="valor" fill={CORES.laranja} />
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #475569",
+                            borderRadius: "8px",
+                            color: "#f8fafc",
+                            padding: "8px 12px",
+                            maxWidth: "220px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: "4px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            title={label}   // aqui quebra o React
+                            {label}
+                          </p>
+                          <p style={{ color: "#fb923c" }}>
+                            valor : {formatarValorAbreviado(payload[0].value as number)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+
+                {/* Barras sem fundo cinza */}
+                <Bar
+                  dataKey="valor"
+                  fill={CORES.laranja}
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
+
           {/* Ranking de Vendedores */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top 5 Vendedores
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart 
                 data={rankingVendedores} 
-                layout="vertical"  // 🔥 ALTERADO de horizontal para vertical
+                layout="vertical"
+                barCategoryGap="20%" // 🔥 evita fundo cinza
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                {/* Grid */}
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+
+                {/* Eixo X */}
                 <XAxis
                   type="number"
                   tickFormatter={(value) => formatarValorAbreviado(value)}
+                  axisLine={{ stroke: "#475569" }}
+                  tick={{ fill: "#e2e8f0" }}
                 />
+
+                {/* Tooltip customizado */}
                 <Tooltip
-                  formatter={(value: number) => formatarValorAbreviado(value)}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #475569",
+                            borderRadius: "8px",
+                            color: "#f8fafc",
+                            padding: "8px 12px",
+                            maxWidth: "220px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: "4px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                            title={String(label)}
+                          >
+                            {label}
+                          </p>
+                          <p style={{ color: "#22c55e" }}>
+                            valor : {formatarValorAbreviado(payload[0].value as number)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
+
+                {/* Eixo Y com truncate */}
                 <YAxis 
                   type="category" 
                   dataKey="vendedor" 
-                  width={150} 
+                  width={150}
+                  tick={({ x, y, payload }) => (
+                    <text
+                      x={x}
+                      y={y}
+                      dy={4}
+                      fontSize={12}
+                      fill="#e2e8f0"
+                      textAnchor="end"
+                    >
+                      {payload.value.length > 15 
+                        ? payload.value.substring(0, 15) + "..." 
+                        : payload.value}
+                    </text>
+                  )}
                 />
-                <Bar dataKey="valor" fill={CORES.verde} />
+
+                {/* Barras */}
+                <Bar 
+                  dataKey="valor" 
+                  fill={CORES.verde} 
+                  radius={[0, 6, 6, 0]} 
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Distribuição por Empresa */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Distribuição por Empresa
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -750,11 +950,56 @@ const Vendas: React.FC = () => {
                   dataKey="value"
                 >
                   {distribuicaoEmpresas.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                    //<Cell
+                    //  key={`cell-${index}`}
+                    //  fill={CORES_PIZZA[index % CORES_PIZZA.length]}
+                    ///>
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+                    />
                   ))}
                 </Pie>
+
+                {/* Tooltip estilizado */}
                 <Tooltip
-                  formatter={(value: number) => formatarValorAbreviado(value)}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const { name, value } = payload[0].payload;
+
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#1e293b",
+                            border: "1px solid #475569",
+                            borderRadius: "8px",
+                            color: "#f8fafc",
+                            padding: "8px 12px",
+                            maxWidth: "220px",   // 🔥 largura máxima
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                          title={name} // 🔥 mostra nome completo no hover
+                        >
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: "4px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {name}
+                          </p>
+                          <p style={{ color: "#38bdf8" }}>
+                            valor: {formatarValorAbreviado(value)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -762,25 +1007,36 @@ const Vendas: React.FC = () => {
         </div>
 
         {/* Tabela de Últimas Vendas */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Detalhamento de Vendas
             </h3>
+
             <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              {/* Campo de pesquisa */}
               <div className="relative flex-1 md:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-300" />
                 <input
                   type="text"
                   placeholder="Pesquisar..."
                   value={pesquisaTabela}
                   onChange={(e) => setPesquisaTabela(e.target.value)}
-                  className="pl-10 pr-3 py-2 border rounded-lg w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-3 py-2 border rounded-lg w-full md:w-64 
+                            bg-white dark:bg-slate-800 
+                            text-gray-800 dark:text-gray-200 
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {/* Botão de exportação */}
               <button
                 onClick={exportarExcel}
-                className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center justify-center px-4 py-2 
+                          bg-green-600 text-white rounded-lg 
+                          hover:bg-green-700 dark:hover:bg-green-500
+                          transition-colors"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar Excel
@@ -792,107 +1048,146 @@ const Vendas: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('data_emissao')}
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  {/* Data */}
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => alternarOrdenacao("data_emissao")}
                   >
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                      <span className="font-medium text-gray-700">Data</span>
-                      {ordenacao.campo === 'data_emissao' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <Calendar className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Data
+                      </span>
+                      {ordenacao.campo === "data_emissao" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ))}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('cliente')}
+
+                  {/* Cliente */}
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => alternarOrdenacao("cliente")}
                   >
                     <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Cliente</span>
-                      {ordenacao.campo === 'cliente' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Cliente
+                      </span>
+                      {ordenacao.campo === "cliente" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ))}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('valor')}
+
+                  {/* Valor */}
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => alternarOrdenacao("valor")}
                   >
                     <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Valor</span>
-                      {ordenacao.campo === 'valor' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Valor
+                      </span>
+                      {ordenacao.campo === "valor" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ))}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('vendedor')}
+
+                  {/* Vendedor */}
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={() => alternarOrdenacao("vendedor")}
                   >
                     <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-gray-500" />
-                      <span className="font-medium text-gray-700">Vendedor</span>
-                      {ordenacao.campo === 'vendedor' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <Users className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Vendedor
+                      </span>
+                      {ordenacao.campo === "vendedor" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
+                        ))}
                     </div>
                   </th>
+
+                  {/* Produtos */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center">
-                      <Package className="w-4 h-4 mr-2 text-gray-500" />
-                      <span className="font-medium text-gray-700">Produtos</span>
+                      <Package className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Produtos
+                      </span>
                     </div>
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {notasPaginadas.map((nota, index) => (
-                  <tr 
-                    key={nota.id} 
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                    }`}
+                  <tr
+                    key={nota.id}
+                    className={`border-b border-gray-100 dark:border-gray-700 transition-colors 
+                      ${
+                        index % 2 === 0
+                          ? "bg-white dark:bg-slate-800"
+                          : "bg-gray-50/50 dark:bg-slate-900"
+                      } hover:bg-gray-50 dark:hover:bg-slate-700`}
                   >
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    {/* Data */}
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {new Date(nota.data_emissao).toLocaleDateString("pt-BR")}
                     </td>
+
+                    {/* Cliente */}
                     <td className="px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {nota.cliente?.nome || "Não informado"}
-                        </p>
-                      </div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                        {nota.cliente?.nome || "Não informado"}
+                      </p>
                     </td>
+
+                    {/* Valor */}
                     <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-blue-600">
-                        R$ {Number(nota.valor_nota).toLocaleString("pt-BR", {
+                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                        R${" "}
+                        {Number(nota.valor_nota).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
+                          maximumFractionDigits: 2,
                         })}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+
+                    {/* Vendedor */}
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {nota.nome_vendedor || "Não informado"}
                     </td>
+
+                    {/* Produtos */}
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
                         {nota.itens?.length > 0 ? (
                           <div>
-                            <p className="truncate max-w-xs" title={nota.itens.map(i => i.descricao).join(", ")}>
-                              {nota.itens.map(i => i.descricao).join(", ")}
+                            <p
+                              className="truncate max-w-xs"
+                              title={nota.itens.map((i) => i.descricao).join(", ")}
+                            >
+                              {nota.itens.map((i) => i.descricao).join(", ")}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {nota.itens.length} {nota.itens.length === 1 ? 'item' : 'itens'}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {nota.itens.length}{" "}
+                              {nota.itens.length === 1 ? "item" : "itens"}
                             </p>
                           </div>
                         ) : (
@@ -908,92 +1203,136 @@ const Vendas: React.FC = () => {
 
           {/* Paginação */}
           {totalPaginas > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-gray-600">
-                Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
-                {Math.min(paginaAtual * itensPorPagina, notasTabela.length)} de{" "}
-                {notasTabela.length} registros
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                  disabled={paginaAtual === 1}
-                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Anterior
-                </button>
-                
-                {/* Números de página */}
-                <div className="flex gap-1">
-                  {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                    let pageNum;
-                    if (totalPaginas <= 5) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual <= 3) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual >= totalPaginas - 2) {
-                      pageNum = totalPaginas - 4 + i;
-                    } else {
-                      pageNum = paginaAtual - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setPaginaAtual(pageNum)}
-                        className={`px-3 py-1 border rounded-lg ${
-                          paginaAtual === pageNum
-                            ? 'bg-blue-600 text-white'
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                  disabled={paginaAtual === totalPaginas}
-                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Próximo
-                </button>
-              </div>
+          <div className="flex justify-between items-center mt-4">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
+              {Math.min(paginaAtual * itensPorPagina, notasTabela.length)} de{" "}
+              {notasTabela.length} registros
             </div>
-          )}
+
+            {/* Desktop: paginação completa */}
+            <div className="hidden md:flex gap-2">
+              <button
+                onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                disabled={paginaAtual === 1}
+                className="px-3 py-1 border rounded-lg 
+                  bg-white dark:bg-slate-800 
+                  border-gray-300 dark:border-gray-600 
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-gray-50 dark:hover:bg-slate-700 
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                  let pageNum;
+                  if (totalPaginas <= 5) {
+                    pageNum = i + 1;
+                  } else if (paginaAtual <= 3) {
+                    pageNum = i + 1;
+                  } else if (paginaAtual >= totalPaginas - 2) {
+                    pageNum = totalPaginas - 4 + i;
+                  } else {
+                    pageNum = paginaAtual - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPaginaAtual(pageNum)}
+                      className={`px-3 py-1 border rounded-lg transition-colors ${
+                        paginaAtual === pageNum
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                disabled={paginaAtual === totalPaginas}
+                className="px-3 py-1 border rounded-lg 
+                  bg-white dark:bg-slate-800 
+                  border-gray-300 dark:border-gray-600 
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-gray-50 dark:hover:bg-slate-700 
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próximo
+              </button>
+            </div>
+
+            {/* Mobile: somente < páginaAtual > */}
+            <div className="flex md:hidden gap-2 items-center">
+              <button
+                onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                disabled={paginaAtual === 1}
+                className="px-3 py-1 border rounded-lg 
+                  bg-white dark:bg-slate-800 
+                  border-gray-300 dark:border-gray-600 
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-gray-50 dark:hover:bg-slate-700 
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {"<"}
+              </button>
+
+              <span className="px-3 py-1 border rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+                {paginaAtual}
+              </span>
+
+              <button
+                onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                disabled={paginaAtual === totalPaginas}
+                className="px-3 py-1 border rounded-lg 
+                  bg-white dark:bg-slate-800 
+                  border-gray-300 dark:border-gray-600 
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-gray-50 dark:hover:bg-slate-700 
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {">"}
+              </button>
+            </div>
+          </div>
+        )}
         </div>
 
         {/* Estatísticas Adicionais */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Resumo do Período */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Resumo do Período
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total de Clientes</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total de Clientes</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {new Set(notasFiltradas.map(n => n.cliente?.nome)).size}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total de Vendedores</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {new Set(notasFiltradas.map(n => n.nome_vendedor)).size-1}
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total de Vendedores</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {new Set(notasFiltradas.map(n => n.nome_vendedor)).size - 1}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total de Produtos</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total de Produtos</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {new Set(notasFiltradas.flatMap(n => n.itens?.map(i => i.descricao) || [])).size}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Média de Itens/Venda</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Média de Itens/Venda</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {notasFiltradas.length > 0 
                     ? (notasFiltradas.reduce((acc, n) => acc + (n.itens?.length || 0), 0) / notasFiltradas.length).toFixed(1)
                     : '0'}
@@ -1003,14 +1342,14 @@ const Vendas: React.FC = () => {
           </div>
 
           {/* Comparativo Mensal */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Comparativo Mensal
             </h3>
             {dadosEvolucao.length >= 2 && (
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-600">Variação último mês</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Variação último mês</p>
                   <p className="text-lg font-semibold mt-1">
                     {(() => {
                       const ultimo = dadosEvolucao[dadosEvolucao.length - 1]?.total || 0;
@@ -1025,16 +1364,16 @@ const Vendas: React.FC = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Melhor mês</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Melhor mês</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {dadosEvolucao.reduce((max, item) => 
                       item.total > (max?.total || 0) ? item : max, dadosEvolucao[0]
                     )?.mes || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Média mensal</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Média mensal</p>
+                  <p className="text-sm font-semibold text-blue-600">
                     R$ {(dadosEvolucao.reduce((acc, item) => acc + item.total, 0) / dadosEvolucao.length).toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
@@ -1046,14 +1385,14 @@ const Vendas: React.FC = () => {
           </div>
 
           {/* Performance de Vendas */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Performance de Vendas
             </h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-gray-600">Maior venda</p>
-                <p className="text-sm font-semibold text-blue-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Maior venda</p>
+                <p className="text-sm font-semibold text-green-600">
                   R$ {Math.max(...notasFiltradas.map(n => Number(n.valor_nota)), 0).toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -1061,8 +1400,8 @@ const Vendas: React.FC = () => {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Menor venda</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Menor venda</p>
+                <p className="text-sm font-semibold text-red-600">
                   R$ {(notasFiltradas.length > 0 
                     ? Math.min(...notasFiltradas.map(n => Number(n.valor_nota)))
                     : 0
@@ -1073,8 +1412,8 @@ const Vendas: React.FC = () => {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Desvio padrão</p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Desvio padrão</p>
+                <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
                   R$ {(() => {
                     if (notasFiltradas.length === 0) return '0,00';
                     const valores = notasFiltradas.map(n => Number(n.valor_nota));

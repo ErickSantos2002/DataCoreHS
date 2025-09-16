@@ -133,35 +133,51 @@ const Header: React.FC = () => {
             </nav>
 
             {/* Rodapé do menu mobile */}
-<div className="mt-auto flex flex-col">
-  {/* Switch modo noturno */}
-  <div className="flex items-center justify-between font-medium text-gray-700 dark:text-gray-200 px-2 py-2">
-    <div className="flex items-center gap-2">
-      {darkMode ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
-    </div>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        checked={darkMode}
-        onChange={toggleDarkMode}
-        className="sr-only peer"
-      />
-      <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
-      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
-    </label>
-  </div>
+            <div className="mt-auto flex flex-col gap-3">
+              {/* Switch modo noturno */}
+              <div className="flex items-center justify-between font-medium text-gray-700 dark:text-gray-200 py-2">
+                <div className="flex items-center gap-2">
+                  {darkMode ? (
+                    <img
+                      src="https://img.icons8.com/?size=100&id=s6SybfgfYCLU&format=png&color=FFD700"
+                      alt="Modo Claro"
+                      className="w-5 h-5"
+                    />
+                  ) : (
+                    <img
+                      src="https://img.icons8.com/?size=100&id=11404&format=png&color=1E40AF"
+                      alt="Modo Escuro"
+                      className="w-5 h-5"
+                    />
+                  )}
+                  <span>{darkMode ? "" : ""}</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={darkMode}
+                    onChange={toggleDarkMode}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:bg-blue-600 transition"></div>
+                  <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full border transition peer-checked:translate-x-5"></div>
+                </label>
+              </div>
 
-  {/* Linha divisória */}
-  <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+              {/* Botão sair */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full text-left text-red-600 font-medium hover:text-red-800 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+              >
+                <img
+                  src="https://img.icons8.com/?size=100&id=59781&format=png&color=FF0000"
+                  alt="Sair"
+                  className="w-5 h-5"
+                />
+                <span className="ml-2">Sair</span>
+              </button>
 
-  {/* Botão sair */}
-  <button
-    onClick={handleLogout}
-    className="flex items-center w-full text-left text-red-600 font-medium hover:text-red-800 px-2 py-2"
-  >
-    🚪 <span className="ml-2">Sair</span>
-  </button>
-</div>
+            </div>
 
           </div>
         </>

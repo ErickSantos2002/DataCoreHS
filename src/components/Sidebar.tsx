@@ -91,7 +91,7 @@ const Sidebar: React.FC = () => {
       to: "/estoque",
       icon: (isActive: boolean) => (
         <img
-          src={`https://img.icons8.com/?size=100&id=8286&format=png&color=${getColor(isActive)}`}
+          src={`https://img.icons8.com/?size=100&id=392&format=png&color=${getColor(isActive)}`}
           alt="Estoque"
           className={iconBaseClass}
         />
