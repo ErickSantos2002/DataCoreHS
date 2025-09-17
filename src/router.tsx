@@ -46,6 +46,18 @@ const RequireVendas: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return <>{children}</>;
 };
 
+const RequireVendedores: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
+
+  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro" && user.role !== "qualidade")) {
+    return <Bloqueio />;
+  }
+
+  return <>{children}</>;
+};
+
 const AppRoutes: React.FC = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
@@ -110,9 +122,9 @@ const AppRoutes: React.FC = () => (
       path="/vendedores"
       element={
         <ProtectedRoute>
-          <RequireVendas>
-            <Vendas />
-          </RequireVendas>
+          <RequireVendedores>
+            <Vendedores />
+          </RequireVendedores>
         </ProtectedRoute>
       }
     />
