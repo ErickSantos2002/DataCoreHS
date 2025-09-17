@@ -110,7 +110,9 @@ const AppRoutes: React.FC = () => (
       path="/vendedores"
       element={
         <ProtectedRoute>
-          <Vendedores />
+          <RequireVendas>
+            <Vendas />
+          </RequireVendas>
         </ProtectedRoute>
       }
     />
