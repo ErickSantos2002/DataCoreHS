@@ -9,6 +9,7 @@ import { DashboardProvider } from "./context/DashboardContext";
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
+import { VendedoresProvider } from "./context/VendedoresContext";
 import { VendasProvider } from "./context/VendasContext";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
 
@@ -17,15 +18,17 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <AuthProvider>
         <EstoqueProvider>
-          <VendasProvider>
-            <ConfiguracoesProvider>
-              <DashboardProvider>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
-              </DashboardProvider>
-            </ConfiguracoesProvider>
-          </VendasProvider>
+          <VendedoresProvider>
+            <VendasProvider>
+              <ConfiguracoesProvider>
+                <DashboardProvider>
+                  <BrowserRouter>
+                    <App />
+                  </BrowserRouter>
+                </DashboardProvider>
+              </ConfiguracoesProvider>
+            </VendasProvider>
+          </VendedoresProvider>
         </EstoqueProvider>
       </AuthProvider>
     </ThemeProvider>

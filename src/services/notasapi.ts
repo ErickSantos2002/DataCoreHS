@@ -69,3 +69,9 @@ export const fetchEstoque = async (params: Record<string, any> = {}) => {
   const response = await api.get("/estoque/", { params });
   return response.data;
 };
+
+// Atualizar o campo "tipo" de uma nota fiscal
+export const updateNotaTipo = async (notaId: number, tipo: string) => {
+  const response = await api.patch(`/notas_fiscais/${notaId}/tipo`, { tipo });
+  return response.data;
+};
