@@ -16,6 +16,7 @@ interface Nota {
     quantidade: string; 
     valor_total: string;
     valor_unitario?: string;
+    codigo?: string;
   }[];
   observacoes?: string | null;
 }

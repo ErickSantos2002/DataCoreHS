@@ -105,7 +105,11 @@ const Estoque: React.FC = () => {
 
   // Listas únicas para filtros
   const produtosUnicos = useMemo(() => 
-    Array.from(new Set(produtos.map(p => p.nome).filter(Boolean))).sort(),
+    Array.from(
+      new Set(
+        produtos.map(p => `${p.nome} (${p.codigo})`).filter(Boolean)
+      )
+    ).sort(),
     [produtos]
   );
 
@@ -223,8 +227,8 @@ const Estoque: React.FC = () => {
           bVal = b.nome.toLowerCase();
           break;
         case 'codigo':
-          aVal = a.codigo.toLowerCase();
-          bVal = b.codigo.toLowerCase();
+          aVal = a.codigo;
+          bVal = b.codigo;
           break;
         case 'preco':
           aVal = a.preco;
@@ -283,7 +287,7 @@ const Estoque: React.FC = () => {
   const exportarExcel = useCallback(() => {
     const dadosExport = produtosTabela.map(p => ({
       'Nome': p.nome,
-      'Código': p.codigo,
+      'Código-SKU': p.codigo,
       'Unidade': p.unidade,
       'Preço': p.preco,
       'Saldo': p.saldo,
@@ -374,9 +378,11 @@ const Estoque: React.FC = () => {
           }
         };
 
-    const filteredOptions = options.filter((option) =>
-      option.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredOptions = options.filter((option) => {
+      const optionLower = option.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+      return optionLower.includes(searchLower);
+    });
 
     return (
       <div className="relative" ref={ref}>
@@ -909,7 +915,7 @@ const Estoque: React.FC = () => {
                   >
                     <div className="flex items-center">
                       <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Código
+                        Código-SKU
                       </span>
                       {ordenacao.campo === "codigo" &&
                         (ordenacao.direcao === "desc" ? (

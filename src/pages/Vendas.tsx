@@ -161,7 +161,9 @@ const Vendas: React.FC = () => {
 
   const produtosUnicos = useMemo(() => 
     Array.from(new Set(
-      notas.flatMap(n => n.itens?.map(i => i.descricao) || []).filter(Boolean)
+      notas.flatMap(n => 
+        n.itens?.map(i => `${i.descricao} (${i.codigo})`) || []
+      ).filter(Boolean)
     )),
     [notas]
   );

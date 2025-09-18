@@ -126,10 +126,11 @@ const Vendedores: React.FC = () => {
     [notasVendedor]
   );
 
-  // Lista única de produtos
   const produtosUnicos = useMemo(() => 
     Array.from(new Set(
-      notasVendedor.flatMap(n => n.itens?.map(i => i.descricao) || []).filter(Boolean)
+      notasVendedor.flatMap(n => 
+        n.itens?.map(i => `${i.descricao} (${i.codigo})`) || []
+      ).filter(Boolean)
     )),
     [notasVendedor]
   );
