@@ -305,17 +305,34 @@ const Vendas: React.FC = () => {
 
     // Aplicar pesquisa
     if (pesquisaTabela) {
-      const termo = pesquisaTabela.toLowerCase();
-      const termoNormalizado = normalizarCNPJ(termo);
+      const termoLower = pesquisaTabela.toLowerCase();
+      const termoNormalizado = /^\d+$/.test(pesquisaTabela) ? normalizarCNPJ(pesquisaTabela) : "";
 
-      filtradas = filtradas.filter(n =>
-        n.cliente?.nome?.toLowerCase().includes(termo) ||
-        n.cliente?.cpf_cnpj?.toLowerCase().includes(termo) ||
-        normalizarCNPJ(n.cliente?.cpf_cnpj || "").includes(termoNormalizado) || // 🔥 pesquisa só números
-        n.nome_vendedor?.toLowerCase().includes(termo) ||
-        n.itens?.some(i => i.descricao?.toLowerCase().includes(termo)) ||
-        n.valor_nota?.toString().includes(termo)
-      );
+      filtradas = filtradas.filter(n => {
+        const nome = n.cliente?.nome?.toLowerCase() || "";
+        const cnpj = n.cliente?.cpf_cnpj?.toLowerCase() || "";
+        const cnpjNormalizado = normalizarCNPJ(n.cliente?.cpf_cnpj || "");
+
+        return (
+          // 🔹 Nome do cliente
+          nome.includes(termoLower) ||
+
+          // 🔹 CNPJ com pontuação
+          cnpj.includes(termoLower) ||
+
+          // 🔹 CNPJ sem pontuação (só se usuário digitou número)
+          (termoNormalizado && cnpjNormalizado.includes(termoNormalizado)) ||
+
+          // 🔹 Vendedor
+          n.nome_vendedor?.toLowerCase().includes(termoLower) ||
+
+          // 🔹 Produtos
+          n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
+
+          // 🔹 Valor
+          n.valor_nota?.toString().includes(termoLower)
+        );
+      });
     }
 
     // Aplicar ordenação
@@ -382,9 +399,10 @@ const Vendas: React.FC = () => {
 
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
-    const dadosExport = notasFiltradas.map(n => ({
+    const dadosExport = notasTabela.map(n => ({
       'Data': new Date(n.data_emissao).toLocaleDateString('pt-BR'),
       'Cliente': n.cliente?.nome || '',
+      'CNPJ': n.cliente?.cpf_cnpj || '',
       'Valor': n.valor_nota,
       'Vendedor': n.nome_vendedor || '',
       'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
@@ -394,7 +412,7 @@ const Vendas: React.FC = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vendas");
     XLSX.writeFile(wb, `vendas_${new Date().toISOString().split('T')[0]}.xlsx`);
-  }, [notasFiltradas]);
+  }, [notasTabela]);
 
   // Componente de MultiSelect customizado
   const MultiSelect = ({ 
@@ -438,12 +456,26 @@ const Vendas: React.FC = () => {
     const normalizar = (valor: string) => valor.replace(/\D/g, "").toLowerCase();
 
     const filteredOptions = options.filter((option) => {
-      const optionNormalizado = normalizar(option);
-      const searchNormalizado = normalizar(searchTerm);
+      const optionLower = option.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+
+      // Extrai CNPJ (entre parênteses)
+      const cnpjMatch = option.match(/\((.*?)\)/);
+      const cnpj = cnpjMatch ? cnpjMatch[1] : "";
+      const cnpjNormalizado = normalizar(cnpj);
+
+      // Normaliza o termo, mas só se o usuário digitou dígito
+      const searchNormalizado = /^\d+$/.test(searchTerm) ? normalizar(searchTerm) : "";
 
       return (
-        option.toLowerCase().includes(searchTerm.toLowerCase()) || // pesquisa normal
-        optionNormalizado.includes(searchNormalizado) // pesquisa só números
+        // 🔹 Sempre permite pesquisa por nome (texto completo da opção)
+        optionLower.includes(searchLower) ||
+
+        // 🔹 Pesquisa por CNPJ com pontuação
+        cnpj.toLowerCase().includes(searchLower) ||
+
+        // 🔹 Pesquisa por CNPJ sem pontuação (apenas se searchTerm é número)
+        (searchNormalizado && cnpjNormalizado.includes(searchNormalizado))
       );
     });
 
@@ -538,22 +570,20 @@ const Vendas: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
-  {/* Cabeçalho */}
-  <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
-    <div className="px-6 py-4">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
-        Vendas - Dashboard
-      </h1>
-      <p className="text-gray-600 dark:text-gray-200 mt-1">
-        Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
-      </p>
-      <p className="text-gray-500 dark:text-gray-300 text-sm mt-2">
-        Acompanhe as principais métricas, evolução e detalhes das vendas em tempo real.
-      </p>
+    {/* Cabeçalho */}
+    <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
+      <div className="px-6 py-4">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
+          Vendas - Dashboard
+        </h1>
+        <p className="text-gray-600 dark:text-gray-200 mt-1">
+          Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
+        </p>
+        <p className="text-gray-500 dark:text-gray-300 text-sm mt-2">
+          Acompanhe as principais métricas, evolução e detalhes das vendas em tempo real.
+        </p>
+      </div>
     </div>
-  </div>
-
-
 
       <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
