@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { fetchVendas } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
 import { useVendas } from "../context/VendasContext";
@@ -407,6 +407,21 @@ const Vendas: React.FC = () => {
   }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const ref = useRef<HTMLDivElement>(null);
+
+    // Fecha ao clicar fora
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (ref.current && !ref.current.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
 
     const toggleOption = (option: string) => {
       if (selected.includes(option)) {
@@ -416,12 +431,21 @@ const Vendas: React.FC = () => {
       }
     };
 
-    const filteredOptions = options.filter((option) =>
-      option.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Função para normalizar CNPJ (remove pontos, traços e barras)
+    const normalizar = (valor: string) => valor.replace(/\D/g, "").toLowerCase();
+
+    const filteredOptions = options.filter((option) => {
+      const optionNormalizado = normalizar(option);
+      const searchNormalizado = normalizar(searchTerm);
+
+      return (
+        option.toLowerCase().includes(searchTerm.toLowerCase()) || // pesquisa normal
+        optionNormalizado.includes(searchNormalizado) // pesquisa só números
+      );
+    });
 
     return (
-      <div className="relative">
+      <div className="relative" ref={ref}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
@@ -1146,6 +1170,11 @@ const Vendas: React.FC = () => {
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
                         {nota.cliente?.nome || "Não informado"}
                       </p>
+                      {nota.cliente?.cpf_cnpj && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          CNPJ: {nota.cliente.cpf_cnpj}
+                        </p>
+                      )}
                     </td>
 
                     {/* Valor */}
