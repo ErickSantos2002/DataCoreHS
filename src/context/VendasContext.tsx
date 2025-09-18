@@ -17,6 +17,7 @@ interface Nota {
     valor_total: string;
     valor_unitario?: string;
   }[];
+  observacoes?: string | null;
 }
 
 

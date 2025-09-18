@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { fetchVendas } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
 import { useVendas } from "../context/VendasContext";
+import ModalObservacoes from "../components/ModalObservacoes";
 import {
   BarChart,
   Bar,
@@ -48,6 +49,7 @@ interface Nota {
     valor_total: string;
     valor_unitario?: string;
   }[];
+  observacoes?: string | null;
 }
 
 // Cores padrão para gráficos
@@ -105,6 +107,7 @@ const Vendas: React.FC = () => {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina] = useState(10);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
+  const [notaSelecionada, setNotaSelecionada] = useState<Nota | null>(null);
 
   // Gerenciador de presets de período
   useEffect(() => {
@@ -1214,8 +1217,28 @@ const Vendas: React.FC = () => {
                         )}
                       </div>
                     </td>
+
+                    {/* Observações */}
+                    <td className="px-4 py-3 text-center">
+                      {nota.observacoes ? (
+                        <button
+                          onClick={() => setNotaSelecionada(nota)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Observações
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
+                {notaSelecionada && (
+                  <ModalObservacoes
+                    observacoes={notaSelecionada.observacoes ?? null} // ✅ garante string | null
+                    onClose={() => setNotaSelecionada(null)}
+                  />
+                )}
               </tbody>
             </table>
           </div>
