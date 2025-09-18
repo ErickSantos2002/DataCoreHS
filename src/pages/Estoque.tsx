@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useEstoque } from "../context/EstoqueContext";
 import {
@@ -281,7 +281,7 @@ const Estoque: React.FC = () => {
 
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
-    const dadosExport = produtosFiltrados.map(p => ({
+    const dadosExport = produtosTabela.map(p => ({
       'Nome': p.nome,
       'Código': p.codigo,
       'Unidade': p.unidade,
@@ -295,7 +295,7 @@ const Estoque: React.FC = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Estoque");
     XLSX.writeFile(wb, `estoque_${new Date().toISOString().split('T')[0]}.xlsx`);
-  }, [produtosFiltrados]);
+  }, [produtosTabela]);
 
   // Geração de PDF da solicitação de compra
   const gerarPDF = () => {
@@ -338,33 +338,48 @@ const Estoque: React.FC = () => {
 
   // Componente de MultiSelect customizado
   const MultiSelect = ({ 
-    options, 
-    selected, 
-    onChange, 
-    placeholder 
-  }: {
-    options: string[];
-    selected: string[];
-    onChange: (val: string[]) => void;
-    placeholder: string;
-  }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-
-    const toggleOption = (option: string) => {
-      if (selected.includes(option)) {
-        onChange(selected.filter(s => s !== option));
-      } else {
-        onChange([...selected, option]);
-      }
-    };
+        options, 
+        selected, 
+        onChange, 
+        placeholder 
+      }: {
+        options: string[];
+        selected: string[];
+        onChange: (val: string[]) => void;
+        placeholder: string;
+      }) => {
+        const [isOpen, setIsOpen] = useState(false);
+        const [searchTerm, setSearchTerm] = useState("");
+        const ref = useRef<HTMLDivElement>(null);
+    
+        // Fecha ao clicar fora
+        useEffect(() => {
+          const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+              setIsOpen(false);
+            }
+          };
+    
+          document.addEventListener("mousedown", handleClickOutside);
+          return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+          };
+        }, []);
+    
+        const toggleOption = (option: string) => {
+          if (selected.includes(option)) {
+            onChange(selected.filter(s => s !== option));
+          } else {
+            onChange([...selected, option]);
+          }
+        };
 
     const filteredOptions = options.filter((option) =>
       option.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-      <div className="relative">
+      <div className="relative" ref={ref}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
