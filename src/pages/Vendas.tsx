@@ -37,7 +37,10 @@ interface Nota {
   id: number;
   data_emissao: string;
   valor_nota: number;
-  cliente: { nome: string };
+  cliente: { 
+    nome: string; 
+    cpf_cnpj: string; 
+  } | null;
   nome_vendedor: string;
   itens: { 
     descricao: string; 
@@ -137,8 +140,14 @@ const Vendas: React.FC = () => {
   }, [presetPeriodo]);
 
   // Listas únicas para filtros
-  const empresasUnicas = useMemo(() => 
-    Array.from(new Set(notas.map(n => n.cliente?.nome).filter(Boolean))),
+  const empresasUnicas: string[] = useMemo(() => 
+    Array.from(
+      new Set(
+        notas
+          .map(n => n.cliente ? `${n.cliente.nome} (${n.cliente.cpf_cnpj})` : null)
+          .filter((n): n is string => Boolean(n))
+      )
+    ),
     [notas]
   );
 
@@ -158,8 +167,9 @@ const Vendas: React.FC = () => {
   const notasFiltradas = useMemo(() => {
     return notas.filter(n => {
       // Filtro de empresa
-      const empresaOk = filtroEmpresa.length === 0 || 
-        filtroEmpresa.includes(n.cliente?.nome);
+      const empresaOk =
+        filtroEmpresa.length === 0 ||
+        filtroEmpresa.includes(`${n.cliente?.nome} (${n.cliente?.cpf_cnpj})`);
       
       // Filtro de vendedor
       const vendedorOk = filtroVendedor.length === 0 || 
@@ -284,6 +294,8 @@ const Vendas: React.FC = () => {
       .slice(0, 8); // Top 8 empresas
   }, [notasFiltradas]);
 
+  const normalizarCNPJ = (cnpj: string) => cnpj.replace(/\D/g, "");
+
   // Tabela com pesquisa e ordenação
   const notasTabela = useMemo(() => {
     let filtradas = [...notasFiltradas];
@@ -291,8 +303,12 @@ const Vendas: React.FC = () => {
     // Aplicar pesquisa
     if (pesquisaTabela) {
       const termo = pesquisaTabela.toLowerCase();
+      const termoNormalizado = normalizarCNPJ(termo);
+
       filtradas = filtradas.filter(n =>
         n.cliente?.nome?.toLowerCase().includes(termo) ||
+        n.cliente?.cpf_cnpj?.toLowerCase().includes(termo) ||
+        normalizarCNPJ(n.cliente?.cpf_cnpj || "").includes(termoNormalizado) || // 🔥 pesquisa só números
         n.nome_vendedor?.toLowerCase().includes(termo) ||
         n.itens?.some(i => i.descricao?.toLowerCase().includes(termo)) ||
         n.valor_nota?.toString().includes(termo)

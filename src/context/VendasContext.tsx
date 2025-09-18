@@ -6,15 +6,19 @@ interface Nota {
   id: number;
   data_emissao: string;
   valor_nota: number;
-  cliente: { nome: string };
+  cliente: { 
+    nome: string; 
+    cpf_cnpj: string; 
+  } | null;
   nome_vendedor: string;
-  itens: {
-    descricao: string;
-    quantidade: string;
+  itens: { 
+    descricao: string; 
+    quantidade: string; 
     valor_total: string;
     valor_unitario?: string;
   }[];
 }
+
 
 // Tipagem do contexto
 interface VendasContextType {
