@@ -20,6 +20,20 @@ module.exports = {
         },
         darkBlue: "#1e3a8a", // 🔥 cor principal do modo noturno
       },
+      keyframes: {
+        blinkLight: {
+          "0%, 100%": { color: "#000000" }, // preto
+          "50%": { color: "#dc2626" }, // vermelho
+        },
+        blinkDark: {
+          "0%, 100%": { color: "#ffffff" }, // branco
+          "50%": { color: "#dc2626" }, // vermelho
+        },
+      },
+      animation: {
+        blinkLight: "blinkLight 1s infinite",
+        blinkDark: "blinkDark 1s infinite",
+      },
     },
   },
   plugins: [],

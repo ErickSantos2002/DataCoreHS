@@ -367,30 +367,45 @@ const Estoque: React.FC = () => {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 text-left border rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-left border rounded-lg 
+                    bg-white dark:bg-[#0f172a] 
+                    hover:bg-gray-50 dark:hover:bg-[#1e293b] 
+                    text-gray-700 dark:text-gray-200
+                    border-gray-300 dark:border-gray-600
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <span className="text-sm">
-            {selected.length > 0 
-              ? `${selected.length} selecionado(s)` 
+            {selected.length > 0
+              ? `${selected.length} selecionado(s)`
               : placeholder}
           </span>
         </button>
-        
+
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
-            <div className="p-2 border-b">
+          <div className="absolute z-10 w-full mt-1 
+                          bg-white dark:bg-[#0f172a] 
+                          border dark:border-gray-600 
+                          rounded-lg shadow-lg 
+                          max-h-60 overflow-auto">
+            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
               <input
                 type="text"
                 placeholder="Pesquisar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1 border rounded"
+                className="w-full px-2 py-1 border rounded 
+                          bg-white dark:bg-[#1e293b] 
+                          text-gray-800 dark:text-gray-200
+                          border-gray-300 dark:border-gray-600"
               />
             </div>
             <div className="p-2">
               <button
                 onClick={() => onChange([])}
-                className="w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                className="w-full text-left px-2 py-1 text-sm 
+                          text-gray-600 dark:text-gray-300
+                          hover:bg-gray-100 dark:hover:bg-blue-700 
+                          rounded"
               >
                 Limpar seleção
               </button>
@@ -399,7 +414,9 @@ const Estoque: React.FC = () => {
               filteredOptions.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-100"
+                  className="flex items-center px-4 py-2 cursor-pointer 
+                            hover:bg-blue-100 dark:hover:bg-blue-700
+                            text-gray-700 dark:text-gray-200"
                 >
                   <input
                     type="checkbox"
@@ -411,7 +428,9 @@ const Estoque: React.FC = () => {
                 </label>
               ))
             ) : (
-              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
+              <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
+                Nenhum resultado encontrado
+              </div>
             )}
           </div>
         )}
@@ -421,44 +440,48 @@ const Estoque: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando dados do estoque...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            Carregando dados do estoque...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white dark:bg-[#0f172a] shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
         <div className="px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Estoque - Dashboard
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
             Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
             Confira a posição atual do estoque e visualize os produtos disponíveis.
           </p>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="mt-6">
         {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 transition-colors">
           <div className="flex items-center mb-4">
-            <Filter className="w-5 h-5 mr-2 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Filtros</h2>
+            <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-yellow-400">
+              Filtros
+            </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Produtos */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Produtos
               </label>
               <MultiSelect
@@ -471,13 +494,18 @@ const Estoque: React.FC = () => {
 
             {/* Situação */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Situação
               </label>
               <select
                 value={filtroSituacao}
                 onChange={(e) => setFiltroSituacao(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg 
+                          bg-white dark:bg-[#0f172a] 
+                          text-gray-800 dark:text-gray-200 
+                          border-gray-300 dark:border-gray-600
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          transition-colors"
               >
                 <option value="todos">Todos</option>
                 <option value="A">Ativo</option>
@@ -487,13 +515,18 @@ const Estoque: React.FC = () => {
 
             {/* Saldo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Saldo
               </label>
               <select
                 value={filtroSaldo}
                 onChange={(e) => setFiltroSaldo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg 
+                          bg-white dark:bg-[#0f172a] 
+                          text-gray-800 dark:text-gray-200 
+                          border-gray-300 dark:border-gray-600
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          transition-colors"
               >
                 <option value="todos">Todos</option>
                 <option value="comSaldo">Somente com saldo</option>
@@ -504,13 +537,18 @@ const Estoque: React.FC = () => {
 
             {/* Filtros Personalizados */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Filtros Personalizados
               </label>
               <select
                 value={filtroPersonalizado}
                 onChange={(e) => setFiltroPersonalizado(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg 
+                          bg-white dark:bg-[#0f172a] 
+                          text-gray-800 dark:text-gray-200 
+                          border-gray-300 dark:border-gray-600
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          transition-colors"
               >
                 <option value="nenhum">Nenhum</option>
                 <option value="rapido">Principais</option>
@@ -522,70 +560,71 @@ const Estoque: React.FC = () => {
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Produtos Ativos */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Produtos Ativos</p>
-                <p className="text-2xl font-bold text-green-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Produtos Ativos</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
                   {kpis.produtosAtivos}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <Activity className="w-6 h-6 text-green-600" />
+              <div className="bg-green-100 dark:bg-green-900/40 p-3 rounded-full">
+                <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </div>
 
           {/* Produtos sem Saldo */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Produtos sem Saldo</p>
-                <p className="text-2xl font-bold text-red-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Produtos sem Saldo</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
                   {kpis.produtosSemSaldo}
                 </p>
               </div>
-              <div className="bg-red-100 p-3 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </div>
 
           {/* Valor Total em Estoque */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Valor Total em Estoque</p>
-                <p className="text-2xl font-bold text-blue-600 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Valor Total em Estoque</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
                   R$ {kpis.valorTotalEstoque.toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
                 </p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+              <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full">
+                <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
 
           {/* Produto com Maior Saldo */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Produto Top</p>
-                <p className="text-lg font-bold text-orange-600 mt-2 truncate">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Produto Top</p>
+                <p className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-2 truncate 
+                              max-w-[180px] overflow-hidden whitespace-nowrap">
                   {kpis.produtoTop?.nome || "N/A"}
                 </p>
-                <p className="text-sm text-gray-500">
-                    R$ {kpis.produtoTop?.valor.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })} ({kpis.produtoTop?.unidade})
-                  </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  R$ {kpis.produtoTop?.valor.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })} ({kpis.produtoTop?.unidade})
+                </p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Package className="w-6 h-6 text-orange-600" />
+              <div className="bg-orange-100 dark:bg-orange-900/40 p-3 rounded-full">
+                <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </div>
@@ -594,8 +633,8 @@ const Estoque: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Top 10 Produtos */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4"> 
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4"> 
               Top 10 Produtos em Estoque
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -603,23 +642,38 @@ const Estoque: React.FC = () => {
                 data={rankingProdutos} 
                 layout="vertical"
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" /> {/* melhora no dark */}
                 <XAxis
                   type="number"
                   tickFormatter={(value) => `${value}`}
+                  stroke="#9ca3af" // cor dos ticks no dark
                 />
                 <YAxis 
                   type="category" 
                   dataKey="nome" 
                   width={150}
+                  tickFormatter={(name: string) => 
+                    name.length > 15 ? `${name.substring(0, 15)}...` : name
+                  }
+                  stroke="#9ca3af"
                 />
                 <Tooltip
-                  formatter={(value: number) => 
+                  formatter={(value: number) =>
                     `R$ ${value.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
                     })}`
                   }
+                  contentStyle={{
+                    backgroundColor: document.documentElement.classList.contains("dark")
+                      ? "#1f2937" // fundo escuro no dark
+                      : "#ffffff", // fundo branco no light
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#f9fafb" // texto claro no dark
+                      : "#111827", // texto escuro no light
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db", // borda leve no light
+                  }}
                 />
                 <Bar dataKey="valor" fill={CORES.laranja} />
               </BarChart>
@@ -627,8 +681,8 @@ const Estoque: React.FC = () => {
           </div>
 
           {/* Distribuição de Valor */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Distribuição de Valor em Estoque
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -638,27 +692,41 @@ const Estoque: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent = 0 }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
+                  label={({ name, percent = 0 }) => {
+                    const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
+                    return `${nomeCortado} ${(percent * 100).toFixed(0)}%`;
+                  }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {distribuicaoValor.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} 
+                    />
                   ))}
                 </Pie>
                 <Tooltip
                   formatter={(value: number) => formatarValorAbreviado(value)}
+                  contentStyle={{
+                    backgroundColor: document.documentElement.classList.contains("dark")
+                      ? "#1f2937" // fundo escuro no dark
+                      : "#ffffff", // fundo branco no light
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#f9fafb" // texto claro no dark
+                      : "#111827", // texto escuro no light
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db", // borda leve no light
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* Situação dos Produtos */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Situação dos Produtos
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -668,56 +736,68 @@ const Estoque: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, value, percent = 0 }) =>
-                    `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
-                  }
+                  label={({ name, value, percent = 0 }) => {
+                    const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
+                    return `${nomeCortado}: ${value} (${(percent * 100).toFixed(0)}%)`;
+                  }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {situacaoProdutos.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho} 
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho}
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: document.documentElement.classList.contains("dark")
+                      ? "#1f2937" // fundo escuro no dark
+                      : "#ffffff", // fundo branco no light
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#f9fafb" // texto claro no dark
+                      : "#111827", // texto escuro no light
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db", // borda leve no modo claro
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* Estatísticas Adicionais */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Estatísticas do Estoque
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total de Produtos</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total de Produtos</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {produtosFiltrados.length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Preço Médio</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Preço Médio</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   R$ {produtosFiltrados.length > 0 
                     ? (produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) / produtosFiltrados.length).toFixed(2)
                     : '0,00'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Saldo Médio</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Saldo Médio</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {produtosFiltrados.length > 0 
                     ? (produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) / produtosFiltrados.length).toFixed(1)
                     : '0'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Maior Preço</span>
-                <span className="text-sm font-semibold text-blue-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Maior Preço</span>
+                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                   R$ {produtosFiltrados.length > 0 
                     ? Math.max(...produtosFiltrados.map(p => p.preco)).toFixed(2)
                     : '0,00'}
@@ -728,35 +808,56 @@ const Estoque: React.FC = () => {
         </div>
 
         {/* Tabela de Produtos */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Detalhamento do Estoque
             </h3>
+
             <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              {/* Campo de pesquisa */}
               <div className="relative flex-1 md:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 
+                                  w-4 h-4 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Pesquisar..."
                   value={pesquisaTabela}
                   onChange={(e) => setPesquisaTabela(e.target.value)}
-                  className="pl-10 pr-3 py-2 border rounded-lg w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
+                            focus:outline-none focus:ring-2 focus:ring-blue-500
+                            bg-white dark:bg-[#0f172a]
+                            text-gray-800 dark:text-gray-200
+                            border-gray-300 dark:border-gray-600
+                            placeholder-gray-400 dark:placeholder-gray-500
+                            transition-colors"
                 />
               </div>
+
+              {/* Botão Exportar */}
               <button
                 onClick={exportarExcel}
-                className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center justify-center px-4 py-2 
+                          bg-green-600 text-white rounded-lg 
+                          hover:bg-green-700 dark:hover:bg-green-500 
+                          transition-colors"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar Excel
               </button>
+
+              {/* Botão Solicitação */}
               <button
                 onClick={abrirModal}
-                className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center px-4 py-2 
+                          bg-blue-600 text-white rounded-lg 
+                          hover:bg-blue-700 dark:hover:bg-blue-500 
+                          transition-colors"
               >
                 Solicitação de Compras
               </button>
+
+              {/* Modal */}
               <SolicitacaoComprasModal
                 aberto={modalAberto}
                 fechar={() => setModalAberto(false)}
@@ -770,130 +871,158 @@ const Estoque: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('nome')}
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                    onClick={() => alternarOrdenacao("nome")}
                   >
                     <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Nome</span>
-                      {ordenacao.campo === 'nome' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Nome
+                      </span>
+                      {ordenacao.campo === "nome" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ))}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('codigo')}
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                    onClick={() => alternarOrdenacao("codigo")}
                   >
                     <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Código</span>
-                      {ordenacao.campo === 'codigo' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <span className="font-medium text-gray-700">Unidade</span>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('preco')}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Preço</span>
-                      {ordenacao.campo === 'preco' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('saldo')}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Saldo</span>
-                      {ordenacao.campo === 'saldo' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50"
-                    onClick={() => alternarOrdenacao('situacao')}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700">Situação</span>
-                      {ordenacao.campo === 'situacao' && (
-                        ordenacao.direcao === 'desc' ? 
-                          <ChevronDown className="w-4 h-4 ml-1" /> : 
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                      )}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Código
+                      </span>
+                      {ordenacao.campo === "codigo" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ))}
                     </div>
                   </th>
                   <th className="px-4 py-3 text-left">
-                    <span className="font-medium text-gray-700">Valor Total</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      Unidade
+                    </span>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                    onClick={() => alternarOrdenacao("preco")}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Preço
+                      </span>
+                      {ordenacao.campo === "preco" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ))}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                    onClick={() => alternarOrdenacao("saldo")}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Saldo
+                      </span>
+                      {ordenacao.campo === "saldo" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ))}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                    onClick={() => alternarOrdenacao("situacao")}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Situação
+                      </span>
+                      {ordenacao.campo === "situacao" &&
+                        (ordenacao.direcao === "desc" ? (
+                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                        ))}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left">
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      Valor Total
+                    </span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {produtosPaginados.map((produto, index) => (
-                  <tr 
-                    key={produto.id} 
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                    }`}
+                  <tr
+                    key={produto.id}
+                    className={`border-b border-gray-100 dark:border-gray-700 
+                                hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors ${
+                                  index % 2 === 0
+                                    ? "bg-white dark:bg-[#0f172a]"
+                                    : "bg-gray-50/50 dark:bg-[#1e293b]/40"
+                                }`}
                   >
                     <td className="px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {produto.nome}
-                        </p>
-                      </div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {produto.nome}
+                      </p>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                       {produto.codigo}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                       {produto.unidade}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-blue-600">
-                        R$ {produto.preco.toLocaleString("pt-BR", {
+                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                        R${" "}
+                        {produto.preco.toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
+                          maximumFractionDigits: 2,
                         })}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-sm font-semibold ${
-                        produto.saldo > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`text-sm font-semibold ${
+                          produto.saldo > 0
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
                         {produto.saldo.toLocaleString("pt-BR")}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        produto.situacao === 'A' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {produto.situacao === 'A' ? 'Ativo' : 'Inativo'}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          produto.situacao === "A"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
+                        }`}
+                      >
+                        {produto.situacao === "A" ? "Ativo" : "Inativo"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-purple-600">
-                        R$ {(produto.saldo * produto.preco).toLocaleString("pt-BR", {
+                      <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                        R${" "}
+                        {(produto.saldo * produto.preco).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
+                          maximumFractionDigits: 2,
                         })}
                       </span>
                     </td>
@@ -911,16 +1040,20 @@ const Estoque: React.FC = () => {
                 {Math.min(paginaAtual * itensPorPagina, produtosTabela.length)} de{" "}
                 {produtosTabela.length} registros
               </div>
-              <div className="flex gap-2">
+
+              {/* Desktop: paginação completa */}
+              <div className="hidden md:flex gap-2">
                 <button
                   onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                   disabled={paginaAtual === 1}
-                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white border-gray-300 text-gray-700
+                    hover:bg-gray-50 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
                 </button>
-                
-                {/* Números de página */}
+
                 <div className="flex gap-1">
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let pageNum;
@@ -933,15 +1066,15 @@ const Estoque: React.FC = () => {
                     } else {
                       pageNum = paginaAtual - 2 + i;
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setPaginaAtual(pageNum)}
-                        className={`px-3 py-1 border rounded-lg ${
+                        className={`px-3 py-1 border rounded-lg transition-colors ${
                           paginaAtual === pageNum
-                            ? 'bg-blue-600 text-white'
-                            : 'hover:bg-gray-50'
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                         }`}
                       >
                         {pageNum}
@@ -953,9 +1086,41 @@ const Estoque: React.FC = () => {
                 <button
                   onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
                   disabled={paginaAtual === totalPaginas}
-                  className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white border-gray-300 text-gray-700
+                    hover:bg-gray-50 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próximo
+                </button>
+              </div>
+
+              {/* Mobile: somente < páginaAtual > */}
+              <div className="flex md:hidden gap-2 items-center">
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                  disabled={paginaAtual === 1}
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white border-gray-300 text-gray-700
+                    hover:bg-gray-50 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {"<"}
+                </button>
+
+                <span className="px-3 py-1 border rounded-lg bg-white text-gray-700">
+                  {paginaAtual}
+                </span>
+
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white border-gray-300 text-gray-700
+                    hover:bg-gray-50 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {">"}
                 </button>
               </div>
             </div>
