@@ -7,7 +7,10 @@ interface Nota {
   id: number;
   data_emissao: string;
   valor_nota: number;
-  cliente: { nome: string };
+  cliente: { 
+    nome: string; 
+    cpf_cnpj: string; 
+  } | null;
   nome_vendedor: string;
   tipo: "Outbound" | "Inbound" | "ReCompra" | null;
   itens: {

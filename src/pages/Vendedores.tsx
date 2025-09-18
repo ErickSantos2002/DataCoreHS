@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useVendedores } from "../context/VendedoresContext";
 import {
@@ -64,6 +64,10 @@ const Vendedores: React.FC = () => {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [presetPeriodo, setPresetPeriodo] = useState("todos");
+  const [filtroCliente, setFiltroCliente] = useState<string[]>([]);
+  
+  // Função para normalizar CNPJ (remove pontuação)
+  const normalizarCNPJ = (valor: string) => valor.replace(/\D/g, "");
 
   // Estados da tabela
   const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
@@ -110,6 +114,18 @@ const Vendedores: React.FC = () => {
     }
   }, [presetPeriodo]);
 
+  // Lista única de clientes (com nome e CNPJ juntos)
+  const clientesUnicos = useMemo(() =>
+    Array.from(
+      new Set(
+        notasVendedor.map(
+          (n) => `${n.cliente?.nome || "Não informado"} (${n.cliente?.cpf_cnpj || ""})`
+        ).filter(Boolean)
+      )
+    ),
+    [notasVendedor]
+  );
+
   // Lista única de produtos
   const produtosUnicos = useMemo(() => 
     Array.from(new Set(
@@ -122,17 +138,23 @@ const Vendedores: React.FC = () => {
   const notasFiltradas = useMemo(() => {
     return notasVendedor.filter(n => {
       // Filtro de produto
-      const produtoOk = filtroProduto.length === 0 ||
+      const produtoOk =
+        filtroProduto.length === 0 ||
         n.itens?.some(item => filtroProduto.includes(item.descricao));
-      
+
+      // Filtro de cliente
+      const clienteFormatado = `${n.cliente?.nome || "Não informado"} (${n.cliente?.cpf_cnpj || ""})`;
+      const clienteOk =
+        filtroCliente.length === 0 || filtroCliente.includes(clienteFormatado);
+
       // Filtro de data
       const dataOk =
         (!dataInicio || new Date(n.data_emissao) >= new Date(dataInicio)) &&
         (!dataFim || new Date(n.data_emissao) <= new Date(dataFim));
-      
-      return produtoOk && dataOk;
+
+      return produtoOk && clienteOk && dataOk;
     });
-  }, [notasVendedor, filtroProduto, dataInicio, dataFim]);
+  }, [notasVendedor, filtroProduto, filtroCliente, dataInicio, dataFim]);
 
   // KPIs Calculados
   const kpis = useMemo(() => {
@@ -230,13 +252,23 @@ const Vendedores: React.FC = () => {
 
     // Aplicar pesquisa
     if (pesquisaTabela) {
-      const termo = pesquisaTabela.toLowerCase();
-      filtradas = filtradas.filter(n =>
-        n.cliente?.nome?.toLowerCase().includes(termo) ||
-        n.itens?.some(i => i.descricao?.toLowerCase().includes(termo)) ||
-        n.valor_nota?.toString().includes(termo) ||
-        n.tipo?.toLowerCase().includes(termo)
-      );
+      const termoLower = pesquisaTabela.toLowerCase();
+      const termoNormalizado = /^\d+$/.test(pesquisaTabela) ? normalizarCNPJ(pesquisaTabela) : "";
+
+      filtradas = filtradas.filter(n => {
+        const nome = n.cliente?.nome?.toLowerCase() || "";
+        const cnpj = n.cliente?.cpf_cnpj?.toLowerCase() || "";
+        const cnpjNormalizado = normalizarCNPJ(n.cliente?.cpf_cnpj || "");
+
+        return (
+          nome.includes(termoLower) ||
+          cnpj.includes(termoLower) ||
+          (termoNormalizado && cnpjNormalizado.includes(termoNormalizado)) ||
+          n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
+          n.valor_nota?.toString().includes(termoLower) ||
+          n.tipo?.toLowerCase().includes(termoLower)
+        );
+      });
     }
 
     // Aplicar ordenação
@@ -328,9 +360,10 @@ const Vendedores: React.FC = () => {
 
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
-    const dadosExport = notasFiltradas.map(n => ({
+    const dadosExport = notasTabela.map(n => ({
       'Data': new Date(n.data_emissao).toLocaleDateString('pt-BR'),
       'Cliente': n.cliente?.nome || '',
+      'CNPJ': n.cliente?.cpf_cnpj || '',
       'Valor': n.valor_nota,
       'Tipo': n.tipo || 'Não definido',
       'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
@@ -340,37 +373,67 @@ const Vendedores: React.FC = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Minhas Vendas");
     XLSX.writeFile(wb, `vendas_${vendedorLogado}_${new Date().toISOString().split('T')[0]}.xlsx`);
-  }, [notasFiltradas, vendedorLogado]);
+  }, [notasTabela, vendedorLogado]);
 
   // MultiSelect customizado
   const MultiSelect = ({ 
-    options, 
-    selected, 
-    onChange, 
-    placeholder 
-  }: {
-    options: string[];
-    selected: string[];
-    onChange: (val: string[]) => void;
-    placeholder: string;
-  }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
+      options, 
+      selected, 
+      onChange, 
+      placeholder 
+    }: {
+      options: string[];
+      selected: string[];
+      onChange: (val: string[]) => void;
+      placeholder: string;
+    }) => {
+      const [isOpen, setIsOpen] = useState(false);
+      const [searchTerm, setSearchTerm] = useState("");
+      const ref = useRef<HTMLDivElement>(null);
+  
+      // Fecha ao clicar fora
+      useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          if (ref.current && !ref.current.contains(event.target as Node)) {
+            setIsOpen(false);
+          }
+        };
+  
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
+  
+      const toggleOption = (option: string) => {
+        if (selected.includes(option)) {
+          onChange(selected.filter(s => s !== option));
+        } else {
+          onChange([...selected, option]);
+        }
+      };
 
-    const toggleOption = (option: string) => {
-      if (selected.includes(option)) {
-        onChange(selected.filter(s => s !== option));
-      } else {
-        onChange([...selected, option]);
-      }
-    };
+    const filteredOptions = options.filter((option) => {
+      const optionLower = option.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
 
-    const filteredOptions = options.filter((option) =>
-      option.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+      // Extrair CNPJ do texto
+      const cnpjMatch = option.match(/\((.*?)\)/);
+      const cnpj = cnpjMatch ? cnpjMatch[1] : "";
+      const cnpjNormalizado = normalizarCNPJ(cnpj);
+
+      // Se usuário digitou apenas números → normaliza
+      const searchNormalizado = /^\d+$/.test(searchTerm) ? normalizarCNPJ(searchTerm) : "";
+
+      return (
+        optionLower.includes(searchLower) || // busca pelo nome
+        cnpj.toLowerCase().includes(searchLower) || // busca CNPJ formatado
+        (searchNormalizado && cnpjNormalizado.includes(searchNormalizado)) // busca CNPJ sem pontuação
+      );
+    });
 
     return (
-      <div className="relative">
+      <div className="relative" ref={ref}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
@@ -483,7 +546,20 @@ const Vendedores: React.FC = () => {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Empresas (Clientes) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Empresas
+              </label>
+              <MultiSelect
+                options={clientesUnicos}
+                selected={filtroCliente}
+                onChange={setFiltroCliente}
+                placeholder="Todas as empresas"
+              />
+            </div>
+
             {/* Produtos */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -894,6 +970,11 @@ const Vendedores: React.FC = () => {
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
                         {nota.cliente?.nome || "Não informado"}
                       </p>
+                      {nota.cliente?.cpf_cnpj && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          CNPJ: {nota.cliente?.cpf_cnpj}
+                        </p>
+                      )}
                     </td>
 
                     <td className="px-4 py-3">
