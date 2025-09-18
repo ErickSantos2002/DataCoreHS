@@ -66,8 +66,14 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
       head: [["Produto", "Saldo Atual", "Quantidade Solicitada"]],
       body: dadosTabela,
       theme: "grid",
-      headStyles: { fillColor: [22, 160, 133], textColor: 255 }, // verde no cabeçalho
-      alternateRowStyles: { fillColor: [240, 240, 240] },       // cinza nas linhas alternadas
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, halign: "center" }, // títulos centralizados
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: {
+        0: { cellWidth: 90, halign: "center" }, // Produto centralizado
+        1: { halign: "center" },                // Saldo centralizado
+        2: { halign: "center" },                // Quantidade centralizada
+      },
     });
 
     // Rodapé
@@ -90,43 +96,70 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
   if (!aberto) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
-        <h2 className="text-lg font-semibold mb-4">Selecionar Produtos</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+          Selecionar Produtos
+        </h2>
 
         {/* Campo de pesquisa */}
         <input
           type="text"
           placeholder="Pesquisar produto..."
-          className="w-full px-3 py-2 border rounded mb-4"
+          className="w-full px-3 py-2 border rounded-lg mb-4
+                    bg-white dark:bg-[#1e293b] text-gray-800 dark:text-gray-200
+                    border-gray-300 dark:border-gray-600
+                    placeholder-gray-400 dark:placeholder-gray-500
+                    focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
 
-        <div className="max-h-64 overflow-y-auto">
+        {/* Lista de produtos */}
+        <div className="max-h-64 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
           {produtosFiltrados.map((produto) => (
-            <div key={produto.id} className="flex items-center justify-between border-b py-2">
-              <span>{produto.nome} (Saldo: {produto.saldo})</span>
+            <div
+              key={produto.id}
+              className="flex items-center justify-between py-2
+                        text-gray-800 dark:text-gray-200"
+            >
+              <span>
+                {produto.nome}{" "}
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  (Saldo: {produto.saldo})
+                </span>
+              </span>
               <input
                 type="number"
                 min={0}
-                className="w-24 border rounded px-2 py-1"
-                onChange={(e) => atualizarQuantidade(produto.id, Number(e.target.value))}
+                className="w-24 px-2 py-1 border rounded-lg
+                          bg-white dark:bg-[#1e293b]
+                          text-gray-800 dark:text-gray-200
+                          border-gray-300 dark:border-gray-600"
+                onChange={(e) =>
+                  atualizarQuantidade(produto.id, Number(e.target.value))
+                }
               />
             </div>
           ))}
         </div>
 
-        <div className="flex justify-end gap-2 mt-4">
+        {/* Botões */}
+        <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={fechar}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            className="px-4 py-2 rounded-lg
+                      bg-gray-300 text-gray-800 hover:bg-gray-400
+                      dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600
+                      transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={gerarPDF}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-4 py-2 rounded-lg
+                      bg-green-600 text-white hover:bg-green-700 dark:hover:bg-green-500
+                      transition-colors"
           >
             Gerar PDF
           </button>
