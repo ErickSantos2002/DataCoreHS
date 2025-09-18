@@ -733,13 +733,16 @@ const Vendedores: React.FC = () => {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #374151",
+                    backgroundColor: "#ffffff", // 🔹 Sempre branco
+                    border: "1px solid #d1d5db", // 🔹 Borda clara
                     borderRadius: "8px",
+                    color: "#111827", // 🔹 Texto escuro
                   }}
-                  labelStyle={{ color: "#e5e7eb" }}
+                  labelStyle={{ color: "#111827" }} // 🔹 Label sempre escura
+                  itemStyle={{ color: "#0284c7" }}  // 🔹 Valor em azul
                   formatter={(value: number) => formatarValorAbreviado(value)}
                 />
+
                 <Line
                   type="monotone"
                   dataKey="total"
@@ -775,17 +778,45 @@ const Vendedores: React.FC = () => {
                   tickFormatter={(value) => formatarValorAbreviado(value)}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #374151",
-                    borderRadius: "8px",
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const isDark = false; // 🔹 já que você quer sempre branco
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            color: "#111827",
+                            padding: "8px 12px",
+                            maxWidth: "220px", // 🔹 largura máxima
+                            whiteSpace: "nowrap", // 🔹 não quebra linha
+                            overflow: "hidden",   // 🔹 corta excesso
+                            textOverflow: "ellipsis", // 🔹 coloca "..."
+                          }}
+                          title={String(label)} // 🔹 mostra tooltip nativo com nome completo
+                        >
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: "4px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {label}
+                          </p>
+                          <p style={{ color: "#0284c7" }}>
+                            Valor: {formatarValorAbreviado(payload[0].value as number)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
-                  labelStyle={{ color: "#e5e7eb" }}
-                  formatter={(value: number) => [
-                    `R$ ${value.toLocaleString("pt-BR")}`,
-                    "Valor"
-                  ]}
                 />
+
                 <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -821,13 +852,28 @@ const Vendedores: React.FC = () => {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #374151",
+                    backgroundColor: "#ffffff", // 🔹 Sempre branco
+                    border: "1px solid #d1d5db", // 🔹 Borda clara
                     borderRadius: "8px",
+                    color: "#111827", // 🔹 Texto escuro
+                    maxWidth: "220px", // 🔹 largura máxima
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                  labelStyle={{
+                    fontWeight: 600,
+                    color: "#111827",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                  itemStyle={{
+                    color: "#0284c7", // 🔹 valor em azul
                   }}
                   formatter={(value: number) => [
                     `R$ ${value.toLocaleString("pt-BR")}`,
-                    "Valor"
+                    "Valor",
                   ]}
                 />
               </PieChart>

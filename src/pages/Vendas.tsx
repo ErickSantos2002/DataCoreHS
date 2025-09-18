@@ -806,13 +806,23 @@ const Vendas: React.FC = () => {
         {/* Tooltip */}
         <Tooltip
           contentStyle={{
-            backgroundColor: "#1e293b",
+            backgroundColor: document.documentElement.classList.contains("dark")
+              ? "#1e293b" // fundo escuro no dark
+              : "#ffffff", // fundo claro no light
             border: "1px solid var(--chart-axis)",
             borderRadius: "8px",
             color: "var(--chart-text)",
           }}
-          itemStyle={{ color: "#60a5fa" }}
-          labelStyle={{ color: "var(--chart-text)" }}
+          itemStyle={{
+            color: document.documentElement.classList.contains("dark")
+              ? "#60a5fa"
+              : "#2563eb", // azul diferente no claro
+          }}
+          labelStyle={{
+            color: document.documentElement.classList.contains("dark")
+              ? "#f9fafb"
+              : "#111827",
+          }}
           formatter={(value: number) => formatarValorAbreviado(value)}
         />
 
@@ -866,43 +876,44 @@ const Vendas: React.FC = () => {
         />
 
         <Tooltip
-  content={({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div
-          style={{
-            backgroundColor: "#1e293b",
-            border: "1px solid var(--chart-axis)",
-            borderRadius: "8px",
-            color: "var(--chart-text)",
-            padding: "8px 12px",
-            maxWidth: "220px",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-          title={String(label)}
-        >
-          <p
-            style={{
-              fontWeight: 600,
-              marginBottom: "4px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {label}
-          </p>
-          <p style={{ color: "#22c55e" }}>
-            valor: {formatarValorAbreviado(payload[0].value as number)}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  }}
-/>
+          content={({ active, payload, label }) => {
+          if (active && payload && payload.length) {
+            const isDark = document.documentElement.classList.contains("dark");
 
+            return (
+              <div
+                style={{
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff", // fundo escuro ou claro
+                  border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`, // borda escura/clara
+                  borderRadius: "8px",
+                  color: isDark ? "#f9fafb" : "#111827", // texto escuro/claro
+                  padding: "8px 12px",
+                  maxWidth: "220px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={String(label)}
+              >
+                <p
+                  style={{
+                    fontWeight: 600,
+                    marginBottom: "4px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {label}
+                </p>
+                <p style={{ color: isDark ? "#34d399" : "#16a34a" }}>
+                  valor: {formatarValorAbreviado(payload[0].value as number)}
+                </p>
+              </div>
+            );
+          }
+          return null;
+          }}
+        />
 
         <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
       </BarChart>
@@ -928,13 +939,15 @@ const Vendas: React.FC = () => {
         <Tooltip
           content={({ active, payload, label }) => {
             if (active && payload && payload.length) {
+              const isDark = document.documentElement.classList.contains("dark");
+
               return (
                 <div
                   style={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid var(--chart-axis)",
+                    backgroundColor: isDark ? "#1e293b" : "#ffffff", // fundo dark ou claro
+                    border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`, // borda adaptada
                     borderRadius: "8px",
-                    color: "var(--chart-text)",
+                    color: isDark ? "#f9fafb" : "#111827", // texto adaptado
                     padding: "8px 12px",
                     maxWidth: "220px",
                     whiteSpace: "nowrap",
@@ -953,7 +966,7 @@ const Vendas: React.FC = () => {
                   >
                     {label}
                   </p>
-                  <p style={{ color: "#22c55e" }}>
+                  <p style={{ color: isDark ? "#34d399" : "#16a34a" }}>
                     valor : {formatarValorAbreviado(payload[0].value as number)}
                   </p>
                 </div>
@@ -1025,10 +1038,10 @@ const Vendas: React.FC = () => {
               return (
                 <div
                   style={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid var(--chart-axis)",
+                    backgroundColor: "#ffffff", // 🔹 Sempre branco
+                    border: "1px solid #d1d5db", // 🔹 Borda clara
                     borderRadius: "8px",
-                    color: "var(--chart-text)",
+                    color: "#111827", // 🔹 Texto escuro
                     padding: "8px 12px",
                     maxWidth: "220px",
                     whiteSpace: "nowrap",
@@ -1047,7 +1060,7 @@ const Vendas: React.FC = () => {
                   >
                     {name}
                   </p>
-                  <p style={{ color: "#38bdf8" }}>
+                  <p style={{ color: "#0284c7" }}>
                     valor: {formatarValorAbreviado(value)}
                   </p>
                 </div>
@@ -1056,6 +1069,8 @@ const Vendas: React.FC = () => {
             return null;
           }}
         />
+
+
       </PieChart>
     </ResponsiveContainer>
   </div>

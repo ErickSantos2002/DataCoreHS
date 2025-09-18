@@ -472,680 +472,682 @@ const Estoque: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
-      {/* Cabeçalho */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
-        <div className="px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
-            Estoque - Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
-          </p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-            Confira a posição atual do estoque e visualize os produtos disponíveis.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        {/* Filtros */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 transition-colors">
-          <div className="flex items-center mb-4">
-            <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-yellow-400">
-              Filtros
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Produtos */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Produtos
-              </label>
-              <MultiSelect
-                options={produtosUnicos}
-                selected={filtroProduto}
-                onChange={setFiltroProduto}
-                placeholder="Todos os produtos"
-              />
-            </div>
-
-            {/* Situação */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Situação
-              </label>
-              <select
-                value={filtroSituacao}
-                onChange={(e) => setFiltroSituacao(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg 
-                          bg-white dark:bg-[#0f172a] 
-                          text-gray-800 dark:text-gray-200 
-                          border-gray-300 dark:border-gray-600
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 
-                          transition-colors"
-              >
-                <option value="todos">Todos</option>
-                <option value="A">Ativo</option>
-                <option value="I">Inativo</option>
-              </select>
-            </div>
-
-            {/* Saldo */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Saldo
-              </label>
-              <select
-                value={filtroSaldo}
-                onChange={(e) => setFiltroSaldo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg 
-                          bg-white dark:bg-[#0f172a] 
-                          text-gray-800 dark:text-gray-200 
-                          border-gray-300 dark:border-gray-600
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 
-                          transition-colors"
-              >
-                <option value="todos">Todos</option>
-                <option value="comSaldo">Somente com saldo</option>
-                <option value="semSaldo">Somente sem saldo</option>
-                <option value="Negativo">Somente saldo negativo</option>
-              </select>
-            </div>
-
-            {/* Filtros Personalizados */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Filtros Personalizados
-              </label>
-              <select
-                value={filtroPersonalizado}
-                onChange={(e) => setFiltroPersonalizado(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg 
-                          bg-white dark:bg-[#0f172a] 
-                          text-gray-800 dark:text-gray-200 
-                          border-gray-300 dark:border-gray-600
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 
-                          transition-colors"
-              >
-                <option value="nenhum">Nenhum</option>
-                <option value="rapido">Principais</option>
-              </select>
-            </div>
+      <div className="p-6"> {/* 🔹 adiciona limite e centraliza */}
+        {/* Cabeçalho */}
+        <div className="bg-white dark:bg-[#0f172a] shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
+          <div className="px-6 py-4">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
+              Estoque - Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">
+              Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+              Confira a posição atual do estoque e visualize os produtos disponíveis.
+            </p>
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Produtos Ativos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Produtos Ativos</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
-                  {kpis.produtosAtivos}
-                </p>
-              </div>
-              <div className="bg-green-100 dark:bg-green-900/40 p-3 rounded-full">
-                <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
+        <div className="mt-6">
+          {/* Filtros */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 transition-colors">
+            <div className="flex items-center mb-4">
+              <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-yellow-400">
+                Filtros
+              </h2>
             </div>
-          </div>
 
-          {/* Produtos sem Saldo */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Produtos */}
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Produtos sem Saldo</p>
-                <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
-                  {kpis.produtosSemSaldo}
-                </p>
-              </div>
-              <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Valor Total em Estoque */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Valor Total em Estoque</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-                  R$ {kpis.valorTotalEstoque.toLocaleString("pt-BR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </p>
-              </div>
-              <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full">
-                <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Produto com Maior Saldo */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Produto Top</p>
-                <p className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-2 truncate 
-                              max-w-[180px] overflow-hidden whitespace-nowrap">
-                  {kpis.produtoTop?.nome || "N/A"}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  R$ {kpis.produtoTop?.valor.toLocaleString("pt-BR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })} ({kpis.produtoTop?.unidade})
-                </p>
-              </div>
-              <div className="bg-orange-100 dark:bg-orange-900/40 p-3 rounded-full">
-                <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Top 10 Produtos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4"> 
-              Top 10 Produtos em Estoque
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={rankingProdutos} 
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" /> {/* melhora no dark */}
-                <XAxis
-                  type="number"
-                  tickFormatter={(value) => `${value}`}
-                  stroke="#9ca3af" // cor dos ticks no dark
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Produtos
+                </label>
+                <MultiSelect
+                  options={produtosUnicos}
+                  selected={filtroProduto}
+                  onChange={setFiltroProduto}
+                  placeholder="Todos os produtos"
                 />
-                <YAxis 
-                  type="category" 
-                  dataKey="nome" 
-                  width={150}
-                  tickFormatter={(name: string) => 
-                    name.length > 15 ? `${name.substring(0, 15)}...` : name
-                  }
-                  stroke="#9ca3af"
-                />
-                <Tooltip
-                  formatter={(value: number) =>
-                    `R$ ${value.toLocaleString("pt-BR", {
+              </div>
+
+              {/* Situação */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Situação
+                </label>
+                <select
+                  value={filtroSituacao}
+                  onChange={(e) => setFiltroSituacao(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white dark:bg-[#0f172a] 
+                            text-gray-800 dark:text-gray-200 
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 
+                            transition-colors"
+                >
+                  <option value="todos">Todos</option>
+                  <option value="A">Ativo</option>
+                  <option value="I">Inativo</option>
+                </select>
+              </div>
+
+              {/* Saldo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Saldo
+                </label>
+                <select
+                  value={filtroSaldo}
+                  onChange={(e) => setFiltroSaldo(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white dark:bg-[#0f172a] 
+                            text-gray-800 dark:text-gray-200 
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 
+                            transition-colors"
+                >
+                  <option value="todos">Todos</option>
+                  <option value="comSaldo">Somente com saldo</option>
+                  <option value="semSaldo">Somente sem saldo</option>
+                  <option value="Negativo">Somente saldo negativo</option>
+                </select>
+              </div>
+
+              {/* Filtros Personalizados */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Filtros Personalizados
+                </label>
+                <select
+                  value={filtroPersonalizado}
+                  onChange={(e) => setFiltroPersonalizado(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white dark:bg-[#0f172a] 
+                            text-gray-800 dark:text-gray-200 
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 
+                            transition-colors"
+                >
+                  <option value="nenhum">Nenhum</option>
+                  <option value="rapido">Principais</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Produtos Ativos */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Produtos Ativos</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
+                    {kpis.produtosAtivos}
+                  </p>
+                </div>
+                <div className="bg-green-100 dark:bg-green-900/40 p-3 rounded-full">
+                  <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Produtos sem Saldo */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Produtos sem Saldo</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
+                    {kpis.produtosSemSaldo}
+                  </p>
+                </div>
+                <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-full">
+                  <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Valor Total em Estoque */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Valor Total em Estoque</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                    R$ {kpis.valorTotalEstoque.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
-                    })}`
-                  }
-                  contentStyle={{
-                    backgroundColor: document.documentElement.classList.contains("dark")
-                      ? "#1f2937" // fundo escuro no dark
-                      : "#ffffff", // fundo branco no light
-                    color: document.documentElement.classList.contains("dark")
-                      ? "#f9fafb" // texto claro no dark
-                      : "#111827", // texto escuro no light
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db", // borda leve no light
-                  }}
-                />
-                <Bar dataKey="valor" fill={CORES.laranja} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Distribuição de Valor */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Distribuição de Valor em Estoque
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={distribuicaoValor}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent = 0 }) => {
-                    const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
-                    return `${nomeCortado} ${(percent * 100).toFixed(0)}%`;
-                  }}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {distribuicaoValor.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => formatarValorAbreviado(value)}
-                  contentStyle={{
-                    backgroundColor: document.documentElement.classList.contains("dark")
-                      ? "#1f2937" // fundo escuro no dark
-                      : "#ffffff", // fundo branco no light
-                    color: document.documentElement.classList.contains("dark")
-                      ? "#f9fafb" // texto claro no dark
-                      : "#111827", // texto escuro no light
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db", // borda leve no light
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Situação dos Produtos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Situação dos Produtos
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={situacaoProdutos}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value, percent = 0 }) => {
-                    const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
-                    return `${nomeCortado}: ${value} (${(percent * 100).toFixed(0)}%)`;
-                  }}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {situacaoProdutos.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: document.documentElement.classList.contains("dark")
-                      ? "#1f2937" // fundo escuro no dark
-                      : "#ffffff", // fundo branco no light
-                    color: document.documentElement.classList.contains("dark")
-                      ? "#f9fafb" // texto claro no dark
-                      : "#111827", // texto escuro no light
-                    borderRadius: "8px",
-                    border: "1px solid #d1d5db", // borda leve no modo claro
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Estatísticas Adicionais */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Estatísticas do Estoque
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Total de Produtos</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {produtosFiltrados.length}
-                </span>
+                    })}
+                  </p>
+                </div>
+                <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full">
+                  <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Preço Médio</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  R$ {produtosFiltrados.length > 0 
-                    ? (produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) / produtosFiltrados.length).toFixed(2)
-                    : '0,00'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Saldo Médio</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {produtosFiltrados.length > 0 
-                    ? (produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) / produtosFiltrados.length).toFixed(1)
-                    : '0'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Maior Preço</span>
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                  R$ {produtosFiltrados.length > 0 
-                    ? Math.max(...produtosFiltrados.map(p => p.preco)).toFixed(2)
-                    : '0,00'}
-                </span>
+            </div>
+
+            {/* Produto com Maior Saldo */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Produto Top</p>
+                  <p className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-2 truncate 
+                                max-w-[180px] overflow-hidden whitespace-nowrap">
+                    {kpis.produtoTop?.nome || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    R$ {kpis.produtoTop?.valor.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })} ({kpis.produtoTop?.unidade})
+                  </p>
+                </div>
+                <div className="bg-orange-100 dark:bg-orange-900/40 p-3 rounded-full">
+                  <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Tabela de Produtos */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
-              Detalhamento do Estoque
-            </h3>
-
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-              {/* Campo de pesquisa */}
-              <div className="relative flex-1 md:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 
-                                  w-4 h-4 text-gray-400 dark:text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Pesquisar..."
-                  value={pesquisaTabela}
-                  onChange={(e) => setPesquisaTabela(e.target.value)}
-                  className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
-                            focus:outline-none focus:ring-2 focus:ring-blue-500
-                            bg-white dark:bg-[#0f172a]
-                            text-gray-800 dark:text-gray-200
-                            border-gray-300 dark:border-gray-600
-                            placeholder-gray-400 dark:placeholder-gray-500
-                            transition-colors"
-                />
-              </div>
-
-              {/* Botão Exportar */}
-              <button
-                onClick={exportarExcel}
-                className="flex items-center justify-center px-4 py-2 
-                          bg-green-600 text-white rounded-lg 
-                          hover:bg-green-700 dark:hover:bg-green-500 
-                          transition-colors"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exportar Excel
-              </button>
-
-              {/* Botão Solicitação */}
-              <button
-                onClick={abrirModal}
-                className="flex items-center justify-center px-4 py-2 
-                          bg-blue-600 text-white rounded-lg 
-                          hover:bg-blue-700 dark:hover:bg-blue-500 
-                          transition-colors"
-              >
-                Solicitação de Compras
-              </button>
-
-              {/* Modal */}
-              <SolicitacaoComprasModal
-                aberto={modalAberto}
-                fechar={() => setModalAberto(false)}
-                produtos={produtos}
-                solicitante={user?.username || "Usuário"}
-              />
-            </div>
-          </div>
-
-          {/* Tabela */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
-                    onClick={() => alternarOrdenacao("nome")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Nome
-                      </span>
-                      {ordenacao.campo === "nome" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ))}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
-                    onClick={() => alternarOrdenacao("codigo")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Código-SKU
-                      </span>
-                      {ordenacao.campo === "codigo" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ))}
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
-                      Unidade
-                    </span>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
-                    onClick={() => alternarOrdenacao("preco")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Preço
-                      </span>
-                      {ordenacao.campo === "preco" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ))}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
-                    onClick={() => alternarOrdenacao("saldo")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Saldo
-                      </span>
-                      {ordenacao.campo === "saldo" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ))}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
-                    onClick={() => alternarOrdenacao("situacao")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Situação
-                      </span>
-                      {ordenacao.campo === "situacao" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                        ))}
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
-                      Valor Total
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {produtosPaginados.map((produto, index) => (
-                  <tr
-                    key={produto.id}
-                    className={`border-b border-gray-100 dark:border-gray-700 
-                                hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors ${
-                                  index % 2 === 0
-                                    ? "bg-white dark:bg-[#0f172a]"
-                                    : "bg-gray-50/50 dark:bg-[#1e293b]/40"
-                                }`}
-                  >
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {produto.nome}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {produto.codigo}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {produto.unidade}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                        R${" "}
-                        {produto.preco.toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-sm font-semibold ${
-                          produto.saldo > 0
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        {produto.saldo.toLocaleString("pt-BR")}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          produto.situacao === "A"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
-                        }`}
-                      >
-                        {produto.situacao === "A" ? "Ativo" : "Inativo"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                        R${" "}
-                        {(produto.saldo * produto.preco).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Paginação */}
-          {totalPaginas > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-gray-600">
-                Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
-                {Math.min(paginaAtual * itensPorPagina, produtosTabela.length)} de{" "}
-                {produtosTabela.length} registros
-              </div>
-
-              {/* Desktop: paginação completa */}
-              <div className="hidden md:flex gap-2">
-                <button
-                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                  disabled={paginaAtual === 1}
-                  className="px-3 py-1 border rounded-lg 
-                    bg-white border-gray-300 text-gray-700
-                    hover:bg-gray-50 
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Gráficos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Top 10 Produtos */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4"> 
+                Top 10 Produtos em Estoque
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={rankingProdutos} 
+                  layout="vertical"
                 >
-                  Anterior
-                </button>
-
-                <div className="flex gap-1">
-                  {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                    let pageNum;
-                    if (totalPaginas <= 5) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual <= 3) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual >= totalPaginas - 2) {
-                      pageNum = totalPaginas - 4 + i;
-                    } else {
-                      pageNum = paginaAtual - 2 + i;
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" /> {/* melhora no dark */}
+                  <XAxis
+                    type="number"
+                    tickFormatter={(value) => `${value}`}
+                    stroke="#9ca3af" // cor dos ticks no dark
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="nome" 
+                    width={150}
+                    tickFormatter={(name: string) => 
+                      name.length > 15 ? `${name.substring(0, 15)}...` : name
                     }
+                    stroke="#9ca3af"
+                  />
+                  <Tooltip
+                    formatter={(value: number) =>
+                      `R$ ${value.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`
+                    }
+                    contentStyle={{
+                      backgroundColor: document.documentElement.classList.contains("dark")
+                        ? "#1f2937" // fundo escuro no dark
+                        : "#ffffff", // fundo branco no light
+                      color: document.documentElement.classList.contains("dark")
+                        ? "#f9fafb" // texto claro no dark
+                        : "#111827", // texto escuro no light
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db", // borda leve no light
+                    }}
+                  />
+                  <Bar dataKey="valor" fill={CORES.laranja} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
 
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setPaginaAtual(pageNum)}
-                        className={`px-3 py-1 border rounded-lg transition-colors ${
-                          paginaAtual === pageNum
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+            {/* Distribuição de Valor */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Distribuição de Valor em Estoque
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={distribuicaoValor}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent = 0 }) => {
+                      const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
+                      return `${nomeCortado} ${(percent * 100).toFixed(0)}%`;
+                    }}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {distribuicaoValor.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => formatarValorAbreviado(value)}
+                    contentStyle={{
+                      backgroundColor: document.documentElement.classList.contains("dark")
+                        ? "#1f2937" // fundo escuro no dark
+                        : "#ffffff", // fundo branco no light
+                      color: document.documentElement.classList.contains("dark")
+                        ? "#f9fafb" // texto claro no dark
+                        : "#111827", // texto escuro no light
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db", // borda leve no light
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Situação dos Produtos */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Situação dos Produtos
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={situacaoProdutos}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value, percent = 0 }) => {
+                      const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
+                      return `${nomeCortado}: ${value} (${(percent * 100).toFixed(0)}%)`;
+                    }}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {situacaoProdutos.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: document.documentElement.classList.contains("dark")
+                        ? "#1f2937" // fundo escuro no dark
+                        : "#ffffff", // fundo branco no light
+                      color: document.documentElement.classList.contains("dark")
+                        ? "#f9fafb" // texto claro no dark
+                        : "#111827", // texto escuro no light
+                      borderRadius: "8px",
+                      border: "1px solid #d1d5db", // borda leve no modo claro
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Estatísticas Adicionais */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                Estatísticas do Estoque
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total de Produtos</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {produtosFiltrados.length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Preço Médio</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    R$ {produtosFiltrados.length > 0 
+                      ? (produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) / produtosFiltrados.length).toFixed(2)
+                      : '0,00'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Saldo Médio</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {produtosFiltrados.length > 0 
+                      ? (produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) / produtosFiltrados.length).toFixed(1)
+                      : '0'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Maior Preço</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    R$ {produtosFiltrados.length > 0 
+                      ? Math.max(...produtosFiltrados.map(p => p.preco)).toFixed(2)
+                      : '0,00'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabela de Produtos */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
+                Detalhamento do Estoque
+              </h3>
+
+              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                {/* Campo de pesquisa */}
+                <div className="relative flex-1 md:flex-initial">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 
+                                    w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Pesquisar..."
+                    value={pesquisaTabela}
+                    onChange={(e) => setPesquisaTabela(e.target.value)}
+                    className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
+                              focus:outline-none focus:ring-2 focus:ring-blue-500
+                              bg-white dark:bg-[#0f172a]
+                              text-gray-800 dark:text-gray-200
+                              border-gray-300 dark:border-gray-600
+                              placeholder-gray-400 dark:placeholder-gray-500
+                              transition-colors"
+                  />
                 </div>
 
+                {/* Botão Exportar */}
                 <button
-                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                  disabled={paginaAtual === totalPaginas}
-                  className="px-3 py-1 border rounded-lg 
-                    bg-white border-gray-300 text-gray-700
-                    hover:bg-gray-50 
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={exportarExcel}
+                  className="flex items-center justify-center px-4 py-2 
+                            bg-green-600 text-white rounded-lg 
+                            hover:bg-green-700 dark:hover:bg-green-500 
+                            transition-colors"
                 >
-                  Próximo
-                </button>
-              </div>
-
-              {/* Mobile: somente < páginaAtual > */}
-              <div className="flex md:hidden gap-2 items-center">
-                <button
-                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                  disabled={paginaAtual === 1}
-                  className="px-3 py-1 border rounded-lg 
-                    bg-white border-gray-300 text-gray-700
-                    hover:bg-gray-50 
-                    disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {"<"}
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar Excel
                 </button>
 
-                <span className="px-3 py-1 border rounded-lg bg-white text-gray-700">
-                  {paginaAtual}
-                </span>
-
+                {/* Botão Solicitação */}
                 <button
-                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                  disabled={paginaAtual === totalPaginas}
-                  className="px-3 py-1 border rounded-lg 
-                    bg-white border-gray-300 text-gray-700
-                    hover:bg-gray-50 
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={abrirModal}
+                  className="flex items-center justify-center px-4 py-2 
+                            bg-blue-600 text-white rounded-lg 
+                            hover:bg-blue-700 dark:hover:bg-blue-500 
+                            transition-colors"
                 >
-                  {">"}
+                  Solicitação de Compras
                 </button>
+
+                {/* Modal */}
+                <SolicitacaoComprasModal
+                  aberto={modalAberto}
+                  fechar={() => setModalAberto(false)}
+                  produtos={produtos}
+                  solicitante={user?.username || "Usuário"}
+                />
               </div>
             </div>
-          )}
+
+            {/* Tabela */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      onClick={() => alternarOrdenacao("nome")}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          Nome
+                        </span>
+                        {ordenacao.campo === "nome" &&
+                          (ordenacao.direcao === "desc" ? (
+                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ))}
+                      </div>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      onClick={() => alternarOrdenacao("codigo")}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          Código-SKU
+                        </span>
+                        {ordenacao.campo === "codigo" &&
+                          (ordenacao.direcao === "desc" ? (
+                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ))}
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Unidade
+                      </span>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      onClick={() => alternarOrdenacao("preco")}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          Preço
+                        </span>
+                        {ordenacao.campo === "preco" &&
+                          (ordenacao.direcao === "desc" ? (
+                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ))}
+                      </div>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      onClick={() => alternarOrdenacao("saldo")}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          Saldo
+                        </span>
+                        {ordenacao.campo === "saldo" &&
+                          (ordenacao.direcao === "desc" ? (
+                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ))}
+                      </div>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      onClick={() => alternarOrdenacao("situacao")}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          Situação
+                        </span>
+                        {ordenacao.campo === "situacao" &&
+                          (ordenacao.direcao === "desc" ? (
+                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
+                          ))}
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Valor Total
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {produtosPaginados.map((produto, index) => (
+                    <tr
+                      key={produto.id}
+                      className={`border-b border-gray-100 dark:border-gray-700 
+                                  hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors ${
+                                    index % 2 === 0
+                                      ? "bg-white dark:bg-[#0f172a]"
+                                      : "bg-gray-50/50 dark:bg-[#1e293b]/40"
+                                  }`}
+                    >
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {produto.nome}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                        {produto.codigo}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                        {produto.unidade}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                          R${" "}
+                          {produto.preco.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-sm font-semibold ${
+                            produto.saldo > 0
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {produto.saldo.toLocaleString("pt-BR")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            produto.situacao === "A"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
+                          }`}
+                        >
+                          {produto.situacao === "A" ? "Ativo" : "Inativo"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                          R${" "}
+                          {(produto.saldo * produto.preco).toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginação */}
+            {totalPaginas > 1 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-gray-600">
+                  Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
+                  {Math.min(paginaAtual * itensPorPagina, produtosTabela.length)} de{" "}
+                  {produtosTabela.length} registros
+                </div>
+
+                {/* Desktop: paginação completa */}
+                <div className="hidden md:flex gap-2">
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                    disabled={paginaAtual === 1}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white border-gray-300 text-gray-700
+                      hover:bg-gray-50 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                      let pageNum;
+                      if (totalPaginas <= 5) {
+                        pageNum = i + 1;
+                      } else if (paginaAtual <= 3) {
+                        pageNum = i + 1;
+                      } else if (paginaAtual >= totalPaginas - 2) {
+                        pageNum = totalPaginas - 4 + i;
+                      } else {
+                        pageNum = paginaAtual - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setPaginaAtual(pageNum)}
+                          className={`px-3 py-1 border rounded-lg transition-colors ${
+                            paginaAtual === pageNum
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                    disabled={paginaAtual === totalPaginas}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white border-gray-300 text-gray-700
+                      hover:bg-gray-50 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próximo
+                  </button>
+                </div>
+
+                {/* Mobile: somente < páginaAtual > */}
+                <div className="flex md:hidden gap-2 items-center">
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                    disabled={paginaAtual === 1}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white border-gray-300 text-gray-700
+                      hover:bg-gray-50 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {"<"}
+                  </button>
+
+                  <span className="px-3 py-1 border rounded-lg bg-white text-gray-700">
+                    {paginaAtual}
+                  </span>
+
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                    disabled={paginaAtual === totalPaginas}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white border-gray-300 text-gray-700
+                      hover:bg-gray-50 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {">"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </div>  
     </div>
   );
 };
