@@ -126,29 +126,33 @@ const Vendedores: React.FC = () => {
     [notasVendedor]
   );
 
-  const produtosUnicos = useMemo(() => 
-    Array.from(new Set(
-      notasVendedor.flatMap(n => 
-        n.itens?.map(i => `${i.descricao} (${i.codigo})`) || []
-      ).filter(Boolean)
-    )),
+  const produtosUnicos = useMemo(() =>
+    Array.from(
+      new Map(
+        notasVendedor.flatMap(n =>
+          n.itens?.map(i => [
+            i.codigo, 
+            { value: i.codigo, label: `${i.descricao} (${i.codigo})` }
+          ]) || []
+        )
+      ).values()
+    ),
     [notasVendedor]
   );
 
   // Aplicação dos filtros
   const notasFiltradas = useMemo(() => {
     return notasVendedor.filter(n => {
-      // Filtro de produto
       const produtoOk =
         filtroProduto.length === 0 ||
-        n.itens?.some(item => filtroProduto.includes(item.descricao));
+        n.itens?.some(item =>
+          filtroProduto.includes(`${item.descricao} (${item.codigo})`)
+        );
 
-      // Filtro de cliente
       const clienteFormatado = `${n.cliente?.nome || "Não informado"} (${n.cliente?.cpf_cnpj || ""})`;
       const clienteOk =
         filtroCliente.length === 0 || filtroCliente.includes(clienteFormatado);
 
-      // Filtro de data
       const dataOk =
         (!dataInicio || new Date(n.data_emissao) >= new Date(dataInicio)) &&
         (!dataFim || new Date(n.data_emissao) <= new Date(dataFim));
@@ -567,7 +571,7 @@ const Vendedores: React.FC = () => {
                 Produtos
               </label>
               <MultiSelect
-                options={produtosUnicos}
+                options={produtosUnicos.map(p => p.label)} // exibição
                 selected={filtroProduto}
                 onChange={setFiltroProduto}
                 placeholder="Todos os produtos"

@@ -159,12 +159,17 @@ const Vendas: React.FC = () => {
     [notas]
   );
 
-  const produtosUnicos = useMemo(() => 
-    Array.from(new Set(
-      notas.flatMap(n => 
-        n.itens?.map(i => `${i.descricao} (${i.codigo})`) || []
-      ).filter(Boolean)
-    )),
+  const produtosUnicos = useMemo(() =>
+    Array.from(
+      new Map(
+        notas.flatMap(n =>
+          n.itens?.map(i => [
+            i.codigo,
+            `${i.descricao} (${i.codigo})`
+          ]) || []
+        )
+      ).values()
+    ),
     [notas]
   );
 
@@ -182,7 +187,9 @@ const Vendas: React.FC = () => {
       
       // Filtro de produto
       const produtoOk = filtroProduto.length === 0 ||
-        n.itens?.some(item => filtroProduto.includes(item.descricao));
+      n.itens?.some(item =>
+        filtroProduto.includes(`${item.descricao} (${item.codigo})`)
+      );
       
       // Filtro de data
       const dataOk =
@@ -630,11 +637,11 @@ const Vendas: React.FC = () => {
                 Produtos
               </label>
               <MultiSelect
-                options={produtosUnicos}
-                selected={filtroProduto}
-                onChange={setFiltroProduto}
-                placeholder="Todos os produtos"
-              />
+  options={produtosUnicos}
+  selected={filtroProduto}
+  onChange={setFiltroProduto}
+  placeholder="Todos os produtos"
+/>
             </div>
 
             {/* Preset de Período */}

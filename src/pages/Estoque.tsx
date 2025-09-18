@@ -104,12 +104,16 @@ const Estoque: React.FC = () => {
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Listas únicas para filtros
-  const produtosUnicos = useMemo(() => 
-    Array.from(
-      new Set(
-        produtos.map(p => `${p.nome} (${p.codigo})`).filter(Boolean)
-      )
-    ).sort(),
+  const produtosUnicos = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          produtos.map((p) => [p.codigo, { 
+            value: p.codigo, 
+            label: `${p.nome} (${p.codigo})` 
+          }])
+        ).values()
+      ),
     [produtos]
   );
 
@@ -117,7 +121,8 @@ const Estoque: React.FC = () => {
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
       // Filtro de produto
-      const produtoOk = filtroProduto.length === 0 || filtroProduto.includes(p.nome);
+      const produtoOk =
+      filtroProduto.length === 0 || filtroProduto.includes(p.codigo);
 
       // Filtro de situação
       const situacaoOk = filtroSituacao === "todos" ||
@@ -342,16 +347,16 @@ const Estoque: React.FC = () => {
 
   // Componente de MultiSelect customizado
   const MultiSelect = ({ 
-        options, 
-        selected, 
-        onChange, 
-        placeholder 
-      }: {
-        options: string[];
-        selected: string[];
-        onChange: (val: string[]) => void;
-        placeholder: string;
-      }) => {
+    options, 
+    selected, 
+    onChange, 
+    placeholder 
+  }: {
+    options: { value: string; label: string }[];
+    selected: string[]; // só os códigos (values)
+    onChange: (val: string[]) => void;
+    placeholder: string;
+  }) => {
         const [isOpen, setIsOpen] = useState(false);
         const [searchTerm, setSearchTerm] = useState("");
         const ref = useRef<HTMLDivElement>(null);
@@ -379,7 +384,7 @@ const Estoque: React.FC = () => {
         };
 
     const filteredOptions = options.filter((option) => {
-      const optionLower = option.toLowerCase();
+      const optionLower = option.label.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
       return optionLower.includes(searchLower);
     });
@@ -433,25 +438,18 @@ const Estoque: React.FC = () => {
             </div>
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
-                <label
-                  key={option}
-                  className="flex items-center px-4 py-2 cursor-pointer 
-                            hover:bg-blue-100 dark:hover:bg-blue-700
-                            text-gray-700 dark:text-gray-200"
-                >
+                <label key={option.value} className="flex items-center px-4 py-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={selected.includes(option)}
-                    onChange={() => toggleOption(option)}
+                    checked={selected.includes(option.value)}
+                    onChange={() => toggleOption(option.value)}
                     className="mr-2"
                   />
-                  {option}
+                  {option.label}
                 </label>
               ))
             ) : (
-              <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                Nenhum resultado encontrado
-              </div>
+              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
             )}
           </div>
         )}
