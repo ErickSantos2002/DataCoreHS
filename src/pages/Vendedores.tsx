@@ -851,30 +851,42 @@ const Vendedores: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff", // 🔹 Sempre branco
-                    border: "1px solid #d1d5db", // 🔹 Borda clara
-                    borderRadius: "8px",
-                    color: "#111827", // 🔹 Texto escuro
-                    maxWidth: "220px", // 🔹 largura máxima
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            color: "#111827",
+                            padding: "8px 12px",
+                            maxWidth: "220px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                          title={String(payload[0].name)} // mostra o nome completo no hover nativo
+                        >
+                          <p
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: "4px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {payload[0].name}
+                          </p>
+                          <p style={{ color: "#0284c7" }}>
+                            Valor: R$ {payload[0].value.toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
-                  labelStyle={{
-                    fontWeight: 600,
-                    color: "#111827",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  itemStyle={{
-                    color: "#0284c7", // 🔹 valor em azul
-                  }}
-                  formatter={(value: number) => [
-                    `R$ ${value.toLocaleString("pt-BR")}`,
-                    "Valor",
-                  ]}
                 />
               </PieChart>
             </ResponsiveContainer>

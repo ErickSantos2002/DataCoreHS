@@ -105,7 +105,8 @@ const Header: React.FC = () => {
           >
             <div className="flex items-center justify-between py-3 mb-3">
               <div className="flex items-center gap-2">
-                <img src={logo} alt="Logo" className="w-6 h-6" />
+                <img src={logo} alt="Logo" className="w-6 h-6 object-contain" />
+
                 <span className="font-bold text-lg text-blue-700 dark:text-blue-400">
                   Menu
                 </span>
