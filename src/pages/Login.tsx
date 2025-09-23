@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react"
 import { useAuth } from "../hooks/useAuth"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/logo.png"
-import fundo from "../assets/fundo.jpeg"
 
 const Login: React.FC = () => {
   const { login, loading, error, user } = useAuth()
@@ -14,9 +13,9 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (user && location.pathname !== "/inicio") {
-      navigate("/inicio", { replace: true });
+      navigate("/inicio", { replace: true })
     }
-  }, [user, navigate, location.pathname]);
+  }, [user, navigate, location.pathname])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,74 +23,84 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${fundo})` }}
-    >
-      <div
-        className="w-full max-w-[320px] bg-white rounded-[15px] shadow-2xl relative z-10 overflow-hidden"
-      >
-        <div className="px-6 py-8">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <img src={logo} alt="Logo" className="max-h-[80px] object-contain" />
-          </div>
-
-          {/* Título */}
-          <div className="text-center mb-8">
-            <h1 className="text-[22px] font-bold text-[#121417] font-['Manrope']"></h1>
-          </div>
-
-          {/* Formulário */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <input
-              id="username"
-              type="text"
-              value={username}
-              autoComplete="username"
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={loading}
-              placeholder="Usuário"
-              style={{ backgroundColor: 'white' }}
-              className="w-full h-[56px] px-4 py-3 bg-white border border-[#DBE0E6] rounded-[12px] text-[16px] placeholder:text-[#61758A] font-['Manrope'] focus:ring-2 focus:ring-[#3D99F5] focus:border-[#3D99F5] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              required
+    <div className="fixed inset-0 flex items-center justify-center bg-[#0a192f]">
+      {/* Card vidro fosco */}
+      <div className="relative w-full max-w-[360px] bg-white/10 backdrop-blur-md border border-white/20 
+                      rounded-[20px] px-8 pt-14 pb-8 text-center 
+                      shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+        
+        {/* Ícone de usuário no topo */}
+        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+          <div className="w-20 h-20 rounded-full bg-[#0f172a] flex items-center justify-center 
+                          shadow-lg border-2 border-white/30">
+            <img
+              src="https://img.icons8.com/?size=100&id=84020&format=png&color=ffffff"
+              alt="Usuário"
+              className="w-10 h-10"
             />
-
-            <input
-              id="password"
-              type="password"
-              value={password}
-              autoComplete="current-password"
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              placeholder="Senha"
-              style={{ backgroundColor: 'white' }}
-              className="w-full h-[56px] px-4 py-3 bg-white border border-[#DBE0E6] rounded-[12px] text-[16px] placeholder:text-[#61758A] font-['Manrope'] focus:ring-2 focus:ring-[#3D99F5] focus:border-[#3D99F5] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              required
-            />
-
-            {error && (
-              <div className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-lg border border-red-200">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 w-[50%] h-[48px] bg-[#3D99F5] hover:bg-[#2E86AB] disabled:bg-[#3D99F5]/50 disabled:cursor-not-allowed text-white font-bold text-[16px] rounded-[12px] font-['Manrope'] transition-colors duration-200 flex items-center justify-center mx-auto"
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Entrando...
-                </div>
-              ) : (
-                "Entrar"
-              )}
-            </button>
-          </form>
+          </div>
         </div>
+
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src={logo} alt="Logo" className="max-h-[60px] object-contain" />
+        </div>
+
+        {/* Título */}
+        <h1 className="text-[22px] font-bold text-white mb-1">Bem-vindo</h1>
+        <p className="text-gray-300 text-sm mb-6">Faça login para continuar</p>
+
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            id="username"
+            type="text"
+            value={username}
+            autoComplete="username"
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={loading}
+            placeholder="Usuário"
+            className="w-full h-[48px] px-4 rounded-lg bg-white/20 text-white placeholder-gray-300 
+                       focus:ring-2 focus:ring-blue-400 focus:outline-none disabled:opacity-50"
+            required
+          />
+
+          <input
+            id="password"
+            type="password"
+            value={password}
+            autoComplete="current-password"
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            placeholder="Senha"
+            className="w-full h-[48px] px-4 rounded-lg bg-white/20 text-white placeholder-gray-300 
+                       focus:ring-2 focus:ring-blue-400 focus:outline-none disabled:opacity-50"
+            required
+          />
+
+          {error && (
+            <div className="text-sm text-red-400 text-center bg-red-900/40 p-2 rounded-lg border border-red-500/40">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-2 w-full h-[48px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 
+                       text-white font-semibold text-[16px] rounded-lg transition flex items-center 
+                       justify-center shadow-md"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Entrando...
+              </div>
+            ) : (
+              "Entrar"
+            )}
+          </button>
+        </form>
       </div>
     </div>
   )
