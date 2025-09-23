@@ -637,11 +637,11 @@ const Vendas: React.FC = () => {
                 Produtos
               </label>
               <MultiSelect
-  options={produtosUnicos}
-  selected={filtroProduto}
-  onChange={setFiltroProduto}
-  placeholder="Todos os produtos"
-/>
+                options={produtosUnicos}
+                selected={filtroProduto}
+                onChange={setFiltroProduto}
+                placeholder="Todos os produtos"
+              />
             </div>
 
             {/* Preset de Período */}
