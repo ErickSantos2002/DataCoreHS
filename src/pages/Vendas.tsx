@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { fetchVendas } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
-import { useVendas } from "../context/VendasContext";
+import { useData } from "../context/DataContext";
 import ModalObservacoes from "../components/ModalObservacoes";
 import {
   BarChart,
@@ -89,7 +89,13 @@ const CORES_GRAFICO = [
 
 const Vendas: React.FC = () => {
   const { user } = useAuth();
-  const { notas, carregando } = useVendas();
+  const { notas, carregando } = useData();
+
+  // Função utilitária no Vendas.tsx
+  const parseData = (dataStr: string): Date => {
+    const [ano, mes, dia] = dataStr.split("T")[0].split("-");
+    return new Date(Number(ano), Number(mes) - 1, Number(dia)); 
+  };
 
   // Estados dos filtros
   const [filtroEmpresa, setFiltroEmpresa] = useState<string[]>([]);
@@ -1219,7 +1225,7 @@ const Vendas: React.FC = () => {
                   >
                     {/* Data */}
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {new Date(nota.data_emissao).toLocaleDateString("pt-BR")}
+                      {nota.data_emissao.split("-").reverse().join("/")}
                     </td>
 
                     {/* Cliente */}

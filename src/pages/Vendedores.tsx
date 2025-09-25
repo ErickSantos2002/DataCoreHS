@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useVendedores } from "../context/VendedoresContext";
+import { useData } from "../context/DataContext";
 import {
   BarChart,
   Bar,
@@ -57,7 +57,7 @@ const CORES_GRAFICO = [
 
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
-  const { notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useVendedores();
+  const { notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useData();
 
   // Estados dos filtros
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
@@ -352,7 +352,7 @@ const Vendedores: React.FC = () => {
   const salvarTipo = async (notaId: number) => {
     try {
       setSalvandoTipo(notaId);
-      await atualizarTipoNota(notaId, tipoTemp);
+      await atualizarTipoNota(notaId, tipoTemp as "Outbound" | "Inbound" | "ReCompra");
       setEditandoTipo(null);
       setTipoTemp("");
     } catch (error) {
@@ -366,7 +366,7 @@ const Vendedores: React.FC = () => {
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
     const dadosExport = notasTabela.map(n => ({
-      'Data': new Date(n.data_emissao).toLocaleDateString('pt-BR'),
+      'Data': new Date(n.data_emissao.split("-").reverse().join("/")),
       'Cliente': n.cliente?.nome || '',
       'CNPJ': n.cliente?.cpf_cnpj || '',
       'Valor': n.valor_nota,
@@ -1026,7 +1026,7 @@ const Vendedores: React.FC = () => {
                       } hover:bg-gray-50 dark:hover:bg-slate-700`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {new Date(nota.data_emissao).toLocaleDateString("pt-BR")}
+                      {nota.data_emissao.split("-").reverse().join("/")}
                     </td>
 
                     <td className="px-4 py-3">
