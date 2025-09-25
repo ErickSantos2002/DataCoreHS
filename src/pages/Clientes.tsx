@@ -232,7 +232,7 @@ const Clientes: React.FC = () => {
     const clientesComCompras = clientesUnificados.filter(c => c.numeroComprasPeriodo > 0);
 
     return filtroCliente.length > 0
-      ? clientesComCompras.filter(c => filtroCliente.includes(c.cpf_cnpj))
+      ? clientesComCompras.filter(c => filtroCliente.includes(c.cpf_cnpj.replace(/\D/g, "")))
       : clientesComCompras;
   }, [clientesEnriquecidos, notasFiltradas, filtroCliente]);
 
@@ -264,32 +264,37 @@ const Clientes: React.FC = () => {
     };
   }, [clientesEnriquecidos, notasFiltradas]);
 
-  // KPIs Calculados
+  // KPIs: Ativos/Inativos por janelas de 90 dias (independente do período selecionado)
   const kpis = useMemo(() => {
-    // Clientes ativos (compraram no período ou últimos 90 dias)
-    const clientesAtivos = clientesFiltrados.filter(c => 
-      c.numeroComprasPeriodo > 0 || c.status === 'ativo'
-    ).length;
+    // Limite de 90 dias a partir de hoje
+    const hoje = new Date();
+    const limite90 = new Date(hoje);
+    limite90.setDate(hoje.getDate() - 90);
+    const limiteTs = limite90.getTime();
 
-    // Clientes inativos (sem compras há mais de 90 dias)
-    const clientesInativos = clientesFiltrados.filter(c => 
-      c.status === 'inativo'
-    ).length;
+    // Clientes ativos no período (compraram nos últimos 90 dias)
+    const ativos90 = clientesFiltrados.filter(c => {
+      if (!c.ultimaCompra) return false;
+      return c.ultimaCompra.getTime() >= limiteTs;
+    }).length;
 
-    // Top cliente no período
+    // Inativos = clientes que compraram no período, mas não nos últimos 90 dias
+    const inativos90 = clientesFiltrados.length - ativos90;
+
+    // Top cliente no período (já respeita filtros)
     const topCliente = clientesFiltrados
       .filter(c => c.totalCompradoPeriodo > 0)
       .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo)[0];
 
-    // Ticket médio por cliente
+    // Ticket médio por cliente no período
     const clientesComCompras = clientesFiltrados.filter(c => c.numeroComprasPeriodo > 0);
     const ticketMedioPorCliente = clientesComCompras.length > 0
       ? clientesComCompras.reduce((acc, c) => acc + c.ticketMedioPeriodo, 0) / clientesComCompras.length
       : 0;
 
     return {
-      clientesAtivos,
-      clientesInativos,
+      clientesAtivos: ativos90,
+      clientesInativos: inativos90,
       topCliente,
       ticketMedioPorCliente
     };
@@ -908,20 +913,25 @@ const Clientes: React.FC = () => {
                 Estatísticas do Período
               </h3>
               <div className="space-y-3">
+                {/* Total de Clientes no período (respeitando filtros) */}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Total de Clientes</span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {totalClientes}
+                    {clientesFiltrados.length}
                   </span>
                 </div>
+
+                {/* Taxa de Ativação */}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Taxa de Ativação</span>
                   <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {totalClientes > 0
-                      ? ((clientesAtivos.length / totalClientes) * 100).toFixed(1)
+                    {clientesFiltrados.length > 0
+                      ? ((kpis.clientesAtivos / clientesFiltrados.length) * 100).toFixed(1)
                       : '0'}%
                   </span>
                 </div>
+
+                {/* Faturamento Total */}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Faturamento Total</span>
                   <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
@@ -931,8 +941,10 @@ const Clientes: React.FC = () => {
                     })}
                   </span>
                 </div>
+
+                {/* Notas no Período */}
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">notas no Período</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Notas no Período</span>
                   <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
                     {clientesFiltrados.reduce((acc, c) => acc + c.numeroComprasPeriodo, 0)}
                   </span>
