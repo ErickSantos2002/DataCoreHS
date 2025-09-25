@@ -334,11 +334,11 @@ const Vendedores: React.FC = () => {
   // Formatação de valores
   const formatarValorAbreviado = (valor: number) => {
     if (valor >= 1_000_000) {
-      return `R$ ${(valor / 1_000_000).toFixed(1)}M`;
+      return `${(valor / 1_000_000).toFixed(1)}M`;
     } else if (valor >= 1_000) {
-      return `R$ ${(valor / 1_000).toFixed(1)}K`;
+      return `${(valor / 1_000).toFixed(1)}K`;
     }
-    return `R$ ${valor.toFixed(0)}`;
+    return valor.toFixed(0);
   };
 
   // Função para alternar ordenação
@@ -771,55 +771,59 @@ const Vendedores: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top Produtos Vendidos
             </h3>
+
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topProdutos} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                
                 <XAxis
                   dataKey="produto"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                   tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  tickFormatter={(value) =>
-                    value.length > 12 ? value.substring(0, 12) + "..." : value
+                  tickFormatter={(value: string) =>
+                    value.length > 12 ? `${value.substring(0, 12)}...` : value
                   }
                 />
+
                 <YAxis
                   tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  tickFormatter={(value) => formatarValorAbreviado(value)}
+                  tickFormatter={(value: number) => formatarValorAbreviado(value)} // 🔹 só número abreviado
                 />
+
+                {/* Tooltip customizada */}
                 <Tooltip
-                  content={({ active, payload, label }) => {
+                  content={({ active, payload }) => {
                     if (active && payload && payload.length) {
-                      const isDark = false; // 🔹 já que você quer sempre branco
+                      const { produto, valor } = payload[0].payload;
+                      const isDark = document.documentElement.classList.contains("dark");
+
                       return (
                         <div
                           style={{
-                            backgroundColor: "#ffffff",
-                            border: "1px solid #d1d5db",
+                            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                            border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                             borderRadius: "8px",
-                            color: "#111827",
                             padding: "8px 12px",
-                            maxWidth: "220px", // 🔹 largura máxima
-                            whiteSpace: "nowrap", // 🔹 não quebra linha
-                            overflow: "hidden",   // 🔹 corta excesso
-                            textOverflow: "ellipsis", // 🔹 coloca "..."
+                            maxWidth: "250px",
+                            whiteSpace: "normal",
+                            wordWrap: "break-word",
+                            overflow: "hidden",
+                            color: isDark ? "#f9fafb" : "#111827",
                           }}
-                          title={String(label)} // 🔹 mostra tooltip nativo com nome completo
                         >
-                          <p
-                            style={{
-                              fontWeight: 600,
-                              marginBottom: "4px",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {label}
+                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                            {produto}
                           </p>
-                          <p style={{ color: "#0284c7" }}>
-                            Valor: {formatarValorAbreviado(payload[0].value as number)}
+                          <p style={{ color: isDark ? "#38bdf8" : "#0284c7" }}>
+                            Valor:{" "}
+                            {typeof valor === "number"
+                              ? `R$ ${valor.toLocaleString("pt-BR", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}`
+                              : "N/A"}
                           </p>
                         </div>
                       );
@@ -827,11 +831,11 @@ const Vendedores: React.FC = () => {
                     return null;
                   }}
                 />
-
                 <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
+
 
           {/* Distribuição de Clientes */}
           <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
@@ -845,11 +849,7 @@ const Vendedores: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent = 0 }) =>
-                    `${(name || "").substring(0, 10)}${
-                      name && name.length > 10 ? "..." : ""
-                    } ${(percent * 100).toFixed(0)}%`
-                  }
+                  label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`} // 🔹 só exibe %
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -861,9 +861,14 @@ const Vendedores: React.FC = () => {
                     />
                   ))}
                 </Pie>
+
+                {/* Tooltip customizado */}
                 <Tooltip
-                  content={({ active, payload, label }) => {
+                  content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const nome = payload[0].name;
+                      const valor = payload[0].value;
+
                       return (
                         <div
                           style={{
@@ -873,25 +878,27 @@ const Vendedores: React.FC = () => {
                             color: "#111827",
                             padding: "8px 12px",
                             maxWidth: "220px",
-                            whiteSpace: "nowrap",
+                            whiteSpace: "normal", // permite quebra de linha
+                            wordWrap: "break-word", // quebra quando for muito grande
                             overflow: "hidden",
-                            textOverflow: "ellipsis",
                           }}
-                          title={String(payload[0].name)} // mostra o nome completo no hover nativo
+                          title={String(nome)} // mostra nome completo no hover nativo
                         >
                           <p
                             style={{
                               fontWeight: 600,
                               marginBottom: "4px",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
+                              color: "#111827",
                             }}
                           >
-                            {payload[0].name}
+                            {nome}
                           </p>
                           <p style={{ color: "#0284c7" }}>
-                            Valor: R$ {payload[0].value.toLocaleString("pt-BR")}
+                            Valor:{" "}
+                            {`R$ ${Number(valor).toLocaleString("pt-BR", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}`}
                           </p>
                         </div>
                       );
@@ -1152,12 +1159,19 @@ const Vendedores: React.FC = () => {
                           onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo)}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 px-2 py-1 rounded"
                         >
-                          <span className={`text-sm font-medium px-2 py-1 rounded-full
-                            ${nota.tipo === 'Outbound' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 
-                              nota.tipo === 'Inbound' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                              nota.tipo === 'ReCompra' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
-                              'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
-                            {nota.tipo || 'Não definido'}
+                          <span
+                            className={`text-sm font-medium px-2 py-1 rounded-full whitespace-nowrap
+                              ${
+                                nota.tipo === "Outbound"
+                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                                  : nota.tipo === "Inbound"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                  : nota.tipo === "ReCompra"
+                                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                              }`}
+                          >
+                            {nota.tipo || "Não definido"}
                           </span>
                         </div>
                       )}

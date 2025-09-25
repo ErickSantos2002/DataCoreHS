@@ -303,12 +303,13 @@ const Clientes: React.FC = () => {
   // Dados para ranking de clientes (Top 10)
   const rankingClientes = useMemo(() => {
     return clientesFiltrados
-      .filter(c => c.totalCompradoPeriodo > 0)
+      .filter((c) => c.totalCompradoPeriodo > 0)
       .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo)
       .slice(0, 10)
-      .map(c => ({
-        nome: c.nome.length > 20 ? c.nome.substring(0, 20) + "..." : c.nome,
-        valor: c.totalCompradoPeriodo
+      .map((c) => ({
+        nome: c.nome.length > 20 ? c.nome.substring(0, 20) + "..." : c.nome, // exibido no gráfico
+        nomeCompleto: c.nome, // 🔑 tooltip mostra inteiro
+        valor: c.totalCompradoPeriodo,
       }));
   }, [clientesFiltrados]);
 
@@ -687,30 +688,7 @@ const Clientes: React.FC = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Período */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Período
-                </label>
-                <select
-                  value={presetPeriodo}
-                  onChange={(e) => setPresetPeriodo(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg 
-                            bg-white dark:bg-[#0f172a] 
-                            text-gray-800 dark:text-gray-200 
-                            border-gray-300 dark:border-gray-600
-                            focus:outline-none focus:ring-2 focus:ring-blue-500 
-                            transition-colors"
-                >
-                  <option value="todos">Todos</option>
-                  <option value="7dias">Últimos 7 dias</option>
-                  <option value="30dias">Últimos 30 dias</option>
-                  <option value="anoAtual">Ano atual</option>
-                  <option value="custom">Personalizado</option>
-                </select>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               {/* Cliente */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -721,19 +699,6 @@ const Clientes: React.FC = () => {
                   selected={filtroCliente}
                   onChange={setFiltroCliente}
                   placeholder="Todos os clientes"
-                />
-              </div>
-
-              {/* Produto */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Produto
-                </label>
-                <MultiSelect
-                  options={produtosUnicos.map(p => ({ value: p, label: p }))}
-                  selected={filtroProduto}
-                  onChange={setFiltroProduto}
-                  placeholder="Todos os produtos"
                 />
               </div>
 
@@ -750,44 +715,79 @@ const Clientes: React.FC = () => {
                 />
               </div>
 
-              {/* Data Início/Fim */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Início
-                  </label>
-                  <input
-                    type="date"
-                    value={dataInicio}
-                    onChange={(e) => {
-                      setDataInicio(e.target.value);
-                      setPresetPeriodo("custom");
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg 
-                              bg-white dark:bg-[#0f172a] 
-                              text-gray-800 dark:text-gray-200 
-                              border-gray-300 dark:border-gray-600
-                              focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fim
-                  </label>
-                  <input
-                    type="date"
-                    value={dataFim}
-                    onChange={(e) => {
-                      setDataFim(e.target.value);
-                      setPresetPeriodo("custom");
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg 
-                              bg-white dark:bg-[#0f172a] 
-                              text-gray-800 dark:text-gray-200 
-                              border-gray-300 dark:border-gray-600
-                              focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              {/* Produto */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Produto
+                </label>
+                <MultiSelect
+                  options={produtosUnicos.map(p => ({ value: p, label: p }))}
+                  selected={filtroProduto}
+                  onChange={setFiltroProduto}
+                  placeholder="Todos os produtos"
+                />
+              </div>
+
+              {/* Período */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Período
+                </label>
+                <select
+                  value={presetPeriodo}
+                  onChange={(e) => setPresetPeriodo(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white text-gray-800
+                            dark:bg-[#1e3a8a] dark:text-white
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="todos">Todos</option>
+                  <option value="7dias">Últimos 7 dias</option>
+                  <option value="30dias">Últimos 30 dias</option>
+                  <option value="anoAtual">Ano atual</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </div>
+
+              {/* Data Início */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Início
+                </label>
+                <input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => {
+                    setDataInicio(e.target.value);
+                    setPresetPeriodo("custom");
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white text-gray-800
+                            dark:bg-[#1e3a8a] dark:text-white
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Data Fim */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Fim
+                </label>
+                <input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => {
+                    setDataFim(e.target.value);
+                    setPresetPeriodo("custom");
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg 
+                            bg-white text-gray-800
+                            dark:bg-[#1e3a8a] dark:text-white
+                            border-gray-300 dark:border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
           </div>
@@ -878,33 +878,59 @@ const Clientes: React.FC = () => {
                     tickFormatter={(value) => formatarValorAbreviado(value)}
                     stroke="#9ca3af"
                   />
-                  <YAxis 
-                    type="category" 
-                    dataKey="nome" 
-                    width={120}
+                  <YAxis
+                    type="category"
+                    dataKey="nomeCompleto" // 🔹 mantém o nome completo
+                    width={140}
                     tick={{ fontSize: 11 }}
-                    tickFormatter={(name: string) => 
+                    tickFormatter={(name: string) =>
                       name.length > 15 ? `${name.substring(0, 15)}...` : name
                     }
                     stroke="#9ca3af"
                   />
                   <Tooltip
-                    formatter={(value: number) =>
-                      `R$ ${value.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}`
-                    }
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      color: "#111827",
-                      borderRadius: "8px",
-                      border: "1px solid #d1d5db",
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const { nomeCompleto, valor } = payload[0].payload;
+                        const isDark = document.documentElement.classList.contains("dark");
+
+                        return (
+                          <div
+                            style={{
+                              backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                              border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
+                              borderRadius: "8px",
+                              padding: "8px 12px",
+                              maxWidth: "250px",
+                              whiteSpace: "normal",
+                              wordWrap: "break-word",
+                              overflow: "hidden",
+                              color: isDark ? "#f9fafb" : "#111827",
+                            }}
+                          >
+                            <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                              {nomeCompleto}
+                            </p>
+                            <p style={{ color: isDark ? "#38bdf8" : "#0284c7" }}>
+                              valor:{" "}
+                              {typeof valor === "number"
+                                ? `R$ ${valor.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}`
+                                : "N/A"}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
                   <Bar dataKey="valor" fill={CORES.azul} />
                 </BarChart>
               </ResponsiveContainer>
+
+
             </div>
 
             {/* Estatísticas */}
