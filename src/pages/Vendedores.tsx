@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
+import { Phone, Mail } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -264,11 +265,17 @@ const Vendedores: React.FC = () => {
         const nome = n.cliente?.nome?.toLowerCase() || "";
         const cnpj = n.cliente?.cpf_cnpj?.toLowerCase() || "";
         const cnpjNormalizado = normalizarCNPJ(n.cliente?.cpf_cnpj || "");
+        const email = n.cliente?.email?.toLowerCase() || "";
+        const fone = n.cliente?.fone?.replace(/\D/g, "") || "";
+
+        const termoFone = pesquisaTabela.replace(/\D/g, ""); // só dígitos
 
         return (
           nome.includes(termoLower) ||
           cnpj.includes(termoLower) ||
           (termoNormalizado && cnpjNormalizado.includes(termoNormalizado)) ||
+          email.includes(termoLower) ||
+          (termoFone && fone.includes(termoFone)) ||
           n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
           n.valor_nota?.toString().includes(termoLower) ||
           n.tipo?.toLowerCase().includes(termoLower)
@@ -1030,14 +1037,30 @@ const Vendedores: React.FC = () => {
                     </td>
 
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                        {nota.cliente?.nome || "Não informado"}
-                      </p>
-                      {nota.cliente?.cpf_cnpj && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          CNPJ: {nota.cliente?.cpf_cnpj}
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {nota.cliente?.nome || "Cliente não informado"}
                         </p>
-                      )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {nota.cliente?.cpf_cnpj}
+                        </p>
+
+                        {/* E-mail e Telefone do cliente */}
+                        <div className="flex gap-3 mt-1 flex-wrap">
+                          {nota.cliente?.email && (
+                            <span className="flex items-center text-xs text-gray-400">
+                              <Mail className="w-3 h-3 mr-1" />
+                              {nota.cliente.email}
+                            </span>
+                          )}
+                          {nota.cliente?.fone && (
+                            <span className="flex items-center text-xs text-gray-400">
+                              <Phone className="w-3 h-3 mr-1" />
+                              {nota.cliente.fone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </td>
 
                     <td className="px-4 py-3">
