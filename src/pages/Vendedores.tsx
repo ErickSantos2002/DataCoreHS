@@ -21,6 +21,7 @@ import {
   ShoppingCart,
   DollarSign,
   Package,
+  Users,
   Calendar,
   Filter,
   Download,
@@ -58,7 +59,7 @@ const CORES_GRAFICO = [
 
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
-  const { notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useData();
+  const { notas, notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useData();
 
   // Estados dos filtros
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
@@ -143,7 +144,9 @@ const Vendedores: React.FC = () => {
 
   // Aplicação dos filtros
   const notasFiltradas = useMemo(() => {
-    return notasVendedor.filter(n => {
+    let baseNotas = user?.role === "vendas" ? notasVendedor : notas;
+
+    return baseNotas.filter(n => {
       const produtoOk =
         filtroProduto.length === 0 ||
         n.itens?.some(item =>
@@ -160,7 +163,8 @@ const Vendedores: React.FC = () => {
 
       return produtoOk && clienteOk && dataOk;
     });
-  }, [notasVendedor, filtroProduto, filtroCliente, dataInicio, dataFim]);
+  }, [user?.role, notas, notasVendedor, filtroProduto, filtroCliente, dataInicio, dataFim]);
+
 
   // KPIs Calculados
   const kpis = useMemo(() => {
@@ -1002,6 +1006,15 @@ const Vendedores: React.FC = () => {
                     </div>
                   </th>
 
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Vendedor
+                      </span>
+                    </div>
+                  </th>
+
                   <th
                     className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                     onClick={() => alternarOrdenacao("tipo")}
@@ -1092,6 +1105,11 @@ const Vendedores: React.FC = () => {
                           "Sem itens"
                         )}
                       </div>
+                    </td>
+
+                    {/* Vendedor */}
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {nota.nome_vendedor || "Não informado"}
                     </td>
 
                     <td className="px-4 py-3">

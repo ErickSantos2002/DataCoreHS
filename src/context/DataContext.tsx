@@ -81,6 +81,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // notas apenas do vendedor logado
   const notasVendedor = useMemo(() =>
     notas.filter(n =>
       n.nome_vendedor?.toLowerCase().includes(vendedorLogado.toLowerCase())
@@ -106,9 +107,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <DataContext.Provider value={{
-      clientes, notas, notasVendedor, clientesEnriquecidos,
-      carregando, atualizarNotas, atualizarTipoNota,
-      vendedorLogado // novo
+      clientes,
+      notas,                 // 🔹 todas as notas
+      notasVendedor,       // 🔹 só do vendedor logado
+      clientesEnriquecidos,
+      carregando,
+      atualizarNotas,
+      atualizarTipoNota,
+      vendedorLogado
     }}>
       {children}
     </DataContext.Provider>
