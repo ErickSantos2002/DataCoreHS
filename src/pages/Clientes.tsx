@@ -115,10 +115,17 @@ const Clientes: React.FC = () => {
 
   // Listas únicas para filtros
   const clientesUnicos = useMemo(() =>
-    clientesEnriquecidos.map(c => ({
-      value: c.cpf_cnpj,
-      label: `${c.nome} (${c.cpf_cnpj})`
-    })),
+    Array.from(
+      new Map(
+        clientesEnriquecidos.map(c => [
+          c.cpf_cnpj.replace(/\D/g, ""), // chave única normalizada
+          {
+            value: c.cpf_cnpj.replace(/\D/g, ""), // esse vira o value único
+            label: `${c.nome} (${c.cpf_cnpj})`
+          }
+        ])
+      ).values()
+    ),
     [clientesEnriquecidos]
   );
 
@@ -221,10 +228,41 @@ const Clientes: React.FC = () => {
       }, {} as Record<string, any>)
     );
 
+    // 🔥 Só mantém clientes que têm pelo menos 1 compra no período
+    const clientesComCompras = clientesUnificados.filter(c => c.numeroComprasPeriodo > 0);
+
     return filtroCliente.length > 0
-      ? clientesUnificados.filter(c => filtroCliente.includes(c.cpf_cnpj))
-      : clientesUnificados;
+      ? clientesComCompras.filter(c => filtroCliente.includes(c.cpf_cnpj))
+      : clientesComCompras;
   }, [clientesEnriquecidos, notasFiltradas, filtroCliente]);
+
+  const { clientesAtivos, clientesInativos, totalClientes } = useMemo(() => {
+    // Mapeia todos os clientes, não só os filtrados
+    const clientesComDadosPeriodo = clientesEnriquecidos.map(cliente => {
+      const cpfCnpjNormalizado = cliente.cpf_cnpj.replace(/\D/g, '');
+
+      const notasClientePeriodo = notasFiltradas.filter(v => {
+        if (!v.cliente) return false;
+        const vendaCpfCnpjNormalizado = v.cliente.cpf_cnpj.replace(/\D/g, '');
+        return vendaCpfCnpjNormalizado === cpfCnpjNormalizado;
+      });
+
+      return {
+        ...cliente,
+        numeroComprasPeriodo: notasClientePeriodo.length,
+      };
+    });
+
+    // Ativos = pelo menos 1 compra
+    const clientesAtivos = clientesComDadosPeriodo.filter(c => c.numeroComprasPeriodo > 0);
+    const clientesInativos = clientesComDadosPeriodo.filter(c => c.numeroComprasPeriodo === 0);
+
+    return {
+      clientesAtivos,
+      clientesInativos,
+      totalClientes: clientesComDadosPeriodo.length
+    };
+  }, [clientesEnriquecidos, notasFiltradas]);
 
   // KPIs Calculados
   const kpis = useMemo(() => {
@@ -523,11 +561,15 @@ const Clientes: React.FC = () => {
     const filteredOptions = options.filter((option) => {
       const searchLower = searchTerm.toLowerCase();
       const labelLower = option.label.toLowerCase();
+      const valueLower = option.value.toLowerCase(); // mantém texto original
       const valueNormalizado = option.value.replace(/\D/g, '');
       const searchNormalizado = searchTerm.replace(/\D/g, '');
-      
-      return labelLower.includes(searchLower) || 
-             (searchNormalizado && valueNormalizado.includes(searchNormalizado));
+
+      return (
+        labelLower.includes(searchLower) ||     // pesquisa no label (nome/descrição)
+        valueLower.includes(searchLower) ||     // pesquisa no value cru (nome/descrição)
+        (searchNormalizado && valueNormalizado.includes(searchNormalizado)) // pesquisa numérica
+      );
     });
 
     return (
@@ -869,14 +911,14 @@ const Clientes: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Total de Clientes</span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {clientesFiltrados.length}
+                    {totalClientes}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Taxa de Ativação</span>
                   <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {clientesFiltrados.length > 0 
-                      ? ((kpis.clientesAtivos / clientesFiltrados.length) * 100).toFixed(1)
+                    {totalClientes > 0
+                      ? ((clientesAtivos.length / totalClientes) * 100).toFixed(1)
                       : '0'}%
                   </span>
                 </div>
