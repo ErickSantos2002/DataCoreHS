@@ -59,6 +59,18 @@ const CORES_GRAFICO = [
   CORES.cyan,
 ];
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isMobile;
+};
+
+
 const Clientes: React.FC = () => {
   const { user } = useAuth();
   const { clientes, clientesEnriquecidos, carregando, notas } = useData();
@@ -70,6 +82,10 @@ const Clientes: React.FC = () => {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [presetPeriodo, setPresetPeriodo] = useState("todos");
+
+  const isMobile = useIsMobile();
+  const chartRef = React.useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = React.useState<{ x: number; y: number } | undefined>(undefined);
 
   // Estados da tabela
   const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
@@ -866,53 +882,100 @@ const Clientes: React.FC = () => {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Ranking de Clientes */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors overflow-hidden">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Top 10 Clientes
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={rankingClientes} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis
-                    type="number"
-                    tickFormatter={(value) => formatarValorAbreviado(value)}
-                    stroke="#9ca3af"
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="nomeCompleto" // 🔹 mantém o nome completo
-                    width={140}
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(name: string) =>
-                      name.length > 15 ? `${name.substring(0, 15)}...` : name
-                    }
-                    stroke="#9ca3af"
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
+
+              {/* wrapper para medir a largura do gráfico */}
+              <div ref={chartRef} className="relative">
+                <ResponsiveContainer width="100%" height={isMobile ? 420 : 300}>
+                  <BarChart
+                    data={rankingClientes}
+                    layout="vertical"
+                    margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+                    barCategoryGap={2}
+                    onMouseMove={(state: any) => {
+                      if (!state?.isTooltipActive) {
+                        setTooltipPos(undefined);
+                        return;
+                      }
+                      const tooltipW = isMobile ? 220 : 280;     // mesma largura que usamos no conteúdo
+                      const padding = 16;                        // afastar do cursor/borda
+                      const chartX = state.chartX ?? 0;
+                      const chartY = state.chartY ?? 0;
+                      const containerW = chartRef.current?.getBoundingClientRect().width ?? 0;
+
+                      // Se estourar à direita, mostra à esquerda do cursor; senão, à direita
+                      const x =
+                        chartX + tooltipW + padding > containerW
+                          ? Math.max(8, chartX - tooltipW - padding)
+                          : chartX + padding;
+
+                      // Altura com pequeno deslocamento para não cobrir a barra
+                      const y = Math.max(8, chartY - 40);
+
+                      setTooltipPos({ x, y });
+                    }}
+                    onMouseLeave={() => setTooltipPos(undefined)}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => formatarValorAbreviado(v)}
+                      stroke="#9ca3af"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+
+                    <YAxis
+                      type="category"
+                      dataKey="nomeCompleto"
+                      width={isMobile ? 130 : 160}
+                      tick={{ fontSize: isMobile ? 10 : 11 }}
+                      tickFormatter={(name: string) =>
+                        isMobile
+                          ? name.length > 12 ? `${name.substring(0, 12)}...` : name
+                          : name.length > 18 ? `${name.substring(0, 18)}...` : name
+                      }
+                      axisLine={false}
+                      tickLine={false}
+                      stroke="#9ca3af"
+                    />
+
+                    <Tooltip
+                      position={tooltipPos}     // 🔥 posição controlada
+                      offset={0}
+                      allowEscapeViewBox={{ x: true, y: true }}
+                      wrapperStyle={{ overflow: "visible", pointerEvents: "none" }}
+                      content={({ active, payload }) => {
+                        if (!(active && payload && payload.length)) return null;
+
                         const { nomeCompleto, valor } = payload[0].payload;
                         const isDark = document.documentElement.classList.contains("dark");
+                        const isMobileW = window.innerWidth < 640;
 
                         return (
                           <div
                             style={{
                               backgroundColor: isDark ? "#1e293b" : "#ffffff",
                               border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
-                              borderRadius: "8px",
+                              borderRadius: 8,
                               padding: "8px 12px",
-                              maxWidth: "250px",
+                              maxWidth: isMobileW ? 220 : 280,
                               whiteSpace: "normal",
-                              wordWrap: "break-word",
-                              overflow: "hidden",
+                              wordBreak: "break-word",
+                              hyphens: "auto",
                               color: isDark ? "#f9fafb" : "#111827",
+                              fontSize: isMobileW ? "12px" : "13px",
+                              lineHeight: 1.35,
+                              boxShadow: "0 10px 20px rgba(0,0,0,.15)",
                             }}
                           >
-                            <p style={{ fontWeight: 600, marginBottom: "4px" }}>
-                              {nomeCompleto}
-                            </p>
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>{nomeCompleto}</p>
                             <p style={{ color: isDark ? "#38bdf8" : "#0284c7" }}>
-                              valor:{" "}
+                              valor:<br />
                               {typeof valor === "number"
                                 ? `R$ ${valor.toLocaleString("pt-BR", {
                                     minimumFractionDigits: 2,
@@ -922,15 +985,13 @@ const Clientes: React.FC = () => {
                             </p>
                           </div>
                         );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="valor" fill={CORES.azul} />
-                </BarChart>
-              </ResponsiveContainer>
+                      }}
+                    />
 
-
+                    <Bar dataKey="valor" fill="#2563eb" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Estatísticas */}
@@ -1194,27 +1255,28 @@ const Clientes: React.FC = () => {
             {/* Paginação */}
             {totalPaginas > 1 && (
               <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
                   {Math.min(paginaAtual * itensPorPagina, clientesTabela.length)} de{" "}
                   {clientesTabela.length} registros
                 </div>
 
-                <div className="flex gap-2">
+                {/* Desktop */}
+                <div className="hidden md:flex gap-2">
                   <button
                     onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                     disabled={paginaAtual === 1}
                     className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-[#0f172a] 
+                      bg-white dark:bg-slate-800 
                       border-gray-300 dark:border-gray-600 
                       text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-[#1e293b]
+                      hover:bg-gray-50 dark:hover:bg-slate-700 
                       disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Anterior
                   </button>
 
-                  <div className="hidden md:flex gap-1">
+                  <div className="flex gap-1">
                     {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                       let pageNum;
                       if (totalPaginas <= 5) {
@@ -1234,7 +1296,7 @@ const Clientes: React.FC = () => {
                           className={`px-3 py-1 border rounded-lg transition-colors ${
                             paginaAtual === pageNum
                               ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white dark:bg-[#0f172a] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                              : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                           }`}
                         >
                           {pageNum}
@@ -1247,13 +1309,46 @@ const Clientes: React.FC = () => {
                     onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
                     disabled={paginaAtual === totalPaginas}
                     className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-[#0f172a] 
+                      bg-white dark:bg-slate-800 
                       border-gray-300 dark:border-gray-600 
                       text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-[#1e293b]
+                      hover:bg-gray-50 dark:hover:bg-slate-700 
                       disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Próximo
+                  </button>
+                </div>
+
+                {/* Mobile */}
+                <div className="flex md:hidden gap-2 items-center">
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                    disabled={paginaAtual === 1}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white dark:bg-slate-800 
+                      border-gray-300 dark:border-gray-600 
+                      text-gray-700 dark:text-gray-300
+                      hover:bg-gray-50 dark:hover:bg-slate-700 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {"<"}
+                  </button>
+
+                  <span className="px-3 py-1 border rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+                    {paginaAtual}
+                  </span>
+
+                  <button
+                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                    disabled={paginaAtual === totalPaginas}
+                    className="px-3 py-1 border rounded-lg 
+                      bg-white dark:bg-slate-800 
+                      border-gray-300 dark:border-gray-600 
+                      text-gray-700 dark:text-gray-300
+                      hover:bg-gray-50 dark:hover:bg-slate-700 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {">"}
                   </button>
                 </div>
               </div>
