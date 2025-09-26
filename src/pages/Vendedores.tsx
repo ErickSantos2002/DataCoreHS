@@ -850,8 +850,7 @@ const Vendedores: React.FC = () => {
                   data={distribuicaoClientes}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`} // 🔹 só exibe %
+                  label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -864,13 +863,10 @@ const Vendedores: React.FC = () => {
                   ))}
                 </Pie>
 
-                {/* Tooltip customizado */}
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
-                      const nome = payload[0].name;
-                      const valor = payload[0].value;
-
+                      const { name, value } = payload[0].payload;
                       return (
                         <div
                           style={{
@@ -879,28 +875,14 @@ const Vendedores: React.FC = () => {
                             borderRadius: "8px",
                             color: "#111827",
                             padding: "8px 12px",
-                            maxWidth: "220px",
-                            whiteSpace: "normal", // permite quebra de linha
-                            wordWrap: "break-word", // quebra quando for muito grande
-                            overflow: "hidden",
+                            maxWidth: "260px",
+                            whiteSpace: "normal",
+                            wordWrap: "break-word",
                           }}
-                          title={String(nome)} // mostra nome completo no hover nativo
                         >
-                          <p
-                            style={{
-                              fontWeight: 600,
-                              marginBottom: "4px",
-                              color: "#111827",
-                            }}
-                          >
-                            {nome}
-                          </p>
+                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
                           <p style={{ color: "#0284c7" }}>
-                            Valor:{" "}
-                            {`R$ ${Number(valor).toLocaleString("pt-BR", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}`}
+                            valor: {formatarValorAbreviado(value)}
                           </p>
                         </div>
                       );
@@ -1219,7 +1201,8 @@ const Vendedores: React.FC = () => {
                 {notasTabela.length} registros
               </div>
 
-              <div className="flex gap-2">
+              {/* Desktop */}
+              <div className="hidden md:flex gap-2">
                 <button
                   onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                   disabled={paginaAtual === 1}
@@ -1233,18 +1216,13 @@ const Vendedores: React.FC = () => {
                   Anterior
                 </button>
 
-                <div className="hidden md:flex gap-1">
+                <div className="flex gap-1">
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let pageNum;
-                    if (totalPaginas <= 5) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual <= 3) {
-                      pageNum = i + 1;
-                    } else if (paginaAtual >= totalPaginas - 2) {
-                      pageNum = totalPaginas - 4 + i;
-                    } else {
-                      pageNum = paginaAtual - 2 + i;
-                    }
+                    if (totalPaginas <= 5) pageNum = i + 1;
+                    else if (paginaAtual <= 3) pageNum = i + 1;
+                    else if (paginaAtual >= totalPaginas - 2) pageNum = totalPaginas - 4 + i;
+                    else pageNum = paginaAtual - 2 + i;
 
                     return (
                       <button
@@ -1273,6 +1251,39 @@ const Vendedores: React.FC = () => {
                     disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próximo
+                </button>
+              </div>
+
+              {/* Mobile */}
+              <div className="flex md:hidden gap-2 items-center">
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                  disabled={paginaAtual === 1}
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white dark:bg-slate-800 
+                    border-gray-300 dark:border-gray-600 
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-50 dark:hover:bg-slate-700 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {"<"}
+                </button>
+
+                <span className="px-3 py-1 border rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+                  {paginaAtual}
+                </span>
+
+                <button
+                  onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-3 py-1 border rounded-lg 
+                    bg-white dark:bg-slate-800 
+                    border-gray-300 dark:border-gray-600 
+                    text-gray-700 dark:text-gray-300
+                    hover:bg-gray-50 dark:hover:bg-slate-700 
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {">"}
                 </button>
               </div>
             </div>
