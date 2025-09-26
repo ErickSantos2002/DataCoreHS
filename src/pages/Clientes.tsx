@@ -999,43 +999,55 @@ const Clientes: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Estatísticas do Período
               </h3>
-              <div className="space-y-3">
-                {/* Total de Clientes no período (respeitando filtros) */}
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total de Clientes</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {clientesFiltrados.length}
-                  </span>
-                </div>
 
-                {/* Taxa de Ativação */}
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Taxa de Ativação</span>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {clientesFiltrados.length > 0
-                      ? ((kpis.clientesAtivos / clientesFiltrados.length) * 100).toFixed(1)
-                      : '0'}%
-                  </span>
-                </div>
-
-                {/* Faturamento Total */}
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Faturamento Total</span>
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    R$ {faturamentoTotalPeriodo.toLocaleString("pt-BR", {
+              <div className="space-y-1">
+                {[
+                  {
+                    label: "Total de Clientes",
+                    value: clientesFiltrados.length,
+                    className: "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "Taxa de Ativação",
+                    value:
+                      clientesFiltrados.length > 0
+                        ? ((kpis.clientesAtivos / clientesFiltrados.length) * 100).toFixed(
+                            1
+                          ) + "%"
+                        : "0%",
+                    className: "text-green-600 dark:text-green-400",
+                  },
+                  {
+                    label: "Faturamento Total",
+                    value: `R$ ${faturamentoTotalPeriodo.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </span>
-                </div>
-
-                {/* Notas no Período */}
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Notas no Período</span>
-                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                    {clientesFiltrados.reduce((acc, c) => acc + c.numeroComprasPeriodo, 0)}
-                  </span>
-                </div>
+                      maximumFractionDigits: 2,
+                    })}`,
+                    className: "text-blue-600 dark:text-blue-400",
+                  },
+                  {
+                    label: "Notas no Período",
+                    value: clientesFiltrados.reduce(
+                      (acc, c) => acc + c.numeroComprasPeriodo,
+                      0
+                    ),
+                    className: "text-purple-600 dark:text-purple-400",
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className={`flex justify-between px-3 py-2 rounded transition-colors ${
+                      i % 2 === 0 ? "bg-gray-50 dark:bg-[#1e293b]" : ""
+                    }`}
+                  >
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {item.label}
+                    </span>
+                    <span className={`text-sm font-semibold ${item.className}`}>
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

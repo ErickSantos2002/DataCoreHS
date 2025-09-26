@@ -964,37 +964,60 @@ const Estoque: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Estatísticas do Estoque
               </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total de Produtos</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {produtosFiltrados.length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Preço Médio</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    R$ {produtosFiltrados.length > 0 
-                      ? (produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) / produtosFiltrados.length).toFixed(2)
-                      : '0,00'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Saldo Médio</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {produtosFiltrados.length > 0 
-                      ? (produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) / produtosFiltrados.length).toFixed(1)
-                      : '0'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Maior Preço</span>
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                    R$ {produtosFiltrados.length > 0 
-                      ? Math.max(...produtosFiltrados.map(p => p.preco)).toFixed(2)
-                      : '0,00'}
-                  </span>
-                </div>
+
+              <div className="space-y-1">
+                {[
+                  {
+                    label: "Total de Produtos",
+                    value: produtosFiltrados.length,
+                    className: "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "Preço Médio",
+                    value: `R$ ${
+                      produtosFiltrados.length > 0
+                        ? (
+                            produtosFiltrados.reduce((acc, p) => acc + p.preco, 0) /
+                            produtosFiltrados.length
+                          ).toFixed(2)
+                        : "0,00"
+                    }`,
+                    className: "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "Saldo Médio",
+                    value: produtosFiltrados.length > 0
+                      ? (
+                          produtosFiltrados.reduce((acc, p) => acc + p.saldo, 0) /
+                          produtosFiltrados.length
+                        ).toFixed(1)
+                      : "0",
+                    className: "text-gray-900 dark:text-gray-100",
+                  },
+                  {
+                    label: "Maior Preço",
+                    value: `R$ ${
+                      produtosFiltrados.length > 0
+                        ? Math.max(...produtosFiltrados.map((p) => p.preco)).toFixed(2)
+                        : "0,00"
+                    }`,
+                    className: "text-blue-600 dark:text-blue-400",
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className={`flex justify-between px-3 py-2 rounded transition-colors ${
+                      i % 2 === 0 ? "bg-gray-50 dark:bg-[#1e293b]" : ""
+                    }`}
+                  >
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {item.label}
+                    </span>
+                    <span className={`text-sm font-semibold ${item.className}`}>
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
