@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { ServicosProvider } from "./context/ServicosContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { DataProvider } from "./context/DataContext";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <EstoqueProvider>
           <DataProvider>
+            <ServicosProvider>
               <ConfiguracoesProvider>
                 <DashboardProvider>
                   <BrowserRouter>
@@ -25,6 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </BrowserRouter>
                 </DashboardProvider>
               </ConfiguracoesProvider>
+            </ServicosProvider>
           </DataProvider>
         </EstoqueProvider>
       </AuthProvider>
