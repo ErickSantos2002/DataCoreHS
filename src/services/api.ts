@@ -15,4 +15,16 @@ authApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+export async function updateUserPassword(userId: number, novaSenha: string) {
+  try {
+    const response = await axios.put(`${baseURL}/users/${userId}`, {
+      password: novaSenha,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Erro ao atualizar senha:", error);
+    throw error;
+  }
+}
+
 export default authApi;

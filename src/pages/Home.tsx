@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { updateUserPassword } from "../services/api";
 import ModalTrocarSenha from "../components/ModalTrocarSenha"; // ajuste o caminho se necessário
 
 const Home: React.FC = () => {
@@ -51,9 +52,17 @@ const Home: React.FC = () => {
       <ModalTrocarSenha
         isOpen={modalAberta}
         onClose={() => setModalAberta(false)}
-        onConfirm={(novaSenha) => {
-          console.log("Senha alterada:", novaSenha);
-          // aqui você pode integrar com sua API
+        onConfirm={async (novaSenha) => {
+          try {
+            if (user?.id) {
+              await updateUserPassword(user.id, novaSenha);
+              alert("Senha atualizada com sucesso!");
+            } else {
+              alert("Usuário não identificado.");
+            }
+          } catch (error) {
+            alert("Erro ao atualizar senha, tente novamente.");
+          }
         }}
       />
     </div>
