@@ -64,6 +64,23 @@ const CORES_GRAFICO = [
   CORES.cyan,
 ];
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640); // 🔹 abaixo de 640px = mobile
+    };
+
+    handleResize(); // roda uma vez ao carregar
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 const Estoque: React.FC = () => {
   const { user } = useAuth();
   const { produtos, carregando } = useEstoque();
@@ -73,6 +90,42 @@ const Estoque: React.FC = () => {
   const [solicitacao, setSolicitacao] = useState<{ id: number; quantidade: number }[]>([]);
   const abrirModal = () => setModalAberto(true);
   const fecharModal = () => setModalAberto(false);
+
+  const isMobile = useIsMobile(); 
+  // depois dos outros useState/useMemo...
+  const chartRef = React.useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = React.useState<{ x: number; y: number } | undefined>(undefined);
+
+  // ▼ controle dos tooltips dos dois PieCharts
+  const [showPizzaDistribuicao, setShowPizzaDistribuicao] = useState(false);
+  const [showPizzaSituacao, setShowPizzaSituacao] = useState(false);
+  const pizzaDistribRef = useRef<HTMLDivElement>(null);
+  const pizzaSituacaoRef = useRef<HTMLDivElement>(null);
+
+  // fecha tooltip ao clicar fora
+  useEffect(() => {
+  // Aceita mouse OU touch
+  const onDocClick: EventListener = (ev: Event) => {
+    const target = ev.target as Node | null;
+    if (!target) return;
+
+    if (pizzaDistribRef.current && !pizzaDistribRef.current.contains(target)) {
+      setShowPizzaDistribuicao(false);
+    }
+    if (pizzaSituacaoRef.current && !pizzaSituacaoRef.current.contains(target)) {
+      setShowPizzaSituacao(false);
+    }
+  };
+
+  // Registra com a MESMA referência usada no cleanup
+  document.addEventListener("mousedown", onDocClick);
+  document.addEventListener("touchstart", onDocClick, { passive: true });
+
+  return () => {
+    document.removeEventListener("mousedown", onDocClick);
+    document.removeEventListener("touchstart", onDocClick);
+  };
+}, []);
 
   const atualizarQuantidade = (id: number, quantidade: number) => {
     setSolicitacao((prev) => {
@@ -177,7 +230,8 @@ const Estoque: React.FC = () => {
     return produtosFiltrados
       .filter(p => p.saldo > 0 && p.preco > 0)
       .map(p => ({
-        nome: p.nome.length > 20 ? p.nome.substring(0, 20) + "..." : p.nome,
+        nome: p.nome.length > 20 ? p.nome.substring(0, 20) + "..." : p.nome, // só para o eixo Y
+        fullName: p.nome, // ✅ nome completo
         valor: p.saldo * p.preco,
         unidade: p.unidade
       }))
@@ -191,11 +245,13 @@ const Estoque: React.FC = () => {
       .filter(p => p.saldo > 0 && p.preco > 0)
       .map(p => ({
         name: p.nome.length > 15 ? p.nome.substring(0, 15) + "..." : p.nome,
+        fullName: p.nome, // ✅ adiciona o nome completo
         value: p.saldo * p.preco
       }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 8); // Top 8 para visualização
+      .slice(0, 8);
   }, [produtosFiltrados]);
+
 
   // Dados para situação dos produtos
   const situacaoProdutos = useMemo(() => {
@@ -654,50 +710,107 @@ const Estoque: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Top 10 Produtos */}
             <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4"> 
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Top 10 Produtos em Estoque
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart 
-                  data={rankingProdutos} 
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" /> {/* melhora no dark */}
-                  <XAxis
-                    type="number"
-                    tickFormatter={(value) => `${value}`}
-                    stroke="#9ca3af" // cor dos ticks no dark
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="nome" 
-                    width={150}
-                    tickFormatter={(name: string) => 
-                      name.length > 15 ? `${name.substring(0, 15)}...` : name
-                    }
-                    stroke="#9ca3af"
-                  />
-                  <Tooltip
-                    formatter={(value: number) =>
-                      `R$ ${value.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}`
-                    }
-                    contentStyle={{
-                      backgroundColor: document.documentElement.classList.contains("dark")
-                        ? "#1f2937" // fundo escuro no dark
-                        : "#ffffff", // fundo branco no light
-                      color: document.documentElement.classList.contains("dark")
-                        ? "#f9fafb" // texto claro no dark
-                        : "#111827", // texto escuro no light
-                      borderRadius: "8px",
-                      border: "1px solid #d1d5db", // borda leve no light
+
+              <div ref={chartRef} className="relative">
+                <ResponsiveContainer width="100%" height={isMobile ? 420 : 300}>
+                  <BarChart
+                    data={rankingProdutos}
+                    layout="vertical"
+                    margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+                    barCategoryGap={2}
+                    onMouseMove={(state: any) => {
+                      if (!state?.isTooltipActive) {
+                        setTooltipPos(undefined);
+                        return;
+                      }
+                      const tooltipW = isMobile ? 220 : 280; // mesma largura do conteúdo
+                      const pad = 16;
+                      const chartX = state.chartX ?? 0;
+                      const chartY = state.chartY ?? 0;
+                      const containerW = chartRef.current?.getBoundingClientRect().width ?? 0;
+
+                      // Se estourar à direita, posiciona à esquerda do cursor
+                      const x =
+                        chartX + tooltipW + pad > containerW
+                          ? Math.max(8, chartX - tooltipW - pad)
+                          : chartX + pad;
+
+                      const y = Math.max(8, chartY - 40); // levemente acima da barra
+                      setTooltipPos({ x, y });
                     }}
-                  />
-                  <Bar dataKey="valor" fill={CORES.laranja} />
-                </BarChart>
-              </ResponsiveContainer>
+                    onMouseLeave={() => setTooltipPos(undefined)}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => formatarValorAbreviado(v)}
+                      stroke="#9ca3af"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+
+                    <YAxis
+                      type="category"
+                      dataKey="nome"
+                      width={isMobile ? 130 : 160}
+                      tick={{ fontSize: isMobile ? 10 : 11 }}
+                      tickFormatter={(name: string) =>
+                        isMobile
+                          ? (name.length > 12 ? `${name.substring(0, 12)}...` : name)
+                          : (name.length > 18 ? `${name.substring(0, 18)}...` : name)
+                      }
+                      axisLine={false}
+                      tickLine={false}
+                      stroke="#9ca3af"
+                    />
+
+                    <Tooltip
+                      position={tooltipPos}
+                      offset={0}
+                      allowEscapeViewBox={{ x: true, y: true }}
+                      wrapperStyle={{ overflow: "visible", pointerEvents: "none" }}
+                      content={({ active, payload }) => {
+                        if (!(active && payload && payload.length)) return null;
+                        const { fullName, valor } = payload[0].payload; // usa nome completo
+                        return (
+                          <div
+                            style={{
+                              backgroundColor: "#ffffff",               // mantém cor clara tb no dark
+                              border: "1px solid #d1d5db",
+                              borderRadius: 8,
+                              padding: "8px 12px",
+                              maxWidth: isMobile ? 220 : 280,
+                              whiteSpace: "normal",
+                              wordBreak: "break-word",
+                              color: "#111827",
+                              fontSize: isMobile ? "12px" : "13px",
+                              lineHeight: 1.35,
+                              boxShadow: "0 10px 20px rgba(0,0,0,.15)",
+                            }}
+                          >
+                            <p style={{ fontWeight: 600, marginBottom: 6 }}>{fullName}</p>
+                            <p style={{ color: "#0284c7" }}>
+                              valor:<br />
+                              {typeof valor === "number"
+                                ? `R$ ${valor.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}`
+                                : "N/A"}
+                            </p>
+                          </div>
+                        );
+                      }}
+                    />
+
+                    <Bar dataKey="valor" fill="#f97316" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Distribuição de Valor */}
@@ -705,87 +818,144 @@ const Estoque: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Distribuição de Valor em Estoque
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={distribuicaoValor}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent = 0 }) => {
-                      const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
-                      return `${nomeCortado} ${(percent * 100).toFixed(0)}%`;
-                    }}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {distribuicaoValor.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={CORES_GRAFICO[index % CORES_GRAFICO.length]} 
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => formatarValorAbreviado(value)}
-                    contentStyle={{
-                      backgroundColor: document.documentElement.classList.contains("dark")
-                        ? "#1f2937" // fundo escuro no dark
-                        : "#ffffff", // fundo branco no light
-                      color: document.documentElement.classList.contains("dark")
-                        ? "#f9fafb" // texto claro no dark
-                        : "#111827", // texto escuro no light
-                      borderRadius: "8px",
-                      border: "1px solid #d1d5db", // borda leve no light
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
 
+              <div
+                ref={pizzaDistribRef}
+                onMouseLeave={() => setShowPizzaDistribuicao(false)}
+                className="relative"
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart
+                    onClick={() => setShowPizzaDistribuicao(true)} // mobile: abre no tap
+                    onMouseEnter={() => !isMobile && setShowPizzaDistribuicao(true)} // desktop: abre no hover
+                  >
+                    <Pie
+                      data={distribuicaoValor}
+                      cx="50%"
+                      cy="50%"
+                      label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      onMouseLeave={() => setShowPizzaDistribuicao(false)}
+                    >
+                      {distribuicaoValor.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+                          onClick={() => setShowPizzaDistribuicao(true)} // garante no tap
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip
+                      trigger={isMobile ? "click" : "hover"}
+                      wrapperStyle={{
+                        maxWidth: 260,
+                        whiteSpace: "normal",
+                        wordWrap: "break-word",
+                      }}
+                      content={({ active, payload }) => {
+                        if (!showPizzaDistribuicao) return null;     // ✨ controlado
+                        if (active && payload && payload.length) {
+                          const { fullName, value } = payload[0].payload;
+                          return (
+                            <div
+                              style={{
+                                background: "#fff",
+                                border: "1px solid #d1d5db",
+                                borderRadius: 8,
+                                color: "#111827",
+                                padding: "8px 12px",
+                                maxWidth: 240,
+                                whiteSpace: "normal",
+                              }}
+                            >
+                              <p style={{ fontWeight: 600, marginBottom: 4 }}>{fullName}</p>
+                              <p style={{ color: "#0284c7" }}>
+                                valor: R$ {value.toLocaleString("pt-BR", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div> 
+            
             {/* Situação dos Produtos */}
             <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Situação dos Produtos
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={situacaoProdutos}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value, percent = 0 }) => {
-                      const nomeCortado = name.length > 12 ? `${name.substring(0, 12)}...` : name;
-                      return `${nomeCortado}: ${value} (${(percent * 100).toFixed(0)}%)`;
-                    }}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
+
+              <div
+                ref={pizzaSituacaoRef}
+                onMouseLeave={() => setShowPizzaSituacao(false)}
+                className="relative"
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart
+                    onClick={() => setShowPizzaSituacao(true)}
+                    onMouseEnter={() => !isMobile && setShowPizzaSituacao(true)}
                   >
-                    {situacaoProdutos.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: document.documentElement.classList.contains("dark")
-                        ? "#1f2937" // fundo escuro no dark
-                        : "#ffffff", // fundo branco no light
-                      color: document.documentElement.classList.contains("dark")
-                        ? "#f9fafb" // texto claro no dark
-                        : "#111827", // texto escuro no light
-                      borderRadius: "8px",
-                      border: "1px solid #d1d5db", // borda leve no modo claro
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+                    <Pie
+                      data={situacaoProdutos}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      onMouseLeave={() => setShowPizzaSituacao(false)}
+                    >
+                      {situacaoProdutos.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.name === "Ativos" ? CORES.verde : CORES.vermelho}
+                          onClick={() => setShowPizzaSituacao(true)}
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip
+                      trigger={isMobile ? "click" : "hover"}
+                      wrapperStyle={{ maxWidth: 260, whiteSpace: "normal", wordWrap: "break-word" }}
+                      content={({ active, payload }) => {
+                        if (!showPizzaSituacao) return null;       // ✨ controlado
+                        if (active && payload && payload.length) {
+                          const { name, value, percent } = payload[0].payload;
+                          return (
+                            <div
+                              style={{
+                                background: "#fff",
+                                border: "1px solid #d1d5db",
+                                borderRadius: 8,
+                                color: "#111827",
+                                padding: "8px 12px",
+                                maxWidth: 240,
+                              }}
+                            >
+                              <p style={{ fontWeight: 600, marginBottom: 4 }}>{name}</p>
+                              <p style={{ color: "#0284c7" }}>Quantidade: {value}</p>
+                              <p style={{ color: "#16a34a" }}>{(percent * 100).toFixed(0)}%</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div> 
 
             {/* Estatísticas Adicionais */}
             <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
