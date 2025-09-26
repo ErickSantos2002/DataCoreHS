@@ -92,7 +92,7 @@ const Estoque: React.FC = () => {
   const [filtroSituacao, setFiltroSituacao] = useState<string>("todos");
   const [filtroSaldo, setFiltroSaldo] = useState<string>("todos");
   const [filtroPersonalizado, setFiltroPersonalizado] = useState<string>("nenhum");
-  const codigosRapidos = ["162", "003", "163", "004", "121", "210", "63", "119", "186", "156", "99", "320", "317", "318", "007", "80", "189", "128", "297", "015", "013", "021", "008", "22", "118", "117", "89", "173", "18"];
+  const codigosRapidos = ["162", "3", "163", "4", "121", "210", "63", "119", "186", "156", "99", "320", "317", "318", "7", "80", "189", "128", "297", "15", "13", "021", "8", "22", "118", "117", "89", "173", "18"];
 
   // Estados da tabela
   const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
