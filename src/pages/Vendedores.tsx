@@ -1006,8 +1006,8 @@ const Vendedores: React.FC = () => {
                     </div>
                   </th>
 
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center">
+                  <th className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center">
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         Observações
                       </span>
@@ -1112,16 +1112,20 @@ const Vendedores: React.FC = () => {
                     </td>
 
                     {/* Observações */}
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                    <td className="px-4 py-3 text-center">
                       {nota.observacoes ? (
                         <button
                           onClick={() => setObservacoesAtivas(nota.observacoes!)}
-                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          className="px-3 py-1 text-sm font-medium rounded-full 
+                                    bg-blue-100 text-blue-700 
+                                    dark:bg-blue-900 dark:text-blue-300 
+                                    hover:bg-blue-200 dark:hover:bg-blue-800 
+                                    transition-colors whitespace-nowrap"
                         >
-                          Ver observações
+                          Ver Observações
                         </button>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-gray-400">-</span>
                       )}
                     </td>
 
