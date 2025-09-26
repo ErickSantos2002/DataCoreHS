@@ -1209,6 +1209,15 @@ const Vendas: React.FC = () => {
                       </span>
                     </div>
                   </th>
+
+                  {/* Observações */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Observações
+                      </span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
 

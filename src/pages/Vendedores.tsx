@@ -33,6 +33,7 @@ import {
   X,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import ModalObservacoes from "../components/ModalObservacoes";
 
 // Cores para gráficos
 const CORES = {
@@ -82,6 +83,7 @@ const Vendedores: React.FC = () => {
   const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
   const [tipoTemp, setTipoTemp] = useState<string>("");
   const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
+  const [observacoesAtivas, setObservacoesAtivas] = useState<string | null>(null);
 
   // Gerenciador de presets de período
   useEffect(() => {
@@ -1022,6 +1024,14 @@ const Vendedores: React.FC = () => {
                     </div>
                   </th>
 
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        Observações
+                      </span>
+                    </div>
+                  </th>
+
                   <th
                     className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                     onClick={() => alternarOrdenacao("tipo")}
@@ -1119,6 +1129,20 @@ const Vendedores: React.FC = () => {
                       {nota.nome_vendedor || "Não informado"}
                     </td>
 
+                    {/* Observações */}
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {nota.observacoes ? (
+                        <button
+                          onClick={() => setObservacoesAtivas(nota.observacoes!)}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Ver observações
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+
                     <td className="px-4 py-3">
                       {editandoTipo === nota.id ? (
                         <div className="flex items-center gap-2">
@@ -1178,6 +1202,10 @@ const Vendedores: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+                <ModalObservacoes
+                  observacoes={observacoesAtivas}
+                  onClose={() => setObservacoesAtivas(null)}
+                />
               </tbody>
             </table>
           </div>
