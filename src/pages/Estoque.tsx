@@ -838,6 +838,7 @@ const Estoque: React.FC = () => {
                       fill="#8884d8"
                       dataKey="value"
                       onMouseLeave={() => setShowPizzaDistribuicao(false)}
+                      isAnimationActive={false}
                     >
                       {distribuicaoValor.map((entry, index) => (
                         <Cell
@@ -915,6 +916,7 @@ const Estoque: React.FC = () => {
                       fill="#8884d8"
                       dataKey="value"
                       onMouseLeave={() => setShowPizzaSituacao(false)}
+                      isAnimationActive={false}
                     >
                       {situacaoProdutos.map((entry, index) => (
                         <Cell
