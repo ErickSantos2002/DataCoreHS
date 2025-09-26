@@ -87,6 +87,19 @@ const CORES_GRAFICO = [
     "#94a3b8", // cinza mais suave
 ];
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    handleResize(); // roda na montagem
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 const Vendas: React.FC = () => {
   const { user } = useAuth();
   const { notas, carregando } = useData();
@@ -96,6 +109,8 @@ const Vendas: React.FC = () => {
     const [ano, mes, dia] = dataStr.split("T")[0].split("-");
     return new Date(Number(ano), Number(mes) - 1, Number(dia)); 
   };
+
+  const isMobile = useIsMobile();
 
   // Estados dos filtros
   const [filtroEmpresa, setFiltroEmpresa] = useState<string[]>([]);
@@ -880,47 +895,41 @@ const Vendas: React.FC = () => {
           )}
           axisLine={{ stroke: "var(--chart-axis)" }}
         />
-
         <Tooltip
-          content={({ active, payload, label }) => {
-          if (active && payload && payload.length) {
-            const isDark = document.documentElement.classList.contains("dark");
-
-            return (
-              <div
-                style={{
-                  backgroundColor: isDark ? "#1e293b" : "#ffffff", // fundo escuro ou claro
-                  border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`, // borda escura/clara
-                  borderRadius: "8px",
-                  color: isDark ? "#f9fafb" : "#111827", // texto escuro/claro
-                  padding: "8px 12px",
-                  maxWidth: "220px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-                title={String(label)}
-              >
-                <p
+          content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              const { produto, valor } = payload[0].payload;
+              return (
+                <div
                   style={{
-                    fontWeight: 600,
-                    marginBottom: "4px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    color: "#111827",
+                    padding: "8px 12px",
+                    maxWidth: "200px",   // 🔥 reduz largura
+                    whiteSpace: "normal", // 🔥 permite quebra automática
+                    wordBreak: "break-word", // 🔥 força quebrar se passar limite
                   }}
                 >
-                  {label}
-                </p>
-                <p style={{ color: isDark ? "#34d399" : "#16a34a" }}>
-                  valor: {formatarValorAbreviado(payload[0].value as number)}
-                </p>
-              </div>
-            );
-          }
-          return null;
+                  <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                    {produto}
+                  </p>
+                  <p style={{ color: "#16a34a", fontSize: "14px" }}>
+                    valor: <br /> {/* 🔥 quebra de linha garantida */}
+                    <span style={{ fontWeight: 600 }}>
+                      R$ {valor.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </p>
+                </div>
+              );
+            }
+            return null;
           }}
         />
-
         <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -932,77 +941,65 @@ const Vendas: React.FC = () => {
       Top 5 Vendedores
     </h3>
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={rankingVendedores} layout="vertical" barCategoryGap="20%">
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
-
+      <BarChart
+        data={rankingVendedores}
+        layout="vertical"
+        margin={{ top: 10, right: 20, left: 10, bottom: 10 }} // reduzi left
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
         <XAxis
           type="number"
           tickFormatter={(value) => formatarValorAbreviado(value)}
-          axisLine={{ stroke: "var(--chart-axis)" }}
-          tick={{ fill: "var(--chart-text)" }}
+          stroke="#9ca3af"
         />
-
-        <Tooltip
-          content={({ active, payload, label }) => {
-            if (active && payload && payload.length) {
-              const isDark = document.documentElement.classList.contains("dark");
-
-              return (
-                <div
-                  style={{
-                    backgroundColor: isDark ? "#1e293b" : "#ffffff", // fundo dark ou claro
-                    border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`, // borda adaptada
-                    borderRadius: "8px",
-                    color: isDark ? "#f9fafb" : "#111827", // texto adaptado
-                    padding: "8px 12px",
-                    maxWidth: "220px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                  title={String(label)}
-                >
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      marginBottom: "4px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {label}
-                  </p>
-                  <p style={{ color: isDark ? "#34d399" : "#16a34a" }}>
-                    valor : {formatarValorAbreviado(payload[0].value as number)}
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          }}
-        />
-
         <YAxis
           type="category"
           dataKey="vendedor"
-          width={150}
-          tick={({ x, y, payload }) => (
-            <text
-              x={x}
-              y={y}
-              dy={4}
-              fontSize={12}
-              fill="var(--chart-text)"
-              textAnchor="end"
-            >
-              {payload.value.length > 15
-                ? payload.value.substring(0, 15) + "..."
-                : payload.value}
-            </text>
-          )}
+          width={window.innerWidth < 640 ? 80 : 140} // 🔥 mais compacto no mobile
+          tick={{ fontSize: window.innerWidth < 640 ? 9 : 12 }}
+          tickFormatter={(name: string) =>
+            window.innerWidth < 640
+              ? name.length > 8 ? `${name.substring(0, 8)}...` : name
+              : name.length > 15 ? `${name.substring(0, 15)}...` : name
+          }
+          stroke="#9ca3af"
         />
-
-        <Bar dataKey="valor" fill={CORES.verde} radius={[0, 6, 6, 0]} />
+        <Tooltip
+          content={({ active, payload }) => {
+          if (active && payload && payload.length) {
+            const { vendedor, valor } = payload[0].payload;
+            return (
+              <div
+                style={{
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  color: "#111827",
+                  padding: "8px 12px",
+                  maxWidth: "240px",
+                  wordWrap: "break-word",
+                  whiteSpace: "normal",
+                }}
+              >
+                <p style={{ fontWeight: 600, marginBottom: "6px" }}>
+                  {vendedor}
+                </p>
+                <p style={{ color: "#10b981", fontSize: "14px", lineHeight: "1.4" }}>
+                  valor: <br /> {/* 🔥 quebra de linha */}
+                  <span style={{ fontWeight: 600 }}>
+                    R$ {valor.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </p>
+              </div>
+            );
+          }
+          return null;
+        }}
+      />
+        <Bar dataKey="valor" fill="#10b981" radius={[0, 6, 6, 0]} />
       </BarChart>
     </ResponsiveContainer>
   </div>
@@ -1018,12 +1015,7 @@ const Vendas: React.FC = () => {
           data={distribuicaoEmpresas}
           cx="50%"
           cy="50%"
-          labelLine={false}
-          label={({ name, percent = 0 }) =>
-            `${(name || "").substring(0, 15)}${
-              name && name.length > 15 ? "..." : ""
-            } ${(percent * 100).toFixed(0)}%`
-          }
+          label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
           outerRadius={80}
           fill="#8884d8"
           dataKey="value"
@@ -1035,37 +1027,24 @@ const Vendas: React.FC = () => {
             />
           ))}
         </Pie>
-
         <Tooltip
           content={({ active, payload }) => {
             if (active && payload && payload.length) {
               const { name, value } = payload[0].payload;
-
               return (
                 <div
                   style={{
-                    backgroundColor: "#ffffff", // 🔹 Sempre branco
-                    border: "1px solid #d1d5db", // 🔹 Borda clara
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #d1d5db",
                     borderRadius: "8px",
-                    color: "#111827", // 🔹 Texto escuro
+                    color: "#111827",
                     padding: "8px 12px",
-                    maxWidth: "220px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    maxWidth: "260px",
+                    whiteSpace: "normal",
+                    wordWrap: "break-word",
                   }}
-                  title={name}
                 >
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      marginBottom: "4px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {name}
-                  </p>
+                  <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
                   <p style={{ color: "#0284c7" }}>
                     valor: {formatarValorAbreviado(value)}
                   </p>
@@ -1075,8 +1054,6 @@ const Vendas: React.FC = () => {
             return null;
           }}
         />
-
-
       </PieChart>
     </ResponsiveContainer>
   </div>
@@ -1211,8 +1188,8 @@ const Vendas: React.FC = () => {
                   </th>
 
                   {/* Observações */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center">
+                  <th className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center">
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         Observações
                       </span>
@@ -1292,9 +1269,13 @@ const Vendas: React.FC = () => {
                       {nota.observacoes ? (
                         <button
                           onClick={() => setNotaSelecionada(nota)}
-                          className="text-blue-600 hover:underline"
+                          className="px-3 py-1 text-sm font-medium rounded-full 
+                                    bg-blue-100 text-blue-700 
+                                    dark:bg-blue-900 dark:text-blue-300 
+                                    hover:bg-blue-200 dark:hover:bg-blue-800 
+                                    transition-colors whitespace-nowrap"
                         >
-                          Observações
+                          Ver Observações
                         </button>
                       ) : (
                         <span className="text-gray-400">-</span>
