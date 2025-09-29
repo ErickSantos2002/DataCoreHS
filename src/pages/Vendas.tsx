@@ -800,265 +800,264 @@ const Vendas: React.FC = () => {
 
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-  {/* Evolução das Vendas */}
-  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-      Evolução das Vendas
-    </h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={dadosEvolucao}>
-        {/* Grid */}
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
+          {/* Evolução das Vendas */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Evolução das Vendas
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={dadosEvolucao}>
+                {/* Grid */}
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
 
-        {/* Eixo X */}
-        <XAxis
-          dataKey="mes"
-          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
-          axisLine={{ stroke: "var(--chart-axis)" }}
-        />
+                {/* Eixo X */}
+                <XAxis
+                  dataKey="mes"
+                  tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--chart-axis)" }}
+                />
 
-        {/* Eixo Y */}
-        <YAxis
-          tickFormatter={(value) => formatarValorAbreviado(value)}
-          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
-          axisLine={{ stroke: "var(--chart-axis)" }}
-        />
+                {/* Eixo Y */}
+                <YAxis
+                  tickFormatter={(value) => formatarValorAbreviado(value)}
+                  tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--chart-axis)" }}
+                />
 
-        {/* Tooltip */}
-        <Tooltip
-          contentStyle={{
-            backgroundColor: document.documentElement.classList.contains("dark")
-              ? "#1e293b" // fundo escuro no dark
-              : "#ffffff", // fundo claro no light
-            border: "1px solid var(--chart-axis)",
-            borderRadius: "8px",
-            color: "var(--chart-text)",
-          }}
-          itemStyle={{
-            color: document.documentElement.classList.contains("dark")
-              ? "#60a5fa"
-              : "#2563eb", // azul diferente no claro
-          }}
-          labelStyle={{
-            color: document.documentElement.classList.contains("dark")
-              ? "#f9fafb"
-              : "#111827",
-          }}
-          formatter={(value: number) => formatarValorAbreviado(value)}
-        />
-
-        {/* Linha */}
-        <Line
-          type="monotone"
-          dataKey="total"
-          stroke="#3b82f6"
-          strokeWidth={3}
-          dot={{ fill: "#60a5fa", r: 4 }}
-          activeDot={{ r: 6, fill: "#2563eb" }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-
-  {/* Ranking de Produtos */}
-  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-      Top 5 Produtos
-    </h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={rankingProdutos} barCategoryGap="20%">
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
-
-        <XAxis
-          dataKey="produto"
-          angle={-45}
-          textAnchor="end"
-          height={60}
-          tick={{ fill: "var(--chart-text)", fontSize: 12 }}
-          axisLine={{ stroke: "var(--chart-axis)" }}
-          tickFormatter={(value) =>
-            value.length > 15 ? value.substring(0, 15) + "..." : value
-          }
-        />
-
-        <YAxis
-          tick={({ x, y, payload }) => (
-            <text
-              x={x}
-              y={y}
-              textAnchor="end"
-              fontSize={11}
-              fill="var(--chart-text)"
-            >
-              {formatarValorAbreviado(payload.value)}
-            </text>
-          )}
-          axisLine={{ stroke: "var(--chart-axis)" }}
-        />
-        <Tooltip
-          content={({ active, payload }) => {
-            if (active && payload && payload.length) {
-              const { produto, valor } = payload[0].payload;
-              return (
-                <div
-                  style={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #d1d5db",
+                {/* Tooltip */}
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: document.documentElement.classList.contains("dark")
+                      ? "#1e293b" // fundo escuro no dark
+                      : "#ffffff", // fundo claro no light
+                    border: "1px solid var(--chart-axis)",
                     borderRadius: "8px",
-                    color: "#111827",
-                    padding: "8px 12px",
-                    maxWidth: "200px",   // 🔥 reduz largura
-                    whiteSpace: "normal", // 🔥 permite quebra automática
-                    wordBreak: "break-word", // 🔥 força quebrar se passar limite
+                    color: "var(--chart-text)",
                   }}
-                >
-                  <p style={{ fontWeight: 600, marginBottom: "4px" }}>
-                    {produto}
-                  </p>
-                  <p style={{ color: "#16a34a", fontSize: "14px" }}>
-                    valor: <br /> {/* 🔥 quebra de linha garantida */}
-                    <span style={{ fontWeight: 600 }}>
-                      R$ {valor.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          }}
-        />
-        <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
+                  itemStyle={{
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#60a5fa"
+                      : "#2563eb", // azul diferente no claro
+                  }}
+                  labelStyle={{
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#f9fafb"
+                      : "#111827",
+                  }}
+                  formatter={(value: number) => formatarValorAbreviado(value)}
+                />
 
-  {/* Ranking de Vendedores */}
-  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-      Top 5 Vendedores
-    </h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart
-        data={rankingVendedores}
-        layout="vertical"
-        margin={{ top: 10, right: 20, left: 10, bottom: 10 }} // reduzi left
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-        <XAxis
-          type="number"
-          tickFormatter={(value) => formatarValorAbreviado(value)}
-          stroke="#9ca3af"
-        />
-        <YAxis
-          type="category"
-          dataKey="vendedor"
-          width={window.innerWidth < 640 ? 80 : 140} // 🔥 mais compacto no mobile
-          tick={{ fontSize: window.innerWidth < 640 ? 9 : 12 }}
-          tickFormatter={(name: string) =>
-            window.innerWidth < 640
-              ? name.length > 8 ? `${name.substring(0, 8)}...` : name
-              : name.length > 15 ? `${name.substring(0, 15)}...` : name
-          }
-          stroke="#9ca3af"
-        />
-        <Tooltip
-          content={({ active, payload }) => {
-          if (active && payload && payload.length) {
-            const { vendedor, valor } = payload[0].payload;
-            return (
-              <div
-                style={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "8px",
-                  color: "#111827",
-                  padding: "8px 12px",
-                  maxWidth: "240px",
-                  wordWrap: "break-word",
-                  whiteSpace: "normal",
-                }}
+                {/* Linha */}
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ fill: "#60a5fa", r: 4 }}
+                  activeDot={{ r: 6, fill: "#2563eb" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Ranking de Produtos */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Top 5 Produtos
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={rankingProdutos} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
+
+                <XAxis
+                  dataKey="produto"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  tick={{ fill: "var(--chart-text)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--chart-axis)" }}
+                  tickFormatter={(value) =>
+                    value.length > 15 ? value.substring(0, 15) + "..." : value
+                  }
+                />
+
+                <YAxis
+                  tick={({ x, y, payload }) => (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="end"
+                      fontSize={11}
+                      fill="var(--chart-text)"
+                    >
+                      {formatarValorAbreviado(payload.value)}
+                    </text>
+                  )}
+                  axisLine={{ stroke: "var(--chart-axis)" }}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const { produto, valor } = payload[0].payload;
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            color: "#111827",
+                            padding: "8px 12px",
+                            maxWidth: "200px",   // 🔥 reduz largura
+                            whiteSpace: "normal", // 🔥 permite quebra automática
+                            wordBreak: "break-word", // 🔥 força quebrar se passar limite
+                          }}
+                        >
+                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                            {produto}
+                          </p>
+                          <p style={{ color: "#16a34a", fontSize: "14px" }}>
+                            valor: <br /> {/* 🔥 quebra de linha garantida */}
+                            <span style={{ fontWeight: 600 }}>
+                              R$ {valor.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Ranking de Vendedores */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Top 5 Vendedores
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={rankingVendedores}
+                layout="vertical"
+                margin={{ top: 10, right: 20, left: 10, bottom: 10 }} // reduzi left
               >
-                <p style={{ fontWeight: 600, marginBottom: "6px" }}>
-                  {vendedor}
-                </p>
-                <p style={{ color: "#10b981", fontSize: "14px", lineHeight: "1.4" }}>
-                  valor: <br /> {/* 🔥 quebra de linha */}
-                  <span style={{ fontWeight: 600 }}>
-                    R$ {valor.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </p>
-              </div>
-            );
-          }
-          return null;
-        }}
-      />
-        <Bar dataKey="valor" fill="#10b981" radius={[0, 6, 6, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis
+                  type="number"
+                  tickFormatter={(value) => formatarValorAbreviado(value)}
+                  stroke="#9ca3af"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="vendedor"
+                  width={window.innerWidth < 640 ? 80 : 140} // 🔥 mais compacto no mobile
+                  tick={{ fontSize: window.innerWidth < 640 ? 9 : 12 }}
+                  tickFormatter={(name: string) =>
+                    window.innerWidth < 640
+                      ? name.length > 8 ? `${name.substring(0, 8)}...` : name
+                      : name.length > 15 ? `${name.substring(0, 15)}...` : name
+                  }
+                  stroke="#9ca3af"
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const { vendedor, valor } = payload[0].payload;
+                    return (
+                      <div
+                        style={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          color: "#111827",
+                          padding: "8px 12px",
+                          maxWidth: "240px",
+                          wordWrap: "break-word",
+                          whiteSpace: "normal",
+                        }}
+                      >
+                        <p style={{ fontWeight: 600, marginBottom: "6px" }}>
+                          {vendedor}
+                        </p>
+                        <p style={{ color: "#10b981", fontSize: "14px", lineHeight: "1.4" }}>
+                          valor: <br /> {/* 🔥 quebra de linha */}
+                          <span style={{ fontWeight: 600 }}>
+                            R$ {valor.toLocaleString("pt-BR", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+                <Bar dataKey="valor" fill="#10b981" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-  {/* Distribuição por Empresa */}
-  <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
-    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-      Distribuição por Empresa
-    </h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={distribuicaoEmpresas}
-          cx="50%"
-          cy="50%"
-          label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="value"
-        >
-          {distribuicaoEmpresas.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip
-          content={({ active, payload }) => {
-            if (active && payload && payload.length) {
-              const { name, value } = payload[0].payload;
-              return (
-                <div
-                  style={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    color: "#111827",
-                    padding: "8px 12px",
-                    maxWidth: "260px",
-                    whiteSpace: "normal",
-                    wordWrap: "break-word",
-                  }}
+          {/* Distribuição por Empresa */}
+          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Distribuição por Empresa
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={distribuicaoEmpresas}
+                  cx="50%"
+                  cy="50%"
+                  label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
                 >
-                  <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
-                  <p style={{ color: "#0284c7" }}>
-                    valor: {formatarValorAbreviado(value)}
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-</div>
-
+                  {distribuicaoEmpresas.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const { name, value } = payload[0].payload;
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            color: "#111827",
+                            padding: "8px 12px",
+                            maxWidth: "260px",
+                            whiteSpace: "normal",
+                            wordWrap: "break-word",
+                          }}
+                        >
+                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
+                          <p style={{ color: "#0284c7" }}>
+                            valor: {formatarValorAbreviado(value)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
         {/* Tabela de Últimas Vendas */}
         <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
@@ -1294,106 +1293,111 @@ const Vendas: React.FC = () => {
           </div>
 
           {/* Paginação */}
-          {totalPaginas > 1 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
-              {Math.min(paginaAtual * itensPorPagina, notasTabela.length)} de{" "}
-              {notasTabela.length} registros
-            </div>
+{totalPaginas > 1 && (
+  <div className="mt-4">
+    {/* Texto de registros */}
+    <div className="text-sm text-gray-600 dark:text-gray-300 mb-2 md:mb-0">
+      Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
+      {Math.min(paginaAtual * itensPorPagina, notasTabela.length)} de{" "}
+      {notasTabela.length} registros
+    </div>
 
-            {/* Desktop: paginação completa */}
-            <div className="hidden md:flex gap-2">
+    {/* Desktop: paginação completa */}
+    <div className="hidden md:flex justify-between items-center">
+      <div></div> {/* placeholder para manter alinhamento com o mobile */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+          disabled={paginaAtual === 1}
+          className="px-3 py-1 border rounded-lg 
+            bg-white dark:bg-slate-800 
+            border-gray-300 dark:border-gray-600 
+            text-gray-700 dark:text-gray-300
+            hover:bg-gray-50 dark:hover:bg-slate-700 
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Anterior
+        </button>
+
+        <div className="flex gap-1">
+          {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+            let pageNum;
+            if (totalPaginas <= 5) {
+              pageNum = i + 1;
+            } else if (paginaAtual <= 3) {
+              pageNum = i + 1;
+            } else if (paginaAtual >= totalPaginas - 2) {
+              pageNum = totalPaginas - 4 + i;
+            } else {
+              pageNum = paginaAtual - 2 + i;
+            }
+
+            return (
               <button
-                onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                disabled={paginaAtual === 1}
-                className="px-3 py-1 border rounded-lg 
-                  bg-white dark:bg-slate-800 
-                  border-gray-300 dark:border-gray-600 
-                  text-gray-700 dark:text-gray-300
-                  hover:bg-gray-50 dark:hover:bg-slate-700 
-                  disabled:opacity-50 disabled:cursor-not-allowed"
+                key={pageNum}
+                onClick={() => setPaginaAtual(pageNum)}
+                className={`px-3 py-1 border rounded-lg transition-colors ${
+                  paginaAtual === pageNum
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                }`}
               >
-                Anterior
+                {pageNum}
               </button>
+            );
+          })}
+        </div>
 
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                  let pageNum;
-                  if (totalPaginas <= 5) {
-                    pageNum = i + 1;
-                  } else if (paginaAtual <= 3) {
-                    pageNum = i + 1;
-                  } else if (paginaAtual >= totalPaginas - 2) {
-                    pageNum = totalPaginas - 4 + i;
-                  } else {
-                    pageNum = paginaAtual - 2 + i;
-                  }
+        <button
+          onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+          disabled={paginaAtual === totalPaginas}
+          className="px-3 py-1 border rounded-lg 
+            bg-white dark:bg-slate-800 
+            border-gray-300 dark:border-gray-600 
+            text-gray-700 dark:text-gray-300
+            hover:bg-gray-50 dark:hover:bg-slate-700 
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Próximo
+        </button>
+      </div>
+    </div>
 
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPaginaAtual(pageNum)}
-                      className={`px-3 py-1 border rounded-lg transition-colors ${
-                        paginaAtual === pageNum
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
+    {/* Mobile: somente < páginaAtual > */}
+    <div className="flex md:hidden justify-center gap-2 items-center mt-2">
+      <button
+        onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+        disabled={paginaAtual === 1}
+        className="px-3 py-1 border rounded-lg 
+          bg-white dark:bg-slate-800 
+          border-gray-300 dark:border-gray-600 
+          text-gray-700 dark:text-gray-300
+          hover:bg-gray-50 dark:hover:bg-slate-700 
+          disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {"<"}
+      </button>
 
-              <button
-                onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                disabled={paginaAtual === totalPaginas}
-                className="px-3 py-1 border rounded-lg 
-                  bg-white dark:bg-slate-800 
-                  border-gray-300 dark:border-gray-600 
-                  text-gray-700 dark:text-gray-300
-                  hover:bg-gray-50 dark:hover:bg-slate-700 
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Próximo
-              </button>
-            </div>
+      <span className="px-3 py-1 border rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+        {paginaAtual}
+      </span>
 
-            {/* Mobile: somente < páginaAtual > */}
-            <div className="flex md:hidden gap-2 items-center">
-              <button
-                onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                disabled={paginaAtual === 1}
-                className="px-3 py-1 border rounded-lg 
-                  bg-white dark:bg-slate-800 
-                  border-gray-300 dark:border-gray-600 
-                  text-gray-700 dark:text-gray-300
-                  hover:bg-gray-50 dark:hover:bg-slate-700 
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {"<"}
-              </button>
+      <button
+        onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+        disabled={paginaAtual === totalPaginas}
+        className="px-3 py-1 border rounded-lg 
+          bg-white dark:bg-slate-800 
+          border-gray-300 dark:border-gray-600 
+          text-gray-700 dark:text-gray-300
+          hover:bg-gray-50 dark:hover:bg-slate-700 
+          disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {">"}
+      </button>
+    </div>
+  </div>
+)}
 
-              <span className="px-3 py-1 border rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300">
-                {paginaAtual}
-              </span>
-
-              <button
-                onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                disabled={paginaAtual === totalPaginas}
-                className="px-3 py-1 border rounded-lg 
-                  bg-white dark:bg-slate-800 
-                  border-gray-300 dark:border-gray-600 
-                  text-gray-700 dark:text-gray-300
-                  hover:bg-gray-50 dark:hover:bg-slate-700 
-                  disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {">"}
-              </button>
-            </div>
-          </div>
-        )}
         </div>
 
         {/* Estatísticas Adicionais */}
