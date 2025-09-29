@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 h-full bg-gray-100 dark:bg-darkBlue transition-colors">
+    <div className="p-6 bg-gray-100 dark:bg-darkBlue transition-colors min-h-screen md:min-h-0 md:h-full">
       {/* Cabeçalho */}
       <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
         <div className="px-6 py-4">
