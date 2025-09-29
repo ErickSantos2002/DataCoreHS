@@ -1266,73 +1266,77 @@ const Clientes: React.FC = () => {
 
             {/* Paginação */}
             {totalPaginas > 1 && (
-              <div className="flex justify-between items-center mt-4">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
+              <div className="mt-4">
+                {/* Texto de registros */}
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-2 md:mb-0">
                   Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
                   {Math.min(paginaAtual * itensPorPagina, clientesTabela.length)} de{" "}
                   {clientesTabela.length} registros
                 </div>
 
                 {/* Desktop */}
-                <div className="hidden md:flex gap-2">
-                  <button
-                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                    disabled={paginaAtual === 1}
-                    className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-slate-800 
-                      border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-slate-700 
-                      disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Anterior
-                  </button>
+                <div className="hidden md:flex justify-between items-center">
+                  <div></div> {/* placeholder só pra alinhar com mobile */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
+                      disabled={paginaAtual === 1}
+                      className="px-3 py-1 border rounded-lg 
+                        bg-white dark:bg-slate-800 
+                        border-gray-300 dark:border-gray-600 
+                        text-gray-700 dark:text-gray-300
+                        hover:bg-gray-50 dark:hover:bg-slate-700 
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
 
-                  <div className="flex gap-1">
-                    {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                      let pageNum;
-                      if (totalPaginas <= 5) {
-                        pageNum = i + 1;
-                      } else if (paginaAtual <= 3) {
-                        pageNum = i + 1;
-                      } else if (paginaAtual >= totalPaginas - 2) {
-                        pageNum = totalPaginas - 4 + i;
-                      } else {
-                        pageNum = paginaAtual - 2 + i;
-                      }
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                        let pageNum;
+                        if (totalPaginas <= 5) {
+                          pageNum = i + 1;
+                        } else if (paginaAtual <= 3) {
+                          pageNum = i + 1;
+                        } else if (paginaAtual >= totalPaginas - 2) {
+                          pageNum = totalPaginas - 4 + i;
+                        } else {
+                          pageNum = paginaAtual - 2 + i;
+                        }
 
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setPaginaAtual(pageNum)}
-                          className={`px-3 py-1 border rounded-lg transition-colors ${
-                            paginaAtual === pageNum
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setPaginaAtual(pageNum)}
+                            className={`px-3 py-1 border rounded-lg transition-colors ${
+                              paginaAtual === pageNum
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
+                      disabled={paginaAtual === totalPaginas}
+                      className="px-3 py-1 border rounded-lg 
+                        bg-white dark:bg-slate-800 
+                        border-gray-300 dark:border-gray-600 
+                        text-gray-700 dark:text-gray-300
+                        hover:bg-gray-50 dark:hover:bg-slate-700 
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Próximo
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                    disabled={paginaAtual === totalPaginas}
-                    className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-slate-800 
-                      border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-slate-700 
-                      disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Próximo
-                  </button>
                 </div>
 
                 {/* Mobile */}
-                <div className="flex md:hidden gap-2 items-center">
+                <div className="flex md:hidden justify-center gap-2 items-center mt-2">
                   <button
                     onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                     disabled={paginaAtual === 1}
