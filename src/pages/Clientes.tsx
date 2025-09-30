@@ -215,16 +215,25 @@ const Clientes: React.FC = () => {
             Math.max(...notasClientePeriodo.map(v => new Date(v.data_emissao).getTime()))
           )
         : null;
+        
+        const hoje = new Date();
+        const limite90 = new Date(hoje);
+        limite90.setDate(hoje.getDate() - 90);
+        const limiteTs = limite90.getTime();
 
-      return {
-        ...cliente,
-        cpfCnpjNormalizado,
-        totalCompradoPeriodo,
-        numeroComprasPeriodo,
-        ticketMedioPeriodo,
-        notasPeriodo: notasClientePeriodo,
-        ultimaCompra
-      };
+        return {
+          ...cliente,
+          cpfCnpjNormalizado,
+          totalCompradoPeriodo,
+          numeroComprasPeriodo,
+          ticketMedioPeriodo,
+          notasPeriodo: notasClientePeriodo,
+          ultimaCompra,
+          status:
+            ultimaCompra && ultimaCompra.getTime() >= limiteTs
+              ? "ativo"
+              : "inativo"
+        };
     });
 
     // 🔑 Consolidar por CPF/CNPJ
