@@ -280,6 +280,7 @@ const Vendedores: React.FC = () => {
           nome.includes(termoLower) ||
           cnpj.includes(termoLower) ||
           (termoNormalizado && cnpjNormalizado.includes(termoNormalizado)) ||
+          n.nome_vendedor?.toLowerCase().includes(termoLower) ||
           email.includes(termoLower) ||
           (termoFone && fone.includes(termoFone)) ||
           n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
