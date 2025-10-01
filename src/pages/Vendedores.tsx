@@ -379,14 +379,21 @@ const Vendedores: React.FC = () => {
 
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
-    const dadosExport = notasTabela.map(n => ({
-      'Data': new Date(n.data_emissao.split("-").reverse().join("/")),
-      'Cliente': n.cliente?.nome || '',
-      'CNPJ': n.cliente?.cpf_cnpj || '',
-      'Valor': n.valor_produtos,
-      'Tipo': n.tipo || 'Não definido',
-      'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
-    }));
+    const dadosExport = notasTabela.map(n => {
+      // Garantir que data vem no formato DD/MM/YYYY
+      const dataFormatada = n.data_emissao
+        ? n.data_emissao.split("-").reverse().join("/")
+        : "";
+
+      return {
+        'Data': dataFormatada, // 🔹 Agora sempre string, não cai no bug de UTC
+        'Cliente': n.cliente?.nome || '',
+        'CNPJ': n.cliente?.cpf_cnpj || '',
+        'Valor': n.valor_produtos,
+        'Tipo': n.tipo || 'Não definido',
+        'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(dadosExport);
     const wb = XLSX.utils.book_new();
