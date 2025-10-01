@@ -380,17 +380,19 @@ const Vendedores: React.FC = () => {
   // Exportação para Excel
   const exportarExcel = useCallback(() => {
     const dadosExport = notasTabela.map(n => {
-      // Garantir que data vem no formato DD/MM/YYYY
       const dataFormatada = n.data_emissao
         ? n.data_emissao.split("-").reverse().join("/")
         : "";
 
+      const numeroFormatado = n.numero ? Number(n.numero.toString().substring(2)) : "";
+
       return {
-        'Numero': n.numero,
-        'Data': dataFormatada, // 🔹 Agora sempre string, não cai no bug de UTC
+        'Numero': numeroFormatado,
+        'Data': dataFormatada,
         'Cliente': n.cliente?.nome || '',
         'CNPJ': n.cliente?.cpf_cnpj || '',
-        'Valor': n.valor_produtos,
+        'Valor Produtos': Number(n.valor_produtos),
+        'Valor Nota': Number(n.valor_nota),
         'Tipo': n.tipo || 'Não definido',
         'Vendedor': n.nome_vendedor || '',
         'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
@@ -400,6 +402,29 @@ const Vendedores: React.FC = () => {
     const ws = XLSX.utils.json_to_sheet(dadosExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Minhas Vendas");
+
+    ws['!cols'] = [
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 40 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 50 }
+    ];
+
+    // Formatar colunas E e F como número contábil (sem "R$")
+    for (let cell in ws) {
+      if (cell[0] === 'E' || cell[0] === 'F') {
+        if (ws[cell] && typeof ws[cell].v === 'number') {
+          ws[cell].t = 'n';           // tipo numérico
+          ws[cell].z = '#,##0.00';    // formato numérico com vírgula
+        }
+      }
+    }
+
     XLSX.writeFile(wb, `vendas_${vendedorLogado}_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [notasTabela, vendedorLogado]);
 
