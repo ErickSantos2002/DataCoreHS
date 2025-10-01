@@ -386,6 +386,7 @@ const Vendedores: React.FC = () => {
         : "";
 
       return {
+        'Numero': n.numero,
         'Data': dataFormatada, // 🔹 Agora sempre string, não cai no bug de UTC
         'Cliente': n.cliente?.nome || '',
         'CNPJ': n.cliente?.cpf_cnpj || '',

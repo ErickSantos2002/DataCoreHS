@@ -12,6 +12,7 @@ interface Cliente {
 }
 interface Nota { 
   id: number;
+  numero: number;
   data_emissao: string;
   valor_nota: number;
   valor_produtos: number;
