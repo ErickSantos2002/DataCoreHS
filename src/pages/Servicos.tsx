@@ -684,7 +684,7 @@ const Servicos: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Faturamento Total</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                  <p className="text-2xl font-bold text-blue-600 dark:text-yellow-300 mt-2">
                     R$ {kpis.totalFaturado.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
