@@ -171,7 +171,7 @@ const Vendedores: React.FC = () => {
   // KPIs Calculados
   const kpis = useMemo(() => {
     const totalFaturado = notasFiltradas.reduce(
-      (acc, n) => acc + Number(n.valor_nota || 0),
+      (acc, n) => acc + Number(n.valor_produtos || 0),
       0
     );
     const totalVendas = notasFiltradas.length;
@@ -209,7 +209,7 @@ const Vendedores: React.FC = () => {
       const mes = data.getMonth();
       const chave = `${ano}-${mes}`;
       if (!acc[chave]) acc[chave] = 0;
-      acc[chave] += Number(n.valor_nota || 0);
+      acc[chave] += Number(n.valor_produtos || 0);
       return acc;
     }, {});
 
@@ -248,7 +248,7 @@ const Vendedores: React.FC = () => {
     const agrupado = notasFiltradas.reduce((acc: any, n) => {
       const cliente = n.cliente?.nome || "Não informado";
       if (!acc[cliente]) acc[cliente] = 0;
-      acc[cliente] += Number(n.valor_nota || 0);
+      acc[cliente] += Number(n.valor_produtos || 0);
       return acc;
     }, {});
 
@@ -284,7 +284,7 @@ const Vendedores: React.FC = () => {
           email.includes(termoLower) ||
           (termoFone && fone.includes(termoFone)) ||
           n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
-          n.valor_nota?.toString().includes(termoLower) ||
+          n.valor_produtos?.toString().includes(termoLower) ||
           n.tipo?.toLowerCase().includes(termoLower)
         );
       });
@@ -304,8 +304,8 @@ const Vendedores: React.FC = () => {
           bVal = b.cliente?.nome || '';
           break;
         case 'valor':
-          aVal = Number(a.valor_nota);
-          bVal = Number(b.valor_nota);
+          aVal = Number(a.valor_produtos);
+          bVal = Number(b.valor_produtos);
           break;
         case 'tipo':
           aVal = a.tipo || '';
@@ -383,7 +383,7 @@ const Vendedores: React.FC = () => {
       'Data': new Date(n.data_emissao.split("-").reverse().join("/")),
       'Cliente': n.cliente?.nome || '',
       'CNPJ': n.cliente?.cpf_cnpj || '',
-      'Valor': n.valor_nota,
+      'Valor': n.valor_produtos,
       'Tipo': n.tipo || 'Não definido',
       'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
     }));
@@ -1079,7 +1079,7 @@ const Vendedores: React.FC = () => {
                     <td className="px-4 py-3">
                       <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                         R${" "}
-                        {Number(nota.valor_nota).toLocaleString("pt-BR", {
+                        {Number(nota.valor_produtos).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}

@@ -14,6 +14,7 @@ interface Nota {
   id: number;
   data_emissao: string;
   valor_nota: number;
+  valor_produtos: number;
   cliente: Cliente | null;
   nome_vendedor: string;
   tipo: "Outbound" | "Inbound" | "ReCompra" | null;

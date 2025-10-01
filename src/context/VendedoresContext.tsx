@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 interface Nota {
   id: number;
   data_emissao: string;
-  valor_nota: number;
+  valor_produtos: number;
   cliente: { 
     nome: string; 
     cpf_cnpj: string; 
