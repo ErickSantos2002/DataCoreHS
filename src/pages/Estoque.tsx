@@ -549,7 +549,7 @@ const Estoque: React.FC = () => {
           <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 transition-colors">
             <div className="flex items-center mb-4">
               <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-yellow-400">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 Filtros
               </h2>
             </div>

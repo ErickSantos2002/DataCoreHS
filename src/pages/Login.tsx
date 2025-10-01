@@ -12,9 +12,12 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("")
 
   useEffect(() => {
-    if (user && location.pathname !== "/inicio") {
+  if (user) {
+    document.documentElement.classList.add("dark") // força dark mode
+    if (location.pathname !== "/inicio") {
       navigate("/inicio", { replace: true })
     }
+  }
   }, [user, navigate, location.pathname])
 
   const handleSubmit = async (e: React.FormEvent) => {
