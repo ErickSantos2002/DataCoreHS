@@ -391,6 +391,7 @@ const Vendedores: React.FC = () => {
         'CNPJ': n.cliente?.cpf_cnpj || '',
         'Valor': n.valor_produtos,
         'Tipo': n.tipo || 'Não definido',
+        'Vendedor': n.nome_vendedor || '',
         'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
       };
     });
