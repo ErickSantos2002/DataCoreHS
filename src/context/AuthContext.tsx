@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     setLoading(true);
     setError(null);
+
     try {
       const res = await api.post("/login", { username, password });
       const { access_token } = res.data;
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // busca dados do usuário logado
       const me = await api.get("/me", {
-        headers: { Authorization: `Bearer ${access_token}` }
+        headers: { Authorization: `Bearer ${access_token}` },
       });
 
       const { id, username: userNameFromAPI, role } = me.data;
@@ -59,6 +60,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // atualiza state
       setUser({ id, username: userNameFromAPI, role: roleName });
+    } catch (err: any) {
+      // 🧠 Aqui tratamos os erros HTTP
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError("Usuário ou senha incorretos.");
+        } else if (err.response.status >= 500) {
+          setError("Erro no servidor. Tente novamente mais tarde.");
+        } else {
+          setError("Erro ao realizar login. Verifique os dados e tente novamente.");
+        }
+      } else {
+        setError("Erro de conexão com o servidor.");
+      }
     } finally {
       setLoading(false);
     }
@@ -69,8 +83,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("username");
     localStorage.removeItem("role");
+    localStorage.removeItem("id");
     setUser(null);
     setToken(null);
+    setError(null);
   };
 
   return (
