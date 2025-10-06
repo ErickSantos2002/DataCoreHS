@@ -4,21 +4,25 @@ import React, { useState, useEffect } from "react"
 import { useAuth } from "../hooks/useAuth"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/logo.png"
+import { useTheme } from "../context/ThemeContext"
 
 const Login: React.FC = () => {
   const { login, loading, error, user } = useAuth()
+  const { setDarkModeOnLogin } = useTheme() // 👈 use a nova função
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
 
   useEffect(() => {
-  if (user) {
-    document.documentElement.classList.add("dark") // força dark mode
-    if (location.pathname !== "/inicio") {
-      navigate("/inicio", { replace: true })
+    if (user) {
+      // ✅ Ativa via contexto (não manualmente)
+      setDarkModeOnLogin()
+
+      if (location.pathname !== "/inicio") {
+        navigate("/inicio", { replace: true })
+      }
     }
-  }
-  }, [user, navigate, location.pathname])
+  }, [user, navigate, location.pathname, setDarkModeOnLogin])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
