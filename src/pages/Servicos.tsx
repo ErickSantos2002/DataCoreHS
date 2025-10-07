@@ -171,9 +171,16 @@ const Servicos: React.FC = () => {
       const tipoServico = s.discriminacao_servico?.substring(0, 50) || "Não especificado";
       const tipoOk = filtroTipoServico.length === 0 || filtroTipoServico.includes(tipoServico);
 
-      const dataOk =
-        (!dataInicio || new Date(s.data_emissao) >= new Date(dataInicio)) &&
-        (!dataFim || new Date(s.data_emissao) <= new Date(dataFim));
+      const dataOk = (() => {
+        if (!dataInicio && !dataFim) return true;
+
+        // Converte tudo para Date com segurança
+        const dataEmissao = new Date(s.data_emissao + "T00:00:00");
+        const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : new Date("0000-01-01");
+        const fim = dataFim ? new Date(dataFim + "T23:59:59") : new Date("9999-12-31");
+
+        return dataEmissao >= inicio && dataEmissao <= fim;
+      })();
 
       return clienteOk && cidadeOk && tipoOk && dataOk;
     });
@@ -214,7 +221,10 @@ const Servicos: React.FC = () => {
   // Dados para evolução mensal
   const evolucaoMensal = useMemo(() => {
     const agrupado = servicosFiltrados.reduce((acc: Record<string, number>, s) => {
-      const data = new Date(s.data_emissao);
+      // 🔹 Cria a data local sem UTC
+      const [anoStr, mesStr, diaStr] = s.data_emissao.split("-");
+      const data = new Date(Number(anoStr), Number(mesStr) - 1, Number(diaStr));
+
       const ano = data.getFullYear();
       const mes = data.getMonth();
       const chave = `${ano}-${mes}`;
@@ -226,6 +236,7 @@ const Servicos: React.FC = () => {
     return Object.entries(agrupado)
       .map(([chave, total]) => {
         const [ano, mes] = chave.split("-");
+        // 🔹 Cria data novamente de forma local
         const data = new Date(Number(ano), Number(mes));
         return {
           mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
@@ -235,6 +246,7 @@ const Servicos: React.FC = () => {
       })
       .sort((a, b) => a.ordem - b.ordem);
   }, [servicosFiltrados]);
+
 
   // Ranking de clientes (Top 10)
   const rankingClientes = useMemo(() => {
@@ -1076,7 +1088,7 @@ const Servicos: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(servico.data_emissao).toLocaleDateString('pt-BR')}
+                        {servico.data_emissao.split("-").reverse().join("/")}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {servico.cidade_tomador}/{servico.uf_tomador}

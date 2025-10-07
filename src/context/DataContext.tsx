@@ -65,8 +65,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchClientes(),
         fetchVendas(),
       ]);
+
+      // 🔹 Conversão segura da data para local (sem UTC)
+      const notasComDataLocal = vendasData.map((n: any) => {
+        if (n.data_emissao && typeof n.data_emissao === "string") {
+          const [ano, mes, dia] = n.data_emissao.split("-");
+          // Cria data local corretamente
+          const dataLocal = new Date(Number(ano), Number(mes) - 1, Number(dia));
+          return { ...n, data_emissao: dataLocal.toISOString().split("T")[0] };
+        }
+        return n;
+      });
+
       setClientes(clientesData);
-      setNotas(vendasData);
+      setNotas(notasComDataLocal);
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
     } finally {

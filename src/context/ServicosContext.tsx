@@ -41,17 +41,17 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Função para converter valor string para número
   const converterParaNumero = (valor: string | number | undefined): number => {
-    if (typeof valor === 'number') return valor;
+    if (typeof valor === "number") return valor;
     if (!valor) return 0;
-    
-    // Remove R$, espaços, e converte vírgula para ponto
+
+    // Remove R$, espaços e formata corretamente
     const valorLimpo = valor
       .toString()
-      .replace(/R\$/g, '')
-      .replace(/\s/g, '')
-      .replace(/\./g, '') // Remove pontos de milhar
-      .replace(',', '.'); // Troca vírgula por ponto
-    
+      .replace(/R\$/g, "")
+      .replace(/\s/g, "")
+      .replace(/\./g, "") // Remove pontos de milhar
+      .replace(",", "."); // Troca vírgula por ponto
+
     const numero = parseFloat(valorLimpo);
     return isNaN(numero) ? 0 : numero;
   };
@@ -60,15 +60,27 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setCarregando(true);
       const servicosData = await fetchNotasServico();
-      
-      // Normaliza os dados de serviços
-      const servicosNormalizados = servicosData.map((servico: any) => ({
-        ...servico,
-        valor_servico: converterParaNumero(servico.valor_servico),
-        valor_total_recebido: converterParaNumero(servico.valor_total_recebido),
-        valor_iss: converterParaNumero(servico.valor_iss),
-      }));
-      
+
+      // 🔹 Normaliza e ajusta a data local (sem UTC)
+      const servicosNormalizados = servicosData.map((servico: any) => {
+        let dataEmissaoAjustada = servico.data_emissao;
+        // 🔹 Ajuste de data local (sem UTC e sem "Z")
+        if (servico.data_emissao && typeof servico.data_emissao === "string") {
+          const [ano, mes, dia] = servico.data_emissao.split("-");
+          const dataLocal = new Date(Number(ano), Number(mes) - 1, Number(dia));
+          // Aqui geramos manualmente no formato local, sem toISOString()
+          dataEmissaoAjustada = `${dataLocal.getFullYear()}-${String(dataLocal.getMonth() + 1).padStart(2, "0")}-${String(dataLocal.getDate()).padStart(2, "0")}`;
+        }
+
+        return {
+          ...servico,
+          data_emissao: dataEmissaoAjustada,
+          valor_servico: converterParaNumero(servico.valor_servico),
+          valor_total_recebido: converterParaNumero(servico.valor_total_recebido),
+          valor_iss: converterParaNumero(servico.valor_iss),
+        };
+      });
+
       setServicos(servicosNormalizados);
     } catch (error) {
       console.error("Erro ao buscar serviços:", error);
@@ -79,13 +91,16 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Enriquecer serviços com dados adicionais
   const servicosEnriquecidos = React.useMemo(() => {
-    return servicos.map(servico => {
-      const data = new Date(servico.data_emissao);
+    return servicos.map((servico) => {
+      // 🔹 Garante que estamos usando a data já ajustada localmente
+      const [ano, mes, dia] = servico.data_emissao.split("-");
+      const data = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
       return {
         ...servico,
         valor_servico_numero: converterParaNumero(servico.valor_servico),
-        mes: data.toLocaleDateString('pt-BR', { month: 'long' }),
-        ano: data.getFullYear()
+        mes: data.toLocaleDateString("pt-BR", { month: "long" }),
+        ano: data.getFullYear(),
       };
     });
   }, [servicos]);
@@ -95,12 +110,14 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [atualizarServicos]);
 
   return (
-    <ServicosContext.Provider value={{
-      servicos,
-      servicosEnriquecidos,
-      carregando,
-      atualizarServicos
-    }}>
+    <ServicosContext.Provider
+      value={{
+        servicos,
+        servicosEnriquecidos,
+        carregando,
+        atualizarServicos,
+      }}
+    >
       {children}
     </ServicosContext.Provider>
   );
