@@ -6,6 +6,7 @@ import logo from "../assets/logo.png"; // ajuste o caminho se necessário
 interface Produto {
   id: number;
   nome: string;
+  codigo: string;
   saldo: number;
 }
 
@@ -55,6 +56,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
       .map((item) => {
         const produto = produtos.find((p) => p.id === item.id);
         return [
+          produto?.codigo || "",
           produto?.nome || "",
           produto?.saldo ?? 0,
           item.quantidade,
@@ -63,16 +65,17 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
 
     autoTable(doc, {
       startY: 40,
-      head: [["Produto", "Saldo Atual", "Quantidade Solicitada"]],
+      head: [["Código", "Produto", "Saldo Atual", "Quantidade Solicitada"]],
       body: dadosTabela,
       theme: "grid",
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, halign: "center" }, // títulos centralizados
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, halign: "center" },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
-        0: { cellWidth: 90, halign: "center" }, // Produto centralizado
-        1: { halign: "center" },                // Saldo centralizado
-        2: { halign: "center" },                // Quantidade centralizada
+        0: { cellWidth: 25, halign: "center" },  // Código
+        1: { cellWidth: 70, halign: "left" },    // Produto
+        2: { halign: "center" },                 // Saldo
+        3: { halign: "center" },                 // Quantidade
       },
     });
 
@@ -89,9 +92,13 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
     fechar();
   };
 
-  const produtosFiltrados = produtos.filter((p) =>
-    p.nome.toLowerCase().includes(busca.toLowerCase())
-  );
+  const produtosFiltrados = produtos.filter((p) => {
+    const termo = busca.toLowerCase();
+    return (
+      p.nome.toLowerCase().includes(termo) ||
+      String(p.codigo).toLowerCase().includes(termo) // ✅ garante que funcione mesmo se for número
+    );
+  });
 
   if (!aberto) return null;
 
@@ -124,7 +131,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
                         text-gray-800 dark:text-gray-200"
             >
               <span>
-                {produto.nome}{" "}
+                <span className="font-medium">{produto.codigo}</span> - {produto.nome}{" "}
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   (Saldo: {produto.saldo})
                 </span>
