@@ -52,7 +52,7 @@ const Header: React.FC = () => {
   return (
     <>
       {/* HEADER FIXO */}
-      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0a192f]/90 backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
+      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0a192f]/95 backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
         <div className="flex items-center gap-4">
           <button
             onClick={abrirMenu}

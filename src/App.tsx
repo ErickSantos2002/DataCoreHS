@@ -22,7 +22,7 @@ const App: React.FC = () => {
       <Header />
       <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-auto p-6 bg-gray-100 dark:bg-darkBlue transition-colors">
+        <main className="flex-1 overflow-auto bg-gray-100 dark:bg-darkBlue transition-colors">
           <AppRoutes />
         </main>
       </div>

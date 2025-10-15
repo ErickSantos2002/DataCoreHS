@@ -6,7 +6,11 @@ interface ModalTrocarSenhaProps {
   onConfirm: (novaSenha: string) => void;
 }
 
-const ModalTrocarSenha: React.FC<ModalTrocarSenhaProps> = ({ isOpen, onClose, onConfirm }) => {
+const ModalTrocarSenha: React.FC<ModalTrocarSenhaProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+}) => {
   const [novaSenha, setNovaSenha] = useState("");
   const [repitaSenha, setRepitaSenha] = useState("");
 
@@ -22,8 +26,8 @@ const ModalTrocarSenha: React.FC<ModalTrocarSenhaProps> = ({ isOpen, onClose, on
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-md mx-auto">
         <h2 className="text-lg font-semibold mb-6 text-center text-gray-900 dark:text-gray-100">
           Trocar Senha
         </h2>
