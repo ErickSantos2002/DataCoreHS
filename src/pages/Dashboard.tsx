@@ -5,7 +5,7 @@ import { useConfiguracoes } from "../context/ConfiguracoesContext";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { dados, total, carregando } = useDashboard();
+  const { dados, total, carregando, totalAno } = useDashboard();
   const { configuracoes } = useConfiguracoes();
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
@@ -153,6 +153,15 @@ const Dashboard: React.FC = () => {
               {/* Lista à esquerda */}
               <div className="md:w-1/3">
                 <ul className="text-gray-700 dark:text-gray-200 space-y-4 text-left">
+                  <li className="pb-3 border-b border-gray-300 dark:border-gray-600">
+                    <span className="font-medium">Total do Ano:</span>{" "}
+                    <span className="font-bold text-green-600 dark:text-green-400">
+                      R${" "}
+                      {totalAno.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </li>
                   {dados.map((item) => (
                     <li key={item.mes}>
                       <span className="font-medium">{item.mes}:</span>{" "}

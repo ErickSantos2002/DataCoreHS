@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchNotas, fetchNotasServico } from "../services/notasapi";
+import { fetchVendas, fetchNotasServico } from "../services/notasapi";
 import { useConfiguracoes } from "./ConfiguracoesContext";
 
 interface FaturamentoMensal {
@@ -10,18 +10,21 @@ interface FaturamentoMensal {
 interface DashboardContextType {
   dados: FaturamentoMensal[];
   total: number;
+  totalAno: number;
   carregando: boolean;
 }
 
 const DashboardContext = createContext<DashboardContextType>({
   dados: [],
   total: 0,
+  totalAno: 0,
   carregando: true,
 });
 
 export const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
   const [dados, setDados] = useState<FaturamentoMensal[]>([]);
   const [total, setTotal] = useState(0);
+  const [totalAno, setTotalAno] = useState(0);
   const [carregando, setCarregando] = useState(true);
 
   const { configuracoes, carregando: carregandoConfig } = useConfiguracoes();
@@ -44,12 +47,14 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       const anoAtual = hoje.getFullYear();
       const resultados: FaturamentoMensal[] = [];
 
+      // Calcular total do quadrimestre (meses específicos)
       for (const mesIndex of meses) {
         const dataInicio = new Date(anoAtual, mesIndex, 1);
         const dataFim = new Date(anoAtual, mesIndex + 1, 0);
 
         try {
-          const notas = await fetchNotas({
+          // Usando fetchVendas em vez de fetchNotas
+          const notas = await fetchVendas({
             data_inicio: format(dataInicio),
             data_fim: format(dataFim),
           });
@@ -96,9 +101,63 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         }
       }
 
-      const total = resultados.reduce((acc, cur) => acc + cur.total, 0);
+      const totalQuadrimestre = resultados.reduce((acc, cur) => acc + cur.total, 0);
+
+      // Calcular total do ano completo (todos os 12 meses)
+      let totalAnoCompleto = 0;
+      
+      try {
+        const inicioAno = new Date(anoAtual, 0, 1);
+        const fimAno = new Date(anoAtual, 11, 31);
+
+        // Buscar todas as vendas do ano
+        const vendasAno = await fetchVendas({
+          data_inicio: format(inicioAno),
+          data_fim: format(fimAno),
+        });
+
+        const vendasFiltradas = vendasAno.filter((nota: any) => {
+          const cfop = extrairCFOP(nota.natureza_operacao);
+          const naturezaOk = cfopValidos.includes(cfop);
+          const situacaoOk = (nota.descricao_situacao || "").toLowerCase().trim() === "emitida danfe";
+          const marcadorOk =
+            !nota.marcadores ||
+            nota.marcadores.every((m: any) => {
+              const desc = (m?.descricao || "").toLowerCase().trim();
+              return !marcadoresInvalidos.includes(desc);
+            });
+          const valor = parseFloat(nota.valor_nota || "0");
+          return naturezaOk && situacaoOk && marcadorOk && !isNaN(valor) && valor > 0;
+        });
+
+        const totalVendasAno = vendasFiltradas.reduce(
+          (acc: number, nota: any) => acc + parseFloat(nota.valor_nota || "0"),
+          0
+        );
+
+        // Buscar todos os serviços do ano
+        const servicosAno = await fetchNotasServico({
+          data_inicio: format(inicioAno),
+          data_fim: format(fimAno),
+        });
+
+        const totalServicosAno = servicosAno.reduce((acc: number, nota: any) => {
+          let valorRaw = nota.valor_servico || "0";
+          if (typeof valorRaw === "string") {
+            valorRaw = valorRaw.replace(/\./g, "").replace(",", ".");
+          }
+          const valor = parseFloat(valorRaw);
+          return acc + (isNaN(valor) ? 0 : valor);
+        }, 0);
+
+        totalAnoCompleto = totalVendasAno + totalServicosAno;
+      } catch (err) {
+        console.error("Erro ao buscar total do ano", err);
+      }
+
       setDados(resultados);
-      setTotal(total);
+      setTotal(totalQuadrimestre);
+      setTotalAno(totalAnoCompleto);
       setCarregando(false);
     };
 
@@ -106,7 +165,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   }, [carregandoConfig, configuracoes]);
 
   return (
-    <DashboardContext.Provider value={{ dados, total, carregando }}>
+    <DashboardContext.Provider value={{ dados, total, totalAno, carregando }}>
       {children}
     </DashboardContext.Provider>
   );
