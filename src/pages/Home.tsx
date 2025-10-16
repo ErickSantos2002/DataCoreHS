@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState, useLayoutEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { updateUserPassword } from "../services/api";
 import ModalTrocarSenha from "../components/ModalTrocarSenha";
@@ -26,9 +26,10 @@ const Home: React.FC = () => {
 
   return (
     <div
-      className="flex flex-col justify-between bg-white dark:bg-[#0a192f] transition-colors overflow-hidden"
+      className="flex flex-col bg-white dark:bg-[#0a192f] transition-colors"
       style={{
         height: altura,
+        overflow: "hidden",
       }}
     >
       {/* Logo centralizada e responsiva */}
@@ -36,9 +37,9 @@ const Home: React.FC = () => {
         <img
           src={logo}
           alt="Logo Health & Safety"
-          className="max-w-[800px] w-[60%] h-auto object-contain md:w-[50%] sm:w-[70%] transition-all duration-300"
+          className="max-w-[950px] w-[70%] h-auto object-contain md:w-[60%] sm:w-[80%]"
           style={{
-            maxHeight: "75%",
+            maxHeight: "80%",
           }}
         />
       </div>

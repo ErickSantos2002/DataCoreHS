@@ -686,7 +686,7 @@ const Clientes: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors overflow-y-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       <div className="p-6">
         {/* Cabeçalho */}
         <div className="bg-white dark:bg-[#0f172a] shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">

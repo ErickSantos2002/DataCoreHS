@@ -2,13 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { useSidebar } from "../context/SidebarContext"; // 👈 Importa o contexto
 import logo from "../assets/HS2.ico";
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
-  const { sidebarAberta, toggleSidebar } = useSidebar(); // 👈 Usa o estado global da sidebar
   const [menuVisivel, setMenuVisivel] = useState(false);
   const [menuAnimado, setMenuAnimado] = useState(false);
   const navigate = useNavigate();
@@ -56,7 +54,6 @@ const Header: React.FC = () => {
       {/* HEADER FIXO */}
       <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0a192f]/95 backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
         <div className="flex items-center gap-4">
-          {/* Botão mobile */}
           <button
             onClick={abrirMenu}
             className="block lg:hidden text-gray-700 dark:text-gray-200 text-2xl focus:outline-none"
@@ -64,27 +61,19 @@ const Header: React.FC = () => {
             ☰
           </button>
 
-          {/* LOGO / NOME clicável que controla a sidebar */}
-          <button
-            onClick={toggleSidebar}
+          <Link
+            to="/inicio"
             className="hidden lg:flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400 hover:scale-105 transition no-underline group"
           >
-            {sidebarAberta ? (
-              <>
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="w-6 h-6 transition-transform duration-500 group-hover:rotate-[360deg]"
-                />
-                <span>DataCoreHS</span>
-              </>
-            ) : (
-              <span className="text-3xl text-blue-700 dark:text-blue-400">☰</span>
-            )}
-          </button>
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-6 h-6 transition-transform duration-500 group-hover:rotate-[360deg]"
+            />
+            <span>DataCoreHS</span>
+          </Link>
         </div>
 
-        {/* Usuário e botão sair */}
         <div className="flex items-center gap-4 text-sm">
           <span className="text-gray-700 dark:text-gray-300 max-w-[160px] truncate">
             {user?.username}{" "}
@@ -117,6 +106,7 @@ const Header: React.FC = () => {
             <div className="flex items-center justify-between py-3 mb-3">
               <div className="flex items-center gap-2">
                 <img src={logo} alt="Logo" className="w-6 h-6 object-contain" />
+
                 <span className="font-bold text-lg text-blue-700 dark:text-blue-400">
                   Menu
                 </span>
@@ -131,63 +121,15 @@ const Header: React.FC = () => {
 
             {/* Navegação */}
             <nav className="flex flex-col gap-4">
-              <Link
-                to="/inicio"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Início
-              </Link>
-              <Link
-                to="/dashboard"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/vendas"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Vendas
-              </Link>
-              <Link
-                to="/servicos"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Serviços
-              </Link>
-              <Link
-                to="/clientes"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Clientes
-              </Link>
-              <Link
-                to="/vendedores"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Vendedores
-              </Link>
-              <Link
-                to="/estoque"
-                onClick={fecharMenu}
-                className="text-gray-700 dark:text-gray-200 font-medium"
-              >
-                Estoque
-              </Link>
+              <Link to="/inicio" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Início</Link>
+              <Link to="/dashboard" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Dashboard</Link>
+              <Link to="/vendas" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Vendas</Link>
+              <Link to="/servicos" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Serviços</Link>
+              <Link to="/clientes" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Clientes</Link>
+              <Link to="/vendedores" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Vendedores</Link>
+              <Link to="/estoque" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Estoque</Link>
               {user?.role === "admin" && (
-                <Link
-                  to="/configuracoes"
-                  onClick={fecharMenu}
-                  className="text-gray-700 dark:text-gray-200 font-medium"
-                >
-                  Configurações
-                </Link>
+                <Link to="/configuracoes" onClick={fecharMenu} className="text-gray-700 dark:text-gray-200 font-medium">Configurações</Link>
               )}
             </nav>
 
@@ -209,6 +151,7 @@ const Header: React.FC = () => {
                       className="w-5 h-5"
                     />
                   )}
+                  <span>{darkMode ? "" : ""}</span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -234,7 +177,9 @@ const Header: React.FC = () => {
                 />
                 <span className="ml-2">Sair</span>
               </button>
+
             </div>
+
           </div>
         </>
       )}
