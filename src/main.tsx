@@ -1,5 +1,3 @@
-// src/main.tsx
-
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -7,11 +5,12 @@ import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { ServicosProvider } from "./context/ServicosContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { DataProvider } from "./context/DataContext";
-import "./styles/index.css"; // Importa o Tailwind e estilos globais
+import { ServicosProvider } from "./context/ServicosContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { SidebarProvider } from "./context/SidebarContext";
+import "./styles/index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -22,9 +21,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <ServicosProvider>
               <ConfiguracoesProvider>
                 <DashboardProvider>
-                  <BrowserRouter>
-                    <App />
-                  </BrowserRouter>
+                  <SidebarProvider>
+                    <BrowserRouter>
+                      <App />
+                    </BrowserRouter>
+                  </SidebarProvider>
                 </DashboardProvider>
               </ConfiguracoesProvider>
             </ServicosProvider>

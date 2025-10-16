@@ -573,7 +573,7 @@ const Vendedores: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors overflow-y-auto">
       {/* Cabeçalho */}
       <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
         <div className="px-6 py-4">
@@ -589,7 +589,7 @@ const Vendedores: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-hidden">
+      <div className="mt-6">
         {/* Filtros */}
         <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">

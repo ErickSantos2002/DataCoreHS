@@ -2,13 +2,16 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
+import { useSidebar } from "../context/SidebarContext"; 
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
+  const { sidebarAberta } = useSidebar(); // 👈 estado global da sidebar
 
   if (location.pathname === "/login") return null;
+
 
   const iconBaseClass = "w-5 h-5 mr-2 transition-colors";
 
@@ -115,7 +118,11 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="hidden lg:flex w-56 bg-white dark:bg-[#0a192f] text-gray-900 dark:text-gray-100 shadow sticky top-0 flex-col transition-colors">
+    <aside
+      className={`hidden lg:flex ${
+        sidebarAberta ? "w-56 shadow sticky top-0" : "w-0"
+      } overflow-hidden bg-white dark:bg-[#0a192f] text-gray-900 dark:text-gray-100 flex-col transition-all duration-300`}
+    >
       <nav className="flex-1 py-6">
         <ul className="space-y-2">
           {menuItems.map((item) => (
