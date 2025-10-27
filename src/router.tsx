@@ -39,7 +39,7 @@ const RequireVendas: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
 
-  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro" && user.role !== "qualidade")) {
+  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro")) {
     return <Bloqueio />;
   }
 
@@ -51,7 +51,7 @@ const RequireServicos: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
 
-  if (!user || (user.role !== "admin" && user.role !== "servicos" && user.role !== "financeiro" && user.role !== "qualidade")) {
+  if (!user || (user.role !== "admin" && user.role !== "servicos" && user.role !== "financeiro")) {
     return <Bloqueio />;
   }
 
@@ -63,7 +63,7 @@ const RequireVendedores: React.FC<{ children: React.ReactNode }> = ({ children }
 
   if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
 
-  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro" && user.role !== "qualidade")) {
+  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro")) {
     return <Bloqueio />;
   }
 

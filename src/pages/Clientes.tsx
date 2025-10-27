@@ -109,9 +109,9 @@ const Clientes: React.FC = () => {
         inicio = semanaPassada.toISOString().split("T")[0];
         break;
       case "30dias":
-        const mesPassado = new Date(hoje);
-        mesPassado.setDate(hoje.getDate() - 30);
-        inicio = mesPassado.toISOString().split("T")[0];
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        inicio = primeiroDiaMes.toISOString().split("T")[0];
+        fim = hoje.toISOString().split("T")[0];
         break;
       case "anoAtual":
         inicio = `${hoje.getFullYear()}-01-01`;
