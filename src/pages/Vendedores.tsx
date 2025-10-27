@@ -640,7 +640,7 @@ const Vendedores: React.FC = () => {
               >
                 <option value="todos">Todos</option>
                 <option value="7dias">Últimos 7 dias</option>
-                <option value="30dias">Últimos 30 dias</option>
+                <option value="30dias">Mês atual</option>
                 <option value="anoAtual">Ano atual</option>
                 <option value="custom">Personalizado</option>
               </select>
