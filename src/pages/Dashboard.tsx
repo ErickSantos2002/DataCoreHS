@@ -116,6 +116,28 @@ const Dashboard: React.FC = () => {
           <p className="text-gray-500 dark:text-white text-sm mt-2">
             Acompanhe o quanto falta para a empresa atingir a meta.
           </p>
+          {/* === Botão para acionar webhook n8n (visível apenas para admin) === */}
+          {user?.role === "admin" && (
+            <button
+              onClick={async () => {
+                try {
+                  await fetch(
+                    "https://n8n.healthsafetytech.com/webhook/f26ad3d8-e178-4a35-93e2-14ae28d2da55",
+                    { method: "GET", mode: "no-cors" }
+                  );
+
+                  alert(
+                    "Fluxo de busca de notas acionado! 🧾\nPor favor, aguarde cerca de 5 minutos para que todas as notas estejam atualizadas."
+                  );
+                } catch (err) {
+                  alert("Falha ao tentar acionar o fluxo: " + err);
+                }
+              }}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition"
+            >
+              Atualizar notas vendas
+            </button>
+          )}
         </div>
       </div>
 
