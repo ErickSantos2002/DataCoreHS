@@ -256,7 +256,8 @@ const Vendas: React.FC = () => {
 
   // Dados para gráfico de evolução
   const dadosEvolucao: { mes: string; total: number; ordem: number }[] = useMemo(() => {
-    const agrupado = notasFiltradas.reduce((acc: Record<string, number>, n) => {
+    // Primeiro agrupa por mês
+    const agrupadoMensal = notasFiltradas.reduce((acc: Record<string, number>, n) => {
       const data = new Date(n.data_emissao);
       const ano = data.getFullYear();
       const mes = data.getMonth(); // 0 = janeiro
@@ -266,17 +267,38 @@ const Vendas: React.FC = () => {
       return acc;
     }, {});
 
-    return Object.entries(agrupado)
+    const dadosMensais = Object.entries(agrupadoMensal)
       .map(([chave, total]) => {
         const [ano, mes] = chave.split("-");
         const data = new Date(Number(ano), Number(mes));
         return {
           mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
           total,
-          ordem: data.getTime(), // usado para ordenar
+          ordem: data.getTime(),
+          ano: Number(ano),
         };
       })
       .sort((a, b) => a.ordem - b.ordem);
+
+    // Se tiver mais de 24 meses, agrupa por ano
+    if (dadosMensais.length > 24) {
+      const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
+        if (!acc[item.ano]) acc[item.ano] = 0;
+        acc[item.ano] += item.total;
+        return acc;
+      }, {});
+
+      return Object.entries(agrupadoAnual)
+        .map(([ano, total]) => ({
+          mes: ano.toString(),
+          total,
+          ordem: new Date(Number(ano), 0).getTime(),
+        }))
+        .sort((a, b) => a.ordem - b.ordem);
+    }
+
+    // Se tiver 24 meses ou menos, retorna os dados mensais
+    return dadosMensais;
   }, [notasFiltradas]);
 
 
