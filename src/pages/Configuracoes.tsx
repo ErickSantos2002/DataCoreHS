@@ -72,7 +72,30 @@ const Configuracoes: React.FC = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mb-1">
                 {cfg.chave}
               </p>
-              {editandoId === cfg.id ? (
+              {cfg.chave === "ANIMACAO_META" ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      const novoEstado = cfg.valor === "true" ? "false" : "true";
+                      editarConfiguracao(cfg.chave, novoEstado);
+                    }}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
+                      cfg.valor === "true"
+                        ? "bg-green-600 dark:bg-green-500"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                        cfg.valor === "true" ? "translate-x-7" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {cfg.valor === "true" ? "Ativada" : "Desativada"}
+                  </span>
+                </div>
+              ) : editandoId === cfg.id ? (
                 <input
                   type="text"
                   value={novoValor}
@@ -87,31 +110,33 @@ const Configuracoes: React.FC = () => {
               )}
             </div>
 
-            <div className="flex gap-2 md:ml-4">
-              {editandoId === cfg.id ? (
-                <>
+            {cfg.chave !== "ANIMACAO_META" && (
+              <div className="flex gap-2 md:ml-4">
+                {editandoId === cfg.id ? (
+                  <>
+                    <button
+                      onClick={() => salvarEdicao(cfg.id, cfg.chave)}
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition"
+                    >
+                      Salvar
+                    </button>
+                    <button
+                      onClick={cancelarEdicao}
+                      className="px-3 py-1 bg-gray-400 dark:bg-gray-600 text-white rounded hover:bg-gray-500 dark:hover:bg-gray-700 text-sm transition"
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
                   <button
-                    onClick={() => salvarEdicao(cfg.id, cfg.chave)}
-                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm transition"
+                    onClick={() => iniciarEdicao(cfg.id, cfg.valor)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm transition"
                   >
-                    Salvar
+                    Editar
                   </button>
-                  <button
-                    onClick={cancelarEdicao}
-                    className="px-3 py-1 bg-gray-400 dark:bg-gray-600 text-white rounded hover:bg-gray-500 dark:hover:bg-gray-700 text-sm transition"
-                  >
-                    Cancelar
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => iniciarEdicao(cfg.id, cfg.valor)}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm transition"
-                >
-                  Editar
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

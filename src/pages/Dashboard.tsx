@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../context/DashboardContext";
 import { useConfiguracoes } from "../context/ConfiguracoesContext";
+import confetti from "canvas-confetti";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -14,9 +15,92 @@ const Dashboard: React.FC = () => {
   const META2 = META * 1.2;
   const META3 = META * 1.4;
 
+  const animacaoConfig = configuracoes.find((c) => c.chave === "ANIMACAO_META");
+  const animacaoHabilitada = animacaoConfig?.valor === "true";
+
   const progresso80 = Math.min((total / META1) * 100, 100);
   const progresso100 = Math.min((total / META2) * 100, 100);
   const progresso140 = Math.min((total / META3) * 100, 100);
+
+  // Ref para garantir que a animação só dispare uma vez por sessão
+  const animacaoDisparada = useRef(false);
+
+  // Função para disparar animações de comemoração
+  const dispararComemoracoes = () => {
+    const duration = 3000; // 3 segundos de animação
+    const animationEnd = Date.now() + duration;
+
+    // Confetes do lado esquerdo
+    const confettiEsquerda = () => {
+      confetti({
+        particleCount: 7,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32'],
+      });
+    };
+
+    // Confetes do lado direito
+    const confettiDireita = () => {
+      confetti({
+        particleCount: 7,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32'],
+      });
+    };
+
+    // Fogos de artifício (explosões no centro)
+    const fogosArtificio = () => {
+      confetti({
+        particleCount: 100,
+        spread: 360,
+        startVelocity: 30,
+        decay: 0.9,
+        scalar: 1.2,
+        origin: { x: Math.random(), y: Math.random() * 0.5 },
+        colors: ['#FFD700', '#FFA500', '#FF1493', '#00CED1', '#32CD32', '#FF6347'],
+      });
+    };
+
+    // Loop de animação
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      confettiEsquerda();
+      confettiDireita();
+
+      // Disparar fogos ocasionalmente
+      if (Math.random() > 0.7) {
+        fogosArtificio();
+      }
+    }, 150);
+
+    // Disparar fogos iniciais
+    setTimeout(fogosArtificio, 100);
+    setTimeout(fogosArtificio, 500);
+    setTimeout(fogosArtificio, 900);
+  };
+
+  // Verificar se alguma meta foi atingida e disparar animações
+  useEffect(() => {
+    if (!carregando && !animacaoDisparada.current && animacaoHabilitada) {
+      // Verifica se alguma meta foi atingida
+      const metaAtingida = total >= META1 || total >= META2 || total >= META3;
+
+      if (metaAtingida) {
+        animacaoDisparada.current = true;
+        dispararComemoracoes();
+      }
+    }
+  }, [carregando, total, META1, META2, META3, animacaoHabilitada]);
 
   // ---------- COMPONENTE VELOCÍMETRO ----------
   const Speedometer = ({
