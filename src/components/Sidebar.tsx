@@ -54,6 +54,17 @@ const Sidebar: React.FC = () => {
       ),
     },
     {
+      label: "Produtos",
+      to: "/produtos",
+      icon: (isActive: boolean) => (
+        <img
+          src={`https://img.icons8.com/?size=100&id=15893&format=png&color=${getColor(isActive)}`}
+          alt="Produtos"
+          className={iconBaseClass}
+        />
+      ),
+    },
+    {
       label: "Serviços",
       to: "/servicos",
       icon: (isActive: boolean) => (

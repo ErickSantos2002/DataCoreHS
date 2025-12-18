@@ -12,6 +12,7 @@ import Estoque from "./pages/Estoque";
 import Servicos from "./pages/Servicos";
 import Vendas from "./pages/Vendas";
 import Vendedores from "./pages/Vendedores";
+import Produtos from "./pages/Produtos";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -129,6 +130,17 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute>
           <RequireVendas>
             <Vendas />
+          </RequireVendas>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/produtos"
+      element={
+        <ProtectedRoute>
+          <RequireVendas>
+            <Produtos />
           </RequireVendas>
         </ProtectedRoute>
       }
