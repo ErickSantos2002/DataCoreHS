@@ -302,6 +302,12 @@ const Produtos: React.FC = () => {
       if (!agrupadoMensal[chave]) agrupadoMensal[chave] = 0;
 
       nota.itens?.forEach(item => {
+        // Se tem filtro de produto ativo, só soma itens que estão no filtro
+        if (filtroProduto.length > 0) {
+          const itemFiltrado = filtroProduto.includes(`${item.descricao} (${item.codigo})`);
+          if (!itemFiltrado) return; // Pula itens que não estão no filtro
+        }
+
         agrupadoMensal[chave] += Number(item.quantidade || 0);
       });
     });
@@ -337,7 +343,7 @@ const Produtos: React.FC = () => {
     }
 
     return dadosMensais;
-  }, [notasFiltradas]);
+  }, [notasFiltradas, filtroProduto]);
 
   // Ranking de produtos por valor
   const rankingProdutosValor = useMemo(() => {
