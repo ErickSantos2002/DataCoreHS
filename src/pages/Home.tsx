@@ -1,12 +1,7 @@
-import React, { useState, useLayoutEffect, useRef } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { updateUserPassword } from "../services/api";
-import ModalTrocarSenha from "../components/ModalTrocarSenha";
+import React, { useState, useLayoutEffect } from "react";
 import logo from "../assets/logo.png";
 
 const Home: React.FC = () => {
-  const { user } = useAuth();
-  const [modalAberta, setModalAberta] = useState(false);
   const [altura, setAltura] = useState("100dvh");
 
   // Calcula dinamicamente a altura disponível, considerando header
@@ -49,35 +44,8 @@ const Home: React.FC = () => {
         <p className="text-gray-700 dark:text-gray-200 text-sm sm:text-base font-medium">
           © {new Date().getFullYear()} Health Safety — Todos os direitos reservados.
         </p>
-
-        <p className="text-gray-700 dark:text-gray-200 text-sm sm:text-base font-medium">
-          Deseja mais segurança? Troque sua senha clicando{" "}
-          <button
-            onClick={() => setModalAberta(true)}
-            className="underline text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-          >
-            AQUI
-          </button>
-        </p>
       </footer>
 
-      {/* Modal */}
-      <ModalTrocarSenha
-        isOpen={modalAberta}
-        onClose={() => setModalAberta(false)}
-        onConfirm={async (novaSenha) => {
-          try {
-            if (user?.id) {
-              await updateUserPassword(user.id, novaSenha);
-              alert("Senha atualizada com sucesso!");
-            } else {
-              alert("Usuário não identificado.");
-            }
-          } catch (error) {
-            alert("Erro ao atualizar senha, tente novamente.");
-          }
-        }}
-      />
     </div>
   );
 };
