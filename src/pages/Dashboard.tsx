@@ -192,7 +192,7 @@ const Dashboard: React.FC = () => {
       <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
-            Meta Quadrimestral - Dashboard
+            Meta Trimestral - Dashboard
           </h1>
           <p className="text-gray-600 dark:text-white mt-1">
             Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
@@ -236,7 +236,7 @@ const Dashboard: React.FC = () => {
             <p className="text-gray-700 dark:text-gray-300 max-w-sm text-justify">
               Esta página exibe o{" "}
               <strong className="text-gray-900 dark:text-yellow-400">
-                faturamento total do quadrimestre atual
+                faturamento total do trimestre atual
               </strong>
               , considerando as Notas Fiscais de Venda e Serviço. Ao lado, temos
               um <strong className="dark:text-yellow-400">gráfico velocímetro</strong>{" "}
@@ -251,7 +251,7 @@ const Dashboard: React.FC = () => {
           <div className="lg:col-span-3 flex flex-col w-full">
             <div className="flex justify-center lg:justify-end">
               <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-                Quadrimestre Atual
+                Trimestre Atual
               </h2>
             </div>
 
