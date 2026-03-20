@@ -108,8 +108,34 @@ const Sidebar: React.FC = () => {
         />
       ),
     },
+    ...([1, 3, 4].includes(user?.id ?? -1)
+      ? [
+          {
+            label: "Financeiro",
+            to: "/financeiro",
+            icon: (isActive: boolean) => (
+              <img
+                src={`https://img.icons8.com/?size=100&id=11448&format=png&color=${getColor(isActive)}`}
+                alt="Financeiro"
+                className={iconBaseClass}
+              />
+            ),
+          },
+        ]
+      : []),
     ...(user?.role === "admin"
       ? [
+          {
+            label: "Usuários",
+            to: "/usuarios",
+            icon: (isActive: boolean) => (
+              <img
+                src={`https://img.icons8.com/?size=100&id=59220&format=png&color=${getColor(isActive)}`}
+                alt="Usuários"
+                className={iconBaseClass}
+              />
+            ),
+          },
           {
             label: "Configurações",
             to: "/configuracoes",

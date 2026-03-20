@@ -13,6 +13,8 @@ import Servicos from "./pages/Servicos";
 import Vendas from "./pages/Vendas";
 import Vendedores from "./pages/Vendedores";
 import Produtos from "./pages/Produtos";
+import GerenciamentoFinanceiro from "./pages/GerenciamentoFinanceiro";
+import Usuarios from "./pages/Usuarios";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -65,6 +67,18 @@ const RequireVendedores: React.FC<{ children: React.ReactNode }> = ({ children }
   if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
 
   if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro")) {
+    return <Bloqueio />;
+  }
+
+  return <>{children}</>;
+};
+
+const RequireFinanceiro: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
+
+  if (!user || ![1, 3, 4].includes(user.id)) {
     return <Bloqueio />;
   }
 
@@ -158,12 +172,34 @@ const AppRoutes: React.FC = () => (
     />
 
     <Route
+      path="/usuarios"
+      element={
+        <ProtectedRoute>
+          <RequireAdmin>
+            <Usuarios />
+          </RequireAdmin>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
       path="/configuracoes"
       element={
         <ProtectedRoute>
           <RequireAdmin>
             <Configuracoes />
           </RequireAdmin>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/financeiro"
+      element={
+        <ProtectedRoute>
+          <RequireFinanceiro>
+            <GerenciamentoFinanceiro />
+          </RequireFinanceiro>
         </ProtectedRoute>
       }
     />

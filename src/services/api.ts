@@ -27,4 +27,29 @@ export async function updateUserPassword(userId: number, novaSenha: string) {
   }
 }
 
+export async function getUsers() {
+  const res = await authApi.get("/users");
+  return res.data;
+}
+
+export async function getRoles() {
+  const res = await authApi.get("/roles");
+  return res.data;
+}
+
+export async function createUser(data: { username: string; password: string; role_name: string }) {
+  const res = await authApi.post("/register", data);
+  return res.data;
+}
+
+export async function updateUser(userId: number, data: { username?: string; role_name?: string }) {
+  const res = await authApi.put(`/users/${userId}`, data);
+  return res.data;
+}
+
+export async function deleteUser(userId: number) {
+  const res = await authApi.delete(`/users/${userId}`);
+  return res.data;
+}
+
 export default authApi;
