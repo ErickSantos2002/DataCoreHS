@@ -159,7 +159,7 @@ const ContasPagar: React.FC = () => {
   const [filtroFornecedor, setFiltroFornecedor] = useState<string[]>([]);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [presetPeriodo, setPresetPeriodo] = useState("anoAtual");
+  const [presetPeriodo, setPresetPeriodo] = useState("todos");
   const [pesquisaTabela, setPesquisaTabela] = useState("");
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [ordenacao, setOrdenacao] = useState<{ campo: string; direcao: "asc" | "desc" }>({ campo: "vencimento", direcao: "asc" });
@@ -240,19 +240,35 @@ const ContasPagar: React.FC = () => {
     return { totalAberto, totalPago, contasVencidas, aVencer30 };
   }, [contasFiltradas]);
 
-  // Gráfico evolução mensal
-  const anoAtual = new Date().getFullYear();
-  const dadosMensais = useMemo(() => {
-    const meses = MESES_ABREV.map((m) => ({ mes: m, pago: 0, aberto: 0 }));
-    for (const c of contasEnriquecidas) {
-      if (c.ano !== anoAtual) continue;
-      const [, mesStr] = c.data_emissao.split("-");
-      const idx = Number(mesStr) - 1;
-      if (c.situacao?.toLowerCase() === "pago") meses[idx].pago += c.valor_numero;
-      else meses[idx].aberto += c.saldo_numero;
+  // Gráfico evolução — anual se > 1 ano, mensal se apenas 1 ano
+  const { dadosEvolucao, evolucaoTitulo, evolucaoChaveX } = useMemo(() => {
+    const anosPresentes = new Set(contasFiltradas.map((c) => c.ano));
+
+    if (anosPresentes.size > 1) {
+      // Agrupar por ano
+      const map = new Map<number, { pago: number; aberto: number }>();
+      for (const c of contasFiltradas) {
+        if (!map.has(c.ano)) map.set(c.ano, { pago: 0, aberto: 0 });
+        const entry = map.get(c.ano)!;
+        if (c.situacao?.toLowerCase() === "pago") entry.pago += c.valor_numero;
+        else entry.aberto += c.saldo_numero;
+      }
+      const dados = Array.from(map.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([ano, { pago, aberto }]) => ({ label: String(ano), pago, aberto }));
+      return { dadosEvolucao: dados, evolucaoTitulo: "Evolução Anual", evolucaoChaveX: "label" };
+    } else {
+      // Agrupar por mês do único ano
+      const ano = anosPresentes.values().next().value ?? new Date().getFullYear();
+      const meses = MESES_ABREV.map((m) => ({ label: m, pago: 0, aberto: 0 }));
+      for (const c of contasFiltradas) {
+        const idx = Number(c.data_emissao.split("-")[1]) - 1;
+        if (c.situacao?.toLowerCase() === "pago") meses[idx].pago += c.valor_numero;
+        else meses[idx].aberto += c.saldo_numero;
+      }
+      return { dadosEvolucao: meses, evolucaoTitulo: `Evolução Mensal — ${ano}`, evolucaoChaveX: "label" };
     }
-    return meses;
-  }, [contasEnriquecidas, anoAtual]);
+  }, [contasFiltradas]);
 
   // PieChart categorias
   const dadosCategoria = useMemo(() => {
@@ -496,15 +512,15 @@ const ContasPagar: React.FC = () => {
 
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Evolução Mensal — ocupa linha inteira */}
+          {/* Evolução Anual — ocupa linha inteira */}
           <div className="lg:col-span-2 bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Evolução Mensal — {anoAtual}
+              {evolucaoTitulo}
             </h3>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={dadosMensais} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+              <BarChart data={dadosEvolucao} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-axis)" />
-                <XAxis dataKey="mes" tick={{ fill: "var(--chart-text)", fontSize: 12 }} axisLine={{ stroke: "var(--chart-axis)" }} />
+                <XAxis dataKey={evolucaoChaveX} tick={{ fill: "var(--chart-text)", fontSize: 12 }} axisLine={{ stroke: "var(--chart-axis)" }} />
                 <YAxis tickFormatter={formatarValorAbreviado} tick={{ fill: "var(--chart-text)", fontSize: 11 }} width={70} axisLine={{ stroke: "var(--chart-axis)" }} />
                 <Tooltip
                   contentStyle={{
