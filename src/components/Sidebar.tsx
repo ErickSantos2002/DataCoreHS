@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
+import { Receipt } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -118,6 +119,20 @@ const Sidebar: React.FC = () => {
                 src={`https://img.icons8.com/?size=100&id=11448&format=png&color=${getColor(isActive)}`}
                 alt="Financeiro"
                 className={iconBaseClass}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(user?.role === "admin" || user?.role === "financeiro"
+      ? [
+          {
+            label: "Contas a Pagar",
+            to: "/contas-pagar",
+            icon: (isActive: boolean) => (
+              <Receipt
+                className={iconBaseClass}
+                style={{ color: `#${getColor(isActive)}` }}
               />
             ),
           },

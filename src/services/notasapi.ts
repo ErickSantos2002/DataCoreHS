@@ -75,3 +75,9 @@ export const updateNotaTipo = async (notaId: number, tipo: string) => {
   const response = await api.patch(`/notas_fiscais/${notaId}/tipo`, { tipo });
   return response.data;
 };
+
+// Contas a Pagar
+export const fetchContasPagar = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/contas_pagar/", { params });
+  return response.data;
+};

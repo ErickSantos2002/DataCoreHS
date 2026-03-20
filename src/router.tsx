@@ -15,6 +15,7 @@ import Vendedores from "./pages/Vendedores";
 import Produtos from "./pages/Produtos";
 import GerenciamentoFinanceiro from "./pages/GerenciamentoFinanceiro";
 import Usuarios from "./pages/Usuarios";
+import ContasPagar from "./pages/ContasPagar";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -70,6 +71,13 @@ const RequireVendedores: React.FC<{ children: React.ReactNode }> = ({ children }
     return <Bloqueio />;
   }
 
+  return <>{children}</>;
+};
+
+const RequireContasPagar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
+  if (!user || (user.role !== "admin" && user.role !== "financeiro")) return <Bloqueio />;
   return <>{children}</>;
 };
 
@@ -200,6 +208,17 @@ const AppRoutes: React.FC = () => (
           <RequireFinanceiro>
             <GerenciamentoFinanceiro />
           </RequireFinanceiro>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/contas-pagar"
+      element={
+        <ProtectedRoute>
+          <RequireContasPagar>
+            <ContasPagar />
+          </RequireContasPagar>
         </ProtectedRoute>
       }
     />
