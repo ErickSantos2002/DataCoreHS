@@ -16,6 +16,7 @@ import Produtos from "./pages/Produtos";
 import GerenciamentoFinanceiro from "./pages/GerenciamentoFinanceiro";
 import Usuarios from "./pages/Usuarios";
 import ContasPagar from "./pages/ContasPagar";
+import ContasReceber from "./pages/ContasReceber";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./hooks/useAuth";
@@ -218,6 +219,17 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute>
           <RequireContasPagar>
             <ContasPagar />
+          </RequireContasPagar>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/contas-receber"
+      element={
+        <ProtectedRoute>
+          <RequireContasPagar>
+            <ContasReceber />
           </RequireContasPagar>
         </ProtectedRoute>
       }

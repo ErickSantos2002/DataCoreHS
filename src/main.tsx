@@ -13,6 +13,7 @@ import { VendasProvider } from "./context/VendasContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { DataProvider } from "./context/DataContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
+import { ContasReceberProvider } from "./context/ContasReceberContext";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <VendasProvider>
             <ServicosProvider>
             <ContasPagarProvider>
+            <ContasReceberProvider>
               <ConfiguracoesProvider>
                 <DashboardProvider>
                   <BrowserRouter>
@@ -31,6 +33,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </BrowserRouter>
                 </DashboardProvider>
               </ConfiguracoesProvider>
+            </ContasReceberProvider>
             </ContasPagarProvider>
             </ServicosProvider>
             </VendasProvider>

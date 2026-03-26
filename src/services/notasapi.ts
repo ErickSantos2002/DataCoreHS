@@ -81,3 +81,9 @@ export const fetchContasPagar = async (params: Record<string, any> = {}) => {
   const response = await api.get("/contas_pagar/", { params });
   return response.data;
 };
+
+// Contas a Receber
+export const fetchContasReceber = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/contas_receber/", { params });
+  return response.data;
+};

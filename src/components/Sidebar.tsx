@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
-import { Receipt, Menu } from "lucide-react";
+import { Receipt, TrendingUp, Menu } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
@@ -86,13 +86,22 @@ const Sidebar: React.FC = () => {
         }]
       : []),
     ...(user?.role === "admin" || user?.role === "financeiro"
-      ? [{
-          label: "Contas a Pagar",
-          to: "/contas-pagar",
-          icon: (isActive: boolean) => (
-            <Receipt className={iconBaseClass} style={{ color: `#${getColor(isActive)}` }} />
-          ),
-        }]
+      ? [
+          {
+            label: "Contas a Pagar",
+            to: "/contas-pagar",
+            icon: (isActive: boolean) => (
+              <Receipt className={iconBaseClass} style={{ color: `#${getColor(isActive)}` }} />
+            ),
+          },
+          {
+            label: "Contas a Receber",
+            to: "/contas-receber",
+            icon: (isActive: boolean) => (
+              <TrendingUp className={iconBaseClass} style={{ color: `#${getColor(isActive)}` }} />
+            ),
+          },
+        ]
       : []),
     ...(user?.role === "admin"
       ? [
