@@ -87,3 +87,26 @@ export const fetchContasReceber = async (params: Record<string, any> = {}) => {
   const response = await api.get("/contas_receber/", { params });
   return response.data;
 };
+
+// Centro de Custo — resumo por produto/ano
+export const fetchResumoProduto = async (produto: string, ano: number) => {
+  const response = await api.get("/centro_custo/resumo_produto/", { params: { produto, ano } });
+  return response.data as { mes: number; quantidade: number; receita: number }[];
+};
+
+// Centro de Custo — config manual (CMV, frete, etc.)
+export const fetchCentroCustoConfig = async (produto: string, ano: number) => {
+  const response = await api.get("/centro_custo/config/", { params: { produto, ano } });
+  return response.data;
+};
+
+export const salvarCentroCustoConfig = async (payload: {
+  produto: string;
+  ano: number;
+  cmv_unitario: number | null;
+  frete_unitario: number | null;
+  outros_custos_unitario: number | null;
+}) => {
+  const response = await api.post("/centro_custo/config/", payload);
+  return response.data;
+};
