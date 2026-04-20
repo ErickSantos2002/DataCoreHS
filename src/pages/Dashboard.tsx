@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="p-6 bg-gray-100 dark:bg-darkBlue transition-colors min-h-screen md:min-h-0 md:h-full">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl w-full">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Meta Trimestral - Dashboard
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* CARD PRINCIPAL */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow p-8 mt-6 w-full max-w-[1600px] mx-auto transition-colors">
+      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow p-6 mt-4 w-full transition-colors">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           {/* COLUNA ESQUERDA */}
           <div className="lg:col-span-1">
