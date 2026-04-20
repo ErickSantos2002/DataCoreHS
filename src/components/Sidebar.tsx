@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
-import { Receipt, TrendingUp, Menu } from "lucide-react";
+import { Receipt, TrendingUp } from "lucide-react";
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  collapsed?: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const location = useLocation();
   const { user } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
-  const [collapsed, setCollapsed] = useState(false);
 
   if (location.pathname === "/login") return null;
 
@@ -127,17 +130,6 @@ const Sidebar: React.FC = () => {
     <aside
       className={`hidden lg:flex ${collapsed ? "w-16" : "w-56"} bg-white dark:bg-[#0a192f] text-gray-900 dark:text-gray-100 shadow sticky top-0 flex-col transition-all duration-300`}
     >
-      {/* Botão hambúrguer */}
-      <div className={`flex ${collapsed ? "justify-center" : "justify-end"} px-3 pt-3`}>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-          title={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-
       <nav className="flex-1 py-3">
         <ul className="space-y-1">
           {menuItems.map((item) => (

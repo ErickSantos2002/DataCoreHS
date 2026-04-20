@@ -2,9 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { Menu } from "lucide-react";
 import logo from "../assets/HS2.ico";
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onToggleSidebar?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const [menuVisivel, setMenuVisivel] = useState(false);
@@ -53,7 +58,8 @@ const Header: React.FC = () => {
     <>
       {/* HEADER FIXO */}
       <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-[#0a192f]/95 backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Hambúrguer mobile */}
           <button
             onClick={abrirMenu}
             className="block lg:hidden text-gray-700 dark:text-gray-200 text-2xl focus:outline-none"
@@ -61,16 +67,25 @@ const Header: React.FC = () => {
             ☰
           </button>
 
+          {/* Hambúrguer desktop — colapsa/expande a Sidebar */}
+          <button
+            onClick={onToggleSidebar}
+            className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+            title="Recolher/Expandir menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
           <Link
             to="/inicio"
-            className="hidden lg:flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400 hover:scale-105 transition no-underline group"
+            className="flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400 hover:scale-105 transition no-underline group"
           >
             <img
               src={logo}
               alt="Logo"
               className="w-6 h-6 transition-transform duration-500 group-hover:rotate-[360deg]"
             />
-            <span>DataCoreHS</span>
+            <span className="hidden sm:inline">DataCoreHS</span>
           </Link>
         </div>
 
