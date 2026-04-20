@@ -15,7 +15,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.10.0",
     "canvas-confetti": "^1.9.4",
-    "jspdf": "^3.0.2",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.544.0",
     "react": "^19.1.0",
