@@ -90,7 +90,7 @@ export const fetchContasReceber = async (params: Record<string, any> = {}) => {
 
 // Centro de Custo — resumo por produto/ano
 export const fetchResumoProduto = async (produto: string, ano: number) => {
-  const response = await api.get("/centro_custo/resumo_produto/", { params: { produto, ano } });
+  const response = await api.get("/centro_custo/resumo_produto/", { params: { produto, ano, exato: true } });
   return response.data as { mes: number; quantidade: number; receita: number }[];
 };
 

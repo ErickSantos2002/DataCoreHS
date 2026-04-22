@@ -59,9 +59,9 @@ const CATEGORIA_GRUPOS: Record<string, string> = {
 };
 
 const PRODUTOS_CC = [
-  { key: "PHOEBUS",      label: "Phoebus",       cor: "#2563eb" },
-  { key: "IBLOW 10 PRO", label: "iBlow 10 PRO",  cor: "#7c3aed" },
-  { key: "MARK X PLUS",  label: "Mark X Plus",   cor: "#16a34a" },
+  { key: "BAFÔMETRO PHOEBUS",             label: "Phoebus",       cor: "#2563eb" },
+  { key: "BAFÔMETRO PASSIVO - IBLOW 10 PRO", label: "iBlow 10 PRO",  cor: "#7c3aed" },
+  { key: "BAFÔMETRO - MARK X PLUS",       label: "Mark X Plus",   cor: "#16a34a" },
 ] as const;
 
 type ProdutoKey = typeof PRODUTOS_CC[number]["key"];
@@ -118,22 +118,19 @@ const GerenciamentoFinanceiro: React.FC = () => {
 
   // ── Centro de Custo state ─────────────────────────────────────────────────
   const [anoCentro, setAnoCentro] = useState(2025);
-  const [resumoCC, setResumoCC] = useState<Record<ProdutoKey, ResumoProduto | null>>({
-    "PHOEBUS": null, "IBLOW 10 PRO": null, "MARK X PLUS": null,
-  });
-  const [configCC, setConfigCC] = useState<Record<ProdutoKey, ConfigCC>>({
-    "PHOEBUS":      { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-    "IBLOW 10 PRO": { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-    "MARK X PLUS":  { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-  });
-  const [editCC, setEditCC] = useState<Record<ProdutoKey, ConfigCC>>({
-    "PHOEBUS":      { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-    "IBLOW 10 PRO": { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-    "MARK X PLUS":  { cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null },
-  });
-  const [salvandoCC, setSalvandoCC] = useState<Record<ProdutoKey, boolean>>({
-    "PHOEBUS": false, "IBLOW 10 PRO": false, "MARK X PLUS": false,
-  });
+  const emptyConfigCC = (): ConfigCC => ({ cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null });
+  const [resumoCC, setResumoCC] = useState<Record<ProdutoKey, ResumoProduto | null>>(
+    Object.fromEntries(PRODUTOS_CC.map(p => [p.key, null])) as Record<ProdutoKey, ResumoProduto | null>
+  );
+  const [configCC, setConfigCC] = useState<Record<ProdutoKey, ConfigCC>>(
+    Object.fromEntries(PRODUTOS_CC.map(p => [p.key, emptyConfigCC()])) as Record<ProdutoKey, ConfigCC>
+  );
+  const [editCC, setEditCC] = useState<Record<ProdutoKey, ConfigCC>>(
+    Object.fromEntries(PRODUTOS_CC.map(p => [p.key, emptyConfigCC()])) as Record<ProdutoKey, ConfigCC>
+  );
+  const [salvandoCC, setSalvandoCC] = useState<Record<ProdutoKey, boolean>>(
+    Object.fromEntries(PRODUTOS_CC.map(p => [p.key, false])) as Record<ProdutoKey, boolean>
+  );
   const [carregandoCC, setCarregandoCC] = useState(false);
 
   const carregarCentro = useCallback(async (ano: number) => {
@@ -1036,6 +1033,89 @@ const GerenciamentoFinanceiro: React.FC = () => {
               })}
             </div>
           )}
+
+          {/* Documento de Metodologia */}
+          <div className="mt-4 bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6">
+            <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+              <span className="text-blue-500">📄</span> Como é calculada a Margem Bruta
+            </h3>
+
+            <div className="space-y-5 text-sm text-gray-700 dark:text-gray-300">
+
+              {/* Receita */}
+              <div>
+                <p className="font-semibold text-gray-800 dark:text-gray-100 mb-1">1. Receita Total</p>
+                <div className="bg-gray-50 dark:bg-slate-800 rounded-lg px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400 mb-2">
+                  Receita Total = Σ (quantidade × valor_unitário) por produto
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
+                  Soma de todos os itens vendidos do produto no período, extraídos das notas fiscais com os seguintes filtros:{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">status "Emitida DANFE"</span>,{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">CFOP de venda (5102, 6102, 5108 ou 6108)</span>{" "}
+                  e <span className="font-medium text-gray-700 dark:text-gray-300">sem marcadores de cancelamento</span>{" "}
+                  (cancelar, nf devolvida, nf cancelada, etc.).
+                </p>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800" />
+
+              {/* Custos variáveis */}
+              <div>
+                <p className="font-semibold text-gray-800 dark:text-gray-100 mb-1">2. Custos Variáveis (por unidade × quantidade)</p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: "CMV Total",       formula: "CMV / unidade  ×  Qtd Vendida",           desc: "Custo de Mercadoria Vendida — valor pago para adquirir ou importar cada unidade do produto." },
+                    { label: "Frete Total",      formula: "Frete / unidade  ×  Qtd Vendida",          desc: "Custo de frete por unidade expedida (transporte ao cliente)." },
+                    { label: "Outros Custos",    formula: "Outros custos / unidade  ×  Qtd Vendida",  desc: "Demais custos diretos atribuíveis ao produto (embalagem, seguro, comissão, etc.)." },
+                  ].map(({ label, formula, desc }) => (
+                    <div key={label} className="bg-gray-50 dark:bg-slate-800 rounded-lg px-4 py-3">
+                      <div className="flex items-baseline justify-between gap-4 mb-1">
+                        <span className="font-medium text-gray-800 dark:text-gray-200 text-xs">{label}</span>
+                        <span className="font-mono text-xs text-blue-600 dark:text-blue-400 whitespace-nowrap">{formula}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800" />
+
+              {/* Margem Bruta */}
+              <div>
+                <p className="font-semibold text-gray-800 dark:text-gray-100 mb-1">3. Margem Bruta</p>
+                <div className="bg-gray-50 dark:bg-slate-800 rounded-lg px-4 py-3 space-y-1.5">
+                  <div className="font-mono text-xs text-blue-600 dark:text-blue-400">
+                    Custo Variável Total = CMV Total + Frete Total + Outros Custos
+                  </div>
+                  <div className="font-mono text-xs text-green-600 dark:text-green-400">
+                    Margem Bruta (R$) = Receita Total − Custo Variável Total
+                  </div>
+                  <div className="font-mono text-xs text-green-600 dark:text-green-400">
+                    Margem Bruta (%) = Margem Bruta (R$) ÷ Receita Total × 100
+                  </div>
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed mt-2">
+                  A Margem Bruta representa quanto sobra da receita após cobrir os custos diretos do produto.
+                  Ela <span className="font-medium text-gray-700 dark:text-gray-300">não inclui</span> despesas fixas como equipe,
+                  sede, impostos sobre lucro ou overhead administrativo — esses entram no cálculo da Margem Líquida.
+                </p>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800" />
+
+              {/* Observações */}
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-4 py-3">
+                <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 mb-1">Observações</p>
+                <ul className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 list-disc list-inside">
+                  <li>Os valores de CMV, frete e outros custos são inseridos manualmente e salvos por produto/ano.</li>
+                  <li>A receita é calculada automaticamente a partir das notas fiscais emitidas no período.</li>
+                  <li>Notas de importação (natureza "Importacao") são excluídas — representam entrada de estoque, não venda.</li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
         </>
       )}
     </div>
