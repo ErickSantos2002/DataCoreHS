@@ -46,23 +46,21 @@ body {
 
 @layer base {
   :root {
-    --chart-text: #000000;   /* cor padrão para texto de gráfico */
-    --chart-axis: #475569;   /* cor padrão das linhas dos eixos */
+    --chart-text: #000000;
+    --chart-axis: #475569;
   }
 
   .dark {
-    --chart-text: #e2e8f0;   /* texto claro no dark */
-    --chart-axis: #94a3b8;   /* eixo mais claro no dark */
+    --chart-text: #e2e8f0;
+    --chart-axis: #94a3b8;
   }
 }
-@layer base {
-  :root {
-    --chart-text: #000000;   /* cor padrão para texto de gráfico */
-    --chart-axis: #475569;   /* cor padrão das linhas dos eixos */
-  }
 
-  .dark {
-    --chart-text: #e2e8f0;   /* texto claro no dark */
-    --chart-axis: #94a3b8;   /* eixo mais claro no dark */
+@layer components {
+  .input-cc {
+    @apply px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600
+           bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200
+           outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           transition-all w-full;
   }
 }

@@ -106,6 +106,7 @@ export const salvarCentroCustoConfig = async (payload: {
   cmv_unitario: number | null;
   frete_unitario: number | null;
   outros_custos_unitario: number | null;
+  config_json?: Record<string, any> | null;
 }) => {
   const response = await api.post("/centro_custo/config/", payload);
   return response.data;
