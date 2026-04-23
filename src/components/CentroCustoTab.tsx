@@ -17,11 +17,12 @@ interface CustoDireto {
 
 interface FormCC {
   servicos_aduaneiros: ServicoAduaneiro[];
-  participacao_pct: string;
+  participacao_pct: string;          // % da NF que pertence a este produto (seção 1)
   unidades_importadas: string;
   custos_diretos: CustoDireto[];
   estimativa_custos_variaveis_anual: string;
-  unidades_lote_mes: string;
+  participacao_overhead_pct: string; // % do estoque anual que este produto representa (seção 3)
+  unidades_lote_mes: string;         // fallback quando não há qtd planejada
   quantidade_planejada: string;
   preco_unitario_planejado: string;
 }
@@ -49,6 +50,7 @@ const emptyForm = (): FormCC => ({
   unidades_importadas: "",
   custos_diretos: [],
   estimativa_custos_variaveis_anual: "",
+  participacao_overhead_pct: "",
   unidades_lote_mes: "",
   quantidade_planejada: "",
   preco_unitario_planejado: "",
@@ -152,6 +154,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
               valor: numToMoney(c.valor),
             })),
             estimativa_custos_variaveis_anual: numToMoney(cj.estimativa_custos_variaveis_anual),
+            participacao_overhead_pct: cj.participacao_overhead_pct != null ? String(cj.participacao_overhead_pct) : "",
             unidades_lote_mes: cj.unidades_lote_mes != null ? String(cj.unidades_lote_mes) : "",
             quantidade_planejada: cj.quantidade_planejada != null ? String(cj.quantidade_planejada) : "",
             preco_unitario_planejado: numToMoney(cj.preco_unitario_planejado),
@@ -190,7 +193,8 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
           valor: n(c.valor),
         })),
         estimativa_custos_variaveis_anual: n(f.estimativa_custos_variaveis_anual),
-        unidades_lote_mes: n(f.unidades_lote_mes),
+        participacao_overhead_pct: n(f.participacao_overhead_pct) || null,
+        unidades_lote_mes: n(f.unidades_lote_mes) || null,
         quantidade_planejada: n(f.quantidade_planejada) || null,
         preco_unitario_planejado: n(f.preco_unitario_planejado) || null,
       };
@@ -217,30 +221,34 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
   // ── Cálculos ────────────────────────────────────────────────────────────────
 
   const totalAduaneiro = f.servicos_aduaneiros.reduce((s, x) => s + n(x.valor), 0);
-  const pct = n(f.participacao_pct) / 100;
+  const pctAduaneiro = n(f.participacao_pct) / 100;
   const unidadesImportadas = n(f.unidades_importadas);
   const custoAduaneiroPorUn =
-    pct > 0 && unidadesImportadas > 0
-      ? (totalAduaneiro * pct) / unidadesImportadas
+    pctAduaneiro > 0 && unidadesImportadas > 0
+      ? (totalAduaneiro * pctAduaneiro) / unidadesImportadas
       : null;
 
   const totalDireto = f.custos_diretos.reduce((s, x) => s + n(x.valor), 0);
 
   const estimativaAnual = n(f.estimativa_custos_variaveis_anual);
   const estimativaMensal = estimativaAnual > 0 ? estimativaAnual / 12 : null;
+  const pctOverhead = n(f.participacao_overhead_pct) / 100;
   const unidadesLote = n(f.unidades_lote_mes);
-  const overheadPorUn =
-    estimativaMensal && pct > 0 && unidadesLote > 0
-      ? (estimativaMensal * pct) / unidadesLote
-      : null;
-
-  const custoTotalPorUn =
-    (custoAduaneiroPorUn ?? 0) + totalDireto + (overheadPorUn ?? 0);
 
   const qtdPlanejada = n(f.quantidade_planejada);
   const precoPlanejado = n(f.preco_unitario_planejado);
   const usandoQtdManual = qtdPlanejada > 0;
   const usandoPrecoManual = precoPlanejado > 0;
+
+  // Overhead: se há qtd planejada → base anual (total ÷ qtd/ano); senão → base mensal
+  const overheadPorUn = estimativaAnual > 0 && pctOverhead > 0
+    ? usandoQtdManual
+      ? (estimativaAnual * pctOverhead) / qtdPlanejada
+      : (estimativaMensal! * pctOverhead) / (unidadesLote > 0 ? unidadesLote : NaN) || null
+    : null;
+
+  const custoTotalPorUn =
+    (custoAduaneiroPorUn ?? 0) + totalDireto + (overheadPorUn ?? 0);
 
   const ticketMedioSistema = r && r.quantidade > 0 ? r.receita / r.quantidade : null;
   const ticketMedio = usandoPrecoManual ? precoPlanejado : ticketMedioSistema;
@@ -384,11 +392,11 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
 
               <div className="border-t border-gray-100 dark:border-gray-800 pt-4 grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% participação do produto</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% da NF que é deste produto</label>
                   <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                     <input
                       className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200 outline-none"
-                      placeholder="78"
+                      placeholder="13,9"
                       value={f.participacao_pct}
                       onChange={(e) => setForm({ participacao_pct: e.target.value })}
                     />
@@ -409,7 +417,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
               {custoAduaneiroPorUn !== null && (
                 <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-2 text-xs">
                   <span className="text-blue-600 dark:text-blue-400 font-mono">
-                    {formatBRL(totalAduaneiro)} × {f.participacao_pct}% ÷ {f.unidades_importadas} un
+                    {formatBRL(totalAduaneiro)} × {f.participacao_pct}% (NF) ÷ {f.unidades_importadas} un
                   </span>
                   <span className="ml-2 font-bold text-blue-700 dark:text-blue-300">
                     = {formatBRL(custoAduaneiroPorUn)} / unidade
@@ -497,42 +505,54 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Estimativa mensal (automático)</label>
-                  <div className="input-cc w-full bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400">
-                    {estimativaMensal !== null ? formatBRL(estimativaMensal) : "—"}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% participação do produto</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% do estoque anual que é deste produto</label>
                   <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                     <input
                       className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200 outline-none"
-                      placeholder="78"
-                      value={f.participacao_pct}
-                      onChange={(e) => setForm({ participacao_pct: e.target.value })}
+                      placeholder="13,9"
+                      value={f.participacao_overhead_pct}
+                      onChange={(e) => setForm({ participacao_overhead_pct: e.target.value })}
                     />
                     <span className="px-2 text-xs text-gray-400 bg-gray-50 dark:bg-slate-800 border-l border-gray-300 dark:border-gray-600 py-2">%</span>
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Unidades vendidas/mês (lote)</label>
-                  <input
-                    className="input-cc w-full"
-                    placeholder="34"
-                    value={f.unidades_lote_mes}
-                    onChange={(e) => setForm({ unidades_lote_mes: e.target.value })}
-                  />
-                </div>
               </div>
+
+              {!usandoQtdManual && (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Unidades/mês (fallback sem qtd planejada)</label>
+                    <input
+                      className="input-cc w-full"
+                      placeholder="45"
+                      value={f.unidades_lote_mes}
+                      onChange={(e) => setForm({ unidades_lote_mes: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
 
               {overheadPorUn !== null && (
                 <div className="mt-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 py-2 text-xs">
-                  <span className="text-purple-600 dark:text-purple-400 font-mono">
-                    {formatBRL(estimativaMensal!)} × {f.participacao_pct}% ÷ {f.unidades_lote_mes} un
-                  </span>
-                  <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
-                    = {formatBRL(overheadPorUn)} / unidade
-                  </span>
+                  {usandoQtdManual ? (
+                    <>
+                      <span className="text-purple-600 dark:text-purple-400 font-mono">
+                        {formatBRL(estimativaAnual)} × {f.participacao_overhead_pct}% ÷ {f.quantidade_planejada} un/ano
+                      </span>
+                      <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
+                        = {formatBRL(overheadPorUn)} / unidade
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-purple-600 dark:text-purple-400 font-mono">
+                        {formatBRL(estimativaMensal!)} × {f.participacao_overhead_pct}% ÷ {f.unidades_lote_mes} un/mês
+                      </span>
+                      <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
+                        = {formatBRL(overheadPorUn)} / unidade
+                      </span>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -721,9 +741,9 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
             {/* Metodologia resumida */}
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 text-xs text-gray-500 dark:text-gray-400 space-y-1.5">
               <p className="font-semibold text-gray-600 dark:text-gray-300 mb-2">Como é calculado</p>
-              <p><span className="font-medium text-blue-600 dark:text-blue-400">Aduaneiro/un</span> = Σ NFs × % ÷ unidades importadas</p>
+              <p><span className="font-medium text-blue-600 dark:text-blue-400">Aduaneiro/un</span> = Σ NFs × % NF ÷ unid. importadas</p>
               <p><span className="font-medium text-gray-600 dark:text-gray-300">Direto/un</span> = Σ custos por unidade</p>
-              <p><span className="font-medium text-purple-600 dark:text-purple-400">Overhead/un</span> = (Anual ÷ 12) × % ÷ unid/mês</p>
+              <p><span className="font-medium text-purple-600 dark:text-purple-400">Overhead/un</span> = Anual × % estoque ÷ qtd planejada</p>
               <p className="pt-1 border-t border-gray-200 dark:border-gray-700"><span className="font-bold text-gray-700 dark:text-gray-200">Margem/un</span> = Preço − Custo Total</p>
               <p><span className="font-medium text-amber-600 dark:text-amber-400">Projeção</span> = Margem/un × Qtd planejada</p>
             </div>
