@@ -56,7 +56,14 @@ const emptyForm = (): FormCC => ({
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const n = (v: string): number => parseFloat(v.replace(",", ".")) || 0;
+const n = (v: string): number => parseFloat(v.replace(/\./g, "").replace(",", ".")) || 0;
+
+const applyMoneyMask = (value: string): string => {
+  const clean = value.replace(/[^\d,]/g, "");
+  const [intPart = "", decPart] = clean.split(",");
+  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return decPart !== undefined ? `${formatted},${decPart}` : formatted;
+};
 
 const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -328,7 +335,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                         value={s.valor}
                         onChange={(e) => {
                           const arr = [...f.servicos_aduaneiros];
-                          arr[i] = { ...arr[i], valor: e.target.value };
+                          arr[i] = { ...arr[i], valor: applyMoneyMask(e.target.value) };
                           setForm({ servicos_aduaneiros: arr });
                         }}
                       />
@@ -434,7 +441,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                         value={c.valor}
                         onChange={(e) => {
                           const arr = [...f.custos_diretos];
-                          arr[i] = { ...arr[i], valor: e.target.value };
+                          arr[i] = { ...arr[i], valor: applyMoneyMask(e.target.value) };
                           setForm({ custos_diretos: arr });
                         }}
                       />
@@ -467,7 +474,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                     className="input-cc w-full"
                     placeholder="6.240.000"
                     value={f.estimativa_custos_variaveis_anual}
-                    onChange={(e) => setForm({ estimativa_custos_variaveis_anual: e.target.value })}
+                    onChange={(e) => setForm({ estimativa_custos_variaveis_anual: applyMoneyMask(e.target.value) })}
                   />
                 </div>
                 <div>
@@ -545,7 +552,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                     className="input-cc w-full"
                     placeholder={ticketMedioSistema ? `${ticketMedioSistema.toFixed(2).replace(".", ",")} (sistema)` : "Ex: 2890,00"}
                     value={f.preco_unitario_planejado}
-                    onChange={(e) => setForm({ preco_unitario_planejado: e.target.value })}
+                    onChange={(e) => setForm({ preco_unitario_planejado: applyMoneyMask(e.target.value) })}
                   />
                 </div>
               </div>
