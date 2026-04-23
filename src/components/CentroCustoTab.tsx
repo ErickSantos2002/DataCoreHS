@@ -58,6 +58,12 @@ const emptyForm = (): FormCC => ({
 
 const n = (v: string): number => parseFloat(v.replace(/\./g, "").replace(",", ".")) || 0;
 
+const applyDateMask = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 6);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+};
+
 const applyMoneyMask = (value: string): string => {
   const clean = value.replace(/[^\d,]/g, "");
   const [intPart = "", decPart] = clean.split(",");
@@ -325,7 +331,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                         value={s.mes_ano}
                         onChange={(e) => {
                           const arr = [...f.servicos_aduaneiros];
-                          arr[i] = { ...arr[i], mes_ano: e.target.value };
+                          arr[i] = { ...arr[i], mes_ano: applyDateMask(e.target.value) };
                           setForm({ servicos_aduaneiros: arr });
                         }}
                       />
