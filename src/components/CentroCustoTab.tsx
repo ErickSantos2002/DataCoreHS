@@ -56,7 +56,21 @@ const emptyForm = (): FormCC => ({
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const n = (v: string): number => parseFloat(v.replace(/\./g, "").replace(",", ".")) || 0;
+const n = (v: string): number => {
+  if (!v) return 0;
+  // Se tem vírgula → formato brasileiro (1.234,56): strip pontos, troca vírgula por ponto
+  if (v.includes(",")) return parseFloat(v.replace(/\./g, "").replace(",", ".")) || 0;
+  // Sem vírgula: ponto é decimal (825.55) → parseFloat direto
+  return parseFloat(v) || 0;
+};
+
+// Converte número salvo no banco para string no formato brasileiro
+const numToMoney = (v: any): string => {
+  if (v == null || v === "") return "";
+  const num = typeof v === "number" ? v : parseFloat(String(v));
+  if (isNaN(num)) return "";
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 const applyDateMask = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 6);
@@ -128,20 +142,19 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
           novoForms[r.key] = {
             servicos_aduaneiros: (cj.servicos_aduaneiros ?? []).map((s: any) => ({
               mes_ano: s.mes_ano ?? "",
-              valor: s.valor != null ? String(s.valor) : "",
+              valor: numToMoney(s.valor),
               nf: s.nf ?? "",
             })),
             participacao_pct: cj.participacao_pct != null ? String(cj.participacao_pct) : "",
             unidades_importadas: cj.unidades_importadas != null ? String(cj.unidades_importadas) : "",
             custos_diretos: (cj.custos_diretos ?? []).map((c: any) => ({
               descricao: c.descricao ?? "",
-              valor: c.valor != null ? String(c.valor) : "",
+              valor: numToMoney(c.valor),
             })),
-            estimativa_custos_variaveis_anual: cj.estimativa_custos_variaveis_anual != null
-              ? String(cj.estimativa_custos_variaveis_anual) : "",
+            estimativa_custos_variaveis_anual: numToMoney(cj.estimativa_custos_variaveis_anual),
             unidades_lote_mes: cj.unidades_lote_mes != null ? String(cj.unidades_lote_mes) : "",
             quantidade_planejada: cj.quantidade_planejada != null ? String(cj.quantidade_planejada) : "",
-            preco_unitario_planejado: cj.preco_unitario_planejado != null ? String(cj.preco_unitario_planejado) : "",
+            preco_unitario_planejado: numToMoney(cj.preco_unitario_planejado),
           };
         } else {
           novoForms[r.key] = emptyForm();
