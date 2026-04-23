@@ -494,18 +494,18 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Despesas fixas da empresa alocadas proporcionalmente ao produto</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Estimativa anual total (R$)</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Custo fixo anual da empresa (R$)</label>
                   <input
                     className="input-cc w-full"
-                    placeholder="6.240.000"
+                    placeholder="2.636.200,00"
                     value={f.estimativa_custos_variaveis_anual}
                     onChange={(e) => setForm({ estimativa_custos_variaveis_anual: applyMoneyMask(e.target.value) })}
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% do estoque anual que é deste produto</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">% deste produto no estoque</label>
                   <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                     <input
                       className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200 outline-none"
@@ -516,84 +516,50 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                     <span className="px-2 text-xs text-gray-400 bg-gray-50 dark:bg-slate-800 border-l border-gray-300 dark:border-gray-600 py-2">%</span>
                   </div>
                 </div>
-              </div>
-
-              {!usandoQtdManual && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Unidades/mês (fallback sem qtd planejada)</label>
-                    <input
-                      className="input-cc w-full"
-                      placeholder="45"
-                      value={f.unidades_lote_mes}
-                      onChange={(e) => setForm({ unidades_lote_mes: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {overheadPorUn !== null && (
-                <div className="mt-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 py-2 text-xs">
-                  {usandoQtdManual ? (
-                    <>
-                      <span className="text-purple-600 dark:text-purple-400 font-mono">
-                        {formatBRL(estimativaAnual)} × {f.participacao_overhead_pct}% ÷ {f.quantidade_planejada} un/ano
-                      </span>
-                      <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
-                        = {formatBRL(overheadPorUn)} / unidade
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-purple-600 dark:text-purple-400 font-mono">
-                        {formatBRL(estimativaMensal!)} × {f.participacao_overhead_pct}% ÷ {f.unidades_lote_mes} un/mês
-                      </span>
-                      <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
-                        = {formatBRL(overheadPorUn)} / unidade
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 4. Projeção de Vendas */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
-              <div className="mb-4">
-                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">4. Projeção de Vendas <span className="font-normal text-gray-400">(opcional)</span></h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  Quando preenchidos, substituem os dados do sistema nos cálculos de margem. Útil para anos em andamento ou projeções.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
-                    Quantidade planejada (un)
-                    {usandoQtdManual && (
-                      <span className="ml-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded font-semibold">MANUAL</span>
-                    )}
-                  </label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Unidades a vender no ano</label>
                   <input
                     className="input-cc w-full"
-                    placeholder={r ? `${r.quantidade.toFixed(0)} (sistema)` : "Ex: 510"}
+                    placeholder="510"
                     value={f.quantidade_planejada}
                     onChange={(e) => setForm({ quantidade_planejada: e.target.value })}
                   />
                 </div>
-                <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
-                    Preço unitário (R$)
-                    {usandoPrecoManual && (
-                      <span className="ml-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded font-semibold">MANUAL</span>
-                    )}
-                  </label>
-                  <input
-                    className="input-cc w-full"
-                    placeholder={ticketMedioSistema ? `${ticketMedioSistema.toFixed(2).replace(".", ",")} (sistema)` : "Ex: 2890,00"}
-                    value={f.preco_unitario_planejado}
-                    onChange={(e) => setForm({ preco_unitario_planejado: applyMoneyMask(e.target.value) })}
-                  />
+              </div>
+
+              {overheadPorUn !== null && (
+                <div className="mt-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 py-2 text-xs">
+                  <span className="text-purple-600 dark:text-purple-400 font-mono">
+                    {formatBRL(estimativaAnual)} × {f.participacao_overhead_pct}% ÷ {f.quantidade_planejada} un
+                  </span>
+                  <span className="ml-2 font-bold text-purple-700 dark:text-purple-300">
+                    = {formatBRL(overheadPorUn)} / unidade
+                  </span>
                 </div>
+              )}
+            </div>
+
+            {/* 4. Projeção de Receita */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">4. Preço de Venda <span className="font-normal text-gray-400">(opcional)</span></h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  Substitui o ticket médio do sistema para calcular a margem. Se vazio, usa o preço médio real das vendas.
+                </p>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                  Preço unitário (R$)
+                  {usandoPrecoManual && (
+                    <span className="ml-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded font-semibold">MANUAL</span>
+                  )}
+                </label>
+                <input
+                  className="input-cc w-full"
+                  placeholder={ticketMedioSistema ? `${ticketMedioSistema.toLocaleString("pt-BR", {minimumFractionDigits: 2})} (preço médio sistema)` : "Ex: 24.500,00"}
+                  value={f.preco_unitario_planejado}
+                  onChange={(e) => setForm({ preco_unitario_planejado: applyMoneyMask(e.target.value) })}
+                />
               </div>
             </div>
 
@@ -637,16 +603,16 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
 
               {(usandoQtdManual || usandoPrecoManual) && (
                 <div className="mt-3 border-t border-amber-200 dark:border-amber-800 pt-3 space-y-2 text-sm">
-                  <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Projeção Manual</p>
+                  <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Usando projeção</p>
                   {usandoQtdManual && (
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 dark:text-gray-400">Qtd Planejada</span>
+                      <span className="text-gray-500 dark:text-gray-400">Unidades/ano</span>
                       <span className="font-bold text-amber-700 dark:text-amber-400">{qtdPlanejada.toFixed(0)} un</span>
                     </div>
                   )}
                   {usandoPrecoManual && (
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 dark:text-gray-400">Preço Unitário</span>
+                      <span className="text-gray-500 dark:text-gray-400">Preço manual</span>
                       <span className="font-bold text-amber-700 dark:text-amber-400">{formatBRL(precoPlanejado)}</span>
                     </div>
                   )}
