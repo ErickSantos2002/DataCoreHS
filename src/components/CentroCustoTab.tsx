@@ -22,6 +22,8 @@ interface FormCC {
   custos_diretos: CustoDireto[];
   estimativa_custos_variaveis_anual: string;
   unidades_lote_mes: string;
+  quantidade_planejada: string;
+  preco_unitario_planejado: string;
 }
 
 interface ResumoProduto {
@@ -48,6 +50,8 @@ const emptyForm = (): FormCC => ({
   custos_diretos: [],
   estimativa_custos_variaveis_anual: "",
   unidades_lote_mes: "",
+  quantidade_planejada: "",
+  preco_unitario_planejado: "",
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -82,6 +86,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [salvoMsg, setSalvoMsg] = useState(false);
+  const [erroSalvo, setErroSalvo] = useState<string | null>(null);
 
   // ── Carregar dados ──────────────────────────────────────────────────────────
 
@@ -122,6 +127,8 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
             estimativa_custos_variaveis_anual: cj.estimativa_custos_variaveis_anual != null
               ? String(cj.estimativa_custos_variaveis_anual) : "",
             unidades_lote_mes: cj.unidades_lote_mes != null ? String(cj.unidades_lote_mes) : "",
+            quantidade_planejada: cj.quantidade_planejada != null ? String(cj.quantidade_planejada) : "",
+            preco_unitario_planejado: cj.preco_unitario_planejado != null ? String(cj.preco_unitario_planejado) : "",
           };
         } else {
           novoForms[r.key] = emptyForm();
@@ -141,6 +148,7 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
 
   const salvar = async () => {
     setSalvando(true);
+    setErroSalvo(null);
     try {
       const f = forms[produtoAtivo];
       const config_json = {
@@ -157,10 +165,15 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
         })),
         estimativa_custos_variaveis_anual: n(f.estimativa_custos_variaveis_anual),
         unidades_lote_mes: n(f.unidades_lote_mes),
+        quantidade_planejada: n(f.quantidade_planejada) || null,
+        preco_unitario_planejado: n(f.preco_unitario_planejado) || null,
       };
       await salvarCentroCustoConfig({ produto: produtoAtivo, ano: anoCentro, cmv_unitario: null, frete_unitario: null, outros_custos_unitario: null, config_json });
       setSalvoMsg(true);
       setTimeout(() => setSalvoMsg(false), 2500);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail ?? err?.message ?? "Erro desconhecido";
+      setErroSalvo(typeof detail === "string" ? detail : JSON.stringify(detail));
     } finally {
       setSalvando(false);
     }
@@ -198,11 +211,24 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
   const custoTotalPorUn =
     (custoAduaneiroPorUn ?? 0) + totalDireto + (overheadPorUn ?? 0);
 
-  const ticketMedio = r && r.quantidade > 0 ? r.receita / r.quantidade : null;
+  const qtdPlanejada = n(f.quantidade_planejada);
+  const precoPlanejado = n(f.preco_unitario_planejado);
+  const usandoQtdManual = qtdPlanejada > 0;
+  const usandoPrecoManual = precoPlanejado > 0;
+
+  const ticketMedioSistema = r && r.quantidade > 0 ? r.receita / r.quantidade : null;
+  const ticketMedio = usandoPrecoManual ? precoPlanejado : ticketMedioSistema;
+
   const margemPorUn = ticketMedio !== null && custoTotalPorUn > 0
     ? ticketMedio - custoTotalPorUn : null;
   const margemPct = margemPorUn !== null && ticketMedio
     ? (margemPorUn / ticketMedio) * 100 : null;
+
+  const qtdEfetiva = usandoQtdManual ? qtdPlanejada : (r?.quantidade ?? 0);
+  const receitaProjetada = ticketMedio !== null && qtdEfetiva > 0
+    ? ticketMedio * qtdEfetiva : null;
+  const margemTotalProjetada = margemPorUn !== null && qtdEfetiva > 0
+    ? margemPorUn * qtdEfetiva : null;
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -485,6 +511,46 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
               )}
             </div>
 
+            {/* 4. Projeção de Vendas */}
+            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">4. Projeção de Vendas <span className="font-normal text-gray-400">(opcional)</span></h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  Quando preenchidos, substituem os dados do sistema nos cálculos de margem. Útil para anos em andamento ou projeções.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                    Quantidade planejada (un)
+                    {usandoQtdManual && (
+                      <span className="ml-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded font-semibold">MANUAL</span>
+                    )}
+                  </label>
+                  <input
+                    className="input-cc w-full"
+                    placeholder={r ? `${r.quantidade.toFixed(0)} (sistema)` : "Ex: 510"}
+                    value={f.quantidade_planejada}
+                    onChange={(e) => setForm({ quantidade_planejada: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                    Preço unitário (R$)
+                    {usandoPrecoManual && (
+                      <span className="ml-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded font-semibold">MANUAL</span>
+                    )}
+                  </label>
+                  <input
+                    className="input-cc w-full"
+                    placeholder={ticketMedioSistema ? `${ticketMedioSistema.toFixed(2).replace(".", ",")} (sistema)` : "Ex: 2890,00"}
+                    value={f.preco_unitario_planejado}
+                    onChange={(e) => setForm({ preco_unitario_planejado: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Botão Salvar */}
             <button
               onClick={salvar}
@@ -494,6 +560,12 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
             >
               {salvando ? "Salvando..." : salvoMsg ? "✓ Configuração salva!" : `Salvar configuração — ${PRODUTOS.find(p => p.key === produtoAtivo)?.label}`}
             </button>
+
+            {erroSalvo && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl px-4 py-3 text-sm text-red-700 dark:text-red-400">
+                <span className="font-semibold">Erro ao salvar: </span>{erroSalvo}
+              </div>
+            )}
           </div>
 
           {/* ── Coluna resumo (1/3) ── */}
@@ -504,18 +576,36 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">Dados do Sistema</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Receita Total</span>
+                  <span className="text-gray-500 dark:text-gray-400">Receita Real</span>
                   <span className="font-semibold text-gray-800 dark:text-gray-200">{r ? formatBRL(r.receita) : "—"}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 dark:text-gray-400">Qtd Vendida</span>
                   <span className="font-semibold text-gray-800 dark:text-gray-200">{r ? `${r.quantidade.toFixed(0)} un` : "—"}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500 dark:text-gray-400">Ticket Médio</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">{ticketMedio ? formatBRL(ticketMedio) : "—"}</span>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{ticketMedioSistema ? formatBRL(ticketMedioSistema) : "—"}</span>
                 </div>
               </div>
+
+              {(usandoQtdManual || usandoPrecoManual) && (
+                <div className="mt-3 border-t border-amber-200 dark:border-amber-800 pt-3 space-y-2 text-sm">
+                  <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Projeção Manual</p>
+                  {usandoQtdManual && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 dark:text-gray-400">Qtd Planejada</span>
+                      <span className="font-bold text-amber-700 dark:text-amber-400">{qtdPlanejada.toFixed(0)} un</span>
+                    </div>
+                  )}
+                  {usandoPrecoManual && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 dark:text-gray-400">Preço Unitário</span>
+                      <span className="font-bold text-amber-700 dark:text-amber-400">{formatBRL(precoPlanejado)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Resumo de Custos */}
@@ -544,8 +634,13 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                   </div>
                 </div>
 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">Ticket Médio</span>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Preço Unitário
+                    {usandoPrecoManual && (
+                      <span className="ml-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[9px] px-1 py-0.5 rounded font-semibold">MANUAL</span>
+                    )}
+                  </span>
                   <span className="tabular-nums text-gray-700 dark:text-gray-300">{ticketMedio ? formatBRL(ticketMedio) : "—"}</span>
                 </div>
 
@@ -571,6 +666,29 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
                     </div>
                   )}
                 </div>
+
+                {margemTotalProjetada !== null && qtdEfetiva > 0 && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-1">
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                      Projeção — {qtdEfetiva.toFixed(0)} un {usandoQtdManual ? "(manual)" : "(sistema)"}
+                    </p>
+                    {receitaProjetada !== null && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">Receita Projetada</span>
+                        <span className="tabular-nums text-gray-700 dark:text-gray-300">{formatBRL(receitaProjetada)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold">
+                      <span className="text-gray-700 dark:text-gray-300">Margem Total</span>
+                      <span
+                        className="tabular-nums"
+                        style={{ color: margemTotalProjetada >= 0 ? "#16a34a" : "#dc2626" }}
+                      >
+                        {formatBRL(margemTotalProjetada)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -580,7 +698,8 @@ const CentroCustoTab: React.FC<Props> = ({ anoCentro, setAnoCentro }) => {
               <p><span className="font-medium text-blue-600 dark:text-blue-400">Aduaneiro/un</span> = Σ NFs × % ÷ unidades importadas</p>
               <p><span className="font-medium text-gray-600 dark:text-gray-300">Direto/un</span> = Σ custos por unidade</p>
               <p><span className="font-medium text-purple-600 dark:text-purple-400">Overhead/un</span> = (Anual ÷ 12) × % ÷ unid/mês</p>
-              <p className="pt-1 border-t border-gray-200 dark:border-gray-700"><span className="font-bold text-gray-700 dark:text-gray-200">Margem</span> = Ticket Médio − Custo Total</p>
+              <p className="pt-1 border-t border-gray-200 dark:border-gray-700"><span className="font-bold text-gray-700 dark:text-gray-200">Margem/un</span> = Preço − Custo Total</p>
+              <p><span className="font-medium text-amber-600 dark:text-amber-400">Projeção</span> = Margem/un × Qtd planejada</p>
             </div>
           </div>
         </div>
