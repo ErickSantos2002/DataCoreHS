@@ -83,16 +83,9 @@ const Servicos: React.FC = () => {
   const converterParaNumero = (valor: string | number | undefined): number => {
     if (typeof valor === 'number') return valor;
     if (!valor) return 0;
-    
-    const valorLimpo = valor
-      .toString()
-      .replace(/R\$/g, '')
-      .replace(/\s/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.');
-    
-    const numero = parseFloat(valorLimpo);
-    return isNaN(numero) ? 0 : numero;
+    const s = valor.toString().replace(/R\$/g, '').replace(/\s/g, '');
+    if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+    return parseFloat(s) || 0;
   };
 
   // Gerenciador de presets de período

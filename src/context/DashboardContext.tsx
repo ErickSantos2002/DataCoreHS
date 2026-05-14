@@ -81,11 +81,10 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
           });
 
           const totalServico = servicos.reduce((acc: number, nota: any) => {
-            let valorRaw = nota.valor_servico || "0";
-            if (typeof valorRaw === "string") {
-              valorRaw = valorRaw.replace(/\./g, "").replace(",", ".");
-            }
-            const valor = parseFloat(valorRaw);
+            const raw = String(nota.valor_servico || "0");
+            const valor = raw.includes(",")
+              ? parseFloat(raw.replace(/\./g, "").replace(",", "."))
+              : parseFloat(raw);
             return acc + (isNaN(valor) ? 0 : valor);
           }, 0);
 
@@ -142,11 +141,10 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         });
 
         const totalServicosAno = servicosAno.reduce((acc: number, nota: any) => {
-          let valorRaw = nota.valor_servico || "0";
-          if (typeof valorRaw === "string") {
-            valorRaw = valorRaw.replace(/\./g, "").replace(",", ".");
-          }
-          const valor = parseFloat(valorRaw);
+          const raw = String(nota.valor_servico || "0");
+          const valor = raw.includes(",")
+            ? parseFloat(raw.replace(/\./g, "").replace(",", "."))
+            : parseFloat(raw);
           return acc + (isNaN(valor) ? 0 : valor);
         }, 0);
 
