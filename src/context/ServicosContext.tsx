@@ -43,17 +43,11 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const converterParaNumero = (valor: string | number | undefined): number => {
     if (typeof valor === "number") return valor;
     if (!valor) return 0;
-
-    // Remove R$, espaços e formata corretamente
-    const valorLimpo = valor
-      .toString()
-      .replace(/R\$/g, "")
-      .replace(/\s/g, "")
-      .replace(/\./g, "") // Remove pontos de milhar
-      .replace(",", "."); // Troca vírgula por ponto
-
-    const numero = parseFloat(valorLimpo);
-    return isNaN(numero) ? 0 : numero;
+    const s = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
+    // Se tem vírgula → formato brasileiro "1.250,80": strip pontos, troca vírgula por ponto
+    if (s.includes(",")) return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
+    // Sem vírgula → ponto é decimal (ex: "418.50" vindo da API)
+    return parseFloat(s) || 0;
   };
 
   const atualizarServicos = useCallback(async () => {
