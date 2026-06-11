@@ -28,6 +28,12 @@ export const fetchVendas = async (params: Record<string, any> = {}) => {
   return response.data;
 };
 
+// Notas com marcador "Locação"
+export const fetchLocacao = async (params: Record<string, any> = {}) => {
+  const response = await api.get("/notas_fiscais/locacao/", { params });
+  return response.data;
+};
+
 // Clientes
 export const fetchClientes = async (params: Record<string, any> = {}) => {
   const response = await api.get("/clientes/", { params });

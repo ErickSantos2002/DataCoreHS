@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import CentroCustoTab from "../components/CentroCustoTab";
+import MetaTab from "../components/MetaTab";
 import { useVendas } from "../context/VendasContext";
 import { useServicos } from "../context/ServicosContext";
 import { useContasPagar } from "../context/ContasPagarContext";
@@ -89,7 +90,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
   const { contas: contasPagar, carregando: carregandoPagar } = useContasPagar();
   useContasReceber();
 
-  const [abaAtiva, setAbaAtiva] = useState<"visaoGeral" | "balancete" | "centroCusto">("visaoGeral");
+  const [abaAtiva, setAbaAtiva] = useState<"visaoGeral" | "balancete" | "centroCusto" | "meta">("visaoGeral");
   const [anosAtivos, setAnosAtivos] = useState<Set<Ano>>(
     new Set([2022, 2023, 2024, 2025, 2026])
   );
@@ -134,6 +135,15 @@ const GerenciamentoFinanceiro: React.FC = () => {
     }
     return result;
   }, [servicosEnriquecidos]);
+
+  // Faturamento (vendas + serviços) do ano anterior — mesma base da Visão Geral.
+  // Usado na aba Meta como referência de crescimento.
+  const anoAnterior = new Date().getFullYear() - 1;
+  const faturamentoAnoAnterior = useMemo(() => {
+    const v = (vendasPorAnoMes[anoAnterior as Ano] ?? Array(12).fill(0)).reduce((a, b) => a + b, 0);
+    const s = (servicosPorAnoMes[anoAnterior as Ano] ?? Array(12).fill(0)).reduce((a, b) => a + b, 0);
+    return v + s;
+  }, [vendasPorAnoMes, servicosPorAnoMes, anoAnterior]);
 
   const totalPorAnoMes = useMemo(() => {
     const result: Record<number, number[]> = {};
@@ -290,6 +300,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
             { key: "visaoGeral",   label: "Visão Geral" },
             { key: "balancete",    label: "Balancete" },
             { key: "centroCusto",  label: "Centro de Custo" },
+            { key: "meta",         label: "Meta" },
           ] as const).map(({ key, label }) => (
             <button
               key={key}
@@ -744,6 +755,11 @@ const GerenciamentoFinanceiro: React.FC = () => {
       {/* ══════════════════ ABA CENTRO DE CUSTO ══════════════════ */}
       {abaAtiva === "centroCusto" && (
         <CentroCustoTab anoCentro={anoCentro} setAnoCentro={setAnoCentro} />
+      )}
+
+      {/* ══════════════════ ABA META ══════════════════ */}
+      {abaAtiva === "meta" && (
+        <MetaTab faturamentoAnoAnterior={faturamentoAnoAnterior} anoAnterior={anoAnterior} />
       )}
     </div>
   );

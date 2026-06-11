@@ -11,6 +11,7 @@ import Clientes from "./pages/Clientes";
 import Estoque from "./pages/Estoque";
 import Servicos from "./pages/Servicos";
 import Vendas from "./pages/Vendas";
+import Locacao from "./pages/Locacao";
 import Vendedores from "./pages/Vendedores";
 import Produtos from "./pages/Produtos";
 import GerenciamentoFinanceiro from "./pages/GerenciamentoFinanceiro";
@@ -154,6 +155,17 @@ const AppRoutes: React.FC = () => (
           <RequireVendas>
             <Vendas />
           </RequireVendas>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/locacao"
+      element={
+        <ProtectedRoute>
+          <RequireFinanceiro>
+            <Locacao />
+          </RequireFinanceiro>
         </ProtectedRoute>
       }
     />

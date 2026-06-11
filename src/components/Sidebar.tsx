@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
-import { Receipt, TrendingUp } from "lucide-react";
+import { Receipt, TrendingUp, KeyRound } from "lucide-react";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -44,6 +44,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         <img src={`https://img.icons8.com/?size=100&id=js1Qz0RqXlSO&format=png&color=${getColor(isActive)}`} alt="Vendas" className={iconBaseClass} />
       ),
     },
+    ...([1, 3, 4].includes(user?.id ?? -1)
+      ? [{
+          label: "Locação",
+          to: "/locacao",
+          icon: (isActive: boolean) => (
+            <KeyRound className={iconBaseClass} style={{ color: `#${getColor(isActive)}` }} />
+          ),
+        }]
+      : []),
     {
       label: "Produtos",
       to: "/produtos",

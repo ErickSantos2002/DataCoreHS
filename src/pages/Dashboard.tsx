@@ -9,8 +9,19 @@ const Dashboard: React.FC = () => {
   const { dados, total, carregando, totalAno } = useDashboard();
   const { configuracoes } = useConfiguracoes();
 
+  // Parse robusto: aceita "12666666.72", "12.666.666,72" ou "12666666,72"
+  const parseValor = (raw?: string): number => {
+    if (!raw) return 0;
+    let s = raw.trim();
+    if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+    else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, "");
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  };
+
   const metaConfig = configuracoes.find((c) => c.chave === "META");
-  const META = parseFloat(metaConfig?.valor || "0");
+  // A META é definida de forma ANUAL; o Dashboard é trimestral, então divide por 4.
+  const META = parseValor(metaConfig?.valor) / 4;
   const META1 = META * 0.9;
   const META2 = META * 1.2;
   const META3 = META * 1.4;
