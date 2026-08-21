@@ -41,16 +41,20 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       // Extrai valores das configurações
       const cfopValidos = getArray("CFOP_VALIDOS");
       const marcadoresInvalidos = getArray("MARCADORES_INVALIDOS");
-      const meses = getArray("MESES_ANALISE").map(Number);
+      // MESES_ANALISE é 1-based (1 = janeiro), do jeito que se digita em
+      // Configurações. O Date do JS conta mês a partir de 0 — daí o -1 abaixo.
+      const meses = getArray("MESES_ANALISE")
+        .map(Number)
+        .filter((m) => Number.isInteger(m) && m >= 1 && m <= 12);
 
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
       const resultados: FaturamentoMensal[] = [];
 
       // Calcular total do quadrimestre (meses específicos)
-      for (const mesIndex of meses) {
-        const dataInicio = new Date(anoAtual, mesIndex, 1);
-        const dataFim = new Date(anoAtual, mesIndex + 1, 0);
+      for (const mes of meses) {
+        const dataInicio = new Date(anoAtual, mes - 1, 1);
+        const dataFim = new Date(anoAtual, mes, 0);
 
         try {
           // Usando fetchVendas em vez de fetchNotas
@@ -96,7 +100,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
             total: totalMes,
           });
         } catch (err) {
-          console.error(`Erro ao buscar mês ${mesIndex + 1}`, err);
+          console.error(`Erro ao buscar mês ${mes}`, err);
         }
       }
 
