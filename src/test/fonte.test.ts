@@ -11,7 +11,9 @@ describe("Plus Jakarta Sans", () => {
 
   it("index.html faz preconnect nos dois hosts do Google Fonts", () => {
     const html = readFileSync("index.html", "utf8");
-    expect(html).toContain('rel="preconnect" href="https://fonts.googleapis.com"');
+    expect(html).toContain(
+      'rel="preconnect" href="https://fonts.googleapis.com"',
+    );
     expect(html).toContain('rel="preconnect" href="https://fonts.gstatic.com"');
   });
 

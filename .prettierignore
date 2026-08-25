@@ -2,3 +2,17 @@ dist
 node_modules
 package-lock.json
 src/design-system
+
+# Fase 0: `format` roda "prettier --write ." sem filtro. As telas ainda não
+# migraram para o design system — reformatá-las agora destruiria o git blame
+# e o diff das fases seguintes, contra a regra da Fase 0 de não reescrever
+# nenhuma tela. Cada entrada sai daqui quando a Fase 3 migrar a tela
+# correspondente; docs/ e index.html saem quando deixarem de documentar o
+# estado pré-migração.
+src/pages
+src/components
+src/context
+src/services
+src/hooks
+docs
+index.html
