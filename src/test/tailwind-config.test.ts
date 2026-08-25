@@ -21,9 +21,19 @@ describe("classes de token", () => {
 
 describe("ponte de paleta", () => {
   it("blue-* aponta para a rampa do design system, em hexadecimal", () => {
-    expect(cores.blue[600]).toBe("#1a71a8");
-    expect(cores.blue[500]).toBe("#1f89ca");
+    // Os dez degraus, nao so uma amostra: uma transposicao em blue[50..300]
+    // ou blue[700..900] passaria pela checagem de formato (regex hex abaixo)
+    // sem que nada acusasse.
+    expect(cores.blue[50]).toBe("#f1f9fe");
+    expect(cores.blue[100]).toBe("#dbeefa");
+    expect(cores.blue[200]).toBe("#b8ddf5");
+    expect(cores.blue[300]).toBe("#7bc0ea");
     expect(cores.blue[400]).toBe("#47a6e1");
+    expect(cores.blue[500]).toBe("#1f89ca");
+    expect(cores.blue[600]).toBe("#1a71a8");
+    expect(cores.blue[700]).toBe("#155984");
+    expect(cores.blue[800]).toBe("#104565");
+    expect(cores.blue[900]).toBe("#0b3047");
   });
 
   it("usa hexadecimal e nao var(), porque ha classes com opacidade", () => {

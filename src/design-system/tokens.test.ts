@@ -45,4 +45,58 @@ describe("tokens do design system", () => {
     expect(forma).toContain("--radius-lg");
     expect(forma).toContain("--radius-xl");
   });
+
+  // Contrato completo. Um sync futuro que renomear um destes nomes (ex.:
+  // --border-color virar --border) nao quebra build nenhum: a classe do
+  // Tailwind emite var(--border-color), o navegador nao resolve pra nada, a
+  // borda some — e nenhum teste acusa. A lista abaixo e o contrato inteiro,
+  // nao uma amostra, para que a falha aponte exatamente qual token sumiu.
+  it("colors.css define os 27 tokens do contrato", () => {
+    const css = ler("src/design-system/tokens/colors.css");
+    const tokens = [
+      "--color-primary-50",
+      "--color-primary-100",
+      "--color-primary-200",
+      "--color-primary-300",
+      "--color-primary-400",
+      "--color-primary-500",
+      "--color-primary-600",
+      "--color-primary-700",
+      "--color-primary-800",
+      "--color-primary-900",
+      "--action",
+      "--action-hover",
+      "--action-tint",
+      "--bg-base",
+      "--surface",
+      "--surface-elevated",
+      "--border-color",
+      "--border-muted",
+      "--border-strong",
+      "--text-body",
+      "--text-heading",
+      "--text-muted",
+      "--text-faint",
+      "--color-success-500",
+      "--color-danger-500",
+      "--color-warning-500",
+      "--color-info-500",
+    ];
+    const faltando = tokens.filter((nome) => !css.includes(`${nome}:`));
+    expect(faltando).toEqual([]);
+  });
+
+  it("typography.css define os tokens do contrato", () => {
+    const css = ler("src/design-system/tokens/typography.css");
+    const tokens = ["--font-sans", "--font-mono"];
+    const faltando = tokens.filter((nome) => !css.includes(`${nome}:`));
+    expect(faltando).toEqual([]);
+  });
+
+  it("shape.css define os tokens do contrato", () => {
+    const css = ler("src/design-system/tokens/shape.css");
+    const tokens = ["--radius-lg", "--radius-xl", "--radius-2xl"];
+    const faltando = tokens.filter((nome) => !css.includes(`${nome}:`));
+    expect(faltando).toEqual([]);
+  });
 });
