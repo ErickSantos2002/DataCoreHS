@@ -10,14 +10,20 @@ const config = require("../../tailwind.config.js");
 // daqui quando a Fase 1 migrar a tela.
 const EXCECOES = ["src/pages/Login.tsx"];
 
+// O content do tailwind.config.js varre "./index.html" e
+// "./src/**/*.{js,ts,jsx,tsx}" — alem de .css, que carrega classe custom via
+// @apply. O guarda tem que cobrir a mesma lista, senao o vao existe mesmo
+// que hoje esteja limpo: um hex arbitrario num .ts, .js ou .jsx passaria
+// batido, e o proprio index.html nunca era olhado.
 const arquivosDeInteresse = readdirSync("src", {
   recursive: true,
   encoding: "utf8",
 })
-  .filter((caminho) => /\.(tsx|css)$/.test(caminho))
+  .filter((caminho) => /\.(tsx|ts|jsx|js|css)$/.test(caminho))
   .map((caminho) => `src/${caminho}`)
   .filter((caminho) => !caminho.startsWith("src/design-system/"))
-  .filter((caminho) => !EXCECOES.includes(caminho));
+  .filter((caminho) => !EXCECOES.includes(caminho))
+  .concat("index.html");
 
 /** Nomes de classe cujo valor sai de var(--...) no tailwind.config.js.
  *  Derivado do config, e nao escrito a mao, para nao ficar desatualizado

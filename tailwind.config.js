@@ -70,6 +70,11 @@ module.exports = {
         },
         // Usados exclusivamente sob o prefixo dark: (132 ocorrencias, zero
         // soltas), entao apontam direto para as superficies do tema escuro.
+        //
+        // A rampa so e redefinida nestes tres degraus (700/800/900). 50-600
+        // e 950 NAO estao aqui: continuam o cinza-frio nativo do Tailwind.
+        // Ou seja, bg-slate-600 sai cinza e bg-slate-700 sai navy — os dois
+        // no mesmo arquivo, degraus vizinhos, cores de familia diferente.
         slate: {
           700: "#1a2f4a", // --surface-elevated no escuro
           800: "#132238", // --surface no escuro
