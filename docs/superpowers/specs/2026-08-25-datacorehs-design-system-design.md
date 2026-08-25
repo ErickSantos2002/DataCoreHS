@@ -218,6 +218,25 @@ exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia arquivo).
   cor. Um módulo único serve eixos, grade, tooltip e rampa de séries a partir dos
   tokens. Sem ele, a Fase 3 recria a divergência de cor nove vezes.
 
+**Colisões de cascata a resolver aqui.** A Fase 0 copiou `tokens/base.css`, que
+traz regras de elemento além das custom properties. Três delas estão mortas hoje,
+confirmado lendo o CSS gerado:
+
+- `body { background: var(--bg-base) }` perde para o `body` e o `.dark body` que
+  `src/styles/index.css` já definia, e para o `<body class="bg-gray-100">` do
+  `index.html`. O navy do design system não chega ao `body` real.
+- `::-webkit-scrollbar` do design system (6px, translúcido) perde para as regras
+  de scrollbar que o `index.css` já tinha (8px, `#4b5563`).
+- `a { color: var(--text-link) }` perde para o preflight do próprio Tailwind
+  (`a { color: inherit }`), porque `@tailwind base` vem depois do `@import` dos
+  tokens — e tem de vir, senão as custom properties não existiriam a tempo.
+
+Nada disso é visível hoje: os links do app são pintados por classe Tailwind, e o
+fundo que aparece é o do `<div>` de altura total do `App.tsx`. Mas as três são
+decisão do `AppShell`, não acidente para descobrir depois. O que **já** entrou em
+vigor de `base.css`, sem nenhuma tela ser tocada: a família e o tamanho de fonte
+do `body`, e a cor e a margem de `h1`–`h4`.
+
 **Telas piloto:** Login, Home, Configurações, NotFound, Bloqueio, EmConstrução.
 
 **Pronto quando:** cada primitivo tem teste cobrindo variantes, `disabled`,
