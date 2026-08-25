@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["node", "@testing-library/jest-dom"],
     "rootDir": "src",
     "outDir": "dist",
     "jsx": "react-jsx"
