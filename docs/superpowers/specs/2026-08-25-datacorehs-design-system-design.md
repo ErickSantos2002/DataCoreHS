@@ -71,7 +71,8 @@ Achados que não são estilo:
    ocorrências. Trocar a rampa no `tailwind.config.js` sozinho não muda cor
    nenhuma na interface. `darkBlue`, ao contrário, é usado 42 vezes em 15
    arquivos, então removê-lo quebra o fundo escuro desses arquivos.
-5. **212 hexadecimais arbitrários dentro de classe Tailwind** — `[#0f172a]`
+5. **212 hexadecimais arbitrários dentro de classe Tailwind**, dos quais 210 são
+   convertidos e 2 ficam — ver a exceção do `Login.tsx` abaixo. — `[#0f172a]`
    163x, `[#1e293b]` 37x, `[#1e3a8a]` 6x, `[#0a192f]` 6x. Valor arbitrário não
    responde a configuração: nenhuma mudança no `tailwind.config.js` os alcança.
    Todos são fundo de tema escuro.
@@ -151,6 +152,14 @@ src/
 ```
 
 Regra que governa o resto, herdada do DS: **nenhum hexadecimal cravado no JSX.**
+
+Uma exceção, registrada: `src/pages/Login.tsx` mantém `bg-[#0a192f]` (linha 33) e
+`bg-[#0f172a]` (linha 41). São as duas únicas ocorrências do projeto **sem** o
+prefixo `dark:` — fundo escuro deliberado nos dois temas, e o design system
+registra login escuro como exceção documentada. Convertê-las para token deixaria
+o login branco no tema claro. O teste de guarda declara a exceção pelo nome do
+arquivo; a Fase 1 a resolve ao migrar o Login como tela piloto. Por isso o
+codemod da Fase 0 faz **210** conversões, não 212.
 
 ---
 
@@ -236,6 +245,35 @@ fundo que aparece é o do `<div>` de altura total do `App.tsx`. Mas as três sã
 decisão do `AppShell`, não acidente para descobrir depois. O que **já** entrou em
 vigor de `base.css`, sem nenhuma tela ser tocada: a família e o tamanho de fonte
 do `body`, e a cor e a margem de `h1`–`h4`.
+
+**Os papéis dos tokens estão invertidos, e o `AppShell` tem de desfazer isso.**
+O codemod da Fase 0 mapeou por valor de cor, não por papel. O resultado, medido:
+
+| Papel na tela | Classe que o app usa hoje | Valor | Token cujo papel ele ocupa |
+|---|---|---|---|
+| Fundo de página (40 ocorrências) | `dark:bg-darkBlue` | `#132238` | é o valor de `--surface` |
+| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base` | `#0d1b2a` | é o `--bg-base` |
+
+O design system diz o contrário: `--bg-base` é *fundo da página*, `--surface` é
+*card, painel, topbar*. Duas consequências.
+
+A primeira já está na tela: card `#0d1b2a` sobre página `#132238` dá **1,09** de
+contraste, contra 1,72 de antes da fase. O card quase deixou de se destacar, e a
+elevação lê ao contrário — superfície mais escura que o fundo, debaixo de um
+`shadow-sm`. Não é ilegibilidade: o texto está bem. É hierarquia perdida. O
+conserto certo é o do design system, separar superfície por **borda de 1px**
+(`--border-color`) e não por luminância — que é justamente o trabalho dos
+primitivos, por isso não se corrige na Fase 0.
+
+A segunda é uma armadilha. Se o `AppShell` arrumar o `body` do jeito óbvio —
+`background: var(--bg-base)` — a página passa a `#0d1b2a`, **idêntica aos 165
+elementos que a Fase 0 escreveu como `dark:bg-surface-base`**. Contraste 1,00:
+todo card do sistema desaparece de uma vez, num único commit.
+
+Portanto, **no mesmo movimento** em que o `AppShell` assumir o `body`, os 165
+`dark:bg-surface-base` de card, header e sidebar têm de virar `bg-surface`, e os
+40 `dark:bg-darkBlue` de fundo de página têm de virar `bg-surface-base`. Um sem o
+outro quebra a tela.
 
 **Telas piloto:** Login, Home, Configurações, NotFound, Bloqueio, EmConstrução.
 
