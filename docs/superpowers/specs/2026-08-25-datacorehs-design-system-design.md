@@ -343,6 +343,32 @@ Uma tela = uma branch = um checkpoint humano.
 
 ---
 
+## Achados do checkpoint da Fase 0
+
+O passeio pelas 18 rotas nos dois temas foi feito em 2026-08-25 e **não encontrou
+nenhuma quebra**: nada ilegível, nada sumido, nada branco sobre branco. O tema
+claro, que a medição automática não conseguira cobrir, foi conferido e está
+correto.
+
+**O risco de "azul que significava aviso virou azul de marca" não se
+materializou.** A tabela de riscos deste spec previa que a ponte de paleta
+pudesse repintar de cor de ação algo que carregava sentido de *info*. Nenhum caso
+foi encontrado. O risco está fechado; a linha correspondente da tabela de riscos
+não precisa mais de mitigação.
+
+O que a medição de contraste levantou vira trabalho de tela na Fase 3. São todos
+**pré-existentes** — nenhum foi criado por esta fase:
+
+| Achado | Medido | Onde | Conserto na Fase 3 |
+|---|---|---|---|
+| `text-blue-600` sobre fundo escuro | 3,29:1 | Valores em KPI, várias telas | Trocar por `text-action`, que no escuro inverte para `#47a6e1` e sobe para 6,64:1 |
+| `text-red-600` sobre fundo escuro | 3,60:1 | Percentuais negativos e valores zerados | Usar `--color-danger-400` no escuro, como o design system determina |
+| Botão "Exportar Excel", texto branco sobre `bg-green-600` | 3,30:1 | Barra de ações das listagens | Pareamento correto de cor semântica e texto |
+
+Para referência da Fase 3: `text-blue-600` no escuro já reprovava **antes** desta
+fase, com 3,45:1. A ponte o levou a 3,38:1 — e, no tema claro, o melhorou de
+5,17:1 para 5,29:1. A ponte não criou nenhum destes três.
+
 ## Perguntas em aberto
 
 Nenhuma trava o início. Cada uma é trazida de volta quando sua fase chegar.
