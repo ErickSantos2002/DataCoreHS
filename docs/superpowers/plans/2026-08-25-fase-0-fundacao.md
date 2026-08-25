@@ -691,9 +691,18 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Valor arbitrário dentro de classe (`dark:bg-[#0f172a]`) não responde a configuração. É o que sobra depois da ponte.
 
 **Files:**
-- Modify: todos os `src/**/*.tsx` que contenham `[#`
+- Modify: todos os `src/**/*.tsx` que contenham `[#`, **exceto `src/pages/Login.tsx`**
 - Modify: `src/styles/index.css` (a regra `.input-cc`)
 - Test: `src/test/guarda-cores.test.ts`
+
+**Exceção: `src/pages/Login.tsx` fica de fora.** Ele tem exatamente duas
+ocorrências, as únicas do projeto **sem** o prefixo `dark:` — `bg-[#0a192f]` no
+fundo cheio (linha 33) e `bg-[#0f172a]` no círculo do avatar (linha 41). São
+fundo escuro deliberado nos dois temas: a tela de login é um painel escuro por
+desenho, e o próprio design system registra login escuro como exceção
+documentada. Convertê-las para `surface-base` deixaria o login branco no tema
+claro. Ficam como estão e são resolvidas na Fase 1, que migra o Login como tela
+piloto. São 210 conversões, não 212.
 
 **Interfaces:**
 - Consumes: as classes `surface` e `surface-base` da Task 4.
@@ -707,13 +716,19 @@ Criar `src/test/guarda-cores.test.ts`:
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+// Login.tsx e exceção documentada: as duas ocorrencias dele sao fundo escuro
+// deliberado nos dois temas (painel de login), nao dark: por variante. Saem
+// daqui quando a Fase 1 migrar a tela.
+const EXCECOES = ["src/pages/Login.tsx"];
+
 const arquivosDeInteresse = readdirSync("src", {
   recursive: true,
   encoding: "utf8",
 })
   .filter((caminho) => /\.(tsx|css)$/.test(caminho))
   .map((caminho) => `src/${caminho}`)
-  .filter((caminho) => !caminho.startsWith("src/design-system/"));
+  .filter((caminho) => !caminho.startsWith("src/design-system/"))
+  .filter((caminho) => !EXCECOES.includes(caminho));
 
 describe("guarda de cor", () => {
   it("nenhuma classe Tailwind carrega hexadecimal arbitrario", () => {
@@ -734,7 +749,8 @@ O teste ignora `src/design-system/` de propósito — aquilo é cópia fiel e n�
 - [ ] **Step 2: Rodar e confirmar que falha**
 
 Run: `npm test`
-Expected: FAIL — a lista de infratores traz 212 entradas.
+Expected: FAIL — a lista de infratores traz 210 entradas (as duas do
+`Login.tsx` não entram, pela exceção declarada no teste).
 
 - [ ] **Step 3: Rodar o codemod**
 
@@ -742,7 +758,7 @@ Quatro substituições, preservando o prefixo do utilitário (`bg-`, `border-`, 
 
 ```bash
 cd ~/github/DataCoreHS
-FILES=$(grep -rl '\[#' --include='*.tsx' --include='*.css' src | grep -v '^src/design-system/')
+FILES=$(grep -rl '\[#' --include='*.tsx' --include='*.css' src | grep -v '^src/design-system/' | grep -v '^src/pages/Login.tsx$')
 perl -pi -e 's/\[#0f172a\]/surface-base/g;  # slate-900 -> --bg-base
              s/\[#0a192f\]/surface-base/g;  # navy proprio -> --bg-base
              s/\[#1e293b\]/surface/g;       # slate-800 -> --surface
@@ -778,9 +794,12 @@ Valor arbitrario dentro de classe nao responde a configuracao: nem a ponte
 de paleta nem qualquer mudanca no tailwind.config alcanca dark:bg-[#0f172a].
 Substituicao mecanica preservando o prefixo do utilitario, revisada no diff.
 
-[#0f172a] 163x e [#0a192f] 6x viraram surface-base; [#1e293b] 37x e
-[#1e3a8a] 6x viraram surface. Alcanca tambem a regra .input-cc em
-src/styles/index.css.
+[#0f172a] e [#0a192f] viraram surface-base; [#1e293b] e [#1e3a8a] viraram
+surface. Alcanca tambem a regra .input-cc em src/styles/index.css.
+
+O Login.tsx fica de fora: as duas ocorrencias dele sao as unicas sem prefixo
+dark: no projeto, e sao fundo escuro deliberado nos dois temas. O teste de
+guarda declara a excecao. A Fase 1 resolve quando migrar a tela.
 
 Um teste de guarda impede que hexadecimal arbitrario volte ao codigo.
 
