@@ -137,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
 
   return (
     <aside
-      className={`hidden lg:flex ${collapsed ? "w-16" : "w-56"} bg-white dark:bg-[#0a192f] text-gray-900 dark:text-gray-100 shadow sticky top-0 flex-col transition-all duration-300`}
+      className={`hidden lg:flex ${collapsed ? "w-16" : "w-56"} bg-white dark:bg-surface-base text-gray-900 dark:text-gray-100 shadow sticky top-0 flex-col transition-all duration-300`}
     >
       <nav className="flex-1 py-3">
         <ul className="space-y-1">

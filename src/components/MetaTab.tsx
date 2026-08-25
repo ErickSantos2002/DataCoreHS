@@ -162,7 +162,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
 
   if (carregando) {
     return (
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-10 text-center text-gray-500 dark:text-gray-300">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-10 text-center text-gray-500 dark:text-gray-300">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
         Carregando dados de meta...
       </div>
@@ -172,7 +172,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
   return (
     <div className="space-y-4">
       {/* ─── Definições (META anual + ano passado) ─────────── */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5">
         <div className="flex flex-col md:flex-row gap-6">
           <ValorEditavel
             label="META Anual"
@@ -237,7 +237,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
 
       {/* ─── Cards de resumo ─────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Faturamento do Trimestre</p>
@@ -254,7 +254,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Meta 100% (trimestre)</p>
@@ -271,7 +271,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Bônus Atual</p>
@@ -291,7 +291,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-5">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Próxima Faixa</p>
@@ -312,7 +312,7 @@ const MetaTab: React.FC<MetaTabProps> = ({ faturamentoAnoAnterior = 0, anoAnteri
       </div>
 
       {/* ─── Faixas de bonificação ───────────────────────── */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Faixas de Bonificação (PL) — Trimestre
         </h2>

@@ -450,8 +450,8 @@ const Estoque: React.FC = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-[#0f172a] 
-                    hover:bg-gray-50 dark:hover:bg-[#1e293b] 
+                    bg-white dark:bg-surface-base 
+                    hover:bg-gray-50 dark:hover:bg-surface 
                     text-gray-700 dark:text-gray-200
                     border-gray-300 dark:border-gray-600
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -465,7 +465,7 @@ const Estoque: React.FC = () => {
 
         {isOpen && (
           <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-[#0f172a] 
+                          bg-white dark:bg-surface-base 
                           border dark:border-gray-600 
                           rounded-lg shadow-lg 
                           max-h-60 overflow-auto">
@@ -476,7 +476,7 @@ const Estoque: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-2 py-1 border rounded 
-                          bg-white dark:bg-[#1e293b] 
+                          bg-white dark:bg-surface 
                           text-gray-800 dark:text-gray-200
                           border-gray-300 dark:border-gray-600"
               />
@@ -530,7 +530,7 @@ const Estoque: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       <div className="p-6"> {/* 🔹 adiciona limite e centraliza */}
         {/* Cabeçalho */}
-        <div className="bg-white dark:bg-[#0f172a] shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
+        <div className="bg-white dark:bg-surface-base shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
           <div className="px-6 py-4">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
               Estoque - Dashboard
@@ -546,7 +546,7 @@ const Estoque: React.FC = () => {
 
         <div className="mt-6">
           {/* Filtros */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 transition-colors">
             <div className="flex items-center mb-4">
               <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -577,7 +577,7 @@ const Estoque: React.FC = () => {
                   value={filtroSituacao}
                   onChange={(e) => setFiltroSituacao(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg 
-                            bg-white dark:bg-[#0f172a] 
+                            bg-white dark:bg-surface-base 
                             text-gray-800 dark:text-gray-200 
                             border-gray-300 dark:border-gray-600
                             focus:outline-none focus:ring-2 focus:ring-blue-500 
@@ -598,7 +598,7 @@ const Estoque: React.FC = () => {
                   value={filtroSaldo}
                   onChange={(e) => setFiltroSaldo(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg 
-                            bg-white dark:bg-[#0f172a] 
+                            bg-white dark:bg-surface-base 
                             text-gray-800 dark:text-gray-200 
                             border-gray-300 dark:border-gray-600
                             focus:outline-none focus:ring-2 focus:ring-blue-500 
@@ -620,7 +620,7 @@ const Estoque: React.FC = () => {
                   value={filtroPersonalizado}
                   onChange={(e) => setFiltroPersonalizado(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg 
-                            bg-white dark:bg-[#0f172a] 
+                            bg-white dark:bg-surface-base 
                             text-gray-800 dark:text-gray-200 
                             border-gray-300 dark:border-gray-600
                             focus:outline-none focus:ring-2 focus:ring-blue-500 
@@ -636,7 +636,7 @@ const Estoque: React.FC = () => {
           {/* KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Produtos Ativos */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Produtos Ativos</p>
@@ -651,7 +651,7 @@ const Estoque: React.FC = () => {
             </div>
 
             {/* Produtos sem Saldo */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Produtos sem Saldo</p>
@@ -666,7 +666,7 @@ const Estoque: React.FC = () => {
             </div>
 
             {/* Valor Total em Estoque */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Valor Total em Estoque</p>
@@ -684,7 +684,7 @@ const Estoque: React.FC = () => {
             </div>
 
             {/* Produto com Maior Saldo */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Produto Top</p>
@@ -709,7 +709,7 @@ const Estoque: React.FC = () => {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Top 10 Produtos */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Top 10 Produtos em Estoque
               </h3>
@@ -814,7 +814,7 @@ const Estoque: React.FC = () => {
             </div>
 
             {/* Distribuição de Valor */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Distribuição de Valor em Estoque
               </h3>
@@ -891,7 +891,7 @@ const Estoque: React.FC = () => {
             </div> 
             
             {/* Situação dos Produtos */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Situação dos Produtos
               </h3>
@@ -960,7 +960,7 @@ const Estoque: React.FC = () => {
             </div> 
 
             {/* Estatísticas Adicionais */}
-            <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Estatísticas do Estoque
               </h3>
@@ -1007,7 +1007,7 @@ const Estoque: React.FC = () => {
                   <div
                     key={i}
                     className={`flex justify-between px-3 py-2 rounded transition-colors ${
-                      i % 2 === 0 ? "bg-gray-50 dark:bg-[#1e293b]" : ""
+                      i % 2 === 0 ? "bg-gray-50 dark:bg-surface" : ""
                     }`}
                   >
                     <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -1023,7 +1023,7 @@ const Estoque: React.FC = () => {
           </div>
 
           {/* Tabela de Produtos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
                 Detalhamento do Estoque
@@ -1041,7 +1041,7 @@ const Estoque: React.FC = () => {
                     onChange={(e) => setPesquisaTabela(e.target.value)}
                     className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
                               focus:outline-none focus:ring-2 focus:ring-blue-500
-                              bg-white dark:bg-[#0f172a]
+                              bg-white dark:bg-surface-base
                               text-gray-800 dark:text-gray-200
                               border-gray-300 dark:border-gray-600
                               placeholder-gray-400 dark:placeholder-gray-500
@@ -1088,7 +1088,7 @@ const Estoque: React.FC = () => {
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
                       onClick={() => alternarOrdenacao("nome")}
                     >
                       <div className="flex items-center">
@@ -1104,7 +1104,7 @@ const Estoque: React.FC = () => {
                       </div>
                     </th>
                     <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
                       onClick={() => alternarOrdenacao("codigo")}
                     >
                       <div className="flex items-center">
@@ -1125,7 +1125,7 @@ const Estoque: React.FC = () => {
                       </span>
                     </th>
                     <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
                       onClick={() => alternarOrdenacao("preco")}
                     >
                       <div className="flex items-center">
@@ -1141,7 +1141,7 @@ const Estoque: React.FC = () => {
                       </div>
                     </th>
                     <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
                       onClick={() => alternarOrdenacao("saldo")}
                     >
                       <div className="flex items-center">
@@ -1157,7 +1157,7 @@ const Estoque: React.FC = () => {
                       </div>
                     </th>
                     <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1e293b]"
+                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
                       onClick={() => alternarOrdenacao("situacao")}
                     >
                       <div className="flex items-center">
@@ -1184,10 +1184,10 @@ const Estoque: React.FC = () => {
                     <tr
                       key={produto.id}
                       className={`border-b border-gray-100 dark:border-gray-700 
-                                  hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors ${
+                                  hover:bg-gray-50 dark:hover:bg-surface transition-colors ${
                                     index % 2 === 0
-                                      ? "bg-white dark:bg-[#0f172a]"
-                                      : "bg-gray-50/50 dark:bg-[#1e293b]/40"
+                                      ? "bg-white dark:bg-surface-base"
+                                      : "bg-gray-50/50 dark:bg-surface/40"
                                   }`}
                     >
                       <td className="px-4 py-3">

@@ -21,7 +21,7 @@ const Home: React.FC = () => {
 
   return (
     <div
-      className="flex flex-col bg-white dark:bg-[#0a192f] transition-colors"
+      className="flex flex-col bg-white dark:bg-surface-base transition-colors"
       style={{
         height: altura,
         overflow: "hidden",
@@ -40,7 +40,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Rodapé colado no fundo */}
-      <footer className="w-full bg-white dark:bg-[#0a192f] py-3.5 flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-3 shadow transition-colors text-center px-4">
+      <footer className="w-full bg-white dark:bg-surface-base py-3.5 flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-3 shadow transition-colors text-center px-4">
         <p className="text-gray-700 dark:text-gray-200 text-sm sm:text-base font-medium">
           © {new Date().getFullYear()} Health Safety — Todos os direitos reservados.
         </p>

@@ -80,7 +80,7 @@ const MultiSelect: React.FC<{
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-3 py-2 text-left border rounded-lg
-          bg-white dark:bg-[#0f172a]
+          bg-white dark:bg-surface-base
           hover:bg-gray-50 dark:hover:bg-gray-700
           border-gray-300 dark:border-gray-600
           focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -92,7 +92,7 @@ const MultiSelect: React.FC<{
 
       {isOpen && (
         <div className="absolute z-50 w-full mt-1
-          bg-white dark:bg-[#0f172a]
+          bg-white dark:bg-surface-base
           border border-gray-200 dark:border-gray-600
           rounded-lg shadow-lg max-h-60 overflow-auto">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
@@ -383,7 +383,7 @@ const ContasReceber: React.FC = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Contas a Receber
@@ -399,7 +399,7 @@ const ContasReceber: React.FC = () => {
 
       <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Filtros</h2>
@@ -466,7 +466,7 @@ const ContasReceber: React.FC = () => {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total a Receber</p>
@@ -480,7 +480,7 @@ const ContasReceber: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Recebido</p>
@@ -494,7 +494,7 @@ const ContasReceber: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Contas Vencidas</p>
@@ -508,7 +508,7 @@ const ContasReceber: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">A Vencer (30 dias)</p>
@@ -522,7 +522,7 @@ const ContasReceber: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Média Mensal</p>
@@ -540,7 +540,7 @@ const ContasReceber: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Evolução — linha inteira */}
-          <div className="lg:col-span-2 bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="lg:col-span-2 bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 {evolucaoTitulo}
@@ -571,7 +571,7 @@ const ContasReceber: React.FC = () => {
           </div>
 
           {/* Distribuição por Categoria */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Distribuição por Categoria
             </h3>
@@ -609,7 +609,7 @@ const ContasReceber: React.FC = () => {
           </div>
 
           {/* Top 10 Clientes */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top 10 Clientes
             </h3>
@@ -646,7 +646,7 @@ const ContasReceber: React.FC = () => {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Detalhamento de Contas a Receber

@@ -104,7 +104,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
           Selecionar Produtos
         </h2>
@@ -114,7 +114,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
           type="text"
           placeholder="Pesquisar produto..."
           className="w-full px-3 py-2 border rounded-lg mb-4
-                    bg-white dark:bg-[#1e293b] text-gray-800 dark:text-gray-200
+                    bg-white dark:bg-surface text-gray-800 dark:text-gray-200
                     border-gray-300 dark:border-gray-600
                     placeholder-gray-400 dark:placeholder-gray-500
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -140,7 +140,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
                 type="number"
                 min={0}
                 className="w-24 px-2 py-1 border rounded-lg
-                          bg-white dark:bg-[#1e293b]
+                          bg-white dark:bg-surface
                           text-gray-800 dark:text-gray-200
                           border-gray-300 dark:border-gray-600"
                 onChange={(e) =>

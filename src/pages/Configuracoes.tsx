@@ -52,7 +52,7 @@ const Configuracoes: React.FC = () => {
   return (
     <div className="p-6">
       {/* Card de título e descrição */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl p-6 mb-6 transition-colors">
+      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl p-6 mb-6 transition-colors">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400 mb-2">
           Configurações
         </h1>
@@ -62,7 +62,7 @@ const Configuracoes: React.FC = () => {
       </div>
 
       {/* Lista de configurações */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow p-4 transition-colors">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow p-4 transition-colors">
         {configuracoes.map((cfg) => (
           <div
             key={cfg.id}
@@ -100,7 +100,7 @@ const Configuracoes: React.FC = () => {
                   type="text"
                   value={novoValor}
                   onChange={(e) => setNovoValor(e.target.value)}
-                  className="w-full overflow-x-auto whitespace-nowrap p-3 text-sm rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-[#1e293b] text-gray-800 dark:text-gray-200 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-[#0f172a] transition"
+                  className="w-full overflow-x-auto whitespace-nowrap p-3 text-sm rounded-lg border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-surface text-gray-800 dark:text-gray-200 font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-surface-base transition"
                   spellCheck={false}
                 />
               ) : (

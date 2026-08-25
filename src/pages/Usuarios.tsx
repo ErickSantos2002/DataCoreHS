@@ -184,7 +184,7 @@ const Usuarios: React.FC = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       {/* Header */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl px-6 py-4 mb-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl px-6 py-4 mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">Usuários</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
@@ -201,7 +201,7 @@ const Usuarios: React.FC = () => {
       </div>
 
       {/* Tabela */}
-      <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700 text-left">

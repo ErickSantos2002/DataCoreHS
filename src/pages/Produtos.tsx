@@ -502,7 +502,7 @@ const Produtos: React.FC = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg
-                    bg-white dark:bg-[#0f172a]
+                    bg-white dark:bg-surface-base
                     hover:bg-gray-50 dark:hover:bg-gray-700
                     border-gray-300 dark:border-gray-600
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -514,7 +514,7 @@ const Produtos: React.FC = () => {
 
         {isOpen && (
           <div className="absolute z-10 w-full mt-1
-                          bg-white dark:bg-[#0f172a]
+                          bg-white dark:bg-surface-base
                           border border-gray-200 dark:border-gray-600
                           rounded-lg shadow-lg
                           max-h-60 overflow-auto">
@@ -589,7 +589,7 @@ const Produtos: React.FC = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-[#0f172a] shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Produtos - Dashboard
@@ -605,7 +605,7 @@ const Produtos: React.FC = () => {
 
       <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -714,7 +714,7 @@ const Produtos: React.FC = () => {
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Total de Produtos Vendidos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Quantidade Total Vendida</p>
@@ -729,7 +729,7 @@ const Produtos: React.FC = () => {
           </div>
 
           {/* Faturamento Total */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Faturamento Total</p>
@@ -747,7 +747,7 @@ const Produtos: React.FC = () => {
           </div>
 
           {/* Ticket Médio por Produto */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Ticket Médio por Produto</p>
@@ -765,7 +765,7 @@ const Produtos: React.FC = () => {
           </div>
 
           {/* Produto Mais Vendido */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div className="min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Produto Mais Vendido</p>
@@ -789,7 +789,7 @@ const Produtos: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Evolução da Quantidade de Produtos Vendidos */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Evolução da Quantidade de Produtos Vendidos
             </h3>
@@ -838,7 +838,7 @@ const Produtos: React.FC = () => {
           </div>
 
           {/* Top 10 Produtos por Valor */}
-          <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top 10 Produtos (Valor)
             </h3>
@@ -912,7 +912,7 @@ const Produtos: React.FC = () => {
         </div>
 
         {/* Tabela de Produtos */}
-        <div className="bg-white dark:bg-[#0f172a] rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Detalhamento de Produtos
