@@ -101,10 +101,14 @@ Adicionar a referência de tipos na **primeira linha** do arquivo e o bloco `tes
 Em `compilerOptions`, adicionar:
 
 ```json
-    "types": ["@testing-library/jest-dom"],
+    "types": ["node", "@testing-library/jest-dom"],
 ```
 
-O `vite-env.d.ts` na raiz continua fornecendo os tipos de `import.meta.env` por referência tripla, então nada se perde.
+`"node"` é obrigatório na lista. Declarar `types` explicitamente **desliga** a
+inclusão automática de todo `@types/*` instalado — e os testes das Tasks 3, 5, 6
+e 7 importam `node:fs`. Sem `"node"` ali, esses arquivos ficam vermelhos no
+editor. O `vite-env.d.ts` na raiz continua fornecendo os tipos de
+`import.meta.env` por referência tripla, então nada se perde.
 
 - [ ] **Step 7: Adicionar os scripts no `package.json`**
 
@@ -793,7 +797,19 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `--font-sans` de `src/design-system/tokens/typography.css` (Task 3) e o `fontFamily` do `tailwind.config.js` (Task 4).
-- Produces: a família tipográfica carregada no navegador.
+- Produces: a família tipográfica carregada **cedo**, com preconnect.
+
+**Atenção — a fonte já carrega depois da Task 3.** O `tokens/typography.css` do
+design system abre com `@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans...")`
+e o `tokens/base.css` já aplica `font-family: var(--font-sans)` no `body`. Ou
+seja: ao fim da Task 3 o texto **já** está em Plus Jakarta Sans.
+
+O que esta task entrega é velocidade, não a fonte. Pelo `@import` encadeado o
+navegador só descobre o arquivo depois de buscar `index.css`, achar
+`styles.css`, achar `typography.css` e então pedir a fonte — quatro idas ao
+servidor em série, com texto invisível ou na fonte errada até o fim. O `<link>`
+no `<head>` dispara o pedido imediatamente, e o `preconnect` abre a conexão TLS
+com os dois hosts antes disso.
 
 - [ ] **Step 1: Escrever o teste**
 
@@ -851,9 +867,13 @@ Expected: PASS — 17 passed.
 
 Run: `npm run dev`
 
-Na aba Network do DevTools, confirmar que o arquivo de fonte de `fonts.gstatic.com` carrega. Na aba Elements, inspecionar o `<body>` e conferir que a `font-family` computada traz `Plus Jakarta Sans`.
+Na aba Elements, inspecionar o `<body>` e conferir que a `font-family` computada
+traz `Plus Jakarta Sans` — isso já era verdade depois da Task 3.
 
-Se o texto continuar na fonte antiga, o motivo mais provável é que nada aplica `font-sans` ao `<body>`. Nesse caso, conferir se `src/design-system/tokens/base.css` já define a família no `body` — ele deve. Se não definir, **parar e avisar**: o arquivo é cópia fiel e o ajuste tem de acontecer no Design System, não aqui.
+O que se verifica aqui é a **ordem** dos pedidos. Na aba Network, com o filtro
+`Font` e o cache desligado, o pedido a `fonts.gstatic.com` deve partir junto do
+HTML, não depois da cadeia de CSS. Comparar a coluna de tempo de início do
+arquivo de fonte com a do `index.css`: a fonte não pode começar depois.
 
 - [ ] **Step 6: Commit**
 
