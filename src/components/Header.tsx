@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   return (
     <>
       {/* HEADER FIXO */}
-      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-surface-base/95 backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
+      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-surface-base backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
         <div className="flex items-center gap-3">
           {/* Hambúrguer mobile */}
           <button

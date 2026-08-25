@@ -1211,7 +1211,7 @@ const Clientes: React.FC = () => {
                                   hover:bg-gray-50 dark:hover:bg-surface transition-colors ${
                                     index % 2 === 0
                                       ? "bg-white dark:bg-surface-base"
-                                      : "bg-gray-50/50 dark:bg-surface/40"
+                                      : "bg-gray-50/50 dark:bg-surface"
                                   }`}
                     >
                       <td className="px-4 py-3">
