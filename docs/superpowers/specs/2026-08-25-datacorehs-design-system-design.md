@@ -43,6 +43,7 @@ Tailwind 3.4.17 · 50 arquivos em `src/`, ~16.000 linhas.
 |---|---|
 | Classes `dark:` no JSX | 1.626 |
 | Classes literais de azul (`bg-blue-600`, `text-blue-600`...) | 272 |
+| Hexadecimais arbitrários em classe (`dark:bg-[#0f172a]`...) | 212 |
 | Usos de `bg-primary` / `text-primary` / `border-primary` | **0** |
 | Hexadecimais cravados no JSX | 528 |
 | Páginas acima de 800 linhas | 7 (Vendas 1554, Clientes 1387, Estoque 1362, Vendedores 1361, Servicos 1258, Produtos 1221, ContasPagar 839) |
@@ -70,10 +71,10 @@ Achados que não são estilo:
    ocorrências. Trocar a rampa no `tailwind.config.js` sozinho não muda cor
    nenhuma na interface. `darkBlue`, ao contrário, é usado 42 vezes em 15
    arquivos, então removê-lo quebra o fundo escuro desses arquivos.
-5. **`dark:bg-dark` aparece 40 vezes e a cor `dark` não existe no config.** É
-   classe morta: o tema escuro já está furado nesses pontos, hoje, em produção.
-   Some com ela o `dark:bg-[#0f172a]`, 160 ocorrências de hexadecimal cravado
-   dentro da classe — valor arbitrário, que nenhuma mudança de config alcança.
+5. **212 hexadecimais arbitrários dentro de classe Tailwind** — `[#0f172a]`
+   163x, `[#1e293b]` 37x, `[#1e3a8a]` 6x, `[#0a192f]` 6x. Valor arbitrário não
+   responde a configuração: nenhuma mudança no `tailwind.config.js` os alcança.
+   Todos são fundo de tema escuro.
 6. **Dependências mortas de Tailwind v4** (`@tailwindcss/vite`,
    `@tailwindcss/postcss`) instaladas num projeto que constrói com o v3 via
    `postcss.config.js`. Não há configuração dupla — é lixo de dependência.
@@ -119,7 +120,14 @@ navy, dentro do `tailwind.config.js`. As 272 classes literais passam a apontar
 para a marca sem que nenhum JSX seja tocado. O que a config não alcança —
 `dark:bg-[#0f172a]` (160x) e o `dark:bg-dark` morto (40x) — é trocado por um
 codemod mecânico. `darkBlue` sobrevive como alias depreciado do navy do DS e
-morre tela a tela na Fase 3. A alternativa (adiar cor para a Fase 3) deixaria o
+morre tela a tela na Fase 3.
+
+A ponte usa **hexadecimal literal** da rampa do DS, não `var()`: existem classes
+com modificador de opacidade (`dark:bg-blue-900/40`) e o Tailwind não aplica alfa
+sobre um `var()` que guarda hexadecimal — a classe sairia sem cor. Os tokens novos
+(`bg-action`, `bg-surface`, `text-conteudo`) usam `var()` normalmente. A ponte é
+andaime temporário e não precisa reagir a troca de token; as classes de token,
+sim. A alternativa (adiar cor para a Fase 3) deixaria o
 sistema meses com metade das telas em cada azul.
 
 **7 · Trabalho em branch por fase, com checkpoint humano.** O sistema está em
@@ -163,8 +171,11 @@ Nenhuma tela é reescrita. A cor da marca, a fonte e o tema escuro mudam em tudo
    alias depreciado apontando para o navy do DS, com comentário dizendo que morre
    na Fase 3. Cada classe de azul é conferida no diff: onde `blue-*` estiver
    carregando sentido de *info* e não de ação, vai para `--color-info-*`.
-5. **Codemod** trocando `dark:bg-[#0f172a]` (160x) e `dark:bg-dark` (40x, classe
-   morta) pelas classes de token. É busca-e-troca mecânica, revisada no diff.
+5. **Codemod** trocando os 212 hexadecimais arbitrários pelas classes de token,
+   preservando o prefixo do utilitário: `[#0f172a]` e `[#0a192f]` viram
+   `surface-base`, `[#1e293b]` e `[#1e3a8a]` viram `surface`. Alcança também o
+   `.input-cc` em `src/styles/index.css`. É busca-e-troca mecânica, revisada no
+   diff e travada por teste de guarda.
 6. Plus Jakarta Sans (Google Fonts, pesos 300–800) e a pilha mono do DS.
 7. Tema escuro passa a navy `#0D1B2A` por token. As 1.626 classes `dark:`
    continuam funcionando nesta fase — morrem tela a tela na Fase 3.
