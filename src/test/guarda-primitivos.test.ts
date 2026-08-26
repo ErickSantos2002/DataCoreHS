@@ -44,9 +44,22 @@ describe("contrato de port dos primitivos", () => {
 
   it("nenhum primitivo faz hover por estado de React", () => {
     // Hover e CSS. onMouseEnter para pintar e re-render a toa e quebra teclado.
-    const infratores = primitivos().filter((c) =>
-      /onMouseEnter|onMouseLeave/.test(readFileSync(c, "utf8")),
-    );
+    //
+    // Excecao: Tooltip.tsx (Task 12 - fix). O balao dele mora em portal
+    // (createPortal em document.body), porque um balao absolute nascido
+    // dentro da sidebar recolhida (overflow-hidden no <aside>, overflow-y-auto
+    // no <nav>, que o CSS converte tambem em recorte no eixo X) nasce cortado
+    // e fica invisivel - nao ha classe Tailwind que resolva isso sem tirar o
+    // balao da arvore do gatilho. Só que fora dessa arvore o seletor
+    // `group`/`group-hover` do Tailwind, que dependia de parentesco no DOM,
+    // deixa de alcancar o balao. Hover por estado passa a ser a unica forma
+    // de ligar gatilho e balao quando um esta em portal e o outro nao.
+    // onFocus/onBlur continuam ao lado de onMouseEnter/onMouseLeave, entao o
+    // teclado nao regride.
+    const EXCECAO = "src/design-system/ui/feedback/Tooltip.tsx";
+    const infratores = primitivos()
+      .filter((c) => c !== EXCECAO)
+      .filter((c) => /onMouseEnter|onMouseLeave/.test(readFileSync(c, "utf8")));
     expect(infratores).toEqual([]);
   });
 
