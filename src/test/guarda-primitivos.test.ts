@@ -48,9 +48,23 @@ describe("contrato de port dos primitivos", () => {
   it("todo primitivo interativo tem anel de foco visivel", () => {
     // O original nao tem foco nenhum; o checklist do design system exige
     // focus-visible com anel de 2px. E a unica coisa que o port acrescenta.
-    const interativos = primitivos().filter((c) =>
-      /<(button|input|textarea|select|a)\b/.test(readFileSync(c, "utf8")),
-    );
+    //
+    // A tag literal <button|input|textarea|select|a> nao pega tudo: Checkbox
+    // e Switch escondem o <input> real e desenham o controle num <span
+    // role="...">, e um componente construido sobre <div role="button"
+    // onClick> nao teria nenhuma dessas tags. `role=` (so os papeis de
+    // widget interativo — nao "status"/"alert"/decorativo) e `onClick`
+    // tambem contam como sinal de interatividade.
+    const PAPEL_INTERATIVO =
+      /role=["'](button|checkbox|radio|switch|tab|link|menuitem|option|slider|textbox|combobox|searchbox|treeitem)["']/;
+    const interativos = primitivos().filter((c) => {
+      const conteudo = readFileSync(c, "utf8");
+      return (
+        /<(button|input|textarea|select|a)\b/.test(conteudo) ||
+        PAPEL_INTERATIVO.test(conteudo) ||
+        /onClick=/.test(conteudo)
+      );
+    });
     const semFoco = interativos.filter(
       (c) => !/focus-visible:ring-2/.test(readFileSync(c, "utf8")),
     );
