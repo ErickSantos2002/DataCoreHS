@@ -5,6 +5,7 @@ import AppRoutes from "./router";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import CentralButton from "./components/CentralButton";
+import { ToastProvider } from "./components/ToastProvider";
 
 // Rotas onde o layout (Header/Sidebar) não deve aparecer (ex: login)
 const noLayoutRoutes = ["/login"];
@@ -16,11 +17,15 @@ const App: React.FC = () => {
 
   if (hideLayout) {
     // 🔥 Quando for rota sem layout, renderiza só as rotas
-    return <AppRoutes />;
+    return (
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
+    );
   }
 
   return (
-    <>
+    <ToastProvider>
       <div className="h-screen flex flex-col bg-gray-100 dark:bg-darkBlue text-gray-900 dark:text-gray-100 transition-colors">
         <Header onToggleSidebar={() => setSidebarCollapsed((v) => !v)} />
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
@@ -33,7 +38,7 @@ const App: React.FC = () => {
 
       {/* Botão Flutuante Central HS */}
       <CentralButton />
-    </>
+    </ToastProvider>
   );
 };
 

@@ -78,6 +78,15 @@ module.exports = {
           DEFAULT: "var(--color-slate-900)",
           fg: "var(--color-white)",
         },
+        // Retorno efemero (Toast): os tres tokens ja existem em colors.css
+        // desde a Fase 0, pensados para uma biblioteca em JS (react-hot-toast/
+        // sonner) que recebe objeto de estilo. Aqui o port usa Tailwind, entao
+        // so faltava a classe - nao um token novo.
+        toast: {
+          DEFAULT: "var(--toast-bg)",
+          fg: "var(--toast-color)",
+          border: "var(--toast-border)",
+        },
         // Tinta semantica: a cor de significado a 15% de opacidade, ja embutida
         // no token. Fundo de badge, chip e aviso. NAO use o degrau 50 da rampa:
         // um degrau fixo vira retangulo quase branco no meio do navy.

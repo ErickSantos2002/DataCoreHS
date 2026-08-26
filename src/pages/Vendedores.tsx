@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import ModalObservacoes from "../components/ModalObservacoes";
+import { useToast } from "../components/ToastProvider";
 
 // Cores para gráficos
 const CORES = {
@@ -61,6 +62,7 @@ const CORES_GRAFICO = [
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
   const { notas, notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useData();
+  const { erro } = useToast();
 
   // Estados dos filtros
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
@@ -393,7 +395,7 @@ const Vendedores: React.FC = () => {
       setTipoTemp("");
     } catch (error) {
       console.error("Erro ao salvar tipo:", error);
-      alert("Erro ao salvar o tipo da nota");
+      erro("Não foi possível salvar o tipo da nota.");
     } finally {
       setSalvandoTipo(null);
     }

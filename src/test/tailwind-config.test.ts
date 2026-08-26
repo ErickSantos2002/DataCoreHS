@@ -74,6 +74,12 @@ describe("tokens que os primitivos consomem", () => {
     expect(cores.tooltip.fg).toBe("var(--color-white)");
   });
 
+  it("o toast tem token proprio de fundo, texto e borda", () => {
+    expect(cores.toast.DEFAULT).toBe("var(--toast-bg)");
+    expect(cores.toast.fg).toBe("var(--toast-color)");
+    expect(cores.toast.border).toBe("var(--toast-border)");
+  });
+
   it("as tintas semanticas e seus pares de texto existem", () => {
     for (const nome of ["primary", "success", "danger", "warning", "info", "neutral"]) {
       expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);
