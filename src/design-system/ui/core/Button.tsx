@@ -16,8 +16,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary: "border border-action bg-action text-on-primary hover:bg-action-hover",
   secondary: "border border-borda bg-surface text-conteudo hover:bg-surface-elevated",
-  danger: "border border-danger bg-danger text-white hover:bg-danger-hover",
-  success: "border border-success bg-success text-white hover:bg-success-hover",
+  danger: "border border-danger bg-danger text-on-danger hover:bg-danger-hover",
+  success: "border border-success bg-success text-on-success hover:bg-success-hover",
   ghost: "border border-transparent bg-transparent text-conteudo-muted hover:bg-surface-elevated",
 };
 
@@ -25,6 +25,21 @@ const SIZE_CLASSES: Record<NonNullable<ButtonProps["size"]>, string> = {
   sm: "px-3 py-1.5 text-xs",
   md: "px-4 py-2 text-sm",
   lg: "px-6 py-3 text-base",
+};
+
+// O Button original desenha o spinner embutido em `currentColor` — ele
+// herda o texto de cada variante (branco no danger/success, tom de ação no
+// primary, corpo no secondary, muted no ghost). O Spinner genérico desta
+// biblioteca é `text-action` fixo (contrato certo para o uso standalone,
+// tipo vazio de página) — dentro do Button, cada variante sobrescreve com
+// `!` porque a ordem das classes no JSX não garante qual regra o Tailwind
+// gera primeiro no CSS final.
+const SPINNER_CLASS: Record<NonNullable<ButtonProps["variant"]>, string> = {
+  primary: "",
+  secondary: "!text-conteudo",
+  danger: "!text-on-danger",
+  success: "!text-on-success",
+  ghost: "!text-conteudo-muted",
 };
 
 /**
@@ -72,7 +87,7 @@ export function Button({
       {...rest}
     >
       {loading ? (
-        <Spinner size="sm" />
+        <Spinner size="sm" className={SPINNER_CLASS[variant]} />
       ) : icon ? (
         <span className="shrink-0">{icon}</span>
       ) : null}

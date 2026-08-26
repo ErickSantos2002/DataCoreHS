@@ -44,4 +44,13 @@ describe("Button", () => {
     render(<Button type="submit">Enviar</Button>);
     expect(screen.getByRole("button")).toHaveAttribute("type", "submit");
   });
+
+  it("o spinner herda a cor do texto da variante, nao a cor de acao", () => {
+    render(
+      <Button variant="danger" loading>
+        Excluir
+      </Button>,
+    );
+    expect(screen.getByRole("status").className).toContain("!text-on-danger");
+  });
 });

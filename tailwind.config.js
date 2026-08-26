@@ -31,6 +31,13 @@ module.exports = {
         // precisa de "text-on-primary" e o token ja existe em colors.css
         // (--text-on-primary), so nao estava mapeado ainda.
         "on-primary": "var(--text-on-primary)",
+        // Idem para danger/success: o Button original usa branco solido
+        // (#fff) como texto sobre esses dois fundos. "white" do Tailwind e
+        // hexadecimal embutido (nao var()), entao nao e classe de token -
+        // ficaria preso caso o tema mude essa cor um dia. --color-white ja
+        // existe em colors.css desde a Fase 0; so faltava a classe.
+        "on-danger": "var(--color-white)",
+        "on-success": "var(--color-white)",
         surface: {
           DEFAULT: "var(--surface)",
           base: "var(--bg-base)",
