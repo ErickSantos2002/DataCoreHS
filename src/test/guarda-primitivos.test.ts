@@ -14,13 +14,31 @@ describe("contrato de port dos primitivos", () => {
     expect(primitivos().length).toBeGreaterThan(0);
   });
 
-  it("nenhum primitivo usa estilo inline", () => {
-    // O original do design system usa style={{...}} porque roda fora do
-    // Tailwind. Aqui tudo e classe: estilo inline nao tem :hover, nao tem
-    // focus-visible, nao e responsivo e nao da para sobrescrever por classe.
-    const infratores = primitivos().filter((c) =>
-      /style=\{\{/.test(readFileSync(c, "utf8")),
-    );
+  it("nenhum primitivo usa estilo inline para aparencia", () => {
+    // A proibicao e contra APARENCIA: cor, espacamento, borda, sombra. Inline,
+    // essas perdem :hover, focus-visible e responsivo, e escapam do token.
+    //
+    // Geometria vinda de dado em tempo de execucao e outra coisa: a largura de
+    // uma barra de progresso e um numero que so existe rodando, o Tailwind nao
+    // tem como expressa-la, e a alternativa - uma tabela de 101 classes
+    // literais - gera 107 regras de CSS para dizer um numero.
+    // [^,;]*\}\}$ (nao so [^;]*\}\}) : sem a virgula proibida e a ancora no
+    // fim, "width: X, background: Y" passava - [^;]* engole a virgula e
+    // chega ate o "}}" verdadeiro carregando a segunda propriedade de
+    // aparencia junto. So width/height sozinho no bloco passa.
+    const permitido = /^\s*style=\{\{\s*(width|height):[^,;]*\}\}$/;
+    const infratores: string[] = [];
+    for (const caminho of primitivos()) {
+      const conteudo = readFileSync(caminho, "utf8");
+      // [\s\S]*? (preguicoso) em vez de [^}]* : um valor como
+      // `${largura}%` tem um "}" solto no meio (o fecho do "${...}" do
+      // template string), e [^}]* para exatamente nesse "}" e nunca acha o
+      // "}}" verdadeiro logo depois - o achado simplesmente nao aparece e o
+      // guarda fica cego para o proprio caso que deveria examinar.
+      for (const achado of conteudo.match(/style=\{\{[\s\S]*?\}\}/g) ?? []) {
+        if (!permitido.test(achado)) infratores.push(`${caminho}: ${achado.slice(0, 60)}`);
+      }
+    }
     expect(infratores).toEqual([]);
   });
 
