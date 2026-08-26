@@ -69,6 +69,11 @@ describe("tokens que os primitivos consomem", () => {
     expect(config.theme.extend.boxShadow.xl).toBe("var(--shadow-xl)");
   });
 
+  it("o balao de tooltip e escuro nos dois temas, de proposito", () => {
+    expect(cores.tooltip.DEFAULT).toBe("var(--color-slate-900)");
+    expect(cores.tooltip.fg).toBe("var(--color-white)");
+  });
+
   it("as tintas semanticas e seus pares de texto existem", () => {
     for (const nome of ["primary", "success", "danger", "warning", "info", "neutral"]) {
       expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);

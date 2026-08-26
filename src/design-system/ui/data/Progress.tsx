@@ -78,7 +78,7 @@ export function Progress({
             runtime — o Tailwind não tem como expressar isso em classe. */}
         <div
           className={[
-            "h-full rounded-full transition-[width] duration-300 ease-in-out",
+            "h-full rounded-full transition-[width] duration-200 ease-in-out",
             COR_PREENCHIMENTO[tone],
           ].join(" ")}
           style={{ width: `${largura}%` }}

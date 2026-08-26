@@ -6,7 +6,7 @@ import { Tooltip } from "./Tooltip";
 describe("Tooltip", () => {
   it("aparece ao focar o gatilho, nao so ao passar o mouse", async () => {
     render(
-      <Tooltip content="Recolher menu">
+      <Tooltip label="Recolher menu">
         <button type="button">Menu</button>
       </Tooltip>,
     );

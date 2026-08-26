@@ -70,6 +70,14 @@ module.exports = {
         info: "var(--color-info-500)",
         focus: "var(--focus-ring)",
         overlay: "var(--overlay)",
+        // Balao de tooltip: escuro nos DOIS temas, de proposito. Ele flutua
+        // acima de qualquer superficie e precisa se destacar tanto sobre card
+        // branco quanto sobre navy. --color-slate-900 e --color-white ja
+        // existem em colors.css desde a Fase 0; so faltava a classe.
+        tooltip: {
+          DEFAULT: "var(--color-slate-900)",
+          fg: "var(--color-white)",
+        },
         // Tinta semantica: a cor de significado a 15% de opacidade, ja embutida
         // no token. Fundo de badge, chip e aviso. NAO use o degrau 50 da rampa:
         // um degrau fixo vira retangulo quase branco no meio do navy.
