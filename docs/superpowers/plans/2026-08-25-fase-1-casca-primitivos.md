@@ -1468,15 +1468,747 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ---
 
-## INCOMPLETO — falta escrever
+### Task 10: `chartTheme.ts` — um tema de gráfico para as nove telas
 
-Este plano para na Task 9. As seis restantes ainda não foram escritas:
+**Files:**
+- Create: `src/design-system/chartTheme.ts`
+- Test: `src/design-system/chartTheme.test.ts`
 
-- **Task 10** · `chartTheme.ts` — tema único de recharts a partir dos tokens; 9 telas usam recharts e cada uma escolhe a própria cor hoje
-- **Task 11** · Troca dos papéis de token — os 165 `dark:bg-surface-base` de card viram `bg-surface` e os 40 `dark:bg-darkBlue` de fundo de página viram `bg-surface-base`. Mecânica, com teste de guarda
-- **Task 12** · `AppShell` — Header + Sidebar refeitos, os 19 ícones de `img.icons8.com` viram lucide, e é aqui que a Task 11 tem de pousar junto
-- **Task 13** · Telas piloto pequenas — NotFound, Bloqueio, EmConstrução, Home
-- **Task 14** · Telas piloto — Configurações e Login (o Login resolve os 2 hexadecimais que a Fase 0 deixou por decisão)
-- **Task 15** · Verificação da fase
+**Interfaces:**
+- Consumes: as custom properties dos tokens.
+- Produces: `chartTheme`, um objeto com `axis`, `grid`, `tooltip` e `series`, e a função `corDaSerie(indice: number): string`. Consumidos pelas nove telas com recharts na Fase 3.
 
-Falta também a auto-revisão do plano e a tabela de cobertura do spec.
+**Por que este arquivo existe.** Nove das dezoito telas usam `recharts`, e hoje
+cada uma escolhe a própria cor no meio do JSX. Sem um tema único, a Fase 3
+recria a divergência de cor nove vezes — que é exatamente como os oito sistemas
+da H&S chegaram a quatro azuis diferentes.
+
+**O problema técnico que ele resolve.** O `recharts` recebe cor por **prop**, não
+por classe: `<Bar fill="..." />`. Prop não enxerga classe do Tailwind. Então o
+tema precisa entregar cor **resolvida em tempo de execução**, lendo a custom
+property do documento — e reagindo à troca de tema, porque o valor muda quando a
+classe `dark` entra no `<html>`.
+
+A leitura é `getComputedStyle(document.documentElement).getPropertyValue(nome)`.
+Em `jsdom` isso devolve string vazia para custom property não declarada, então o
+tema precisa de um valor de reserva por token, e o teste cobre os dois caminhos.
+
+**A rampa de séries** sai da paleta do design system, nesta ordem: `--color-primary-500`,
+`--color-success-500`, `--color-warning-500`, `--color-info-500`, `--color-danger-500`,
+`--color-primary-300`. Seis séries; a sétima volta ao começo por módulo.
+
+- [ ] **Step 1: Escrever o teste**
+
+```ts
+import { describe, expect, it } from "vitest";
+import { chartTheme, corDaSerie } from "./chartTheme";
+
+describe("tema de grafico", () => {
+  it("entrega eixo, grade e tooltip", () => {
+    expect(chartTheme.axis).toBeTruthy();
+    expect(chartTheme.grid).toBeTruthy();
+    expect(chartTheme.tooltip).toBeTruthy();
+  });
+
+  it("a rampa de series tem seis cores distintas", () => {
+    const cores = chartTheme.series;
+    expect(cores).toHaveLength(6);
+    expect(new Set(cores).size).toBe(6);
+  });
+
+  it("a setima serie volta ao comeco, em vez de sumir", () => {
+    expect(corDaSerie(6)).toBe(corDaSerie(0));
+    expect(corDaSerie(7)).toBe(corDaSerie(1));
+  });
+
+  it("cai no valor de reserva quando a custom property nao esta declarada", () => {
+    // jsdom nao carrega o CSS dos tokens, entao getPropertyValue devolve "".
+    // Sem reserva, o recharts receberia string vazia e nao pintaria nada.
+    for (const cor of chartTheme.series) {
+      expect(cor).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+});
+```
+
+- [ ] **Step 2: Rodar e confirmar que falha**
+
+Run: `npm test -- chartTheme`
+Expected: FAIL — não há `./chartTheme`.
+
+- [ ] **Step 3: Implementar**
+
+```ts
+/** Tema unico de grafico, derivado dos tokens do design system.
+ *
+ * O recharts recebe cor por prop, nao por classe, e prop nao enxerga classe do
+ * Tailwind. Por isso este modulo resolve a custom property em tempo de
+ * execucao: o valor muda quando a classe `dark` entra no <html>, e o grafico
+ * precisa acompanhar.
+ *
+ * Nove telas usam recharts. Sem este arquivo, cada uma escolhe a propria cor -
+ * que e como os oito sistemas da H&S chegaram a quatro azuis diferentes.
+ */
+
+/** Le a custom property do documento, com reserva. A reserva importa: em jsdom
+ *  o CSS dos tokens nao carrega e getPropertyValue devolve string vazia, e o
+ *  recharts com cor vazia simplesmente nao pinta. */
+function token(nome: string, reserva: string): string {
+  if (typeof document === "undefined") return reserva;
+  const valor = getComputedStyle(document.documentElement)
+    .getPropertyValue(nome)
+    .trim();
+  return valor || reserva;
+}
+
+export const chartTheme = {
+  get axis() {
+    return { stroke: token("--text-muted", "#64748b"), fontSize: 12 };
+  },
+  get grid() {
+    return { stroke: token("--border-color", "#e2e8f0") };
+  },
+  get tooltip() {
+    return {
+      backgroundColor: token("--surface", "#ffffff"),
+      border: `1px solid ${token("--border-color", "#e2e8f0")}`,
+      borderRadius: token("--radius-lg", "0.5rem"),
+      color: token("--text-body", "#1e293b"),
+    };
+  },
+  get series() {
+    return [
+      token("--color-primary-500", "#1f89ca"),
+      token("--color-success-500", "#10b981"),
+      token("--color-warning-500", "#f59e0b"),
+      token("--color-info-500", "#3b82f6"),
+      token("--color-danger-500", "#ef4444"),
+      token("--color-primary-300", "#7bc0ea"),
+    ];
+  },
+};
+
+/** Cor da serie N. A setima volta ao comeco em vez de sumir. */
+export function corDaSerie(indice: number): string {
+  const rampa = chartTheme.series;
+  return rampa[indice % rampa.length];
+}
+```
+
+- [ ] **Step 4: Rodar e confirmar que passa**
+
+Run: `npm test`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/design-system/chartTheme.ts src/design-system/chartTheme.test.ts
+git commit -m "Cria o tema unico de grafico
+
+Nove telas usam recharts e cada uma escolhe a propria cor hoje. O recharts
+recebe cor por prop e prop nao enxerga classe do Tailwind, entao o tema
+resolve a custom property em tempo de execucao e acompanha a troca de tema.
+Cada token tem valor de reserva, porque em jsdom o CSS nao carrega e cor
+vazia faz o grafico nao pintar nada.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 11: Desfazer a inversão de papéis dos tokens
+
+Esta é a task que a revisão final da Fase 0 mandou existir, e a Task 12 depende
+dela. **Nenhuma outra task pode ser executada entre as duas** — separadas, elas
+quebram a tela; juntas, ela fica certa.
+
+**Files:**
+- Modify: todos os `src/**/*.tsx` com `dark:bg-surface-base` ou `dark:bg-darkBlue`
+- Test: `src/test/guarda-papeis-token.test.ts`
+
+**Interfaces:**
+- Consumes: as classes `bg-surface` e `bg-surface-base` do `tailwind.config.js`.
+- Produces: um app onde `--surface` é card e `--bg-base` é fundo de página, que é o que o `AppShell` da Task 12 assume.
+
+**O problema, medido.** O design system define `--bg-base` como *fundo da página*
+e `--surface` como *card, painel, topbar*. O codemod da Fase 0 mapeou por valor de
+cor, não por papel, e o app hoje faz o contrário:
+
+| Papel na tela | Classe de hoje | Valor | Token cujo papel ele ocupa |
+|---|---|---|---|
+| Fundo de página (40 ocorrências) | `dark:bg-darkBlue` | `#132238` | é o valor de `--surface` |
+| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base` | `#0d1b2a` | é o `--bg-base` |
+
+Consequência já visível: card sobre página dá **1,09** de contraste, contra 1,72
+antes da Fase 0 — o card quase deixou de se destacar, e a elevação lê ao
+contrário. E a armadilha: se a Task 12 arrumar o `body` para `var(--bg-base)` sem
+esta troca, a página fica idêntica aos 165 cards, contraste 1,00, e todo card do
+sistema desaparece.
+
+**A troca:**
+
+- `dark:bg-surface-base` → `dark:bg-surface` (os 165 de card/header/sidebar)
+- `dark:bg-darkBlue` → `dark:bg-surface-base` (os 40 de fundo de página)
+
+**Cuidado com a ordem.** Fazer as duas com `sed` em sequência transforma os 165
+em `dark:bg-surface` e depois os 40 em `dark:bg-surface-base` — mas se a segunda
+rodar antes da primeira, os 40 viram `surface-base` e aí a primeira os pega de
+novo. **Rode na ordem abaixo**, que não se cruza: primeiro `darkBlue` para um
+nome temporário, depois `surface-base` para `surface`, depois o temporário para
+`surface-base`.
+
+- [ ] **Step 1: Escrever o teste de guarda**
+
+```ts
+import { readdirSync, readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const telas = readdirSync("src", { recursive: true, encoding: "utf8" })
+  .filter((c) => c.endsWith(".tsx") && !c.endsWith(".test.tsx"))
+  .map((c) => `src/${c}`)
+  .filter((c) => !c.startsWith("src/design-system/"));
+
+describe("papeis dos tokens de superficie", () => {
+  it("darkBlue nao existe mais: era alias depreciado da Fase 0", () => {
+    const infratores = telas.filter((c) => /darkBlue/.test(readFileSync(c, "utf8")));
+    expect(infratores).toEqual([]);
+  });
+
+  it("nenhum card usa bg-surface-base, que e fundo de pagina", () => {
+    // --bg-base e fundo de pagina; --surface e card, painel e topbar. A Fase 0
+    // inverteu os dois ao mapear por valor de cor em vez de por papel. Com os
+    // papeis trocados, o AppShell arrumando o body apaga todos os cards.
+    const infratores: string[] = [];
+    for (const caminho of telas) {
+      const conteudo = readFileSync(caminho, "utf8");
+      conteudo.split("\n").forEach((linha, i) => {
+        const ehCartao = /rounded-(xl|lg)|shadow|\bp-[46]\b/.test(linha);
+        if (ehCartao && /bg-surface-base/.test(linha)) {
+          infratores.push(`${caminho}:${i + 1}`);
+        }
+      });
+    }
+    expect(infratores).toEqual([]);
+  });
+});
+```
+
+- [ ] **Step 2: Rodar e confirmar que falha**
+
+Run: `npm test -- guarda-papeis-token`
+Expected: FAIL — 42 arquivos com `darkBlue` e vários cards com `bg-surface-base`.
+
+- [ ] **Step 3: Rodar a troca, na ordem que não se cruza**
+
+```bash
+cd ~/github/DataCoreHS
+FILES=$(grep -rl 'dark:bg-surface-base\|dark:bg-darkBlue\|bg-darkBlue' --include='*.tsx' --include='*.css' src | grep -v '^src/design-system/')
+perl -pi -e 's/\bbg-darkBlue\b/bg-FUNDO-TEMP/g' $FILES
+perl -pi -e 's/\bbg-surface-base\b/bg-surface/g' $FILES
+perl -pi -e 's/\bbg-FUNDO-TEMP\b/bg-surface-base/g' $FILES
+```
+
+Depois confirme que o marcador temporário não sobrou em lugar nenhum:
+
+```bash
+grep -rn 'FUNDO-TEMP' src/ || echo "limpo"
+```
+
+- [ ] **Step 4: Conferir o diff antes de aceitar**
+
+Run: `git diff --stat` e depois `git diff src/App.tsx`
+
+Expected: só classes mudaram. O `App.tsx` deve mostrar o `<main>` e o `<div>` de
+altura total passando de `dark:bg-darkBlue` para `dark:bg-surface-base`.
+
+- [ ] **Step 5: Remover o alias depreciado do `tailwind.config.js`**
+
+O `darkBlue` existia só como ponte para as 42 ocorrências que acabaram de sumir.
+Remova a linha e o comentário dela. O teste do config que verifica
+`cores.darkBlue` também sai — não é mais contrato.
+
+- [ ] **Step 6: Rodar e confirmar que passa**
+
+Run: `npm test`
+Expected: PASS.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/ tailwind.config.js
+git commit -m "Desfaz a inversao de papeis dos tokens de superficie
+
+O codemod da Fase 0 mapeou por valor de cor e nao por papel, e o app
+acabou usando o valor de --surface como fundo de pagina e o --bg-base como
+card. Contraste de card sobre pagina caiu para 1,09.
+
+Os 165 de card, header e sidebar voltam para bg-surface e os 40 de fundo de
+pagina para bg-surface-base. Sem isso, o AppShell arrumando o body deixaria
+pagina e card com a mesma cor e apagaria todo card do sistema.
+
+O alias darkBlue sai: existia so como ponte para as ocorrencias que
+acabaram de sumir.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 12: `AppShell` — a casca refeita
+
+**Files:**
+- Create: `src/design-system/ui/navigation/AppShell.tsx`
+- Modify: `src/design-system/ui/navigation/index.ts`
+- Rewrite: `src/components/Header.tsx`, `src/components/Sidebar.tsx`
+- Modify: `src/App.tsx`, `src/styles/index.css`
+- Test: `src/design-system/ui/navigation/AppShell.test.tsx`, `src/test/guarda-icones.test.ts`
+
+**Interfaces:**
+- Consumes: `Icon`, `Tooltip`, `Avatar`, `Button` das tasks anteriores, e os papéis de token corrigidos na Task 11.
+- Produces: `AppShell`, consumido pelo `App.tsx`.
+
+**Quatro coisas acontecem aqui, e as quatro são obrigatórias:**
+
+**(a) Os 19 ícones remotos morrem.** Hoje a `Sidebar`, o `Header` e o `Login`
+carregam ícone como `<img src="https://img.icons8.com/...">`, com a cor passada
+por querystring. É rede no caminho da navegação e some se o icons8 cair. Todos
+viram `lucide-react`, que já é dependência e já é usada em 15 arquivos. O
+mapeamento sai do `alt=` de cada um:
+
+| `alt` de hoje | Ícone lucide |
+|---|---|
+| Início | `Home` |
+| Dashboard | `LayoutDashboard` |
+| Vendas | `ShoppingCart` |
+| Clientes | `Users` |
+| Estoque | `Package` |
+| Serviços | `Wrench` |
+| Produtos | `Tag` |
+| Vendedores | `UserCheck` |
+| Financeiro | `Wallet` |
+| Usuários | `UserCog` |
+| Configurações | `Settings` |
+| Sair | `LogOut` |
+| Modo Escuro | `Moon` |
+| Modo Claro | `Sun` |
+| Usuário | `User` |
+
+O `alt="Logo"` e `alt="Logo Health & Safety"` **não** são ícone — são a imagem da
+marca em `src/assets/`, e ficam como estão.
+
+**(b) As medidas da casca saem de token.** Sidebar `w-sidebar` (256px) e
+`w-sidebar-collapsed` (72px), topbar `h-topbar` (64px). As classes vieram na
+Task 1.
+
+**(c) O item ativo da navegação** tem fundo `bg-action-tint`, texto `text-action`
+e barra de 2px à esquerda. É o mesmo motivo em todos os oito sistemas da H&S.
+
+**(d) As três colisões de cascata da Fase 0 são resolvidas aqui**, e estão
+documentadas no spec:
+
+- As regras de `body` e `.dark body` em `src/styles/index.css` saem, para que o
+  `body { background: var(--bg-base) }` do `tokens/base.css` finalmente valha. A
+  Task 11 já garantiu que isso não apaga os cards.
+- A classe `bg-gray-100` do `<body>` em `index.html` sai pelo mesmo motivo.
+- As regras de `::-webkit-scrollbar` de `src/styles/index.css` saem, para valer a
+  do design system.
+
+- [ ] **Step 1: Escrever o guarda de ícones**
+
+```ts
+import { readdirSync, readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+// Nasce restrito a src/components/ de proposito: o ultimo icone remoto vive em
+// src/pages/Login.tsx e so sai na Task 14, que amplia esta varredura para src/
+// inteiro. Suite que fica vermelha de proposito e suite que ninguem olha.
+const telas = readdirSync("src/components", { recursive: true, encoding: "utf8" })
+  .filter((c) => c.endsWith(".tsx") && !c.endsWith(".test.tsx"))
+  .map((c) => `src/components/${c}`);
+
+describe("guarda de icones", () => {
+  it("nenhum icone vem de servidor remoto", () => {
+    // Icone por <img src="https://img.icons8.com/..."> poe a rede no caminho da
+    // navegacao, muda de cor por querystring e some se o servico cair. Icone e
+    // componente: lucide-react, que ja e dependencia.
+    const infratores: string[] = [];
+    for (const caminho of telas) {
+      const conteudo = readFileSync(caminho, "utf8");
+      conteudo.split("\n").forEach((linha, i) => {
+        if (/img\.icons8\.com/.test(linha)) infratores.push(`${caminho}:${i + 1}`);
+      });
+    }
+    expect(infratores).toEqual([]);
+  });
+});
+```
+
+- [ ] **Step 2: Rodar e confirmar que falha**
+
+Run: `npm test -- guarda-icones`
+Expected: FAIL — 19 linhas listadas em `Sidebar.tsx`, `Header.tsx` e `Login.tsx`.
+
+**Nota importante sobre o escopo deste guarda.** A ocorrência em `Login.tsx` só
+sai na Task 14, então um guarda que varra `src/` inteiro ficaria vermelho ao fim
+desta task — e suíte que fica vermelha de propósito é suíte que ninguém olha.
+
+Escreva o guarda cobrindo **apenas `src/components/`** nesta task, com um
+comentário dizendo que `Login.tsx` entra na Task 14. A Task 14 amplia a varredura
+para `src/` inteiro no mesmo commit em que remove o último ícone remoto. Registre
+no relatório que o guarda nasceu restrito de propósito.
+
+- [ ] **Step 3: Escrever o teste do `AppShell`**
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
+import { AppShell } from "./AppShell";
+
+function montar() {
+  return render(
+    <MemoryRouter>
+      <AppShell
+        user={{ username: "erick", role: "admin" }}
+        items={[
+          { label: "Início", to: "/inicio", icon: "home" },
+          { label: "Vendas", to: "/vendas", icon: "vendas" },
+        ]}
+        onLogout={() => {}}
+      >
+        <p>conteúdo da página</p>
+      </AppShell>
+    </MemoryRouter>,
+  );
+}
+
+describe("AppShell", () => {
+  it("monta topbar, navegacao e conteudo", () => {
+    montar();
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(screen.getByRole("navigation")).toBeInTheDocument();
+    expect(screen.getByText("conteúdo da página")).toBeInTheDocument();
+  });
+
+  it("cada item de menu e um link de verdade", () => {
+    montar();
+    expect(screen.getByRole("link", { name: /Início/ })).toHaveAttribute(
+      "href",
+      "/inicio",
+    );
+  });
+});
+```
+
+Os nomes de prop (`user`, `items`, `onLogout`) vêm do `.d.ts` do `AppShell` no
+design system. **Use os dele** e ajuste o teste; registre a divergência.
+
+- [ ] **Step 4: Rodar e confirmar que falha**
+
+Run: `npm test -- AppShell`
+Expected: FAIL — não há `./AppShell`.
+
+- [ ] **Step 5: Portar o `AppShell` e reescrever `Header` e `Sidebar`**
+
+O `Header` e a `Sidebar` passam a ser composições finas em cima do `AppShell`, ou
+são absorvidos por ele — o que o `.d.ts` do design system indicar. A lógica de
+papel que decide quais itens aparecem **não muda de comportamento**: hoje ela
+está espalhada entre `Sidebar.tsx` e `router.tsx`, e unificá-la é trabalho da
+Fase 2, não desta task. Aqui ela só muda de lugar, igual.
+
+- [ ] **Step 6: Resolver as três colisões de cascata**
+
+Remover de `src/styles/index.css` os blocos `body`, `.dark body` e as regras de
+`::-webkit-scrollbar`. Remover `class="bg-gray-100"` do `<body>` em `index.html`.
+
+- [ ] **Step 7: Rodar tudo**
+
+Run: `npm test && npm run build`
+Expected: PASS e build limpo.
+
+- [ ] **Step 8: Conferir no navegador**
+
+Run: `npm run dev`. Com sessão logada, percorrer Início, Dashboard e Vendas nos
+dois temas. O que se procura: item ativo destacado, sidebar recolhendo, card se
+separando do fundo — que é o que a Task 11 devolveu.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add src/ index.html
+git commit -m "Refaz a casca do app sobre o AppShell
+
+Os 19 icones que vinham de img.icons8.com viram lucide-react: rede no
+caminho da navegacao, cor por querystring e dependencia de um servico
+externo para desenhar o menu. As medidas da casca saem de token, e o item
+ativo ganha o motivo do design system - fundo de tinta, texto de acao e
+barra de 2px a esquerda.
+
+Resolve tambem as tres colisoes de cascata que a Fase 0 documentou: saem as
+regras de body, de scrollbar e a classe de fundo do index.html, para que o
+base.css do design system finalmente valha.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 13: Telas piloto pequenas — `NotFound`, `Bloqueio`, `EmConstrucao`, `Home`
+
+As quatro somam 125 linhas. São o primeiro teste real do contrato que a Fase 3
+vai usar doze vezes.
+
+**Files:**
+- Rewrite: `src/pages/NotFound.tsx` (19 linhas), `src/pages/Bloqueio.tsx` (26), `src/pages/EmConstrucao.tsx` (27), `src/pages/Home.tsx` (53)
+- Test: um `.test.tsx` ao lado de cada
+
+**Interfaces:**
+- Consumes: `Card`, `Button`, `Alert` e `Icon` das tasks anteriores.
+- Produces: nada que outras tasks consumam. É prova de contrato.
+
+**O contrato de tela migrada**, que vale aqui e nas doze da Fase 3 — é o
+checklist do `guidelines/adocao.md`:
+
+- Nenhum hexadecimal cravado no JSX
+- Nenhum `dark:` por classe onde existe token semântico equivalente
+- Azul de ação é `--action`, não o azul da marca
+- Botão primário: um por bloco de decisão
+- Texto abaixo de 12px: nenhum
+- Estado vazio com frase completa e ação, quando existe uma
+- Ícone é componente, não emoji nem caractere
+- `focus-visible` com anel de 2px
+- Nada animando em laço fora spinner
+
+**O layout não muda.** Troca-se o Tailwind cru pelos primitivos; o que a tela
+mostra e por onde o usuário anda continuam iguais.
+
+- [ ] **Step 1: Ler as quatro telas antes de tocar**
+
+Elas são curtas. Leia as quatro inteiras e anote, para cada uma, o que ela
+mostra e o que ela faz — é isso que tem de continuar verdadeiro depois.
+
+- [ ] **Step 2: Escrever o teste de caracterização de cada uma**
+
+Um teste por tela, fixando o que ela mostra hoje. Exemplo para `NotFound.tsx`:
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
+import NotFound from "./NotFound";
+
+describe("NotFound", () => {
+  it("diz que a pagina nao existe e oferece caminho de volta", () => {
+    render(
+      <MemoryRouter>
+        <NotFound />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading")).toBeInTheDocument();
+    expect(screen.getByRole("link")).toBeInTheDocument();
+  });
+});
+```
+
+Para `Bloqueio` e `EmConstrucao`, fixe o texto que cada uma exibe hoje,
+literalmente. Para `Home`, fixe os elementos de navegação que ela oferece.
+
+- [ ] **Step 3: Rodar e confirmar que passam**
+
+Run: `npm test -- pages/`
+Expected: PASS — o teste de caracterização descreve o que já existe.
+
+- [ ] **Step 4: Migrar as quatro**
+
+Uma por vez, trocando por primitivos e passando o checklist. Depois de cada uma,
+`npm test` — os testes de caracterização têm de continuar passando.
+
+- [ ] **Step 5: Rodar tudo**
+
+Run: `npm test && npm run build`
+Expected: PASS e build limpo.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/pages/
+git commit -m "Migra as quatro telas piloto pequenas
+
+NotFound, Bloqueio, EmConstrucao e Home passam a usar os primitivos. O
+layout nao muda: troca-se Tailwind cru por componente, zera-se dark: e
+hexadecimal, e passa-se o checklist de dez itens do design system. Teste de
+caracterizacao escrito antes fixa o que cada tela mostrava.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 14: Telas piloto — `Configuracoes` e `Login`
+
+**Files:**
+- Rewrite: `src/pages/Configuracoes.tsx` (147 linhas), `src/pages/Login.tsx` (116)
+- Modify: `src/test/guarda-icones.test.ts` (ampliar de `src/components/` para `src/`)
+- Modify: `src/test/guarda-cores.test.ts` (remover a exceção do `Login.tsx`)
+- Test: `src/pages/Configuracoes.test.tsx`, `src/pages/Login.test.tsx`
+
+**Interfaces:**
+- Consumes: `Input`, `Switch`, `Button`, `Card`, `Alert` das tasks anteriores.
+- Produces: nada que outras tasks consumam.
+
+**O `Login` fecha duas dívidas que a Fase 0 registrou de propósito:**
+
+- Ele tem as **duas únicas ocorrências de hexadecimal arbitrário** que sobraram
+  no projeto: `bg-[#0a192f]` (linha 33, fundo cheio) e `bg-[#0f172a]` (linha 41,
+  círculo do avatar). São painel escuro **deliberado nos dois temas** — o design
+  system registra login escuro como exceção. Ao migrar, elas saem do hexadecimal
+  mas **o login continua escuro nos dois temas**: use os tokens do tema escuro
+  explicitamente, não `bg-surface`, que clareia no tema claro.
+- Ele tem o **19º ícone remoto** (`Login.tsx:44`, o ícone de usuário no topo),
+  que vira `lucide-react`.
+
+Com os dois resolvidos, a exceção do `Login.tsx` sai do teste de guarda de cores
+e o guarda de ícones volta a cobrir `src/` inteiro.
+
+**`Configuracoes`** é a maior das piloto e a que mais exercita formulário —
+`Input`, `Switch` e `Button` de uma vez.
+
+- [ ] **Step 1: Escrever os testes de caracterização**
+
+Leia as duas telas inteiras primeiro. Para o `Login`, fixe: campo de usuário,
+campo de senha, botão de entrar, e o que acontece quando as credenciais falham.
+Para `Configuracoes`, fixe cada controle que ela oferece e o que ele altera.
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
+import Login from "./Login";
+
+describe("Login", () => {
+  it("oferece usuario, senha e um botao de entrar", () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>,
+    );
+    expect(screen.getByLabelText(/usu[áa]rio/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument();
+  });
+});
+```
+
+Se a tela de hoje não tiver rótulo acessível nos campos, o teste falha — e nesse
+caso **o teste está certo e a tela está errada**: acrescente o rótulo na
+migração e diga no relatório.
+
+- [ ] **Step 2: Rodar e ver o estado atual**
+
+Run: `npm test -- pages/`
+Expected: pode falhar, se a tela de hoje não tiver rótulo acessível. Anote qual
+falhou e por quê antes de migrar.
+
+- [ ] **Step 3: Migrar `Configuracoes`**
+
+- [ ] **Step 4: Migrar `Login`**
+
+Mantendo o painel escuro nos dois temas, sem hexadecimal cravado.
+
+- [ ] **Step 5: Ampliar os dois guardas**
+
+O guarda de ícones volta a cobrir `src/` inteiro. A exceção do `Login.tsx` sai do
+`EXCECOES` do guarda de cores, junto com o comentário que a explicava.
+
+- [ ] **Step 6: Rodar tudo**
+
+Run: `npm test && npm run build`
+Expected: PASS. Zero hexadecimal arbitrário em `src/`, zero ícone remoto.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/
+git commit -m "Migra Configuracoes e Login, e fecha as duas dividas da Fase 0
+
+O Login tinha as duas unicas ocorrencias de hexadecimal arbitrario que
+sobraram no projeto e o ultimo icone remoto. Os tres saem, e o painel
+continua escuro nos dois temas - login escuro e excecao documentada do
+design system, nao desvio.
+
+Com isso a excecao do Login sai do guarda de cores e o guarda de icones
+volta a cobrir src/ inteiro.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 15: Verificação da fase
+
+Sem commit. É o portão antes de declarar a Fase 1 pronta.
+
+**Files:** nenhum.
+
+- [ ] **Step 1: Suíte verde, build limpo, lint sem regressão**
+
+```bash
+npm test && npm run build && npm run lint
+```
+
+Expected: suíte verde, build sem erro. O lint continua acusando os problemas
+legados das telas grandes — compare o total com a linha de base de **192
+problemas (62 erros, 130 avisos)** registrada na Fase 0. O número tem de ter
+**caído**, porque seis telas foram migradas. Se subiu, alguma migração
+introduziu problema novo: investigue antes de seguir.
+
+- [ ] **Step 2: Percorrer as 18 rotas nos dois temas**
+
+`npm run dev`, e as mesmas 18 rotas do checkpoint da Fase 0. O que se procura
+agora é diferente: as seis telas migradas devem parecer irmãs das doze que ainda
+não foram, não estranhas a elas. Card se separando do fundo, item ativo
+destacado, foco visível ao andar de `Tab`.
+
+- [ ] **Step 3: Conferir que as doze telas grandes não mudaram**
+
+```bash
+git diff --stat main...HEAD -- src/pages/Vendas.tsx src/pages/Clientes.tsx src/pages/Estoque.tsx src/pages/Produtos.tsx src/pages/Servicos.tsx src/pages/Vendedores.tsx src/pages/ContasPagar.tsx src/pages/ContasReceber.tsx src/pages/GerenciamentoFinanceiro.tsx src/pages/Locacao.tsx src/pages/Usuarios.tsx src/pages/Dashboard.tsx
+```
+
+Expected: as únicas linhas alteradas são as da Task 11 (troca de papel de token)
+e as da Task 8 (os `alert()` do `Dashboard` e do `Vendedores`). Qualquer outra
+coisa saiu do escopo da fase.
+
+- [ ] **Step 4: Registrar o que ficou para a Fase 3**
+
+Consolidar no spec, na seção "Achados do checkpoint da Fase 0", o que a migração
+das seis piloto revelou e que vale para as doze grandes: divergência de API que
+apareceu, padrão que teve de ser inventado, tela que resistiu ao contrato.
+
+- [ ] **Step 5: Checkpoint com o Erick**
+
+Mostrar o resultado nos dois temas. Nada de `git push` sem autorização.
+
+---
+
+## Cobertura do spec
+
+| Entrega da Fase 1 no spec | Task |
+|---|---|
+| Primitivos de `core/` | 1, 2, 3 |
+| Primitivos de `forms/` | 4, 5 |
+| Primitivos de `data/` | 6 |
+| Primitivos de `feedback/` | 7, 8 |
+| Primitivos de `navigation/` | 9, 12 |
+| `AppShell` com ícones locais e medidas de token | 12 |
+| `chartTheme.ts` | 10 |
+| As três colisões de cascata documentadas no spec | 12 |
+| A inversão de papéis dos tokens documentada no spec | 11 |
+| Telas piloto | 13, 14 |
+| "Pronto quando" da fase | 15 |
+
+**Fora de escopo, por decisão registrada no spec:** `Rating` e `SlaChip` (conceitos
+de HelpHS e ChamadosHS, inexistentes aqui), `Rotulo` e `Colchetes` (pele de
+console, exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia
+arquivo).
