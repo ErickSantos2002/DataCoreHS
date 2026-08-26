@@ -16,11 +16,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary: "border border-action bg-action text-on-primary hover:bg-action-hover",
   secondary: "border border-borda bg-surface text-conteudo hover:bg-surface-elevated",
-  // Não há degrau 600 de danger/success mapeado no Tailwind (só o DEFAULT,
-  // que é o 500) — o original escurece no hover com esse degrau. Aqui o
-  // hover escurece por filtro, não por token, na falta de um.
-  danger: "border border-danger bg-danger text-white hover:brightness-90",
-  success: "border border-success bg-success text-white hover:brightness-90",
+  danger: "border border-danger bg-danger text-white hover:bg-danger-hover",
+  success: "border border-success bg-success text-white hover:bg-success-hover",
   ghost: "border border-transparent bg-transparent text-conteudo-muted hover:bg-surface-elevated",
 };
 

@@ -47,8 +47,18 @@ module.exports = {
           muted: "var(--text-muted)",
           faint: "var(--text-faint)",
         },
-        success: "var(--color-success-500)",
-        danger: "var(--color-danger-500)",
+        // success e danger ganham "hover" na Task 2: o Button escurece um
+        // degrau (500 -> 600) no hover, igual ao primary faz com
+        // action/action-hover. bg-success e text-danger etc. continuam
+        // funcionando: DEFAULT resolve exatamente como a string resolvia.
+        success: {
+          DEFAULT: "var(--color-success-500)",
+          hover: "var(--color-success-600)",
+        },
+        danger: {
+          DEFAULT: "var(--color-danger-500)",
+          hover: "var(--color-danger-600)",
+        },
         warning: "var(--color-warning-500)",
         info: "var(--color-info-500)",
         focus: "var(--focus-ring)",
