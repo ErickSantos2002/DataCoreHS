@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
                   sucesso(
                     "Fluxo de busca de notas acionado. Aguarde cerca de 5 minutos para que todas as notas sejam atualizadas."
                   );
-                } catch (err) {
+                } catch {
                   erro("Não foi possível acionar o fluxo.");
                 }
               }}
