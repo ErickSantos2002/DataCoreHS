@@ -61,3 +61,30 @@ describe("fonte e raio", () => {
     expect(config.theme.extend.borderRadius.lg).toBe("var(--radius-lg)");
   });
 });
+
+describe("tokens que os primitivos consomem", () => {
+  it("foco, cortina e sombra saem de token", () => {
+    expect(cores.focus).toBe("var(--focus-ring)");
+    expect(cores.overlay).toBe("var(--overlay)");
+    expect(config.theme.extend.boxShadow.xl).toBe("var(--shadow-xl)");
+  });
+
+  it("as tintas semanticas e seus pares de texto existem", () => {
+    for (const nome of ["primary", "success", "danger", "warning", "info", "neutral"]) {
+      expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);
+      expect(cores["on-tint"][nome]).toBe(`var(--on-tint-${nome})`);
+    }
+  });
+
+  it("as medidas da casca saem de token", () => {
+    expect(config.theme.extend.width.sidebar).toBe("var(--sidebar-width)");
+    expect(config.theme.extend.width["sidebar-collapsed"]).toBe("var(--sidebar-width-collapsed)");
+    expect(config.theme.extend.height.topbar).toBe("var(--topbar-height)");
+  });
+
+  it("os raios de badge e chip existem", () => {
+    expect(config.theme.extend.borderRadius.sm).toBe("var(--radius-sm)");
+    expect(config.theme.extend.borderRadius.md).toBe("var(--radius-md)");
+    expect(config.theme.extend.borderRadius.full).toBe("var(--radius-full)");
+  });
+});

@@ -46,6 +46,28 @@ module.exports = {
         danger: "var(--color-danger-500)",
         warning: "var(--color-warning-500)",
         info: "var(--color-info-500)",
+        focus: "var(--focus-ring)",
+        overlay: "var(--overlay)",
+        // Tinta semantica: a cor de significado a 15% de opacidade, ja embutida
+        // no token. Fundo de badge, chip e aviso. NAO use o degrau 50 da rampa:
+        // um degrau fixo vira retangulo quase branco no meio do navy.
+        tint: {
+          primary: "var(--tint-primary)",
+          success: "var(--tint-success)",
+          danger: "var(--tint-danger)",
+          warning: "var(--tint-warning)",
+          info: "var(--tint-info)",
+          neutral: "var(--tint-neutral)",
+        },
+        // O texto que vai por cima de cada tinta. Este sim troca por tema.
+        "on-tint": {
+          primary: "var(--on-tint-primary)",
+          success: "var(--on-tint-success)",
+          danger: "var(--on-tint-danger)",
+          warning: "var(--on-tint-warning)",
+          info: "var(--on-tint-info)",
+          neutral: "var(--on-tint-neutral)",
+        },
 
         // ── Camada 2: ponte de paleta (TEMPORARIA) ───────────────────
         // O JSX escreve cor literal: 272 classes de azul e 132 de slate.
@@ -88,9 +110,25 @@ module.exports = {
         mono: ["var(--font-mono)"],
       },
       borderRadius: {
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
         lg: "var(--radius-lg)",
         xl: "var(--radius-xl)",
         "2xl": "var(--radius-2xl)",
+        full: "var(--radius-full)",
+      },
+      boxShadow: {
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+      },
+      width: {
+        sidebar: "var(--sidebar-width)",
+        "sidebar-collapsed": "var(--sidebar-width-collapsed)",
+      },
+      height: {
+        topbar: "var(--topbar-height)",
       },
       keyframes: {
         blinkLight: {
