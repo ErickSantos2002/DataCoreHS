@@ -26,6 +26,11 @@ module.exports = {
           hover: "var(--action-hover)",
           tint: "var(--action-tint)",
         },
+        // Texto que vai sobre um fundo de acao solido (bg-action, e as
+        // variantes cheias de Button). Adicionado na Task 2: o Button
+        // precisa de "text-on-primary" e o token ja existe em colors.css
+        // (--text-on-primary), so nao estava mapeado ainda.
+        "on-primary": "var(--text-on-primary)",
         surface: {
           DEFAULT: "var(--surface)",
           base: "var(--bg-base)",
