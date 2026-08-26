@@ -8,7 +8,7 @@ interface EmConstrucaoProps {
 const EmConstrucao: React.FC<EmConstrucaoProps> = ({ titulo }) => {
   return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] text-center px-4 
-                    bg-gray-50 dark:bg-surface-base transition-colors">
+                    bg-gray-50 dark:bg-surface transition-colors">
       <Helmet>
         <title>{titulo} | DataCoreHS</title>
       </Helmet>

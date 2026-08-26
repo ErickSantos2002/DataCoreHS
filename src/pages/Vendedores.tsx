@@ -514,7 +514,7 @@ const Vendedores: React.FC = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-surface-base 
+                    bg-white dark:bg-surface 
                     hover:bg-gray-50 dark:hover:bg-gray-700 
                     border-gray-300 dark:border-gray-600 
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -526,7 +526,7 @@ const Vendedores: React.FC = () => {
 
         {isOpen && (
           <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-surface-base 
+                          bg-white dark:bg-surface 
                           border border-gray-200 dark:border-gray-600 
                           rounded-lg shadow-lg 
                           max-h-60 overflow-auto">
@@ -585,7 +585,7 @@ const Vendedores: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base transition-colors">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">
@@ -597,9 +597,9 @@ const Vendedores: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-surface shadow-sm rounded-xl">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Vendedores - Dashboard
@@ -615,7 +615,7 @@ const Vendedores: React.FC = () => {
 
       <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -658,7 +658,7 @@ const Vendedores: React.FC = () => {
               <select
                 value={presetPeriodo}
                 onChange={(e) => setPresetPeriodo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-darkBlue 
+                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-surface-base 
                           dark:text-gray-200 dark:border-gray-600 
                           focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -683,7 +683,7 @@ const Vendedores: React.FC = () => {
                   setPresetPeriodo("custom");
                 }}
                 className="w-full px-3 py-2 border rounded-lg 
-                          bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600 
+                          bg-white dark:bg-surface-base dark:text-gray-200 dark:border-gray-600 
                           focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -701,7 +701,7 @@ const Vendedores: React.FC = () => {
                   setPresetPeriodo("custom");
                 }}
                 className="w-full px-3 py-2 border rounded-lg 
-                          bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600 
+                          bg-white dark:bg-surface-base dark:text-gray-200 dark:border-gray-600 
                           focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -711,7 +711,7 @@ const Vendedores: React.FC = () => {
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Faturamento Total */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Faturamento Total</p>
@@ -729,7 +729,7 @@ const Vendedores: React.FC = () => {
           </div>
 
           {/* Número de Vendas */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Número de Vendas</p>
@@ -744,7 +744,7 @@ const Vendedores: React.FC = () => {
           </div>
 
           {/* Ticket Médio */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Ticket Médio</p>
@@ -762,7 +762,7 @@ const Vendedores: React.FC = () => {
           </div>
 
           {/* Produto Mais Vendido */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div className="min-w-0">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Produto Top</p>
@@ -786,7 +786,7 @@ const Vendedores: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Evolução das Vendas */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Evolução das Vendas
             </h3>
@@ -828,7 +828,7 @@ const Vendedores: React.FC = () => {
           </div>
 
           {/* Top Produtos Vendidos */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top Produtos Vendidos
             </h3>
@@ -899,7 +899,7 @@ const Vendedores: React.FC = () => {
 
 
           {/* Distribuição de Clientes */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Distribuição de Clientes
             </h3>
@@ -955,7 +955,7 @@ const Vendedores: React.FC = () => {
         </div>
 
         {/* Tabela de Vendas */}
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Minhas Vendas

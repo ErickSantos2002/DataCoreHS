@@ -495,7 +495,7 @@ const Servicos: React.FC = () => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-surface-base 
+                    bg-white dark:bg-surface 
                     hover:bg-gray-50 dark:hover:bg-surface 
                     text-gray-700 dark:text-gray-200
                     border-gray-300 dark:border-gray-600
@@ -510,7 +510,7 @@ const Servicos: React.FC = () => {
 
         {isOpen && (
           <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-surface-base 
+                          bg-white dark:bg-surface 
                           border dark:border-gray-600 
                           rounded-lg shadow-lg 
                           max-h-60 overflow-auto">
@@ -561,7 +561,7 @@ const Servicos: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">
@@ -573,10 +573,10 @@ const Servicos: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
       <div className="p-6">
         {/* Cabeçalho */}
-        <div className="bg-white dark:bg-surface-base shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
+        <div className="bg-white dark:bg-surface shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
           <div className="px-6 py-4">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
               Serviços - Dashboard
@@ -592,7 +592,7 @@ const Servicos: React.FC = () => {
 
         <div className="mt-6">
           {/* Filtros */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-6 transition-colors">
             <div className="flex items-center mb-4">
               <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -707,7 +707,7 @@ const Servicos: React.FC = () => {
           {/* KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Faturamento Total */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Faturamento Total</p>
@@ -725,7 +725,7 @@ const Servicos: React.FC = () => {
             </div>
 
             {/* Número de NFS-e */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">NFS-e Emitidas</p>
@@ -740,7 +740,7 @@ const Servicos: React.FC = () => {
             </div>
 
             {/* Ticket Médio */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Ticket Médio</p>
@@ -758,7 +758,7 @@ const Servicos: React.FC = () => {
             </div>
 
             {/* Top Cliente */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">Top Cliente</p>
@@ -781,7 +781,7 @@ const Servicos: React.FC = () => {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Evolução dos Serviços */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Evolução dos Serviços Emitidos
               </h3>
@@ -824,7 +824,7 @@ const Servicos: React.FC = () => {
             </div>
 
             {/* Ranking de Clientes */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Top 10 Clientes
               </h3>
@@ -883,7 +883,7 @@ const Servicos: React.FC = () => {
             </div>
 
             {/* Distribuição por Cidade */}
-            <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors lg:col-span-2">
+            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors lg:col-span-2">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
                 Distribuição por Cidade do Serviço
               </h3>
@@ -928,7 +928,7 @@ const Servicos: React.FC = () => {
           </div>
 
           {/* Tabela de Serviços */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
                 Detalhamento de Serviços
@@ -946,7 +946,7 @@ const Servicos: React.FC = () => {
                     onChange={(e) => setPesquisaTabela(e.target.value)}
                     className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
                               focus:outline-none focus:ring-2 focus:ring-blue-500
-                              bg-white dark:bg-surface-base
+                              bg-white dark:bg-surface
                               text-gray-800 dark:text-gray-200
                               border-gray-300 dark:border-gray-600
                               placeholder-gray-400 dark:placeholder-gray-500
@@ -1083,7 +1083,7 @@ const Servicos: React.FC = () => {
                       className={`border-b border-gray-100 dark:border-gray-700 
                                   hover:bg-gray-50 dark:hover:bg-surface transition-colors ${
                                     index % 2 === 0
-                                      ? "bg-white dark:bg-surface-base"
+                                      ? "bg-white dark:bg-surface"
                                       : "bg-gray-50/50 dark:bg-surface"
                                   }`}
                     >
@@ -1162,7 +1162,7 @@ const Servicos: React.FC = () => {
                       onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                       disabled={paginaAtual === 1}
                       className="px-3 py-1 border rounded-lg 
-                        bg-white dark:bg-surface-base 
+                        bg-white dark:bg-surface 
                         border-gray-300 dark:border-gray-600 
                         text-gray-700 dark:text-gray-300
                         hover:bg-gray-50 dark:hover:bg-surface
@@ -1191,7 +1191,7 @@ const Servicos: React.FC = () => {
                             className={`px-3 py-1 border rounded-lg transition-colors ${
                               paginaAtual === pageNum
                                 ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white dark:bg-surface-base border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface"
+                                : "bg-white dark:bg-surface border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface"
                             }`}
                           >
                             {pageNum}
@@ -1204,7 +1204,7 @@ const Servicos: React.FC = () => {
                       onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
                       disabled={paginaAtual === totalPaginas}
                       className="px-3 py-1 border rounded-lg 
-                        bg-white dark:bg-surface-base 
+                        bg-white dark:bg-surface 
                         border-gray-300 dark:border-gray-600 
                         text-gray-700 dark:text-gray-300
                         hover:bg-gray-50 dark:hover:bg-surface
@@ -1221,7 +1221,7 @@ const Servicos: React.FC = () => {
                     onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
                     disabled={paginaAtual === 1}
                     className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-surface-base 
+                      bg-white dark:bg-surface 
                       border-gray-300 dark:border-gray-600 
                       text-gray-700 dark:text-gray-300
                       hover:bg-gray-50 dark:hover:bg-surface
@@ -1230,7 +1230,7 @@ const Servicos: React.FC = () => {
                     {"<"}
                   </button>
 
-                  <span className="px-3 py-1 border rounded-lg bg-white dark:bg-surface-base border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+                  <span className="px-3 py-1 border rounded-lg bg-white dark:bg-surface border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                     {paginaAtual}
                   </span>
 
@@ -1238,7 +1238,7 @@ const Servicos: React.FC = () => {
                     onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
                     disabled={paginaAtual === totalPaginas}
                     className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-surface-base 
+                      bg-white dark:bg-surface 
                       border-gray-300 dark:border-gray-600 
                       text-gray-700 dark:text-gray-300
                       hover:bg-gray-50 dark:hover:bg-surface

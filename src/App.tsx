@@ -26,11 +26,11 @@ const App: React.FC = () => {
 
   return (
     <ToastProvider>
-      <div className="h-screen flex flex-col bg-gray-100 dark:bg-darkBlue text-gray-900 dark:text-gray-100 transition-colors">
+      <div className="h-screen flex flex-col bg-gray-100 dark:bg-surface-base text-gray-900 dark:text-gray-100 transition-colors">
         <Header onToggleSidebar={() => setSidebarCollapsed((v) => !v)} />
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
           <Sidebar collapsed={sidebarCollapsed} />
-          <main className="flex-1 overflow-auto bg-gray-100 dark:bg-darkBlue transition-colors">
+          <main className="flex-1 overflow-auto bg-gray-100 dark:bg-surface-base transition-colors">
             <AppRoutes />
           </main>
         </div>

@@ -49,10 +49,6 @@ describe("ponte de paleta", () => {
     expect(cores.slate[800]).toBe("#132238");
     expect(cores.slate[700]).toBe("#1a2f4a");
   });
-
-  it("darkBlue sobrevive como alias depreciado", () => {
-    expect(cores.darkBlue).toBe("#132238");
-  });
 });
 
 describe("fonte e raio", () => {

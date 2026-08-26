@@ -141,8 +141,6 @@ module.exports = {
           800: "#132238", // --surface no escuro
           900: "#0d1b2a", // --bg-base no escuro
         },
-        // DEPRECIADO. 42 ocorrencias em 15 arquivos. Morre na Fase 3.
-        darkBlue: "#132238",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

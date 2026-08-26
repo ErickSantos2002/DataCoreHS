@@ -160,7 +160,7 @@ const Locacao: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base transition-colors">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">Carregando locações...</p>
@@ -170,9 +170,9 @@ const Locacao: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-surface shadow-sm rounded-xl">
         <div className="px-6 py-4 flex items-center gap-3">
           <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
             <KeyRound className="w-6 h-6 text-blue-600 dark:text-yellow-300" />
@@ -195,7 +195,7 @@ const Locacao: React.FC = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 mb-6">
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Valor Total em Locação</p>
@@ -209,7 +209,7 @@ const Locacao: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Quantidade de Notas</p>
@@ -221,7 +221,7 @@ const Locacao: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Valor Médio</p>
@@ -237,7 +237,7 @@ const Locacao: React.FC = () => {
       </div>
 
       {/* Tabela */}
-      <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+      <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
             Notas de Locação

@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 
 const Bloqueio: React.FC = () => {
   return (
-    <div className="p-6 h-full bg-gray-50 dark:bg-surface-base flex flex-col items-center justify-center text-center transition-colors">
+    <div className="p-6 h-full bg-gray-50 dark:bg-surface flex flex-col items-center justify-center text-center transition-colors">
 
       <Helmet>
         <title>Acesso negado | DataCoreHS</title>

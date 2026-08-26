@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   return (
     <>
       {/* HEADER FIXO */}
-      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-surface-base backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
+      <header className="sticky top-0 inset-x-0 z-50 bg-white/80 dark:bg-surface backdrop-blur-md shadow flex items-center justify-between px-4 py-3 transition-colors">
         <div className="flex items-center gap-3">
           {/* Hambúrguer mobile */}
           <button
@@ -114,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           />
           <div
             ref={menuRef}
-            className={`fixed inset-y-0 left-0 w-[70vw] bg-white dark:bg-surface-base z-50 shadow-lg px-6 pb-6 flex flex-col transform transition-transform duration-300 ${
+            className={`fixed inset-y-0 left-0 w-[70vw] bg-white dark:bg-surface z-50 shadow-lg px-6 pb-6 flex flex-col transform transition-transform duration-300 ${
               menuAnimado ? "translate-x-0" : "-translate-x-full"
             }`}
           >

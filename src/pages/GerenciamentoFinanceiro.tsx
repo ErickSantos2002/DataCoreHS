@@ -274,7 +274,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
           <p className="mt-4 text-gray-600 dark:text-gray-300">Carregando dados financeiros...</p>
@@ -286,9 +286,9 @@ const GerenciamentoFinanceiro: React.FC = () => {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
       {/* Header + Tabs */}
-      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl px-6 pt-4 mb-4">
+      <div className="bg-white dark:bg-surface shadow-sm rounded-xl px-6 pt-4 mb-4">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
           Gerenciamento Financeiro
         </h1>
@@ -321,7 +321,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
       {abaAtiva === "visaoGeral" && (
         <>
           {/* Controles */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-4 flex flex-wrap gap-4 items-center">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-4 flex flex-wrap gap-4 items-center">
             <div className="flex flex-wrap gap-2">
               {ANOS.map((ano) => (
                 <button
@@ -349,7 +349,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors
                     ${tipo === t
                       ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white dark:bg-surface-base text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800"
+                      : "bg-white dark:bg-surface text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800"
                     }`}
                 >
                   {t === "combinado" ? "Combinado" : t === "vendas" ? "Vendas" : "Serviços"}
@@ -371,7 +371,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
               return (
                 <div
                   key={ano}
-                  className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-5 border-l-4"
+                  className="bg-white dark:bg-surface rounded-xl shadow-sm p-5 border-l-4"
                   style={{ borderLeftColor: COR[ano as Ano] }}
                 >
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{ano}</p>
@@ -391,7 +391,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
           </div>
 
           {/* Comparativo Mensal */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 mb-4">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 mb-4">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Comparativo Mensal</h2>
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={dadosComparativoMensal} barCategoryGap="20%">
@@ -411,7 +411,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
           </div>
 
           {/* YTD Acumulado */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 mb-4">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 mb-4">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Acumulado no Ano (YTD)</h2>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={dadosYTD}>
@@ -443,7 +443,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
             {PARES_YOY.map(([base, comp]) => {
               const chave = chaveVar(base, comp);
               return (
-                <div key={chave} className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6">
+                <div key={chave} className="bg-white dark:bg-surface rounded-xl shadow-sm p-6">
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">Variação Mensal</h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{comp} vs {base}</p>
                   <ResponsiveContainer width="100%" height={200}>
@@ -482,7 +482,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
           </div>
 
           {/* Tabela Mensal Comparativa */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 overflow-x-auto">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 overflow-x-auto">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Tabela Mensal Comparativa</h2>
             <table className="w-full text-sm">
               <thead>
@@ -564,7 +564,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
       {abaAtiva === "balancete" && (
         <>
           {/* Seletor de Ano */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-4 flex flex-wrap items-center gap-4">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-4 flex flex-wrap items-center gap-4">
             <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Ano:</span>
             <div className="flex gap-2">
               {ANOS.map((ano) => (
@@ -574,7 +574,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors
                     ${anoBalancete === ano
                       ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white dark:bg-surface-base text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800"
+                      : "bg-white dark:bg-surface text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800"
                     }`}
                 >
                   {ano}
@@ -602,7 +602,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
           </div>
 
           {/* Gráfico Entradas vs Saídas */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 mb-4">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 mb-4">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Entradas vs Saídas — {anoBalancete}
             </h2>
@@ -623,7 +623,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
           </div>
 
           {/* Tabela Balancete */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 overflow-x-auto">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 overflow-x-auto">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Balancete — {anoBalancete}
             </h2>
