@@ -369,6 +369,39 @@ Para referência da Fase 3: `text-blue-600` no escuro já reprovava **antes** de
 fase, com 3,45:1. A ponte o levou a 3,38:1 — e, no tema claro, o melhorou de
 5,17:1 para 5,29:1. A ponte não criou nenhum destes três.
 
+## Defeitos encontrados no próprio Design System
+
+O port dos primitivos revelou defeitos nos arquivos do design system publicado no
+Claude Design. Eles foram contornados aqui, mas o conserto pertence à origem —
+senão o próximo sistema da H&S a adotar a biblioteca tropeça no mesmo.
+
+**`components/core/Icon.jsx` — rótulo e `aria-hidden` convivem.** O componente
+crava `aria-hidden="true"` **antes** de espalhar `{...rest}`. Quem passa
+`aria-label` fica com os dois atributos ao mesmo tempo: o ícone é rotulado e
+escondido de uma vez, e o leitor de tela ignora o rótulo. É exatamente o caso que
+a regra de iconografia do design system quer cobrir — *"ícone que é o único
+conteúdo de um botão leva `aria-label`"*. No port do DataCoreHS o `aria-hidden`
+passou a ser derivado: só é emitido quando não há `aria-label` nem
+`aria-labelledby`.
+
+**`components/core/Card.d.ts` — `CardHeaderProps` não compila.** A interface
+estende `React.HTMLAttributes<HTMLDivElement>` e redeclara `title?: React.ReactNode`.
+Mas `HTMLAttributes` já declara `title?: string`, o atributo nativo de tooltip do
+HTML, e os dois tipos colidem: TypeScript recusa com TS2430. No port ficou
+`Omit<React.HTMLAttributes<HTMLDivElement>, "title">`. Vale checar se outros
+`.d.ts` da biblioteca repetem o padrão de redeclarar um atributo nativo.
+
+**`components/forms/Select.jsx` — a seta traz cor cravada.** O chevron é uma
+imagem de fundo em `data:image/svg+xml` com o cinza escrito em hexadecimal
+(`%2394a3b8`). Cor enterrada em string não sai de token, não acompanha troca de
+tema e nenhum teste de guarda a alcança. No port do DataCoreHS a seta virou o
+componente `Icon`, que herda `currentColor`.
+
+**`components/forms/Input.jsx` e irmãos — `id` derivado do rótulo por slug.** O
+original monta o `id` com `label.toLowerCase().replace(/\s+/g, "-")`. Dois campos
+de mesmo rótulo na mesma tela colidem, e acento produz `id` inválido. No port o
+`id` sai de `React.useId()`, com a prop `id` explícita tendo precedência.
+
 ## Perguntas em aberto
 
 Nenhuma trava o início. Cada uma é trazida de volta quando sua fase chegar.
