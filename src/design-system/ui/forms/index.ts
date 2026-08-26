@@ -8,3 +8,7 @@ export { Radio, RadioGroup } from "./Radio";
 export type { RadioProps, RadioGroupOption, RadioGroupProps } from "./Radio";
 export { Switch } from "./Switch";
 export type { SwitchProps } from "./Switch";
+export { Select } from "./Select";
+export type { SelectOption, SelectProps } from "./Select";
+export { SearchSelect } from "./SearchSelect";
+export type { SearchSelectOption, SearchSelectProps } from "./SearchSelect";

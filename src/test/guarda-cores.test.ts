@@ -21,9 +21,19 @@ const arquivosDeInteresse = readdirSync("src", {
 })
   .filter((caminho) => /\.(tsx|ts|jsx|js|css)$/.test(caminho))
   .map((caminho) => `src/${caminho}`)
-  .filter((caminho) => !caminho.startsWith("src/design-system/"))
+  .filter((caminho) => !caminho.startsWith("src/design-system/tokens/"))
+  .filter((caminho) => caminho !== "src/design-system/styles.css")
   .filter((caminho) => !EXCECOES.includes(caminho))
   .concat("index.html");
+
+/** Remove comentário de linha e de bloco antes de procurar infrator.
+ *  Sem isto, um comentário que explique a rampa ("os degraus 100/700") é
+ *  lido como modificador de opacidade e o guarda acusa prosa. */
+function semComentarios(conteudo: string): string {
+  return conteudo
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
 
 /** Nomes de classe cujo valor sai de var(--...) no tailwind.config.js.
  *  Derivado do config, e nao escrito a mao, para nao ficar desatualizado
@@ -49,7 +59,7 @@ describe("guarda de cor", () => {
   it("nenhuma classe Tailwind carrega hexadecimal arbitrario", () => {
     const infratores: string[] = [];
     for (const caminho of arquivosDeInteresse) {
-      const conteudo = readFileSync(caminho, "utf8");
+      const conteudo = semComentarios(readFileSync(caminho, "utf8"));
       for (const achado of conteudo.match(/\[#[0-9a-fA-F]{3,8}\]/g) ?? []) {
         infratores.push(`${caminho}: ${achado}`);
       }
@@ -72,7 +82,7 @@ describe("guarda de cor", () => {
 
     const infratores: string[] = [];
     for (const caminho of arquivosDeInteresse) {
-      const conteudo = readFileSync(caminho, "utf8");
+      const conteudo = semComentarios(readFileSync(caminho, "utf8"));
       for (const achado of conteudo.match(padrao) ?? []) {
         infratores.push(`${caminho}: ${achado}`);
       }
