@@ -1,22 +1,28 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
 import AppRoutes from "./router";
+import { AppShell } from "./design-system/ui/navigation/AppShell";
 import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
+import useNavGroups from "./components/Sidebar";
 import CentralButton from "./components/CentralButton";
 import { ToastProvider } from "./components/ToastProvider";
+import { useAuth } from "./hooks/useAuth";
+import logo from "./assets/HS2.ico";
 
-// Rotas onde o layout (Header/Sidebar) não deve aparecer (ex: login)
+// Rotas onde o layout (AppShell) não deve aparecer (ex: login)
 const noLayoutRoutes = ["/login"];
 
 const App: React.FC = () => {
   const location = useLocation();
-  const hideLayout = noLayoutRoutes.includes(location.pathname);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const groups = useNavGroups();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const hideLayout = noLayoutRoutes.includes(location.pathname);
+
   if (hideLayout) {
-    // 🔥 Quando for rota sem layout, renderiza só as rotas
     return (
       <ToastProvider>
         <AppRoutes />
@@ -26,14 +32,24 @@ const App: React.FC = () => {
 
   return (
     <ToastProvider>
-      <div className="h-screen flex flex-col bg-gray-100 dark:bg-surface-base text-gray-900 dark:text-gray-100 transition-colors">
-        <Header onToggleSidebar={() => setSidebarCollapsed((v) => !v)} />
-        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
-          <Sidebar collapsed={sidebarCollapsed} />
-          <main className="flex-1 overflow-auto bg-gray-100 dark:bg-surface-base transition-colors">
-            <AppRoutes />
-          </main>
-        </div>
+      <div className="h-screen">
+        <AppShell
+          product="DataCoreHS"
+          logoSrc={logo}
+          groups={groups}
+          activePath={location.pathname}
+          onNavigate={(path) => navigate(path)}
+          user={user ? { name: user.username, role: user.role } : undefined}
+          collapsed={sidebarCollapsed}
+          topbarActions={
+            <Header
+              collapsed={sidebarCollapsed}
+              onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+            />
+          }
+        >
+          <AppRoutes />
+        </AppShell>
       </div>
 
       {/* Botão Flutuante Central HS */}
