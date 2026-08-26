@@ -33,7 +33,10 @@ export interface RadioGroupProps {
  * `RadioGroup`, que desenha as opções e cuida disso.
  *
  * Mesmo envelope do `Checkbox`: `<input>` real escondido, `<span>` desenhado
- * ao lado com o anel de foco (`peer-focus-visible`).
+ * ao lado com o anel de foco (`peer-focus-visible`) e a pintura de "marcado"
+ * (`peer-checked`) lendo o `:checked` do DOM — nunca uma classe calculada a
+ * partir da prop `checked`, que fica presa em `undefined` quando o consumidor
+ * não recontrola o campo depois do clique.
  */
 export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
   { name, value, checked, onChange, label, hint, disabled = false, id },
@@ -66,11 +69,11 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
           aria-hidden="true"
           className={[
             "flex h-4 w-4 items-center justify-center rounded-full border bg-surface transition-colors",
+            "border-borda-strong peer-checked:border-action",
             "peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
-            checked ? "border-action" : "border-borda-strong",
           ].join(" ")}
         >
-          {checked ? <span className="h-2 w-2 rounded-full bg-action" /> : null}
+          <span className="h-2 w-2 rounded-full bg-action opacity-0 transition-opacity peer-checked:opacity-100" />
         </span>
       </span>
       {label ? (

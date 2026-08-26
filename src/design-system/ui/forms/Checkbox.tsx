@@ -35,6 +35,14 @@ function mesclarRefs<T>(
  * no campo em si. Clicar no rótulo alterna a caixa — comportamento nativo de
  * `<label>` em volta do controle.
  *
+ * A pintura de "marcado" também é `peer-checked`, não uma classe calculada a
+ * partir da prop `checked` em JS: sem `checked` controlado, um clique alterna
+ * o `<input>` nativo sem que ninguém reatualize essa prop, e um `<span>`
+ * pintado por ela ficaria marcado para o leitor de tela e vazio para o olho.
+ * `indeterminate` é a exceção — não existe pseudo-classe CSS confiável para
+ * ele no Tailwind 3, então continua pintado pela prop, e só faz sentido em
+ * uso controlado mesmo.
+ *
  * ```tsx
  * <Checkbox label="Somente ativos" checked={somenteAtivos} onChange={setSomenteAtivos} />
  * <Checkbox label="Selecionar tudo" indeterminate />
@@ -75,12 +83,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           className={[
             "flex h-4 w-4 items-center justify-center rounded-sm border transition-colors",
             "peer-focus-visible:ring-2 peer-focus-visible:ring-focus",
-            checked || indeterminate ? "border-action bg-action" : "border-borda-strong bg-surface",
+            indeterminate
+              ? "border-action bg-action"
+              : "border-borda-strong bg-surface peer-checked:border-action peer-checked:bg-action",
           ].join(" ")}
         >
           {indeterminate ? (
             <span className="h-0.5 w-2 rounded-[1px] bg-on-primary" />
-          ) : checked ? (
+          ) : (
             <svg
               viewBox="0 0 24 24"
               width={12}
@@ -88,11 +98,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
               fill="none"
               stroke="currentColor"
               strokeWidth={3}
-              className="text-on-primary"
+              className="text-on-primary opacity-0 transition-opacity peer-checked:opacity-100"
             >
               <path d="M5 13l4 4L19 7" />
             </svg>
-          ) : null}
+          )}
         </span>
       </span>
       {label ? (
