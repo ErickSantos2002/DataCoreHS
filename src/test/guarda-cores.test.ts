@@ -5,10 +5,7 @@ import { describe, expect, it } from "vitest";
 const require = createRequire(import.meta.url);
 const config = require("../../tailwind.config.js");
 
-// Login.tsx e exceção documentada: as duas ocorrencias dele sao fundo escuro
-// deliberado nos dois temas (painel de login), nao dark: por variante. Saem
-// daqui quando a Fase 1 migrar a tela.
-const EXCECOES = ["src/pages/Login.tsx"];
+const EXCECOES: string[] = [];
 
 // O content do tailwind.config.js varre "./index.html" e
 // "./src/**/*.{js,ts,jsx,tsx}" — alem de .css, que carrega classe custom via

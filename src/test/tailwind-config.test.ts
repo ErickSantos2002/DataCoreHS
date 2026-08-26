@@ -70,6 +70,15 @@ describe("tokens que os primitivos consomem", () => {
     expect(cores.tooltip.fg).toBe("var(--color-white)");
   });
 
+  it("o painel de login e escuro nos dois temas, de proposito", () => {
+    // Excecao documentada do design system (Task 14): a tela de login
+    // aparece antes de qualquer preferencia de tema ser aplicada, entao nao
+    // pode reagir a ela. Hex literal, nao var(): o valor nao existe em
+    // colors.css (nao e o mesmo tom de --bg-base nem --color-slate-900), e
+    // colors.css nao e editado na Fase 1.
+    expect(cores.login).toBe("#0a192f");
+  });
+
   it("o toast tem token proprio de fundo, texto e borda", () => {
     expect(cores.toast.DEFAULT).toBe("var(--toast-bg)");
     expect(cores.toast.fg).toBe("var(--toast-color)");

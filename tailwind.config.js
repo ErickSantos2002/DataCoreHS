@@ -78,6 +78,15 @@ module.exports = {
           DEFAULT: "var(--color-slate-900)",
           fg: "var(--color-white)",
         },
+        // Painel de login: escuro nos DOIS temas, de proposito (excecao
+        // documentada do design system - a tela aparece antes de qualquer
+        // preferencia de tema ser aplicada, entao nao pode reagir a ela).
+        // #0a192f nao existe em nenhum var() de colors.css (nao e o mesmo
+        // tom de --bg-base nem de --color-slate-900), e colors.css nao e
+        // editado aqui (Fase 1). Por isso e hex literal, como o resto da
+        // ponte de paleta - so que fora dela, porque nao e andaime
+        // temporario: e a cor final do login, para ficar.
+        login: "#0a192f",
         // Retorno efemero (Toast): os tres tokens ja existem em colors.css
         // desde a Fase 0, pensados para uma biblioteca em JS (react-hot-toast/
         // sonner) que recebe objeto de estilo. Aqui o port usa Tailwind, entao

@@ -1,12 +1,11 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// Nasce restrito a src/components/ de proposito: o ultimo icone remoto vive em
-// src/pages/Login.tsx e so sai na Task 14, que amplia esta varredura para src/
-// inteiro. Suite que fica vermelha de proposito e suite que ninguem olha.
-const telas = readdirSync("src/components", { recursive: true, encoding: "utf8" })
+// Amplia de src/components/ para src/ inteiro na Task 14: o ultimo icone
+// remoto vivia em src/pages/Login.tsx e virou lucide-react.
+const telas = readdirSync("src", { recursive: true, encoding: "utf8" })
   .filter((c) => c.endsWith(".tsx") && !c.endsWith(".test.tsx"))
-  .map((c) => `src/components/${c}`);
+  .map((c) => `src/${c}`);
 
 describe("guarda de icones", () => {
   it("nenhum icone vem de servidor remoto", () => {
