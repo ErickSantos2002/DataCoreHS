@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -22,13 +22,45 @@ import ContasReceber from "./pages/ContasReceber";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequirePermissao from "./auth/RequirePermissao";
 
+import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
+import { ContasPagarProvider } from "./context/ContasPagarContext";
+import { ContasReceberProvider } from "./context/ContasReceberContext";
+import { DashboardProvider } from "./context/DashboardContext";
+import { DataProvider } from "./context/DataContext";
+import { EstoqueProvider } from "./context/EstoqueContext";
+import { ServicosProvider } from "./context/ServicosContext";
+import { VendasProvider } from "./context/VendasContext";
+
 /**
- * Só rotas. A regra de quem entra em cada uma mora em `auth/permissoes.ts`, e
+ * Rotas e, junto delas, os providers de dados de cada ramo.
+ *
+ * A regra de quem entra em cada rota mora em `auth/permissoes.ts`, e
  * `RequirePermissao` a aplica — antes, seis guardas eram definidos aqui dentro,
  * cada um com a própria condição de papel escrita à mão.
  *
  * `ProtectedRoute` continua por fora: ele decide entre *entrar no app* e ir
  * para o login. `RequirePermissao` decide entre *ver a tela* e ver o bloqueio.
+ *
+ * ## Por que os providers estão aqui
+ *
+ * O `main.tsx` empilhava dez providers em volta do aplicativo inteiro, então
+ * abrir a tela de login montava `EstoqueProvider`, `VendasProvider`,
+ * `ContasPagarProvider` e mais sete — cada um carregando dados que aquela tela
+ * nunca ia usar. Agora cada context é montado no ramo que o consome, e o
+ * `main.tsx` guarda só o que é global de verdade: tema, sessão e o router.
+ *
+ * O critério, quando um context tem mais de um consumidor: ele sobe até o
+ * menor grupo de rotas que **só** contém consumidores dele. Quando dois
+ * conjuntos de consumidores se cruzam sem um conter o outro — o caso de
+ * `Servicos` (`/servicos` e `/financeiro`), de `ContasPagar` (`/contas-pagar` e
+ * `/financeiro`) e de `ContasReceber` (`/contas-receber` e `/financeiro`) — o
+ * provider aparece em dois pontos de montagem, em vez de subir até um ancestral
+ * que arrastaria junto rotas que não o consomem. O preço é não compartilhar
+ * estado entre esses ramos; o preço da alternativa seria voltar a montar dados
+ * de contas a pagar para quem abriu serviços.
+ *
+ * `ThemeProvider` e `AuthProvider` ficaram no `main.tsx` porque toda rota,
+ * inclusive `/login`, depende das duas.
  */
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -44,30 +76,12 @@ const AppRoutes: React.FC = () => (
     />
 
     <Route
-      path="/dashboard"
-      element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
-      path="/clientes"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/clientes">
-            <Clientes />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
       path="/estoque"
       element={
         <ProtectedRoute>
-          <Estoque />
+          <EstoqueProvider>
+            <Estoque />
+          </EstoqueProvider>
         </ProtectedRoute>
       }
     />
@@ -77,18 +91,9 @@ const AppRoutes: React.FC = () => (
       element={
         <ProtectedRoute>
           <RequirePermissao rota="/servicos">
-            <Servicos />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
-      path="/vendas"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/vendas">
-            <Vendas />
+            <ServicosProvider>
+              <Servicos />
+            </ServicosProvider>
           </RequirePermissao>
         </ProtectedRoute>
       }
@@ -106,28 +111,6 @@ const AppRoutes: React.FC = () => (
     />
 
     <Route
-      path="/produtos"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/produtos">
-            <Produtos />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
-      path="/vendedores"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/vendedores">
-            <Vendedores />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
       path="/usuarios"
       element={
         <ProtectedRoute>
@@ -138,34 +121,62 @@ const AppRoutes: React.FC = () => (
       }
     />
 
+    {/* Comercial: as quatro telas do `DataContext` (clientes, vendas,
+        produtos e vendedores) compartilham a mesma carga de cadastros. */}
     <Route
-      path="/configuracoes"
       element={
         <ProtectedRoute>
-          <RequirePermissao rota="/configuracoes">
-            <Configuracoes />
-          </RequirePermissao>
+          <DataProvider>
+            <Outlet />
+          </DataProvider>
         </ProtectedRoute>
       }
-    />
-
-    <Route
-      path="/financeiro"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/financeiro">
-            <GerenciamentoFinanceiro />
+    >
+      <Route
+        path="/clientes"
+        element={
+          <RequirePermissao rota="/clientes">
+            <Clientes />
           </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
+        }
+      />
+      <Route
+        path="/vendas"
+        element={
+          <RequirePermissao rota="/vendas">
+            <Vendas />
+          </RequirePermissao>
+        }
+      />
+      <Route
+        path="/produtos"
+        element={
+          <RequirePermissao rota="/produtos">
+            <Produtos />
+          </RequirePermissao>
+        }
+      />
+      <Route
+        path="/vendedores"
+        element={
+          <RequirePermissao rota="/vendedores">
+            <Vendedores />
+          </RequirePermissao>
+        }
+      />
+    </Route>
 
+    {/* As duas telas de contas não se cruzam: `ContasPagar` só lê
+        `ContasPagarContext` e `ContasReceber` só lê `ContasReceberContext`.
+        Agrupá-las montaria em cada uma o provider da outra. */}
     <Route
       path="/contas-pagar"
       element={
         <ProtectedRoute>
           <RequirePermissao rota="/contas-pagar">
-            <ContasPagar />
+            <ContasPagarProvider>
+              <ContasPagar />
+            </ContasPagarProvider>
           </RequirePermissao>
         </ProtectedRoute>
       }
@@ -176,11 +187,64 @@ const AppRoutes: React.FC = () => (
       element={
         <ProtectedRoute>
           <RequirePermissao rota="/contas-receber">
-            <ContasReceber />
+            <ContasReceberProvider>
+              <ContasReceber />
+            </ContasReceberProvider>
           </RequirePermissao>
         </ProtectedRoute>
       }
     />
+
+    {/* `/configuracoes`, `/dashboard` e `/financeiro` formam um ramo aninhado
+        de fora para dentro pelo que cada uma consome: as três leem as metas de
+        `ConfiguracoesContext`; `/dashboard` e `/financeiro` também leem
+        `DashboardContext`; e `/financeiro` ainda carrega os quatro próprios.
+        (`/financeiro` chega em `Dashboard` e `Configuracoes` via `MetaTab`.) */}
+    <Route
+      element={
+        <ProtectedRoute>
+          <ConfiguracoesProvider>
+            <Outlet />
+          </ConfiguracoesProvider>
+        </ProtectedRoute>
+      }
+    >
+      <Route
+        path="/configuracoes"
+        element={
+          <RequirePermissao rota="/configuracoes">
+            <Configuracoes />
+          </RequirePermissao>
+        }
+      />
+
+      <Route
+        element={
+          <DashboardProvider>
+            <Outlet />
+          </DashboardProvider>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route
+          path="/financeiro"
+          element={
+            <RequirePermissao rota="/financeiro">
+              <VendasProvider>
+                <ServicosProvider>
+                  <ContasPagarProvider>
+                    <ContasReceberProvider>
+                      <GerenciamentoFinanceiro />
+                    </ContasReceberProvider>
+                  </ContasPagarProvider>
+                </ServicosProvider>
+              </VendasProvider>
+            </RequirePermissao>
+          }
+        />
+      </Route>
+    </Route>
 
     <Route path="/" element={<Navigate to="/inicio" />} />
     <Route path="*" element={<NotFound />} />
