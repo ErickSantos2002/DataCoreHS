@@ -24,11 +24,12 @@ export interface RankedListProps {
  * lista**, não a um total e não a 100. Não é port: a anatomia vem do design
  * do Erick e se repete em pelo menos seis telas da Fase 3.
  *
- * A barra usa o `Progress` já existente (`tone="neutral"`, sem `label`) — o
- * texto de nome e valor já está na linha acima, então a barra fica
- * `aria-hidden`: sem isso, o leitor de tela anunciaria um "barra de
- * progresso" sem contexto, porque o `Progress` não expõe um nome acessível
- * dissociado do texto visível.
+ * A barra usa o `Progress` já existente (`tone="neutral"`, sem `label`,
+ * `trackSize="md"` e `trackTone="action"` para o trilho de 6px em
+ * `bg-action-tint` que o design pede) — o texto de nome e valor já está na
+ * linha acima, então a barra fica `aria-hidden`: sem isso, o leitor de tela
+ * anunciaria um "barra de progresso" sem contexto, porque o `Progress` não
+ * expõe um nome acessível dissociado do texto visível.
  *
  * ```tsx
  * <RankedList
@@ -57,7 +58,7 @@ export function RankedList({ items, className }: RankedListProps) {
               </span>
             </div>
             <div aria-hidden="true">
-              <Progress value={proporcao} tone="neutral" />
+              <Progress value={proporcao} tone="neutral" trackSize="md" trackTone="action" />
             </div>
           </div>
         );

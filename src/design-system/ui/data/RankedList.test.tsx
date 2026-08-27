@@ -50,4 +50,11 @@ describe("RankedList", () => {
     render(<RankedList items={[{ key: "a", nome: "Item", valor: 42 }]} />);
     expect(screen.getByText("42")).toBeInTheDocument();
   });
+
+  it("desenha a barra com o trilho de 6px em bg-action-tint que o design pede", () => {
+    render(<RankedList items={[{ key: "a", nome: "Item", valor: 42 }]} />);
+    const barra = screen.getByRole("progressbar", { hidden: true });
+    expect(barra).toHaveClass("h-1.5");
+    expect(barra).toHaveClass("bg-action-tint");
+  });
 });

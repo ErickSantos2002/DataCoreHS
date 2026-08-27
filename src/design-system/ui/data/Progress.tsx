@@ -12,6 +12,17 @@ export interface ProgressProps {
   /** Encerrado: troca a barra pelo resumo do resultado. */
   done?: boolean;
   doneLabel?: string;
+  /** Altura do trilho. `sm` (4px) é a altura de sempre e continua padrão —
+   * `md` (6px) atende telas do design do Erick que pedem um trilho mais
+   * grosso (ex.: `RankedList`). */
+  trackSize?: "sm" | "md";
+  /** Cor de fundo do trilho, independente da cor do preenchimento (`tone`).
+   * `surface` preserva o `bg-surface-elevated` de sempre e continua padrão.
+   * As demais reaproveitam as tintas semânticas já usadas no resto da
+   * biblioteca (`Badge`, `Alert`, `Avatar`) — `action` é o caso concreto que
+   * motivou (`RankedList`), as outras generalizam de graça porque a classe
+   * já existe no Tailwind config. */
+  trackTone?: "surface" | "action" | "primary" | "success" | "danger" | "warning" | "info" | "neutral";
 }
 
 const COR_PREENCHIMENTO: Record<NonNullable<ProgressProps["tone"]>, string> = {
@@ -19,6 +30,22 @@ const COR_PREENCHIMENTO: Record<NonNullable<ProgressProps["tone"]>, string> = {
   attention: "bg-warning",
   breached: "bg-danger",
   neutral: "bg-action",
+};
+
+const ALTURA_TRILHO: Record<NonNullable<ProgressProps["trackSize"]>, string> = {
+  sm: "h-1",
+  md: "h-1.5",
+};
+
+const COR_TRILHO: Record<NonNullable<ProgressProps["trackTone"]>, string> = {
+  surface: "bg-surface-elevated",
+  action: "bg-action-tint",
+  primary: "bg-tint-primary",
+  success: "bg-tint-success",
+  danger: "bg-tint-danger",
+  warning: "bg-tint-warning",
+  info: "bg-tint-info",
+  neutral: "bg-tint-neutral",
 };
 
 /**
@@ -43,6 +70,8 @@ export function Progress({
   detail,
   done = false,
   doneLabel,
+  trackSize = "sm",
+  trackTone = "surface",
 }: ProgressProps) {
   const largura = Math.min(100, Math.max(0, value));
 
@@ -69,7 +98,11 @@ export function Progress({
         aria-valuenow={largura}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="h-1 w-full overflow-hidden rounded-full bg-surface-elevated"
+        className={[
+          "w-full overflow-hidden rounded-full",
+          ALTURA_TRILHO[trackSize],
+          COR_TRILHO[trackTone],
+        ].join(" ")}
       >
         {/* Único estilo inline da biblioteca: a proibição do guarda de
             primitivos é contra aparência (cor, espaçamento, borda, sombra),
