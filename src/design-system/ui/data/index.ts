@@ -17,3 +17,5 @@ export { Pagination } from "./Pagination";
 export type { PaginationProps } from "./Pagination";
 export { Progress } from "./Progress";
 export type { ProgressProps } from "./Progress";
+export { KpiCard } from "./KpiCard";
+export type { KpiCardProps } from "./KpiCard";
