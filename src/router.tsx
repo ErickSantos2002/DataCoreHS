@@ -20,81 +20,16 @@ import ContasPagar from "./pages/ContasPagar";
 import ContasReceber from "./pages/ContasReceber";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useAuth } from "./hooks/useAuth";
+import RequirePermissao from "./auth/RequirePermissao";
 
-const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="p-6 text-red-600 text-center font-semibold">
-        Acesso negado. Esta página é restrita a administradores.
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-};
-
-import Bloqueio from "./pages/Bloqueio"; // importe o novo componente
-
-const RequireVendas: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-
-  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro")) {
-    return <Bloqueio />;
-  }
-
-  return <>{children}</>;
-};
-
-const RequireServicos: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-
-  if (!user || (user.role !== "admin" && user.role !== "servicos" && user.role !== "financeiro")) {
-    return <Bloqueio />;
-  }
-
-  return <>{children}</>;
-};
-
-const RequireVendedores: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-
-  if (!user || (user.role !== "admin" && user.role !== "vendas" && user.role !== "financeiro")) {
-    return <Bloqueio />;
-  }
-
-  return <>{children}</>;
-};
-
-const RequireContasPagar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-  if (!user || (user.role !== "admin" && user.role !== "financeiro")) return <Bloqueio />;
-  return <>{children}</>;
-};
-
-const RequireFinanceiro: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div className="p-6 text-gray-500">Verificando permissões...</div>;
-
-  if (!user || ![1, 3, 4].includes(user.id)) {
-    return <Bloqueio />;
-  }
-
-  return <>{children}</>;
-};
-
+/**
+ * Só rotas. A regra de quem entra em cada uma mora em `auth/permissoes.ts`, e
+ * `RequirePermissao` a aplica — antes, seis guardas eram definidos aqui dentro,
+ * cada um com a própria condição de papel escrita à mão.
+ *
+ * `ProtectedRoute` continua por fora: ele decide entre *entrar no app* e ir
+ * para o login. `RequirePermissao` decide entre *ver a tela* e ver o bloqueio.
+ */
 const AppRoutes: React.FC = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
@@ -121,9 +56,9 @@ const AppRoutes: React.FC = () => (
       path="/clientes"
       element={
         <ProtectedRoute>
-          <RequireVendas>
+          <RequirePermissao rota="/clientes">
             <Clientes />
-          </RequireVendas>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -141,9 +76,9 @@ const AppRoutes: React.FC = () => (
       path="/servicos"
       element={
         <ProtectedRoute>
-          <RequireServicos>
+          <RequirePermissao rota="/servicos">
             <Servicos />
-          </RequireServicos>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -152,9 +87,9 @@ const AppRoutes: React.FC = () => (
       path="/vendas"
       element={
         <ProtectedRoute>
-          <RequireVendas>
+          <RequirePermissao rota="/vendas">
             <Vendas />
-          </RequireVendas>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -163,9 +98,9 @@ const AppRoutes: React.FC = () => (
       path="/locacao"
       element={
         <ProtectedRoute>
-          <RequireFinanceiro>
+          <RequirePermissao rota="/locacao">
             <Locacao />
-          </RequireFinanceiro>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -174,9 +109,9 @@ const AppRoutes: React.FC = () => (
       path="/produtos"
       element={
         <ProtectedRoute>
-          <RequireVendas>
+          <RequirePermissao rota="/produtos">
             <Produtos />
-          </RequireVendas>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -185,9 +120,9 @@ const AppRoutes: React.FC = () => (
       path="/vendedores"
       element={
         <ProtectedRoute>
-          <RequireVendedores>
+          <RequirePermissao rota="/vendedores">
             <Vendedores />
-          </RequireVendedores>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -196,9 +131,9 @@ const AppRoutes: React.FC = () => (
       path="/usuarios"
       element={
         <ProtectedRoute>
-          <RequireAdmin>
+          <RequirePermissao rota="/usuarios">
             <Usuarios />
-          </RequireAdmin>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -207,9 +142,9 @@ const AppRoutes: React.FC = () => (
       path="/configuracoes"
       element={
         <ProtectedRoute>
-          <RequireAdmin>
+          <RequirePermissao rota="/configuracoes">
             <Configuracoes />
-          </RequireAdmin>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -218,9 +153,9 @@ const AppRoutes: React.FC = () => (
       path="/financeiro"
       element={
         <ProtectedRoute>
-          <RequireFinanceiro>
+          <RequirePermissao rota="/financeiro">
             <GerenciamentoFinanceiro />
-          </RequireFinanceiro>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -229,9 +164,9 @@ const AppRoutes: React.FC = () => (
       path="/contas-pagar"
       element={
         <ProtectedRoute>
-          <RequireContasPagar>
+          <RequirePermissao rota="/contas-pagar">
             <ContasPagar />
-          </RequireContasPagar>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
@@ -240,9 +175,9 @@ const AppRoutes: React.FC = () => (
       path="/contas-receber"
       element={
         <ProtectedRoute>
-          <RequireContasPagar>
+          <RequirePermissao rota="/contas-receber">
             <ContasReceber />
-          </RequireContasPagar>
+          </RequirePermissao>
         </ProtectedRoute>
       }
     />
