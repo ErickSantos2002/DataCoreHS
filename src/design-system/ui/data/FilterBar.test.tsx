@@ -112,4 +112,37 @@ describe("FilterBar", () => {
     );
     expect(screen.getByText("Campo de teste")).toBeInTheDocument();
   });
+
+  it("sem onSalvarVisao, o botao de salvar visao nao aparece", () => {
+    render(
+      <FilterBar views={[{ key: "vencidas", label: "Vencidas" }]}>
+        <div>campo</div>
+      </FilterBar>,
+    );
+    expect(screen.queryByRole("button", { name: "+ Salvar visão" })).not.toBeInTheDocument();
+  });
+
+  it("com onSalvarVisao, o botao de salvar visao aparece e avisa ao clicar", async () => {
+    const aoSalvar = vi.fn();
+    render(
+      <FilterBar
+        views={[{ key: "vencidas", label: "Vencidas" }]}
+        onSalvarVisao={aoSalvar}
+      >
+        <div>campo</div>
+      </FilterBar>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "+ Salvar visão" }));
+    expect(aoSalvar).toHaveBeenCalledTimes(1);
+  });
+
+  it("a segunda linha aparece so com a acao de salvar visao, sem aplicados nem visoes", () => {
+    render(
+      <FilterBar onSalvarVisao={() => {}}>
+        <div>campo</div>
+      </FilterBar>,
+    );
+    expect(screen.getByRole("button", { name: "+ Salvar visão" })).toBeInTheDocument();
+    expect(screen.queryByText("Aplicados")).not.toBeInTheDocument();
+  });
 });

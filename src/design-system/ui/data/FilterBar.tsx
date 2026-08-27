@@ -34,6 +34,10 @@ export interface FilterBarProps {
   views?: FilterBarView[];
   /** Chamado com a `key` da visão escolhida ao clicar numa pílula de visão. */
   onSelectView?: (key: string) => void;
+  /** Chamado ao clicar em "+ Salvar visão" — presente, mostra o botão de
+   * borda tracejada ao lado dos chips de visão (Contas a Pagar e Contas a
+   * Receber); ausente, o botão não aparece. */
+  onSalvarVisao?: () => void;
   className?: string;
 }
 
@@ -49,12 +53,14 @@ export interface FilterBarProps {
  * e só avisa por callback quando algo é removido, limpo ou escolhido; quem
  * usa decide o que fazer com o aviso.
  *
- * A segunda linha (separador + "Aplicados"/"Visões") some inteira quando
- * não há nem filtro aplicado nem visão salva — uma barra recém-aberta não
- * mostra estrutura vazia. Cada metade da segunda linha também é
- * independente: só "Aplicados" quando não há visões, só "Visões" quando não
- * há filtros aplicados, com o separador vertical só entre as duas quando
- * ambas aparecem.
+ * A segunda linha (separador + "Aplicados"/"Visões") some inteira quando não
+ * há filtro aplicado, visão salva, nem a ação de salvar visão — uma barra
+ * recém-aberta não mostra estrutura vazia. Cada metade da segunda linha
+ * também é independente: só "Aplicados" quando não há bloco de visões, só
+ * "Visões" quando não há filtros aplicados (o bloco de visões aparece com
+ * `views` e/ou `onSalvarVisao` — em Contas, ele existe antes de qualquer
+ * visão ter sido salva), com o separador vertical só entre as duas metades
+ * quando ambas aparecem.
  *
  * ```tsx
  * <FilterBar
@@ -64,6 +70,7 @@ export interface FilterBarProps {
  *   onClearFilters={() => limparFiltros()}
  *   views={[{ key: "vencidas", label: "Vencidas" }]}
  *   onSelectView={(key) => aplicarVisao(key)}
+ *   onSalvarVisao={() => abrirSalvarVisao()}
  * >
  *   <SearchSelect label="Cliente" ... />
  *   <Select label="Status" ... />
@@ -78,11 +85,13 @@ export function FilterBar({
   onClearFilters,
   views = [],
   onSelectView,
+  onSalvarVisao,
   className,
 }: FilterBarProps) {
   const temAplicados = appliedFilters.length > 0;
   const temVisoes = views.length > 0;
-  const mostraSegundaLinha = temAplicados || temVisoes;
+  const temBlocoVisoes = temVisoes || Boolean(onSalvarVisao);
+  const mostraSegundaLinha = temAplicados || temBlocoVisoes;
 
   return (
     <Card className={className}>
@@ -115,10 +124,10 @@ export function FilterBar({
               </button>
             </>
           ) : null}
-          {temAplicados && temVisoes ? (
+          {temAplicados && temBlocoVisoes ? (
             <span aria-hidden="true" className="h-[18px] w-px bg-borda" />
           ) : null}
-          {temVisoes ? (
+          {temBlocoVisoes ? (
             <>
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-conteudo-faint">
                 Visões
@@ -139,6 +148,15 @@ export function FilterBar({
                   </Chip>
                 ),
               )}
+              {onSalvarVisao ? (
+                <button
+                  type="button"
+                  onClick={onSalvarVisao}
+                  className="inline-flex h-[26px] items-center gap-1 whitespace-nowrap rounded-full border border-dashed border-borda px-2.5 text-xs font-medium text-conteudo-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  + Salvar visão
+                </button>
+              ) : null}
             </>
           ) : null}
         </div>
