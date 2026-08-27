@@ -167,7 +167,7 @@ export function Tooltip({ label, position = "top", children }: TooltipProps) {
           role="tooltip"
           id={id}
           className={[
-            "pointer-events-none fixed z-[60] whitespace-nowrap rounded-lg bg-tooltip px-2.5 py-1.5 text-xs font-medium text-tooltip-fg shadow-lg transition-opacity duration-150 ease-in-out",
+            "pointer-events-none fixed z-tooltip whitespace-nowrap rounded-lg bg-tooltip px-2.5 py-1.5 text-xs font-medium text-tooltip-fg shadow-lg transition-opacity duration-150 ease-in-out",
             aberto ? "opacity-100" : "opacity-0",
           ].join(" ")}
         >

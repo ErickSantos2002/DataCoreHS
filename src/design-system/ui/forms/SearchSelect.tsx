@@ -184,7 +184,7 @@ export function SearchSelect({
       {aberto ? (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-lg border border-borda bg-surface p-1 shadow-lg"
+          className="absolute left-0 right-0 top-full z-dropdown mt-1 max-h-60 overflow-auto rounded-lg border border-borda bg-surface p-1 shadow-lg"
         >
           {searchable ? (
             <input

@@ -102,7 +102,7 @@ export function Modal({ open, onClose, title, size = "md", children }: ModalProp
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-overlay flex items-center justify-center p-4">
       {/* A cortina é a única transparência do sistema inteiro: preto a 60%
           com blur de 4px. Decorativa — a mesma ação (fechar) já está
           disponível via Esc, por isso aria-hidden. */}

@@ -83,5 +83,5 @@ export function Toast({ variant = "info", children, onClose }: ToastProps) {
  * ```
  */
 export function ToastStack({ children }: { children?: ReactNode }) {
-  return <div className="fixed top-20 right-6 z-[9999] flex flex-col gap-2">{children}</div>;
+  return <div className="fixed top-20 right-6 z-toast flex flex-col gap-2">{children}</div>;
 }

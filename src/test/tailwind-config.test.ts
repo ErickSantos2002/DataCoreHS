@@ -104,3 +104,12 @@ describe("tokens que os primitivos consomem", () => {
     expect(config.theme.extend.borderRadius.full).toBe("var(--radius-full)");
   });
 });
+
+describe("escala de sobreposicao", () => {
+  it("a escala de sobreposicao poe o tooltip acima do modal", () => {
+    const z = config.theme.extend.zIndex;
+    expect(Number(z.dropdown)).toBeLessThan(Number(z.overlay));
+    expect(Number(z.overlay)).toBeLessThan(Number(z.tooltip));
+    expect(Number(z.tooltip)).toBeLessThan(Number(z.toast));
+  });
+});

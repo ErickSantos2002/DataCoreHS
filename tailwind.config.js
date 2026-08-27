@@ -176,6 +176,16 @@ module.exports = {
       height: {
         topbar: "var(--topbar-height)",
       },
+      zIndex: {
+        // Escala unica de sobreposicao. O numero nao importa; a ORDEM importa,
+        // e ela e: o que flutua junto do conteudo < o que cobre a tela < o que
+        // avisa por cima de tudo. Tooltip vem por ultimo entre os flutuantes
+        // porque ele pode aparecer DENTRO de um modal.
+        dropdown: "50",
+        overlay: "200",
+        tooltip: "300",
+        toast: "400",
+      },
       keyframes: {
         blinkLight: {
           "0%, 100%": { color: "#000000" },
