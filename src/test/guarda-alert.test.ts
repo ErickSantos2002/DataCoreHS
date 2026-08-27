@@ -6,15 +6,20 @@ const arquivos = readdirSync("src", { recursive: true, encoding: "utf8" })
   .map((c) => `src/${c}`);
 
 describe("guarda de retorno ao usuario", () => {
-  it("nenhuma tela usa alert() do navegador", () => {
-    // alert() trava a aba, nao e estilizavel, nao respeita o tema e mostra o
-    // dominio da aplicacao numa caixa do sistema operacional. O retorno do
-    // sistema sai por Toast.
+  it("nenhuma tela usa alert()/confirm()/prompt() do navegador", () => {
+    // alert()/confirm()/prompt() travam a aba, nao sao estilizaveis, nao
+    // respeitam o tema e mostram o dominio da aplicacao numa caixa do sistema
+    // operacional. O retorno do sistema sai por Toast; confirmacao de acao
+    // destrutiva tera componente proprio na Fase 3.
     const infratores: string[] = [];
     for (const caminho of arquivos) {
       const conteudo = readFileSync(caminho, "utf8");
       conteudo.split("\n").forEach((linha, i) => {
-        if (/(?<![.\w])alert\s*\(/.test(linha)) {
+        if (
+          /(?:^|[^.\w])(?:(?:window|globalThis|self)\.)?(?:alert|confirm|prompt)\s*\(/.test(
+            linha,
+          )
+        ) {
           infratores.push(`${caminho}:${i + 1}`);
         }
       });
