@@ -9,14 +9,17 @@ import type { NavGroup } from "./AppShell";
 // do AppShell nao tem `items` nem `onLogout` — os grupos vem em `groups`
 // (NavGroup[]), o campo do item e `path` (nao `to`) e nao existe prop de
 // logout: o botao de sair e conteudo livre, passado em `topbarActions`. O
-// icone tambem nao e `IconName` (string): e o proprio componente Lucide,
-// pelo motivo documentado no topo de AppShell.tsx.
+// icone aceita os dois formatos que a Sidebar do DataCoreHS precisa: um
+// `IconName` do design system (string, resolvida via `Icon`) ou um nó React
+// já pronto — é o caso do lucide-react, usado quando falta traçado no
+// `ICON_PATHS` (ex.: Locação/KeyRound). Por isso os ícones abaixo já vêm
+// como elemento (`<Home .../>`), não como referência de componente.
 const grupos: NavGroup[] = [
   {
     label: "Principal",
     items: [
-      { label: "Início", path: "/inicio", icon: Home },
-      { label: "Vendas", path: "/vendas", icon: ShoppingCart },
+      { label: "Início", path: "/inicio", icon: <Home aria-hidden="true" /> },
+      { label: "Vendas", path: "/vendas", icon: <ShoppingCart aria-hidden="true" /> },
     ],
   },
 ];
@@ -56,5 +59,72 @@ describe("AppShell", () => {
     montar();
     expect(screen.getByRole("link", { name: /Início/ })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /Vendas/ })).not.toHaveAttribute("aria-current");
+  });
+
+  it("resolve icon como IconName do design system quando o item manda uma string", () => {
+    const gruposComIconName: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComIconName} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const link = screen.getByRole("link", { name: /Início/ });
+    expect(link.querySelector("svg")).toBeInTheDocument();
+  });
+
+  it("desenha o rotulo de cada grupo quando ha mais de um", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+      { label: "Financeiro", items: [{ label: "Gerenciamento", path: "/financeiro", icon: "chart" }] },
+      { label: "Administração", items: [{ label: "Estoque", path: "/estoque", icon: "cpu" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Principal")).toBeInTheDocument();
+    expect(screen.getByText("Comercial")).toBeInTheDocument();
+    expect(screen.getByText("Financeiro")).toBeInTheDocument();
+    expect(screen.getByText("Administração")).toBeInTheDocument();
+  });
+
+  it("um grupo sem nenhum item visivel nao renderiza rotulo, expandida", () => {
+    const gruposComVazio: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Vazio", items: [] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComVazio} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText("Vazio")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("grupo-Vazio")).not.toBeInTheDocument();
+  });
+
+  it("um grupo sem nenhum item visivel nao renderiza o separador, recolhida", () => {
+    const gruposComVazio: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Vazio", items: [] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComVazio} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.queryByTestId("grupo-Vazio")).not.toBeInTheDocument();
+    expect(screen.getByTestId("grupo-Principal")).toBeInTheDocument();
   });
 });

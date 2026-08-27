@@ -1,21 +1,21 @@
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Avatar } from "../core/Avatar";
 import { Tooltip } from "../feedback/Tooltip";
+import { Icon, type IconName } from "../core/Icon";
 
 export interface NavItem {
   label: string;
   path: string;
-  // Divergência registrada do .d.ts de referência: lá `icon` é `IconName`,
-  // o conjunto fechado de 25 traçados do `Icon` (Task 1). Esse conjunto não
-  // cobre Home, LayoutDashboard, ShoppingCart, Package, Wrench, UserCheck,
-  // Wallet, UserCog nem Settings — os ícones que a Task 12 exige para trocar
-  // os 19 <img src="icons8..."> por componente. O design system já resolve
-  // esse caso: "falta um ícone? pegue o equivalente em Lucide" (doc do
-  // `Icon`, Task 1) — então o item de navegação recebe o componente Lucide
-  // diretamente, não um nome de `ICON_PATHS`.
-  icon: LucideIcon;
+  // Divergência registrada do .d.ts de referência: lá `icon` é só `IconName`,
+  // o conjunto fechado de traçados do `Icon` (Task 1). Esse conjunto não
+  // cobre toda chave que uma sidebar precisa — falta, por exemplo, um
+  // equivalente a "chave" (Locação, no DataCoreHS). O design system já
+  // resolve esse caso na própria doc do `Icon`: "falta um ícone? pegue o
+  // equivalente em Lucide". Por isso `icon` aceita os dois formatos: um
+  // `IconName` (string, resolvida aqui via `Icon`) ou um nó React já pronto
+  // — o componente Lucide, para quando falta traçado no `ICON_PATHS`.
+  icon: IconName | ReactNode;
 }
 
 export interface NavGroup {
@@ -56,7 +56,16 @@ interface NavLinkProps {
  * — o resto o navegador cuida sozinho.
  */
 function NavLink({ item, collapsed, ativo, onNavigate }: NavLinkProps) {
-  const Icone = item.icon;
+  // `item.icon` é `IconName | ReactNode`. `typeof ... === "string"` também
+  // seria verdadeiro para um ReactNode que fosse texto puro — não é um caso
+  // real de ícone, então o cast para `IconName` aqui é seguro por contrato,
+  // não por checagem exaustiva de tipo.
+  const icone =
+    typeof item.icon === "string" ? (
+      <Icon name={item.icon as IconName} size={20} strokeWidth={1.75} className="shrink-0" />
+    ) : (
+      item.icon
+    );
 
   const link = (
     <a
@@ -77,7 +86,7 @@ function NavLink({ item, collapsed, ativo, onNavigate }: NavLinkProps) {
           : "border-transparent text-conteudo-muted hover:bg-surface-elevated",
       ].join(" ")}
     >
-      <Icone size={20} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
+      {icone}
       {!collapsed && <span className="truncate">{item.label}</span>}
     </a>
   );
@@ -132,6 +141,12 @@ export function AppShell({
 }: AppShellProps) {
   const inicialProduto = (product ?? "").trim().slice(0, 1).toUpperCase();
 
+  // Um grupo sem nenhum item visível (todos filtrados por permissão de quem
+  // monta `groups`) não deve deixar rastro: nem rótulo, nem o separador de
+  // 24px recolhido. Filtrar aqui, na casca, é mais seguro do que confiar que
+  // todo consumidor faça essa limpeza antes de passar `groups`.
+  const gruposVisiveis = groups.filter((grupo) => grupo.items.length > 0);
+
   return (
     <div className="flex h-full overflow-hidden bg-surface-base font-sans">
       <aside
@@ -159,8 +174,8 @@ export function AppShell({
         </div>
 
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-3">
-          {groups.map((grupo) => (
-            <div key={grupo.label}>
+          {gruposVisiveis.map((grupo) => (
+            <div key={grupo.label} data-testid={`grupo-${grupo.label}`}>
               {collapsed ? (
                 <div className="mx-auto mb-1 w-6 border-t border-borda" />
               ) : (
