@@ -17,12 +17,11 @@ export interface ProgressProps {
    * grosso (ex.: `RankedList`). */
   trackSize?: "sm" | "md";
   /** Cor de fundo do trilho, independente da cor do preenchimento (`tone`).
-   * `surface` preserva o `bg-surface-elevated` de sempre e continua padrão.
-   * As demais reaproveitam as tintas semânticas já usadas no resto da
-   * biblioteca (`Badge`, `Alert`, `Avatar`) — `action` é o caso concreto que
-   * motivou (`RankedList`), as outras generalizam de graça porque a classe
-   * já existe no Tailwind config. */
-  trackTone?: "surface" | "action" | "primary" | "success" | "danger" | "warning" | "info" | "neutral";
+   * `surface` preserva o `bg-surface-elevated` de sempre e continua padrão;
+   * `action` é o caso concreto pedido pelo design (`RankedList`). Sem
+   * conjunto semântico completo de propósito: o trilho é fundo — quem
+   * carrega significado é o preenchimento, que já tem `tone`. */
+  trackTone?: "surface" | "action";
 }
 
 const COR_PREENCHIMENTO: Record<NonNullable<ProgressProps["tone"]>, string> = {
@@ -40,12 +39,6 @@ const ALTURA_TRILHO: Record<NonNullable<ProgressProps["trackSize"]>, string> = {
 const COR_TRILHO: Record<NonNullable<ProgressProps["trackTone"]>, string> = {
   surface: "bg-surface-elevated",
   action: "bg-action-tint",
-  primary: "bg-tint-primary",
-  success: "bg-tint-success",
-  danger: "bg-tint-danger",
-  warning: "bg-tint-warning",
-  info: "bg-tint-info",
-  neutral: "bg-tint-neutral",
 };
 
 /**
