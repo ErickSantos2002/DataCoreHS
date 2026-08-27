@@ -498,3 +498,82 @@ Nenhuma trava o início. Cada uma é trazida de volta quando sua fase chegar.
 - `guidelines/adocao.md` — guia de adoção, `tailwind.config.js` e checklist
 - `readme.md` do DS — fundamentos de conteúdo e visuais, decisões de marca
 - `templates/datacorehs/` — UI kit que já recriou Dashboard e listagem de notas
+
+---
+
+## Achados da Fase 2
+
+A fase entregou o que estava previsto — matriz de permissões, providers por rota,
+code splitting, `services/` tipado. O que não estava previsto foi o que ela
+encontrou pelo caminho.
+
+### O menu mentia para dois papéis
+
+O grupo "Comercial" da Sidebar aparecia para **qualquer** usuário: `mostrar: true`
+fixo, sem consultar papel nenhum. Na prática, quem tinha papel `servicos` via
+"Vendas", "Clientes", "Produtos" e "Vendedores" no menu e batia em "Acesso negado"
+ao clicar; quem tinha papel `vendas` via "Serviços". Antes da sessão carregar, o
+menu exibia 8 itens e depois se corrigia.
+
+**Não era vazamento de acesso** — as rotas sempre bloquearam. Era menu levando a
+beco sem saída. Sobreviveu tanto tempo porque `admin` e `financeiro` abrem o
+Comercial inteiro, e são justamente as contas que mais se usa para testar.
+
+Achado pelo teste de invariante da Task 4, que falhou em 12 dos 40 casos antes de
+qualquer refatoração. Esse teste deriva as personas da própria matriz e lê o menu
+renderizado sem enumerar item nenhum — papel novo na matriz ou item novo na
+Sidebar entram na varredura sozinhos.
+
+### `updateUserPassword` saía sem autenticação
+
+`services/api.ts` usava `axios` cru em vez da instância com interceptor. Todas as
+outras funções do arquivo usavam a instância corretamente; só essa escapou. A
+requisição de troca de senha ia **sem cabeçalho `Authorization`**.
+
+**Fica em aberto, e não se resolve no front:** ou a API estava recusando a troca
+(funcionalidade quebrada em silêncio), ou estava aceitando troca de senha sem
+autenticação (endpoint aberto). Precisa ser checado contra a API.
+
+### O spec estava errado sobre o `services/`
+
+O texto da Fase 2 pedia "uma instância `axios` única". Segui-lo quebraria o
+sistema: são dois backends distintos, `VITE_API_URL` (`authapi`) e
+`VITE_NOTAS_URL` (`tinyapi`). O que se compartilha é o **interceptor**, e a forma
+certa é uma fábrica. Há teste travando isso — quem "unificar" no futuro quebra a
+suíte.
+
+### Correções de rota do próprio refactor
+
+Duas decisões de implementação foram revertidas por mim depois de entregues, e
+valem como registro de critério:
+
+**O `import Bloqueio` que eu mandei mover.** Instruí subir o import da linha 41
+para o topo do `router.tsx`. Depois da troca dos guardas, o arquivo não
+referenciava mais `Bloqueio` — a instrução tinha ficado obsoleta no meio da
+própria task. O executor apagou em vez de mover, e estava certo.
+
+**O carregamento caseiro.** A Task 5 criou `src/paginas-lazy.tsx` em vez de usar
+`React.lazy`, porque o teste de caracterização lê o DOM sem `await`. Era código de
+produção moldado pela sincronicidade de um teste. A causa foi uma regra minha
+escrita larga demais — "não edite `acesso-atual.test.tsx`" —, que existe para
+impedir o **enfraquecimento** da rede de segurança, não para proibir um `await`.
+Trocado pelo `React.lazy` depois, com prova de que nenhuma asserção mudou.
+
+### Um buraco na cobertura dos guardas
+
+O refactor removeu Tailwind cru com cor cravada (`text-gray-500`, `text-red-600`)
+dos seis guardas, e **nenhuma ferramenta registrou**: o `router.tsx` não aparecia
+no relatório do ESLint, e o `guarda-cores` da Fase 1 só acusa hexadecimal
+arbitrário e opacidade sobre token. Classe de paleta crua do Tailwind passa pelos
+dois. Vale estender o guarda antes da Fase 3, que vai mexer em 12 telas cheias
+disso.
+
+### Números
+
+| | Antes da Fase 2 | Depois |
+|---|---|---|
+| Suíte | 184 testes / 47 arquivos | **489 / 55** |
+| Lint | 190 problemas | **176** |
+| `router.tsx` | 255 linhas, 6 guardas dentro | **190 linhas, zero** |
+| Providers globais | 10 | **2** |
+| Build | 1 chunk, 1.697 kB | **41 chunks, entrada 305 kB** |
