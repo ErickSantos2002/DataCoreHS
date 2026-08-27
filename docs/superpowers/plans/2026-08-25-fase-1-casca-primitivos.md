@@ -2203,7 +2203,7 @@ Mostrar o resultado nos dois temas. Nada de `git push` sem autorização.
 | Primitivos de `navigation/` | 9, 12 |
 | `AppShell` com ícones locais e medidas de token | 12 |
 | `chartTheme.ts` | 10 |
-| As três colisões de cascata documentadas no spec | 12 |
+| Duas das três colisões de cascata do spec (`body` e `::-webkit-scrollbar`); a terceira (`a { color: var(--text-link) }` perdendo para o preflight) foi trocada, sem registro, pela remoção do `bg-gray-100` de `index.html` — só fechada de fato nas correções finais da Fase 1, editando o `@layer base` de `src/styles/index.css` | 12 (correções finais) |
 | A inversão de papéis dos tokens documentada no spec | 11 |
 | Telas piloto | 13, 14 |
 | "Pronto quando" da fase | 15 |

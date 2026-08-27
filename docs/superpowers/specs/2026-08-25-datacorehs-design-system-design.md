@@ -207,7 +207,7 @@ dois temas; nenhum layout se move e nenhuma tela foi reescrita.
 
 | Grupo | Componentes |
 |---|---|
-| `core/` | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge` (+`StatusBadge`), `Icon`, `Spinner`, `Avatar` |
+| `core/` | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge`, `Icon`, `Spinner`, `Avatar` |
 | `forms/` | `Input`, `Textarea`, `Select`, `SearchSelect`, `Checkbox`, `Radio`, `Switch` |
 | `data/` | `Table` (+ `TableHead`, `TableBody`, `TableRow`, `TableHeaderCell`, `TableCell`, `TableEmpty`), `Pagination`, `Progress` |
 | `feedback/` | `Alert`, `Modal` (+`ModalFooter`), `Toast` (+`ToastStack`), `Tooltip` |
@@ -215,7 +215,10 @@ dois temas; nenhum layout se move e nenhuma tela foi reescrita.
 
 Ficam de fora por YAGNI, com o motivo registrado: `Rating` e `SlaChip` (conceitos
 de HelpHS/ChamadosHS, inexistentes aqui), `Rotulo` e `Colchetes` (pele de console,
-exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia arquivo).
+exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia arquivo),
+`StatusBadge`, `PriorityBadge` e `TagBadge` (codificam o domínio de chamados do
+HelpHS — `open`, `awaiting_technical`, `resolved` — e um cadastro de etiquetas;
+nenhum dos dois existe no DataCoreHS).
 
 **Duas peças que o DS não fornece e este sistema exige:**
 
