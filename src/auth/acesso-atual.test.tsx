@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
@@ -95,7 +95,7 @@ function telaVisivel(): string {
   return `(tela não reconhecida) ${texto.slice(0, 120)}`;
 }
 
-function abrir(rota: string, user: Usuario, loading = false): string {
+function renderizar(rota: string, user: Usuario, loading = false): void {
   render(
     <AuthContext.Provider
       value={{
@@ -112,6 +112,26 @@ function abrir(rota: string, user: Usuario, loading = false): string {
       </MemoryRouter>
     </AuthContext.Provider>,
   );
+}
+
+/**
+ * Abre a rota e devolve a tela que fica **depois** que a página chega.
+ *
+ * As páginas são `React.lazy`: a primeira renderização de cada uma suspende, e
+ * quem lê o DOM no mesmo tique vê o fallback do `Suspense`, não a tela. O `act`
+ * assíncrono deixa a promessa do módulo resolver e o React repintar antes da
+ * leitura, para a asserção continuar falando de acesso e não de rede. Quando
+ * não há página a carregar — bloqueio, redirecionamento, sessão ainda em
+ * andamento — nada suspende e o `act` passa reto.
+ */
+async function abrir(
+  rota: string,
+  user: Usuario,
+  loading = false,
+): Promise<string> {
+  renderizar(rota, user, loading);
+
+  await act(async () => {});
 
   return telaVisivel();
 }
@@ -193,13 +213,13 @@ describe("acesso atual, por papel e rota", () => {
         const liberado = perfil.libera.includes(rota);
         const esperado = liberado ? `pagina:${rota}` : "bloqueio";
 
-        it(`${liberado ? "abre" : "vê bloqueio em"} ${rota}`, () => {
-          expect(abrir(rota, perfil.user)).toBe(esperado);
+        it(`${liberado ? "abre" : "vê bloqueio em"} ${rota}`, async () => {
+          expect(await abrir(rota, perfil.user)).toBe(esperado);
         });
       }
 
-      it("abre /login (a rota pública não tem guarda, nem para quem já está autenticado)", () => {
-        expect(abrir("/login", perfil.user)).toBe("pagina:/login");
+      it("abre /login (a rota pública não tem guarda, nem para quem já está autenticado)", async () => {
+        expect(await abrir("/login", perfil.user)).toBe("pagina:/login");
       });
     });
   }
@@ -207,13 +227,13 @@ describe("acesso atual, por papel e rota", () => {
 
 describe("acesso atual, sem usuário autenticado", () => {
   for (const rota of ROTAS) {
-    it(`redireciona ${rota} para /login`, () => {
-      expect(abrir(rota, null)).toBe("pagina:/login");
+    it(`redireciona ${rota} para /login`, async () => {
+      expect(await abrir(rota, null)).toBe("pagina:/login");
     });
   }
 
-  it("abre /login", () => {
-    expect(abrir("/login", null)).toBe("pagina:/login");
+  it("abre /login", async () => {
+    expect(await abrir("/login", null)).toBe("pagina:/login");
   });
 });
 
@@ -221,14 +241,14 @@ describe("acesso atual, enquanto a sessão carrega", () => {
   // `loading` vence antes de qualquer checagem de papel: nenhuma rota protegida
   // vaza conteúdo, e nenhuma manda o usuário para o login por engano.
   for (const rota of ROTAS) {
-    it(`mostra carregando em ${rota}`, () => {
-      expect(abrir(rota, null, true)).toBe("carregando");
+    it(`mostra carregando em ${rota}`, async () => {
+      expect(await abrir(rota, null, true)).toBe("carregando");
     });
   }
 
-  it("mostra carregando numa rota protegida mesmo com usuário já em mãos", () => {
+  it("mostra carregando numa rota protegida mesmo com usuário já em mãos", async () => {
     expect(
-      abrir(
+      await abrir(
         "/usuarios",
         { id: 10, username: "ana.admin", role: "admin" },
         true,
@@ -236,8 +256,8 @@ describe("acesso atual, enquanto a sessão carrega", () => {
     ).toBe("carregando");
   });
 
-  it("abre /login normalmente, porque a rota pública não espera a sessão", () => {
-    expect(abrir("/login", null, true)).toBe("pagina:/login");
+  it("abre /login normalmente, porque a rota pública não espera a sessão", async () => {
+    expect(await abrir("/login", null, true)).toBe("pagina:/login");
   });
 });
 
@@ -281,8 +301,8 @@ describe("acesso atual a /financeiro e /locacao, governado por id e não por pap
 
   for (const caso of CASOS) {
     for (const rota of ROTAS_POR_ID) {
-      it(`${caso.nome} ${caso.entra ? "abre" : "vê bloqueio em"} ${rota}`, () => {
-        expect(abrir(rota, caso.user)).toBe(
+      it(`${caso.nome} ${caso.entra ? "abre" : "vê bloqueio em"} ${rota}`, async () => {
+        expect(await abrir(rota, caso.user)).toBe(
           caso.entra ? `pagina:${rota}` : "bloqueio",
         );
       });

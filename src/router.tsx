@@ -1,10 +1,9 @@
-import React, { Suspense } from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequirePermissao from "./auth/RequirePermissao";
 import { Spinner } from "./design-system/ui/core/Spinner";
-import { paginaLazy } from "./paginas-lazy";
 
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
@@ -15,25 +14,25 @@ import { EstoqueProvider } from "./context/EstoqueContext";
 import { ServicosProvider } from "./context/ServicosContext";
 import { VendasProvider } from "./context/VendasContext";
 
-const Login = paginaLazy(() => import("./pages/Login"));
-const Home = paginaLazy(() => import("./pages/Home"));
-const Dashboard = paginaLazy(() => import("./pages/Dashboard"));
-const Configuracoes = paginaLazy(() => import("./pages/Configuracoes"));
-const NotFound = paginaLazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/Login"));
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-const Clientes = paginaLazy(() => import("./pages/Clientes"));
-const Estoque = paginaLazy(() => import("./pages/Estoque"));
-const Servicos = paginaLazy(() => import("./pages/Servicos"));
-const Vendas = paginaLazy(() => import("./pages/Vendas"));
-const Locacao = paginaLazy(() => import("./pages/Locacao"));
-const Vendedores = paginaLazy(() => import("./pages/Vendedores"));
-const Produtos = paginaLazy(() => import("./pages/Produtos"));
-const GerenciamentoFinanceiro = paginaLazy(
+const Clientes = lazy(() => import("./pages/Clientes"));
+const Estoque = lazy(() => import("./pages/Estoque"));
+const Servicos = lazy(() => import("./pages/Servicos"));
+const Vendas = lazy(() => import("./pages/Vendas"));
+const Locacao = lazy(() => import("./pages/Locacao"));
+const Vendedores = lazy(() => import("./pages/Vendedores"));
+const Produtos = lazy(() => import("./pages/Produtos"));
+const GerenciamentoFinanceiro = lazy(
   () => import("./pages/GerenciamentoFinanceiro"),
 );
-const Usuarios = paginaLazy(() => import("./pages/Usuarios"));
-const ContasPagar = paginaLazy(() => import("./pages/ContasPagar"));
-const ContasReceber = paginaLazy(() => import("./pages/ContasReceber"));
+const Usuarios = lazy(() => import("./pages/Usuarios"));
+const ContasPagar = lazy(() => import("./pages/ContasPagar"));
+const ContasReceber = lazy(() => import("./pages/ContasReceber"));
 
 /**
  * Rotas e, junto delas, os providers de dados de cada ramo.
