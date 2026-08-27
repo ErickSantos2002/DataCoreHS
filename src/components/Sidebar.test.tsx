@@ -7,6 +7,15 @@ import { KeyRound } from "lucide-react";
 import useNavGroups from "./Sidebar";
 import { AuthContext } from "../context/AuthContext";
 
+/**
+ * O conteúdo do menu — rótulos, ordem, grupos e ícones.
+ *
+ * Quem garante que nenhum item aponta para tela bloqueada é
+ * `Sidebar.invariante.test.tsx`, e ele faz isso sem enumerar item nenhum. Aqui
+ * é o oposto: a enumeração, para que uma mudança de conteúdo apareça como
+ * mudança de teste.
+ */
+
 type Usuario = { id: number; username: string; role: string } | null;
 
 function wrapperPara(user: Usuario) {
@@ -33,7 +42,12 @@ describe("useNavGroups", () => {
       "Financeiro",
       "Administração",
     ]);
-    expect(result.current[0].items.map((i) => i.label)).toEqual(["Início", "Meta do trimestre"]);
+    // Estoque é rota livre; fica em Principal, com o resto do que todo mundo vê.
+    expect(result.current[0].items.map((i) => i.label)).toEqual([
+      "Início",
+      "Meta do trimestre",
+      "Estoque",
+    ]);
     expect(result.current[1].items.map((i) => i.label)).toEqual([
       "Vendas",
       "Serviços",
@@ -47,11 +61,7 @@ describe("useNavGroups", () => {
       "Contas a receber",
       "Locação",
     ]);
-    expect(result.current[3].items.map((i) => i.label)).toEqual([
-      "Estoque",
-      "Usuários",
-      "Configurações",
-    ]);
+    expect(result.current[3].items.map((i) => i.label)).toEqual(["Usuários", "Configurações"]);
   });
 
   it("usa o KeyRound do lucide para Locação, que não existe no ICON_PATHS do design system", () => {
@@ -64,14 +74,26 @@ describe("useNavGroups", () => {
     expect((locacao?.icon as ReactElement).type).toBe(KeyRound);
   });
 
-  it("some com o grupo Financeiro inteiro quando o usuário não tem nenhuma permissão dele", () => {
+  it("some com os grupos inteiros de que o usuário não alcança nenhum item", () => {
     const { result } = renderHook(() => useNavGroups(), {
       wrapper: wrapperPara({ id: 99, username: "vendedor", role: "vendas" }),
     });
-    expect(result.current.map((g) => g.label)).toEqual(["Principal", "Comercial", "Administração"]);
+    expect(result.current.map((g) => g.label)).toEqual(["Principal", "Comercial"]);
   });
 
-  it("mostra só Contas a pagar/receber no grupo Financeiro pro papel financeiro sem o id legado", () => {
+  it("mostra Estoque em Principal mesmo para quem não tem papel nenhum conhecido", () => {
+    const { result } = renderHook(() => useNavGroups(), {
+      wrapper: wrapperPara({ id: 99, username: "visitante", role: "suporte" }),
+    });
+    expect(result.current.map((g) => g.label)).toEqual(["Principal"]);
+    expect(result.current[0].items.map((i) => i.label)).toEqual([
+      "Início",
+      "Meta do trimestre",
+      "Estoque",
+    ]);
+  });
+
+  it("mostra só Contas a pagar/receber no grupo Financeiro pro papel financeiro sem o id nomeado", () => {
     const { result } = renderHook(() => useNavGroups(), {
       wrapper: wrapperPara({ id: 99, username: "financeiro", role: "financeiro" }),
     });
@@ -79,11 +101,11 @@ describe("useNavGroups", () => {
     expect(financeiro?.items.map((i) => i.label)).toEqual(["Contas a pagar", "Contas a receber"]);
   });
 
-  it("esconde Usuários e Configurações do grupo Administração pra quem não é admin", () => {
+  it("mostra só Serviços no grupo Comercial pro papel servicos", () => {
     const { result } = renderHook(() => useNavGroups(), {
-      wrapper: wrapperPara({ id: 99, username: "vendedor", role: "vendas" }),
+      wrapper: wrapperPara({ id: 99, username: "tecnico", role: "servicos" }),
     });
-    const administracao = result.current.find((g) => g.label === "Administração");
-    expect(administracao?.items.map((i) => i.label)).toEqual(["Estoque"]);
+    const comercial = result.current.find((g) => g.label === "Comercial");
+    expect(comercial?.items.map((i) => i.label)).toEqual(["Serviços"]);
   });
 });
