@@ -240,21 +240,21 @@ Hoje a Sidebar decide o menu com predicados próprios (`idsFinanceiroLegado`,
 `podeContas`, `ehAdmin`) — a segunda fonte de verdade que esta fase existe para
 eliminar.
 
-- [ ] **Passo 1** — teste do invariante, que é o coração da fase: **para todo papel,
+- [x] **Passo 1** — teste do invariante, que é o coração da fase: **para todo papel,
       todo item exibido no menu aponta para uma rota que aquele papel consegue
       abrir.** Percorra os papéis e cruze `rotasVisiveis` com o menu renderizado.
-- [ ] **Passo 2** — rodar e registrar o resultado no relatório. Se falhar, diga em
+- [x] **Passo 2** — rodar e registrar o resultado no relatório. Se falhar, diga em
       qual par papel × item, e pare antes de mexer: significa que existe uma
       divergência que ninguém mapeou ainda.
-- [ ] **Passo 3** — trocar os predicados próprios da Sidebar
+- [x] **Passo 3** — trocar os predicados próprios da Sidebar
       (`idsFinanceiroLegado`, `podeContas`, `ehAdmin`) por `podeAcessar`.
-- [ ] **Passo 4** — mover **Estoque** do grupo "Administração" para "Principal".
+- [x] **Passo 4** — mover **Estoque** do grupo "Administração" para "Principal".
       A rota é livre por decisão do Erick, e deixá-la sob Administração faz o
       menu prometer uma restrição que não existe. Nenhuma outra permissão muda.
-- [ ] **Passo 5** — rodar a suíte inteira. O invariante tem de ficar verde **sem
+- [x] **Passo 5** — rodar a suíte inteira. O invariante tem de ficar verde **sem
       exceção nenhuma**. Se você precisar de um caso especial para passar, o
       caso especial é um defeito — relate em vez de silenciar.
-- [ ] **Passo 6: commit**
+- [x] **Passo 6: commit**
 
 ---
 
