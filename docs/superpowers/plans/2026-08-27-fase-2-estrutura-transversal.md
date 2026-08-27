@@ -97,7 +97,7 @@ mudar estrutura com prova de que o acesso continuou igual.
 
 **Arquivos:** criar `src/auth/acesso-atual.test.tsx`
 
-- [ ] **Passo 1: levantar a tabela real, do código, não da memória**
+- [x] **Passo 1: levantar a tabela real, do código, não da memória**
 
 Ler `src/router.tsx` inteiro e montar a tabela de quem entra em cada rota. O
 resultado esperado, já conferido — confirme antes de usar:
@@ -120,7 +120,7 @@ resultado esperado, já conferido — confirme antes de usar:
 | `/financeiro` | `RequireFinanceiro` | **id ∈ {1,3,4}** |
 | `/locacao` | `RequireFinanceiro` | **id ∈ {1,3,4}** |
 
-- [ ] **Passo 2: escrever o teste que percorre a tabela**
+- [x] **Passo 2: escrever o teste que percorre a tabela**
 
 Um teste por par (papel × rota), renderizando a rota com um usuário falso no
 `AuthContext` e afirmando se aparece a tela ou o bloqueio. Cubra os papéis
@@ -130,18 +130,18 @@ caso `user = null` e o caso `loading = true`.
 Não teste "o componente `RequireVendas` retorna X" — teste "o papel `servicos`
 que abre `/vendas` vê bloqueio". O teste tem de sobreviver ao guarda sumir.
 
-- [ ] **Passo 3: rodar e ver passar**
+- [x] **Passo 3: rodar e ver passar**
 
 `npx vitest run src/auth/acesso-atual.test.tsx`
 Todos passam — é caracterização do que já existe.
 
-- [ ] **Passo 4: provar que o teste enxerga**
+- [x] **Passo 4: provar que o teste enxerga**
 
 Inverta uma condição de um guarda no `router.tsx` (troque um `!==` por `===`),
 rode de novo, veja falhar, e reverta. Um teste de caracterização que não falha
 quando o comportamento muda não é rede de segurança nenhuma.
 
-- [ ] **Passo 5: commit**
+- [x] **Passo 5: commit**
 
 ```bash
 git add src/auth/acesso-atual.test.tsx
