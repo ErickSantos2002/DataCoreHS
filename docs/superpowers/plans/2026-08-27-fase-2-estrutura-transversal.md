@@ -309,11 +309,11 @@ Uma instância só quebraria as chamadas de notas. O que se compartilha é o
 
 ## Task 7 — Fechamento
 
-- [ ] Suíte completa, `tsc --noEmit`, `npm run lint` (≤190), `npm run build`.
-- [ ] Conferir que o teste da Task 1 continua verde e **inalterado** desde o commit
+- [x] Suíte completa, `tsc --noEmit`, `npm run lint` (≤190), `npm run build`.
+- [x] Conferir que o teste da Task 1 continua verde e **inalterado** desde o commit
       dela. `git log -p src/auth/acesso-atual.test.tsx` deve mostrar um commit só.
       Se mostrar mais, alguém ajustou a rede de segurança para passar — investigar.
-- [ ] Registrar no spec os achados desta fase.
+- [x] Registrar no spec os achados desta fase.
 - [ ] Checkpoint humano com o Erick: entrar com cada papel e conferir menu e rotas.
 
 ---
