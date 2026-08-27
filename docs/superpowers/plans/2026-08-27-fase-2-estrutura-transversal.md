@@ -33,17 +33,34 @@ As rotas viram `lazy` e cada ramo carrega os próprios providers.
 O levantamento do `router.tsx`, `main.tsx` e `services/` encontrou coisas que o
 spec não conhecia. Elas mudam a ordem das tarefas.
 
-**1. `RequireFinanceiro` controla acesso por chave primária de usuário.**
+**1. `RequireFinanceiro` libera por usuário nomeado, e isso é intencional.**
 `router.tsx:91` — `![1, 3, 4].includes(user.id)`. Governa `/financeiro` e
-`/locacao`. Um usuário com papel `financeiro` legítimo é barrado; e se o id 3 for
-reaproveitado para outra pessoa no futuro, ela herda acesso financeiro em silêncio.
+`/locacao`.
+
+Levantei isso como defeito e **estava errado**. O Erick confirmou: essas duas
+telas são para aquelas pessoas especificamente, não para quem tem papel
+`financeiro`, e a regra veio da chefia. **Não é legado, não é para ser
+"consertado".** Um usuário com papel `financeiro` que não esteja na lista deve
+continuar barrado — é o comportamento correto.
+
+O que muda é só a forma de escrever: hoje a regra está enterrada dentro de um
+componente de guarda, sem uma linha dizendo por que aqueles números existem.
+Na matriz ela vira explícita e documentada. O risco real que sobra é o de
+reaproveitamento de id — se o id 3 for atribuído a outra pessoa um dia, ela
+herda o acesso. Isso não bloqueia esta fase; fica anotado como observação
+operacional para o Erick, não como tarefa.
 
 **2. `RequireVendedores` é idêntico a `RequireVendas`.**
 Linhas 43-53 e 67-77: mesma condição, `admin | vendas | financeiro`. Duplicação morta.
 
-**3. `/estoque` não tem guarda de papel**, mas o menu o coloca sob "Administração".
-Qualquer usuário autenticado abre a tela. Aqui o menu **promete mais restrição do
-que a rota entrega** — a divergência é na direção permissiva, que é a perigosa.
+**3. `/estoque` não tem guarda de papel, e a rota está certa.** O Erick confirmou:
+estoque é página livre, a empresa inteira pode ver. **Quem está errado é o menu**,
+que a coloca sob "Administração" e sugere uma restrição que não existe.
+
+A correção, portanto, não é fechar a rota — é mover o item de grupo. Ele vai para
+**Principal**, junto de Início e Meta do trimestre. Isso faz a estrutura do menu
+dizer a verdade: Principal é o que todo mundo vê; Comercial, Financeiro e
+Administração são áreas restritas.
 
 **4. `updateUserPassword` não manda o token.**
 `services/api.ts:20` usa `axios.put` cru em vez da instância `authApi`, então o
@@ -162,7 +179,7 @@ export type Regra =
   | { tipo: "publico" }
   | { tipo: "autenticado" }
   | { tipo: "papeis"; papeis: readonly Papel[] }
-  | { tipo: "ids"; ids: readonly number[] };  // legado — ver Task 6
+  | { tipo: "usuarios"; ids: readonly number[] };  // liberação nominal — ver abaixo
 
 export const PERMISSOES: Record<string, Regra>;
 export function podeAcessar(rota: string, user: Usuario | null): boolean;
@@ -179,8 +196,12 @@ role: "financeiro"})` é `false` (o portão por id manda), e
 - [ ] **Passo 2: rodar e ver falhar** — `permissoes.ts` ainda não existe.
 
 - [ ] **Passo 3: escrever a matriz** reproduzindo a tabela da Task 1 sem desvio.
-O tipo `{ tipo: "ids" }` existe para representar o legado com honestidade, não
-para ser imitado. Comente isso na definição.
+
+O tipo `{ tipo: "usuarios" }` representa uma **regra de negócio deliberada**:
+`/financeiro` e `/locacao` são liberadas para pessoas nomeadas, por decisão da
+chefia, e não para o papel `financeiro`. Comente exatamente isso na definição —
+sem essa frase, o próximo a ler o arquivo vai "consertar" a regra achando que é
+um resquício, e vai abrir duas telas para quem não deve vê-las.
 
 - [ ] **Passo 4: rodar e ver passar.**
 
@@ -222,16 +243,18 @@ eliminar.
 - [ ] **Passo 1** — teste do invariante, que é o coração da fase: **para todo papel,
       todo item exibido no menu aponta para uma rota que aquele papel consegue
       abrir.** Percorra os papéis e cruze `rotasVisiveis` com o menu renderizado.
-      Esse teste tem de falhar hoje, por causa do `/estoque`.
-- [ ] **Passo 2** — rodar. Registre no relatório se ele acusa `/estoque` como
-      esperado. Se acusar outra coisa, pare e relate antes de mexer.
-- [ ] **Passo 3** — trocar os predicados por `podeAcessar`.
-- [ ] **Passo 4** — rodar. O `/estoque` **continua divergente de propósito** (o menu
-      o mostra sob Administração, a rota é aberta): a correção é a Task 6, que
-      depende de decisão do Erick. Marque esse caso como exceção conhecida e
-      documentada no teste, com comentário apontando para a Task 6 — nunca
-      silencie o invariante inteiro por causa dele.
-- [ ] **Passo 5: commit**
+- [ ] **Passo 2** — rodar e registrar o resultado no relatório. Se falhar, diga em
+      qual par papel × item, e pare antes de mexer: significa que existe uma
+      divergência que ninguém mapeou ainda.
+- [ ] **Passo 3** — trocar os predicados próprios da Sidebar
+      (`idsFinanceiroLegado`, `podeContas`, `ehAdmin`) por `podeAcessar`.
+- [ ] **Passo 4** — mover **Estoque** do grupo "Administração" para "Principal".
+      A rota é livre por decisão do Erick, e deixá-la sob Administração faz o
+      menu prometer uma restrição que não existe. Nenhuma outra permissão muda.
+- [ ] **Passo 5** — rodar a suíte inteira. O invariante tem de ficar verde **sem
+      exceção nenhuma**. Se você precisar de um caso especial para passar, o
+      caso especial é um defeito — relate em vez de silenciar.
+- [ ] **Passo 6: commit**
 
 ---
 
@@ -297,11 +320,19 @@ Uma instância só quebraria as chamadas de notas. O que se compartilha é o
 
 ## Fora de escopo, e por quê
 
-Estas três **não** entram na Fase 2 porque mudam quem acessa o quê, e isso é
-decisão do Erick, não do refactor:
+As duas primeiras dúvidas foram **decididas pelo Erick** em 27/08/2026 e deixaram
+de estar em aberto:
 
-1. Trocar o portão `[1,3,4]` de `/financeiro` e `/locacao` por papel.
-2. Decidir se `/estoque` ganha guarda de admin ou se o menu para de fingir que é
-   área administrativa.
+1. **O portão `[1,3,4]` fica.** `/financeiro` e `/locacao` são para pessoas
+   nomeadas, por decisão da chefia — não para o papel `financeiro`. A matriz
+   reproduz a regra e a documenta.
+2. **`/estoque` continua livre.** A rota está correta; o menu é que muda de
+   grupo, na Task 4.
+
+Segue fora de escopo:
+
 3. Unificar `RequireVendas`/`RequireVendedores` **como regra** — na matriz elas já
    ficam idênticas, mas se um dia devem divergir, é escolha de negócio.
+4. **Observação operacional, não tarefa:** se um dia o id 1, 3 ou 4 for atribuído
+   a outra pessoa, ela herda o acesso a `/financeiro` e `/locacao` sem que nada
+   no código acuse. Vale conferir antes de reaproveitar id de usuário desligado.
