@@ -176,6 +176,22 @@ module.exports = {
       height: {
         topbar: "var(--topbar-height)",
       },
+      // O Drawer desliza da direita ao abrir. `hs-modal-in`/`hs-fade-in` (o
+      // fade+zoom do Modal, o fade do Toast) já existem como CSS puro em
+      // tokens/motion.css, fora do escopo deste adendo (não editamos
+      // tokens/). O keyframe do Drawer mora aqui em vez de lá por isso —
+      // ainda assim toma a duração/easing de tokens/motion.css via var(),
+      // e cai sob a mesma regra de prefers-reduced-motion (ela zera
+      // animation-duration para *, sem depender do nome do keyframe).
+      keyframes: {
+        "hs-drawer-in": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+      },
+      animation: {
+        "hs-drawer-in": "hs-drawer-in var(--duration-drawer) var(--ease-out)",
+      },
       zIndex: {
         // Escala unica de sobreposicao. O numero nao importa; a ORDEM importa,
         // e ela e: o que flutua junto do conteudo < o que cobre a tela < o que
