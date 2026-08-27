@@ -1,26 +1,10 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
-import Configuracoes from "./pages/Configuracoes";
-import Home from "./pages/Home";
-
-import Clientes from "./pages/Clientes";
-import Estoque from "./pages/Estoque";
-import Servicos from "./pages/Servicos";
-import Vendas from "./pages/Vendas";
-import Locacao from "./pages/Locacao";
-import Vendedores from "./pages/Vendedores";
-import Produtos from "./pages/Produtos";
-import GerenciamentoFinanceiro from "./pages/GerenciamentoFinanceiro";
-import Usuarios from "./pages/Usuarios";
-import ContasPagar from "./pages/ContasPagar";
-import ContasReceber from "./pages/ContasReceber";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RequirePermissao from "./auth/RequirePermissao";
+import { Spinner } from "./design-system/ui/core/Spinner";
+import { paginaLazy } from "./paginas-lazy";
 
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
@@ -30,6 +14,26 @@ import { DataProvider } from "./context/DataContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { ServicosProvider } from "./context/ServicosContext";
 import { VendasProvider } from "./context/VendasContext";
+
+const Login = paginaLazy(() => import("./pages/Login"));
+const Home = paginaLazy(() => import("./pages/Home"));
+const Dashboard = paginaLazy(() => import("./pages/Dashboard"));
+const Configuracoes = paginaLazy(() => import("./pages/Configuracoes"));
+const NotFound = paginaLazy(() => import("./pages/NotFound"));
+
+const Clientes = paginaLazy(() => import("./pages/Clientes"));
+const Estoque = paginaLazy(() => import("./pages/Estoque"));
+const Servicos = paginaLazy(() => import("./pages/Servicos"));
+const Vendas = paginaLazy(() => import("./pages/Vendas"));
+const Locacao = paginaLazy(() => import("./pages/Locacao"));
+const Vendedores = paginaLazy(() => import("./pages/Vendedores"));
+const Produtos = paginaLazy(() => import("./pages/Produtos"));
+const GerenciamentoFinanceiro = paginaLazy(
+  () => import("./pages/GerenciamentoFinanceiro"),
+);
+const Usuarios = paginaLazy(() => import("./pages/Usuarios"));
+const ContasPagar = paginaLazy(() => import("./pages/ContasPagar"));
+const ContasReceber = paginaLazy(() => import("./pages/ContasReceber"));
 
 /**
  * Rotas e, junto delas, os providers de dados de cada ramo.
@@ -61,194 +65,216 @@ import { VendasProvider } from "./context/VendasContext";
  *
  * `ThemeProvider` e `AuthProvider` ficaram no `main.tsx` porque toda rota,
  * inclusive `/login`, depende das duas.
+ *
+ * ## Por que as páginas são carregadas sob demanda
+ *
+ * Com import estático o build saía num pacote só de ~1,7 MB: quem abria a tela
+ * de login baixava o `xlsx`, o `jspdf` e o `recharts` das telas de relatório
+ * antes de digitar a senha. Cada página vira um chunk próprio, buscado no
+ * momento em que a rota é aberta — e só se o guarda deixar, porque o `import()`
+ * só dispara quando o elemento chega a renderizar.
  */
+/**
+ * O que ocupa a área de conteúdo enquanto o chunk da página vem pela rede.
+ * Mesmo desenho do estado de carregando de `RequirePermissao`, com primitivo
+ * do Design System em vez de marcação crua.
+ */
+const CarregandoPagina: React.FC = () => (
+  <div className="flex items-center gap-3 p-6 text-conteudo-muted">
+    <Spinner size="sm" />
+    <span>Carregando página...</span>
+  </div>
+);
+
 const AppRoutes: React.FC = () => (
-  <Routes>
-    <Route path="/login" element={<Login />} />
+  <Suspense fallback={<CarregandoPagina />}>
+    <Routes>
+      <Route path="/login" element={<Login />} />
 
-    <Route
-      path="/inicio"
-      element={
-        <ProtectedRoute>
-          <Home />
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/inicio"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
 
-    <Route
-      path="/estoque"
-      element={
-        <ProtectedRoute>
-          <EstoqueProvider>
-            <Estoque />
-          </EstoqueProvider>
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/estoque"
+        element={
+          <ProtectedRoute>
+            <EstoqueProvider>
+              <Estoque />
+            </EstoqueProvider>
+          </ProtectedRoute>
+        }
+      />
 
-    <Route
-      path="/servicos"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/servicos">
-            <ServicosProvider>
-              <Servicos />
-            </ServicosProvider>
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/servicos"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/servicos">
+              <ServicosProvider>
+                <Servicos />
+              </ServicosProvider>
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
 
-    <Route
-      path="/locacao"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/locacao">
-            <Locacao />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/locacao"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/locacao">
+              <Locacao />
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
 
-    <Route
-      path="/usuarios"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/usuarios">
-            <Usuarios />
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
+      <Route
+        path="/usuarios"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/usuarios">
+              <Usuarios />
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
 
-    {/* Comercial: as quatro telas do `DataContext` (clientes, vendas,
+      {/* Comercial: as quatro telas do `DataContext` (clientes, vendas,
         produtos e vendedores) compartilham a mesma carga de cadastros. */}
-    <Route
-      element={
-        <ProtectedRoute>
-          <DataProvider>
-            <Outlet />
-          </DataProvider>
-        </ProtectedRoute>
-      }
-    >
-      <Route
-        path="/clientes"
-        element={
-          <RequirePermissao rota="/clientes">
-            <Clientes />
-          </RequirePermissao>
-        }
-      />
-      <Route
-        path="/vendas"
-        element={
-          <RequirePermissao rota="/vendas">
-            <Vendas />
-          </RequirePermissao>
-        }
-      />
-      <Route
-        path="/produtos"
-        element={
-          <RequirePermissao rota="/produtos">
-            <Produtos />
-          </RequirePermissao>
-        }
-      />
-      <Route
-        path="/vendedores"
-        element={
-          <RequirePermissao rota="/vendedores">
-            <Vendedores />
-          </RequirePermissao>
-        }
-      />
-    </Route>
-
-    {/* As duas telas de contas não se cruzam: `ContasPagar` só lê
-        `ContasPagarContext` e `ContasReceber` só lê `ContasReceberContext`.
-        Agrupá-las montaria em cada uma o provider da outra. */}
-    <Route
-      path="/contas-pagar"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/contas-pagar">
-            <ContasPagarProvider>
-              <ContasPagar />
-            </ContasPagarProvider>
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    <Route
-      path="/contas-receber"
-      element={
-        <ProtectedRoute>
-          <RequirePermissao rota="/contas-receber">
-            <ContasReceberProvider>
-              <ContasReceber />
-            </ContasReceberProvider>
-          </RequirePermissao>
-        </ProtectedRoute>
-      }
-    />
-
-    {/* `/configuracoes`, `/dashboard` e `/financeiro` formam um ramo aninhado
-        de fora para dentro pelo que cada uma consome: as três leem as metas de
-        `ConfiguracoesContext`; `/dashboard` e `/financeiro` também leem
-        `DashboardContext`; e `/financeiro` ainda carrega os quatro próprios.
-        (`/financeiro` chega em `Dashboard` e `Configuracoes` via `MetaTab`.) */}
-    <Route
-      element={
-        <ProtectedRoute>
-          <ConfiguracoesProvider>
-            <Outlet />
-          </ConfiguracoesProvider>
-        </ProtectedRoute>
-      }
-    >
-      <Route
-        path="/configuracoes"
-        element={
-          <RequirePermissao rota="/configuracoes">
-            <Configuracoes />
-          </RequirePermissao>
-        }
-      />
-
       <Route
         element={
-          <DashboardProvider>
-            <Outlet />
-          </DashboardProvider>
+          <ProtectedRoute>
+            <DataProvider>
+              <Outlet />
+            </DataProvider>
+          </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
-
         <Route
-          path="/financeiro"
+          path="/clientes"
           element={
-            <RequirePermissao rota="/financeiro">
-              <VendasProvider>
-                <ServicosProvider>
-                  <ContasPagarProvider>
-                    <ContasReceberProvider>
-                      <GerenciamentoFinanceiro />
-                    </ContasReceberProvider>
-                  </ContasPagarProvider>
-                </ServicosProvider>
-              </VendasProvider>
+            <RequirePermissao rota="/clientes">
+              <Clientes />
+            </RequirePermissao>
+          }
+        />
+        <Route
+          path="/vendas"
+          element={
+            <RequirePermissao rota="/vendas">
+              <Vendas />
+            </RequirePermissao>
+          }
+        />
+        <Route
+          path="/produtos"
+          element={
+            <RequirePermissao rota="/produtos">
+              <Produtos />
+            </RequirePermissao>
+          }
+        />
+        <Route
+          path="/vendedores"
+          element={
+            <RequirePermissao rota="/vendedores">
+              <Vendedores />
             </RequirePermissao>
           }
         />
       </Route>
-    </Route>
 
-    <Route path="/" element={<Navigate to="/inicio" />} />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+      {/* As duas telas de contas não se cruzam: `ContasPagar` só lê
+        `ContasPagarContext` e `ContasReceber` só lê `ContasReceberContext`.
+        Agrupá-las montaria em cada uma o provider da outra. */}
+      <Route
+        path="/contas-pagar"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/contas-pagar">
+              <ContasPagarProvider>
+                <ContasPagar />
+              </ContasPagarProvider>
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/contas-receber"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/contas-receber">
+              <ContasReceberProvider>
+                <ContasReceber />
+              </ContasReceberProvider>
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* `/configuracoes`, `/dashboard` e `/financeiro` formam um ramo aninhado
+        de fora para dentro pelo que cada uma consome: as três leem as metas de
+        `ConfiguracoesContext`; `/dashboard` e `/financeiro` também leem
+        `DashboardContext`; e `/financeiro` ainda carrega os quatro próprios.
+        (`/financeiro` chega em `Dashboard` e `Configuracoes` via `MetaTab`.) */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <ConfiguracoesProvider>
+              <Outlet />
+            </ConfiguracoesProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="/configuracoes"
+          element={
+            <RequirePermissao rota="/configuracoes">
+              <Configuracoes />
+            </RequirePermissao>
+          }
+        />
+
+        <Route
+          element={
+            <DashboardProvider>
+              <Outlet />
+            </DashboardProvider>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route
+            path="/financeiro"
+            element={
+              <RequirePermissao rota="/financeiro">
+                <VendasProvider>
+                  <ServicosProvider>
+                    <ContasPagarProvider>
+                      <ContasReceberProvider>
+                        <GerenciamentoFinanceiro />
+                      </ContasReceberProvider>
+                    </ContasPagarProvider>
+                  </ServicosProvider>
+                </VendasProvider>
+              </RequirePermissao>
+            }
+          />
+        </Route>
+      </Route>
+
+      <Route path="/" element={<Navigate to="/inicio" />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </Suspense>
 );
 
 export default AppRoutes;

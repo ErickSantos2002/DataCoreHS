@@ -262,23 +262,23 @@ eliminar.
 
 **Arquivos:** modificar `src/main.tsx`, `src/router.tsx`; apagar dois contexts mortos
 
-- [ ] **Passo 1** — apagar `src/context/ClientesContext.tsx` e
+- [x] **Passo 1** — apagar `src/context/ClientesContext.tsx` e
       `src/context/VendedoresContext.tsx`. Antes de apagar, confirme com
       `grep -rn` que ninguém os importa. Commit separado: remoção de código morto
       não se mistura com mudança de comportamento.
-- [ ] **Passo 2** — teste: abrir `/login` **não** monta `EstoqueProvider` nem
+- [x] **Passo 2** — teste: abrir `/login` **não** monta `EstoqueProvider` nem
       `VendasProvider`. Faça o provider registrar sua montagem num espião.
-- [ ] **Passo 3** — rodar, ver falhar (hoje a pirâmide monta todos).
-- [ ] **Passo 4** — mover cada provider para o ramo de rota que o consome.
+- [x] **Passo 3** — rodar, ver falhar (hoje a pirâmide monta todos).
+- [x] **Passo 4** — mover cada provider para o ramo de rota que o consome.
       `ThemeProvider`, `AuthProvider` e `BrowserRouter` ficam no `main.tsx`.
       Descubra o consumidor de cada context com `grep`, não por suposição.
-- [ ] **Passo 5** — rodar; a suíte inteira, não só o teste novo.
-- [ ] **Passo 6** — envolver cada página em `lazy` + `Suspense`, com o fallback
+- [x] **Passo 5** — rodar; a suíte inteira, não só o teste novo.
+- [x] **Passo 6** — envolver cada página em `lazy` + `Suspense`, com o fallback
       usando primitivo do Design System.
-- [ ] **Passo 7** — `npm run build` e **colar no relatório a lista de chunks**. O
+- [x] **Passo 7** — `npm run build` e **colar no relatório a lista de chunks**. O
       aviso atual "Using dynamic import() to code-split" tem de sumir e tem de
       aparecer mais de um chunk. Sem essa prova a task não está pronta.
-- [ ] **Passo 8: commit**
+- [x] **Passo 8: commit**
 
 ---
 
