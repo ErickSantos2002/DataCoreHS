@@ -19,3 +19,5 @@ export { Progress } from "./Progress";
 export type { ProgressProps } from "./Progress";
 export { KpiCard } from "./KpiCard";
 export type { KpiCardProps } from "./KpiCard";
+export { FilterBar } from "./FilterBar";
+export type { FilterBarProps, FilterBarAppliedFilter, FilterBarView } from "./FilterBar";
