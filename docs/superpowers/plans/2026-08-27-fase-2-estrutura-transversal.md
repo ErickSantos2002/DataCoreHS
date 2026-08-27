@@ -1,7 +1,7 @@
 # Fase 2 — Estrutura transversal · Plano de implementação
 
 > **Para quem executa:** SUB-SKILL OBRIGATÓRIA: use `superpowers:subagent-driven-development`
-> para executar tarefa a tarefa. Os passos usam caixas (`- [ ]`) para acompanhamento.
+> para executar tarefa a tarefa. Os passos usam caixas (`- [x]`) para acompanhamento.
 
 **Objetivo:** tornar o controle de acesso uma fonte única e testada, montar cada context
 só no ramo de rota que o usa, dividir o pacote por rota e tipar a camada de rede.
@@ -186,16 +186,16 @@ export function podeAcessar(rota: string, user: Usuario | null): boolean;
 export function rotasVisiveis(user: Usuario | null): string[];
 ```
 
-- [ ] **Passo 1: escrever o teste da matriz**
+- [x] **Passo 1: escrever o teste da matriz**
 
 O mesmo conjunto de pares papel × rota da Task 1, agora contra `podeAcessar`
 direto, sem renderizar. Inclua explicitamente: `podeAcessar("/financeiro", {id: 2,
 role: "financeiro"})` é `false` (o portão por id manda), e
 `podeAcessar("/estoque", {role: "vendas"})` é `true`.
 
-- [ ] **Passo 2: rodar e ver falhar** — `permissoes.ts` ainda não existe.
+- [x] **Passo 2: rodar e ver falhar** — `permissoes.ts` ainda não existe.
 
-- [ ] **Passo 3: escrever a matriz** reproduzindo a tabela da Task 1 sem desvio.
+- [x] **Passo 3: escrever a matriz** reproduzindo a tabela da Task 1 sem desvio.
 
 O tipo `{ tipo: "usuarios" }` representa uma **regra de negócio deliberada**:
 `/financeiro` e `/locacao` são liberadas para pessoas nomeadas, por decisão da
@@ -203,9 +203,9 @@ chefia, e não para o papel `financeiro`. Comente exatamente isso na definição
 sem essa frase, o próximo a ler o arquivo vai "consertar" a regra achando que é
 um resquício, e vai abrir duas telas para quem não deve vê-las.
 
-- [ ] **Passo 4: rodar e ver passar.**
+- [x] **Passo 4: rodar e ver passar.**
 
-- [ ] **Passo 5: commit**
+- [x] **Passo 5: commit**
 
 ```bash
 git commit -m "feat(auth): matriz rota->papeis como fonte unica de permissao"
@@ -217,18 +217,18 @@ git commit -m "feat(auth): matriz rota->papeis como fonte unica de permissao"
 
 **Arquivos:** criar `src/auth/RequirePermissao.tsx`; modificar `src/router.tsx`
 
-- [ ] **Passo 1** — teste: `RequirePermissao` renderiza filho quando `podeAcessar`
+- [x] **Passo 1** — teste: `RequirePermissao` renderiza filho quando `podeAcessar`
       é verdadeiro, `<Bloqueio />` quando falso, e o estado de carregando enquanto
       `loading`. O estado de carregando usa primitivo do Design System, não
       `text-gray-500` cru — os guardas atuais violam o guarda de cores da Fase 1.
-- [ ] **Passo 2** — rodar, ver falhar.
-- [ ] **Passo 3** — implementar.
-- [ ] **Passo 4** — trocar os seis guardas no `router.tsx` pelo novo, apagar as
+- [x] **Passo 2** — rodar, ver falhar.
+- [x] **Passo 3** — implementar.
+- [x] **Passo 4** — trocar os seis guardas no `router.tsx` pelo novo, apagar as
       definições, e subir o `import Bloqueio` da linha 41 para o topo.
-- [ ] **Passo 5** — rodar **o teste da Task 1**. É ele que prova que a troca não
+- [x] **Passo 5** — rodar **o teste da Task 1**. É ele que prova que a troca não
       mexeu em acesso. Se algum par mudou, o refactor está errado; não ajuste o
       teste para passar.
-- [ ] **Passo 6: commit**
+- [x] **Passo 6: commit**
 
 ---
 
