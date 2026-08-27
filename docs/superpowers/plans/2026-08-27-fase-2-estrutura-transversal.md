@@ -293,17 +293,17 @@ deve ser seguido: existem dois backends distintos — `VITE_API_URL`
 Uma instância só quebraria as chamadas de notas. O que se compartilha é o
 **interceptor**, não a instância.
 
-- [ ] **Passo 1** — teste: uma instância criada pela fábrica manda
+- [x] **Passo 1** — teste: uma instância criada pela fábrica manda
       `Authorization: Bearer <token>` quando há token no `localStorage`, e não manda
       cabeçalho nenhum quando não há.
-- [ ] **Passo 2** — rodar, ver falhar.
-- [ ] **Passo 3** — `http.ts` com `criarHttp(baseURL)`; os dois módulos passam a usá-la.
-- [ ] **Passo 4** — teste do bug: `updateUserPassword` manda o cabeçalho
+- [x] **Passo 2** — rodar, ver falhar.
+- [x] **Passo 3** — `http.ts` com `criarHttp(baseURL)`; os dois módulos passam a usá-la.
+- [x] **Passo 4** — teste do bug: `updateUserPassword` manda o cabeçalho
       `Authorization`. **Tem de falhar** — hoje `api.ts:20` usa `axios.put` cru.
-- [ ] **Passo 5** — corrigir para `authApi.put`, rodar, ver passar.
-- [ ] **Passo 6** — tipar os retornos das funções de `api.ts` e `notasapi.ts`.
+- [x] **Passo 5** — corrigir para `authApi.put`, rodar, ver passar.
+- [x] **Passo 6** — tipar os retornos das funções de `api.ts` e `notasapi.ts`.
       Sem `any` novo; se um retorno for genuinamente desconhecido, `unknown`.
-- [ ] **Passo 7: commit**
+- [x] **Passo 7: commit**
 
 ---
 
