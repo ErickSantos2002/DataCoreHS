@@ -67,6 +67,24 @@ function NavLink({ item, collapsed, ativo, onNavigate }: NavLinkProps) {
       item.icon
     );
 
+  // Cor de fundo/texto do estado ativo: igual nas duas variantes.
+  const corDeAtivo = ativo
+    ? "bg-action-tint text-action"
+    : "text-conteudo-muted hover:bg-surface-elevated";
+
+  // A barra de 2px marcando o item ativo é só da variante expandida — a
+  // especificação do design system para a recolhida é explícita: sem barra
+  // lateral, só tint de fundo + cor do ícone. Medido antes do fix: os 2px de
+  // `border-l-2` (mesmo com `border-transparent`, a LARGURA da borda
+  // continua ocupando espaço) empurravam o conteúdo do link e atrapalhavam
+  // a centralização do ícone na coluna de 72px. Por isso a classe de
+  // largura de borda nem aparece quando `collapsed` — não é
+  // "border-l-2 junto com border-l-0": as duas juntas teriam especificidade
+  // igual no CSS gerado pelo Tailwind, e quem ganharia seria a ordem no
+  // stylesheet final, não a ordem na string de classe. Mais seguro nunca
+  // emitir as duas.
+  const bordaDeAtivo = collapsed ? "" : ativo ? "border-action" : "border-transparent";
+
   const link = (
     <a
       href={item.path}
@@ -78,12 +96,25 @@ function NavLink({ item, collapsed, ativo, onNavigate }: NavLinkProps) {
         onNavigate?.(item.path);
       }}
       className={[
-        "flex items-center gap-2 rounded-lg border-l-2 text-sm font-medium transition-colors",
+        "flex items-center gap-2 rounded-lg text-sm font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2",
-        ativo
-          ? "border-action bg-action-tint text-action"
-          : "border-transparent text-conteudo-muted hover:bg-surface-elevated",
+        // Recolhido, o link vira um quadrado de tamanho FIXO (40px — a
+        // mesma altura que o item já tinha com `py-2.5`), não um elemento
+        // que tenta esticar. Medido: o <Tooltip> que embrulha o link
+        // recolhido renderiza o envolvente como `<span class="relative
+        // inline-flex">` (Tooltip.tsx) — um inline-flex encolhe até o
+        // conteúdo, de propósito, porque o Tooltip é primitivo genérico
+        // (um botão com tooltip não deve esticar). Tentar contornar isso
+        // esticando o `<a>` (`w-full`) dependeria do inline-flex do
+        // Tooltip nunca mudar. Um quadrado de tamanho fixo resolve na
+        // raiz: o ícone fica centralizado na CAIXA do link
+        // independentemente de o envolvente esticar ou não — e quem
+        // centraliza o quadrado no trilho de 72px é o container do grupo
+        // (`items-center` abaixo, só quando `collapsed`), não o link. Como
+        // bônus, 40×40 é um alvo de toque melhor que os 22px de antes.
+        collapsed ? "h-10 w-10 justify-center" : "border-l-2 px-3 py-2",
+        bordaDeAtivo,
+        corDeAtivo,
       ].join(" ")}
     >
       {icone}
@@ -173,17 +204,48 @@ export function AppShell({
           )}
         </div>
 
-        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-3">
+        <nav
+          className={[
+            "flex flex-1 flex-col overflow-y-auto px-2 py-3",
+            // Recolhida, o rotulo de texto (que separava os grupos na
+            // expandida) some, e o fio de 24px sozinho nao basta: medido
+            // contra a --surface da sidebar, --border-color da contraste
+            // 1,23:1 no tema claro e 1,39:1 no escuro - abaixo de qualquer
+            // limiar de leitura, invisivel na pratica. Trocar so a cor do
+            // fio (para --border-strong) nao resolve: sobe pra 1,48:1
+            // claro / 2,29:1 escuro, ainda um traco quase invisivel. O
+            // sinal que carrega a separacao aqui e o espaco: dobrar o gap
+            // do nav so quando recolhida (gap-4 -> gap-8) cria 37px entre
+            // o ultimo item de um grupo e o primeiro do proximo, contra
+            // 2px entre itens do mesmo grupo (gap-0.5 do container
+            // interno) - quase 20x mais. O fio de --border-strong fica
+            // como reforco, nao como unico sinal. Expandida continua em
+            // gap-4: o rotulo de texto ja faz a separacao la, ninguem
+            // pediu mudar o respiro dela.
+            collapsed ? "gap-8" : "gap-4",
+          ].join(" ")}
+        >
           {gruposVisiveis.map((grupo) => (
             <div key={grupo.label} data-testid={`grupo-${grupo.label}`}>
               {collapsed ? (
-                <div className="mx-auto mb-1 w-6 border-t border-borda" />
+                <div className="mx-auto mb-1 w-6 border-t border-borda-strong" />
               ) : (
                 <p className="mb-1 truncate px-3 text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-conteudo-faint">
                   {grupo.label}
                 </p>
               )}
-              <div className="flex flex-col gap-0.5">
+              <div
+                className={[
+                  "flex flex-col gap-0.5",
+                  // O link recolhido agora é um quadrado de tamanho fixo
+                  // (40px), não um elemento que estica — quem o centraliza
+                  // no trilho de 72px é este container, via `items-center`.
+                  // Expandida não leva essa classe: lá o link ainda estica
+                  // (align-items: stretch, o padrão) para caber o rótulo de
+                  // texto.
+                  collapsed ? "items-center" : "",
+                ].join(" ")}
+              >
                 {grupo.items.map((item) => (
                   <NavLink
                     key={item.path}

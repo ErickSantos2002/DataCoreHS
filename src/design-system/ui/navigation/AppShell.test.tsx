@@ -127,4 +127,116 @@ describe("AppShell", () => {
     expect(screen.queryByTestId("grupo-Vazio")).not.toBeInTheDocument();
     expect(screen.getByTestId("grupo-Principal")).toBeInTheDocument();
   });
+
+  // O agrupamento visual em si (contraste do fio, distancia entre grupos vs.
+  // entre itens do mesmo grupo) so se prova medindo no navegador de verdade -
+  // jsdom nao faz layout, entao getBoundingClientRect aqui sempre volta zero.
+  // O que da pra provar em jsdom, e o que estes dois testes cobrem, e que o
+  // CSS certo esta de fato aplicado: a classe de cor mais forte no fio
+  // recolhido, e o gap maior entre grupos so quando recolhida (sem regredir
+  // a expandida, que separa por rotulo de texto, nao por espaco).
+  it("recolhida, o separador de grupo usa a borda mais forte (--border-strong), nao a fraca", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const separador = screen.getByTestId("grupo-Comercial").querySelector("div.border-t");
+    expect(separador).toHaveClass("border-borda-strong");
+    expect(separador).not.toHaveClass("border-borda");
+  });
+
+  it("recolhida, o espaco entre grupos e maior que o espaco entre itens do mesmo grupo (gap-8 vs gap-0.5)", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const nav = screen.getByRole("navigation");
+    expect(nav).toHaveClass("gap-8");
+    expect(nav).not.toHaveClass("gap-4");
+  });
+
+  it("expandida, o gap entre grupos continua gap-4 (nao muda o que ninguem pediu)", () => {
+    montar();
+    expect(screen.getByRole("navigation")).toHaveClass("gap-4");
+    expect(screen.getByRole("navigation")).not.toHaveClass("gap-8");
+  });
+
+  // O alinhamento em si (centro do icone vs. centro da sidebar) so se prova
+  // medindo no navegador de verdade - jsdom nao faz layout, entao um
+  // getBoundingClientRect aqui sempre volta zero e provaria qualquer coisa.
+  // O que da pra provar em jsdom e o que estes tres testes cobrem: que a
+  // classe de tamanho fixo (nao mais o "w-full" que dependia do <Tooltip>
+  // esticar) esta la, que a barra de 2px do ativo nao aparece recolhida, e
+  // que o container do grupo centraliza os filhos so quando recolhida.
+  it("recolhida, o link vira um quadrado de tamanho fixo (h-10 w-10), nao um elemento que estica", () => {
+    render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    // Recolhida o rotulo de texto some (o Tooltip carrega o nome via
+    // aria-describedby, nao via nome acessivel do link) - por isso o link e
+    // pego pelo href, nao por getByRole com `name`.
+    const link = screen.getByTestId("grupo-Principal").querySelector('a[href="/inicio"]');
+    expect(link).toHaveClass("h-10");
+    expect(link).toHaveClass("w-10");
+    expect(link).not.toHaveClass("w-full");
+  });
+
+  it("recolhida, o item ativo nao ganha a barra lateral de 2px (so tint de fundo + cor do icone)", () => {
+    render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const ativo = screen.getByTestId("grupo-Principal").querySelector('a[href="/inicio"]');
+    expect(ativo).toHaveClass("bg-action-tint");
+    expect(ativo).toHaveClass("text-action");
+    expect(ativo).not.toHaveClass("border-l-2");
+    expect(ativo).not.toHaveClass("border-action");
+  });
+
+  it("expandida, o item ativo continua com a barra lateral de 2px (nao muda o que ninguem pediu)", () => {
+    montar();
+    const ativo = screen.getByRole("link", { name: /Início/ });
+    expect(ativo).toHaveClass("border-l-2");
+    expect(ativo).toHaveClass("border-action");
+    expect(ativo).not.toHaveClass("h-10");
+    expect(ativo).not.toHaveClass("w-10");
+  });
+
+  it("recolhida, o container do grupo centraliza os itens (items-center); expandida, nao", () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const containerRecolhido = screen.getByTestId("grupo-Principal").querySelector("div.flex.flex-col.gap-0\\.5");
+    expect(containerRecolhido).toHaveClass("items-center");
+    unmount();
+
+    montar();
+    const containerExpandido = screen.getByTestId("grupo-Principal").querySelector("div.flex.flex-col.gap-0\\.5");
+    expect(containerExpandido).not.toHaveClass("items-center");
+  });
 });
