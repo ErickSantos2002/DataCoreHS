@@ -18,7 +18,7 @@ interface ConfiguracoesContextType {
   criarConfiguracao: (chave: string, valor: string) => Promise<void>;
 }
 
-const ConfiguracoesContext = createContext<ConfiguracoesContextType>({
+export const ConfiguracoesContext = createContext<ConfiguracoesContextType>({
   configuracoes: [],
   carregando: true,
   editarConfiguracao: async () => {},

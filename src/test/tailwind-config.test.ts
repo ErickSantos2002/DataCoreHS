@@ -49,15 +49,76 @@ describe("ponte de paleta", () => {
     expect(cores.slate[800]).toBe("#132238");
     expect(cores.slate[700]).toBe("#1a2f4a");
   });
-
-  it("darkBlue sobrevive como alias depreciado", () => {
-    expect(cores.darkBlue).toBe("#132238");
-  });
 });
 
 describe("fonte e raio", () => {
   it("saem de custom property", () => {
     expect(config.theme.extend.fontFamily.sans).toContain("var(--font-sans)");
     expect(config.theme.extend.borderRadius.lg).toBe("var(--radius-lg)");
+  });
+});
+
+describe("tokens que os primitivos consomem", () => {
+  it("foco, cortina e sombra saem de token", () => {
+    expect(cores.focus).toBe("var(--focus-ring)");
+    expect(cores.overlay).toBe("var(--overlay)");
+    expect(config.theme.extend.boxShadow.xl).toBe("var(--shadow-xl)");
+  });
+
+  it("o balao de tooltip e escuro nos dois temas, de proposito", () => {
+    expect(cores.tooltip.DEFAULT).toBe("var(--color-slate-900)");
+    expect(cores.tooltip.fg).toBe("var(--color-white)");
+  });
+
+  it("o painel de login e escuro nos dois temas, de proposito", () => {
+    // Excecao documentada do design system (Task 14): a tela de login
+    // aparece antes de qualquer preferencia de tema ser aplicada, entao nao
+    // pode reagir a ela. Hex literal, nao var(): o valor nao existe em
+    // colors.css (nao e o mesmo tom de --bg-base nem --color-slate-900), e
+    // colors.css nao e editado na Fase 1.
+    expect(cores.login).toBe("#0a192f");
+  });
+
+  it("o toast tem token proprio de fundo, texto e borda", () => {
+    expect(cores.toast.DEFAULT).toBe("var(--toast-bg)");
+    expect(cores.toast.fg).toBe("var(--toast-color)");
+    expect(cores.toast.border).toBe("var(--toast-border)");
+  });
+
+  it("as tintas semanticas e seus pares de texto existem", () => {
+    for (const nome of [
+      "primary",
+      "success",
+      "danger",
+      "warning",
+      "info",
+      "neutral",
+    ]) {
+      expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);
+      expect(cores["on-tint"][nome]).toBe(`var(--on-tint-${nome})`);
+    }
+  });
+
+  it("as medidas da casca saem de token", () => {
+    expect(config.theme.extend.width.sidebar).toBe("var(--sidebar-width)");
+    expect(config.theme.extend.width["sidebar-collapsed"]).toBe(
+      "var(--sidebar-width-collapsed)",
+    );
+    expect(config.theme.extend.height.topbar).toBe("var(--topbar-height)");
+  });
+
+  it("os raios de badge e chip existem", () => {
+    expect(config.theme.extend.borderRadius.sm).toBe("var(--radius-sm)");
+    expect(config.theme.extend.borderRadius.md).toBe("var(--radius-md)");
+    expect(config.theme.extend.borderRadius.full).toBe("var(--radius-full)");
+  });
+});
+
+describe("escala de sobreposicao", () => {
+  it("a escala de sobreposicao poe o tooltip acima do modal", () => {
+    const z = config.theme.extend.zIndex;
+    expect(Number(z.dropdown)).toBeLessThan(Number(z.overlay));
+    expect(Number(z.overlay)).toBeLessThan(Number(z.tooltip));
+    expect(Number(z.tooltip)).toBeLessThan(Number(z.toast));
   });
 });

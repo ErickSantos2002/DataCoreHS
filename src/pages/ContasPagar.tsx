@@ -80,7 +80,7 @@ const MultiSelect: React.FC<{
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-3 py-2 text-left border rounded-lg
-          bg-white dark:bg-surface-base
+          bg-white dark:bg-surface
           hover:bg-gray-50 dark:hover:bg-gray-700
           border-gray-300 dark:border-gray-600
           focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -92,7 +92,7 @@ const MultiSelect: React.FC<{
 
       {isOpen && (
         <div className="absolute z-50 w-full mt-1
-          bg-white dark:bg-surface-base
+          bg-white dark:bg-surface
           border border-gray-200 dark:border-gray-600
           rounded-lg shadow-lg max-h-60 overflow-auto">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
@@ -376,7 +376,7 @@ const ContasPagar: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base transition-colors">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">Carregando contas a pagar...</p>
@@ -386,9 +386,9 @@ const ContasPagar: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-darkBlue transition-colors">
+    <div className="p-6 min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl">
+      <div className="bg-white dark:bg-surface shadow-sm rounded-xl">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Contas a Pagar
@@ -404,7 +404,7 @@ const ContasPagar: React.FC = () => {
 
       <div className="mt-6 overflow-x-hidden">
         {/* Filtros */}
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors">
           <div className="flex items-center mb-4">
             <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Filtros</h2>
@@ -435,7 +435,7 @@ const ContasPagar: React.FC = () => {
               <select
                 value={presetPeriodo}
                 onChange={(e) => { setPresetPeriodo(e.target.value); setPaginaAtual(1); }}
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-darkBlue
+                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-surface-base
                   dark:text-gray-200 dark:border-gray-600
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -455,7 +455,7 @@ const ContasPagar: React.FC = () => {
                 value={dataInicio}
                 onChange={(e) => { setDataInicio(e.target.value); setPresetPeriodo("custom"); setPaginaAtual(1); }}
                 className="w-full px-3 py-2 border rounded-lg
-                  bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600
+                  bg-white dark:bg-surface-base dark:text-gray-200 dark:border-gray-600
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -468,7 +468,7 @@ const ContasPagar: React.FC = () => {
                 value={dataFim}
                 onChange={(e) => { setDataFim(e.target.value); setPresetPeriodo("custom"); setPaginaAtual(1); }}
                 className="w-full px-3 py-2 border rounded-lg
-                  bg-white dark:bg-darkBlue dark:text-gray-200 dark:border-gray-600
+                  bg-white dark:bg-surface-base dark:text-gray-200 dark:border-gray-600
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -477,7 +477,7 @@ const ContasPagar: React.FC = () => {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total em Aberto</p>
@@ -491,7 +491,7 @@ const ContasPagar: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Pago</p>
@@ -505,7 +505,7 @@ const ContasPagar: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Contas Vencidas</p>
@@ -519,7 +519,7 @@ const ContasPagar: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">A Vencer (30 dias)</p>
@@ -533,7 +533,7 @@ const ContasPagar: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Média Mensal</p>
@@ -551,7 +551,7 @@ const ContasPagar: React.FC = () => {
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Evolução Anual — ocupa linha inteira */}
-          <div className="lg:col-span-2 bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="lg:col-span-2 bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 {evolucaoTitulo}
@@ -582,7 +582,7 @@ const ContasPagar: React.FC = () => {
           </div>
 
           {/* Distribuição por Categoria */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Distribuição por Categoria
             </h3>
@@ -620,7 +620,7 @@ const ContasPagar: React.FC = () => {
           </div>
 
           {/* Top 10 Fornecedores */}
-          <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Top 10 Fornecedores
             </h3>
@@ -657,7 +657,7 @@ const ContasPagar: React.FC = () => {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-surface-base rounded-xl shadow-sm p-6 transition-colors">
+        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
               Detalhamento de Contas

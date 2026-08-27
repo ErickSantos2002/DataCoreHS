@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useToast } from "./ToastProvider";
 
 interface ModalTrocarSenhaProps {
   isOpen: boolean;
@@ -13,12 +14,13 @@ const ModalTrocarSenha: React.FC<ModalTrocarSenhaProps> = ({
 }) => {
   const [novaSenha, setNovaSenha] = useState("");
   const [repitaSenha, setRepitaSenha] = useState("");
+  const { erro } = useToast();
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
     if (novaSenha !== repitaSenha) {
-      alert("As senhas não coincidem!");
+      erro("As senhas não coincidem.");
       return;
     }
     onConfirm(novaSenha);

@@ -207,7 +207,7 @@ dois temas; nenhum layout se move e nenhuma tela foi reescrita.
 
 | Grupo | Componentes |
 |---|---|
-| `core/` | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge` (+`StatusBadge`), `Icon`, `Spinner`, `Avatar` |
+| `core/` | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge`, `Icon`, `Spinner`, `Avatar` |
 | `forms/` | `Input`, `Textarea`, `Select`, `SearchSelect`, `Checkbox`, `Radio`, `Switch` |
 | `data/` | `Table` (+ `TableHead`, `TableBody`, `TableRow`, `TableHeaderCell`, `TableCell`, `TableEmpty`), `Pagination`, `Progress` |
 | `feedback/` | `Alert`, `Modal` (+`ModalFooter`), `Toast` (+`ToastStack`), `Tooltip` |
@@ -215,7 +215,10 @@ dois temas; nenhum layout se move e nenhuma tela foi reescrita.
 
 Ficam de fora por YAGNI, com o motivo registrado: `Rating` e `SlaChip` (conceitos
 de HelpHS/ChamadosHS, inexistentes aqui), `Rotulo` e `Colchetes` (pele de console,
-exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia arquivo).
+exceção documentada do ChamadosHS), `FileUpload` (nenhuma tela envia arquivo),
+`StatusBadge`, `PriorityBadge` e `TagBadge` (codificam o domínio de chamados do
+HelpHS — `open`, `awaiting_technical`, `resolved` — e um cadastro de etiquetas;
+nenhum dos dois existe no DataCoreHS).
 
 **Duas peças que o DS não fornece e este sistema exige:**
 
@@ -369,7 +372,100 @@ Para referência da Fase 3: `text-blue-600` no escuro já reprovava **antes** de
 fase, com 3,45:1. A ponte o levou a 3,38:1 — e, no tema claro, o melhorou de
 5,17:1 para 5,29:1. A ponte não criou nenhum destes três.
 
-## Perguntas em aberto
+## Defeitos encontrados no próprio Design System
+
+O port dos primitivos revelou defeitos nos arquivos do design system publicado no
+Claude Design. Eles foram contornados aqui, mas o conserto pertence à origem —
+senão o próximo sistema da H&S a adotar a biblioteca tropeça no mesmo.
+
+**`components/core/Icon.jsx` — rótulo e `aria-hidden` convivem.** O componente
+crava `aria-hidden="true"` **antes** de espalhar `{...rest}`. Quem passa
+`aria-label` fica com os dois atributos ao mesmo tempo: o ícone é rotulado e
+escondido de uma vez, e o leitor de tela ignora o rótulo. É exatamente o caso que
+a regra de iconografia do design system quer cobrir — *"ícone que é o único
+conteúdo de um botão leva `aria-label`"*. No port do DataCoreHS o `aria-hidden`
+passou a ser derivado: só é emitido quando não há `aria-label` nem
+`aria-labelledby`.
+
+**`components/core/Card.d.ts` — `CardHeaderProps` não compila.** A interface
+estende `React.HTMLAttributes<HTMLDivElement>` e redeclara `title?: React.ReactNode`.
+Mas `HTMLAttributes` já declara `title?: string`, o atributo nativo de tooltip do
+HTML, e os dois tipos colidem: TypeScript recusa com TS2430. No port ficou
+`Omit<React.HTMLAttributes<HTMLDivElement>, "title">`. Vale checar se outros
+`.d.ts` da biblioteca repetem o padrão de redeclarar um atributo nativo.
+
+**`components/forms/Select.jsx` — a seta traz cor cravada.** O chevron é uma
+imagem de fundo em `data:image/svg+xml` com o cinza escrito em hexadecimal
+(`%2394a3b8`). Cor enterrada em string não sai de token, não acompanha troca de
+tema e nenhum teste de guarda a alcança. No port do DataCoreHS a seta virou o
+componente `Icon`, que herda `currentColor`.
+
+**`components/feedback/Alert.jsx` e `Toast.jsx` — nomes divergentes para a mesma
+variante.** O `Alert` chama a variante de erro de `danger`; o `Toast` chama de
+`error`. São componentes vizinhos, que aparecem na mesma tela. Cada port seguiu o
+seu `.d.ts`, porque inventar consistência aqui criaria divergência com a origem —
+mas a origem devia escolher um dos dois.
+
+**Os `.d.ts` redeclaram nomes de atributo nativo do HTML, e isso quebra.** Não são
+casos isolados: é padrão. Uma auditoria dos 21 arquivos encontrou sete que
+redeclaram um nome que o HTML já usa sobre `extends *HTMLAttributes`. Dois não
+compilam — `CardHeaderProps` (`title?: ReactNode` sobre `title?: string`) e
+`TabsProps` (`onChange` próprio sobre `FormEventHandler`), ambos TS2430. Um
+terceiro, `AlertProps`, passa **por coincidência**: declara `title?: string`, que
+casa com o tipo nativo — se alguém trocar para `ReactNode` amanhã, quebra igual.
+
+Isso é invisível no Claude Design porque lá os componentes são `.jsx` sem tipos:
+os `.d.ts` nunca são compilados. Eles documentam uma API que só é testada quando
+alguém porta para TypeScript.
+
+**`components/forms/Input.jsx` e irmãos — `id` derivado do rótulo por slug.** O
+original monta o `id` com `label.toLowerCase().replace(/\s+/g, "-")`. Dois campos
+de mesmo rótulo na mesma tela colidem, e acento produz `id` inválido. No port o
+`id` sai de `React.useId()`, com a prop `id` explícita tendo precedência.
+
+## Achados da Fase 1 — o que a Fase 3 precisa saber
+
+A Fase 1 portou os 21 primitivos e migrou seis telas piloto. O que ela aprendeu,
+e que vale para as doze telas grandes:
+
+**Portar não é traduzir estilo.** Todo componente interativo do design system
+precisou de acréscimo de acessibilidade que o original não tinha: `focus-visible`
+em tudo, teclado inteiro no `SearchSelect`, ordenação alcançável por teclado na
+`Table`, prisão e devolução de foco no `Modal`, `aria-describedby` no `Tooltip`,
+`role="tabpanel"` e navegação por seta no `Tabs`, nome acessível no `Progress`.
+Cada um desses, se não tivesse sido feito aqui, iria multiplicado para as doze
+telas.
+
+**O teste de caracterização acha defeito que já estava lá.** Na Task 14, cinco de
+nove asserções falharam contra o código **original**: os campos do `Login` não
+tinham `<label>` e o interruptor do `Configuracoes` não tinha nome acessível. Não
+era a migração quebrando — era defeito antigo que só aparece quando alguém
+escreve um teste que pergunta pelo rótulo. Espere o mesmo nas telas grandes.
+
+**Cuidado com token que reage ao tema em superfície que não reage.** O `Login` é
+painel escuro nos dois temas. Usar `Input`, `Card` ou `Alert` ali produziria
+texto de baixo contraste, porque `--on-tint-danger` é vermelho escuro no tema
+claro. A regra: antes de trocar por primitivo, verifique se a superfície em volta
+acompanha o tema.
+
+**O critério de lint é "não subir", não "cair".** A Fase 1 fechou em 190, contra
+a linha de base de 192. Mas quatro das seis telas piloto não reduziram nada,
+porque já tinham zero achado — o ESLint não audita uso de cor nem de token. Quem
+faz isso são os cinco testes de guarda.
+
+**Texto de erro tem de casar com a condição que o produziu.** O `Bloqueio.tsx` é
+devolvido por cinco guardas de rota, e nenhum é exclusivo de administrador —
+aplicar ali a frase "restrita a administradores" faria a tela mentir. A condição
+mora no `router.tsx`; leia antes de escrever a mensagem.
+
+### Decisão pendente
+
+O `Bloqueio.tsx` hoje mostra um texto genérico, correto para os cinco casos que o
+produzem. A alternativa é ele receber a mensagem por prop, e cada guarda de rota
+passar a sua. É decisão de produto, não defeito — e cabe naturalmente na Fase 2,
+que unifica os guardas numa matriz de permissão.
+
+## Defeitos encontrados no próprio Design System
 
 Nenhuma trava o início. Cada uma é trazida de volta quando sua fase chegar.
 

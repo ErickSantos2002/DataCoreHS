@@ -1,0 +1,242 @@
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it } from "vitest";
+import { Home, ShoppingCart } from "lucide-react";
+import { AppShell } from "./AppShell";
+import type { NavGroup } from "./AppShell";
+
+// Divergencia registrada em relacao ao pseudocodigo do brief: o .d.ts real
+// do AppShell nao tem `items` nem `onLogout` — os grupos vem em `groups`
+// (NavGroup[]), o campo do item e `path` (nao `to`) e nao existe prop de
+// logout: o botao de sair e conteudo livre, passado em `topbarActions`. O
+// icone aceita os dois formatos que a Sidebar do DataCoreHS precisa: um
+// `IconName` do design system (string, resolvida via `Icon`) ou um nó React
+// já pronto — é o caso do lucide-react, usado quando falta traçado no
+// `ICON_PATHS` (ex.: Locação/KeyRound). Por isso os ícones abaixo já vêm
+// como elemento (`<Home .../>`), não como referência de componente.
+const grupos: NavGroup[] = [
+  {
+    label: "Principal",
+    items: [
+      { label: "Início", path: "/inicio", icon: <Home aria-hidden="true" /> },
+      { label: "Vendas", path: "/vendas", icon: <ShoppingCart aria-hidden="true" /> },
+    ],
+  },
+];
+
+function montar() {
+  return render(
+    <MemoryRouter>
+      <AppShell
+        user={{ name: "erick", role: "admin" }}
+        groups={grupos}
+        activePath="/inicio"
+        onNavigate={() => {}}
+      >
+        <p>conteúdo da página</p>
+      </AppShell>
+    </MemoryRouter>,
+  );
+}
+
+describe("AppShell", () => {
+  it("monta topbar, navegacao e conteudo", () => {
+    montar();
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(screen.getByRole("navigation")).toBeInTheDocument();
+    expect(screen.getByText("conteúdo da página")).toBeInTheDocument();
+  });
+
+  it("cada item de menu e um link de verdade", () => {
+    montar();
+    expect(screen.getByRole("link", { name: /Início/ })).toHaveAttribute(
+      "href",
+      "/inicio",
+    );
+  });
+
+  it("marca o item ativo com aria-current", () => {
+    montar();
+    expect(screen.getByRole("link", { name: /Início/ })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Vendas/ })).not.toHaveAttribute("aria-current");
+  });
+
+  it("resolve icon como IconName do design system quando o item manda uma string", () => {
+    const gruposComIconName: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComIconName} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const link = screen.getByRole("link", { name: /Início/ });
+    expect(link.querySelector("svg")).toBeInTheDocument();
+  });
+
+  it("desenha o rotulo de cada grupo quando ha mais de um", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+      { label: "Financeiro", items: [{ label: "Gerenciamento", path: "/financeiro", icon: "chart" }] },
+      { label: "Administração", items: [{ label: "Estoque", path: "/estoque", icon: "cpu" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Principal")).toBeInTheDocument();
+    expect(screen.getByText("Comercial")).toBeInTheDocument();
+    expect(screen.getByText("Financeiro")).toBeInTheDocument();
+    expect(screen.getByText("Administração")).toBeInTheDocument();
+  });
+
+  it("um grupo sem nenhum item visivel nao renderiza rotulo, expandida", () => {
+    const gruposComVazio: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Vazio", items: [] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComVazio} onNavigate={() => {}}>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText("Vazio")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("grupo-Vazio")).not.toBeInTheDocument();
+  });
+
+  it("um grupo sem nenhum item visivel nao renderiza o separador, recolhida", () => {
+    const gruposComVazio: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Vazio", items: [] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposComVazio} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(screen.queryByTestId("grupo-Vazio")).not.toBeInTheDocument();
+    expect(screen.getByTestId("grupo-Principal")).toBeInTheDocument();
+  });
+
+  // O agrupamento visual em si (contraste do fio, distancia entre grupos vs.
+  // entre itens do mesmo grupo) so se prova medindo no navegador de verdade -
+  // jsdom nao faz layout, entao getBoundingClientRect aqui sempre volta zero.
+  // O que da pra provar em jsdom, e o que estes dois testes cobrem, e que o
+  // CSS certo esta de fato aplicado: a classe de cor mais forte no fio
+  // recolhido, e o gap maior entre grupos so quando recolhida (sem regredir
+  // a expandida, que separa por rotulo de texto, nao por espaco).
+  it("recolhida, o separador de grupo usa a borda mais forte (--border-strong), nao a fraca", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const separador = screen.getByTestId("grupo-Comercial").querySelector("div.border-t");
+    expect(separador).toHaveClass("border-borda-strong");
+    expect(separador).not.toHaveClass("border-borda");
+  });
+
+  it("recolhida, o espaco entre grupos e maior que o espaco entre itens do mesmo grupo (gap-8 vs gap-0.5)", () => {
+    const gruposMultiplos: NavGroup[] = [
+      { label: "Principal", items: [{ label: "Início", path: "/inicio", icon: "dashboard" }] },
+      { label: "Comercial", items: [{ label: "Vendas", path: "/vendas", icon: "ticket" }] },
+    ];
+    render(
+      <MemoryRouter>
+        <AppShell groups={gruposMultiplos} onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const nav = screen.getByRole("navigation");
+    expect(nav).toHaveClass("gap-8");
+    expect(nav).not.toHaveClass("gap-4");
+  });
+
+  it("expandida, o gap entre grupos continua gap-4 (nao muda o que ninguem pediu)", () => {
+    montar();
+    expect(screen.getByRole("navigation")).toHaveClass("gap-4");
+    expect(screen.getByRole("navigation")).not.toHaveClass("gap-8");
+  });
+
+  // O alinhamento em si (centro do icone vs. centro da sidebar) so se prova
+  // medindo no navegador de verdade - jsdom nao faz layout, entao um
+  // getBoundingClientRect aqui sempre volta zero e provaria qualquer coisa.
+  // O que da pra provar em jsdom e o que estes tres testes cobrem: que a
+  // classe de tamanho fixo (nao mais o "w-full" que dependia do <Tooltip>
+  // esticar) esta la, que a barra de 2px do ativo nao aparece recolhida, e
+  // que o container do grupo centraliza os filhos so quando recolhida.
+  it("recolhida, o link vira um quadrado de tamanho fixo (h-10 w-10), nao um elemento que estica", () => {
+    render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    // Recolhida o rotulo de texto some (o Tooltip carrega o nome via
+    // aria-describedby, nao via nome acessivel do link) - por isso o link e
+    // pego pelo href, nao por getByRole com `name`.
+    const link = screen.getByTestId("grupo-Principal").querySelector('a[href="/inicio"]');
+    expect(link).toHaveClass("h-10");
+    expect(link).toHaveClass("w-10");
+    expect(link).not.toHaveClass("w-full");
+  });
+
+  it("recolhida, o item ativo nao ganha a barra lateral de 2px (so tint de fundo + cor do icone)", () => {
+    render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const ativo = screen.getByTestId("grupo-Principal").querySelector('a[href="/inicio"]');
+    expect(ativo).toHaveClass("bg-action-tint");
+    expect(ativo).toHaveClass("text-action");
+    expect(ativo).not.toHaveClass("border-l-2");
+    expect(ativo).not.toHaveClass("border-action");
+  });
+
+  it("expandida, o item ativo continua com a barra lateral de 2px (nao muda o que ninguem pediu)", () => {
+    montar();
+    const ativo = screen.getByRole("link", { name: /Início/ });
+    expect(ativo).toHaveClass("border-l-2");
+    expect(ativo).toHaveClass("border-action");
+    expect(ativo).not.toHaveClass("h-10");
+    expect(ativo).not.toHaveClass("w-10");
+  });
+
+  it("recolhida, o container do grupo centraliza os itens (items-center); expandida, nao", () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <AppShell groups={grupos} activePath="/inicio" onNavigate={() => {}} collapsed>
+          <p>conteúdo</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const containerRecolhido = screen.getByTestId("grupo-Principal").querySelector("div.flex.flex-col.gap-0\\.5");
+    expect(containerRecolhido).toHaveClass("items-center");
+    unmount();
+
+    montar();
+    const containerExpandido = screen.getByTestId("grupo-Principal").querySelector("div.flex.flex-col.gap-0\\.5");
+    expect(containerExpandido).not.toHaveClass("items-center");
+  });
+});

@@ -2,12 +2,14 @@ import React, { useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../context/DashboardContext";
 import { useConfiguracoes } from "../context/ConfiguracoesContext";
+import { useToast } from "../components/ToastProvider";
 import confetti from "canvas-confetti";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { dados, total, carregando, totalAno } = useDashboard();
   const { configuracoes } = useConfiguracoes();
+  const { sucesso, erro } = useToast();
 
   // Parse robusto: aceita "12666666.72", "12.666.666,72" ou "12666666,72"
   const parseValor = (raw?: string): number => {
@@ -198,9 +200,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-darkBlue transition-colors min-h-screen md:min-h-0 md:h-full">
+    <div className="p-6 bg-gray-100 dark:bg-surface-base transition-colors min-h-screen md:min-h-0 md:h-full">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-surface-base shadow-sm rounded-xl w-full">
+      <div className="bg-white dark:bg-surface shadow-sm rounded-xl w-full">
         <div className="px-6 py-4">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
             Meta Trimestral - Dashboard
@@ -221,11 +223,11 @@ const Dashboard: React.FC = () => {
                     { method: "GET", mode: "no-cors" }
                   );
 
-                  alert(
-                    "Fluxo de busca de notas acionado! 🧾\nPor favor, aguarde cerca de 5 minutos para que todas as notas estejam atualizadas."
+                  sucesso(
+                    "Fluxo de busca de notas acionado. Aguarde cerca de 5 minutos para que todas as notas sejam atualizadas."
                   );
-                } catch (err) {
-                  alert("Falha ao tentar acionar o fluxo: " + err);
+                } catch {
+                  erro("Não foi possível acionar o fluxo.");
                 }
               }}
               className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition"
@@ -237,7 +239,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* CARD PRINCIPAL */}
-      <div className="bg-white dark:bg-surface-base rounded-xl shadow p-6 mt-4 w-full transition-colors">
+      <div className="bg-white dark:bg-surface rounded-xl shadow p-6 mt-4 w-full transition-colors">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           {/* COLUNA ESQUERDA */}
           <div className="lg:col-span-1">

@@ -104,7 +104,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-surface-base rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
+      <div className="bg-white dark:bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
           Selecionar Produtos
         </h2>

@@ -1,11 +1,23 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import { User } from "lucide-react"
 import { useAuth } from "../hooks/useAuth"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/logo.png"
 import { useTheme } from "../context/ThemeContext"
+import { Button } from "../design-system/ui/core/Button"
 
+/**
+ * Painel de login — escuro nos dois temas, de proposito (excecao documentada
+ * do design system): a tela aparece antes de qualquer preferencia de tema
+ * ser aplicada, entao nao pode reagir a ela. `bg-login` (fundo cheio) e
+ * `bg-tooltip` (circulo do avatar) substituem os dois ultimos hexadecimais
+ * arbitrarios do projeto (`bg-[#0a192f]` e `bg-[#0f172a]`) por classes de
+ * token que resolvem para o MESMO valor nos dois temas - nunca `bg-surface`,
+ * que clareia no tema claro. O icone de usuario, que vinha de servidor
+ * remoto, virou lucide-react.
+ */
 const Login: React.FC = () => {
   const { login, loading, error, user } = useAuth()
   const { setDarkModeOnLogin } = useTheme() // 👈 use a nova função
@@ -30,35 +42,30 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#0a192f]">
+    <div className="fixed inset-0 flex items-center justify-center bg-login">
       {/* Card vidro fosco */}
-      <div className="relative w-full max-w-[360px] bg-white/10 backdrop-blur-md border border-white/20 
-                      rounded-[20px] px-8 pt-14 pb-8 text-center 
-                      shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-        
+      <div className="relative w-full max-w-[360px] rounded-[20px] border border-white/20 bg-white/10 px-8 pb-8 pt-14 text-center shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-md">
         {/* Ícone de usuário no topo */}
-        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
-          <div className="w-20 h-20 rounded-full bg-[#0f172a] flex items-center justify-center 
-                          shadow-lg border-2 border-white/30">
-            <img
-              src="https://img.icons8.com/?size=100&id=84020&format=png&color=ffffff"
-              alt="Usuário"
-              className="w-10 h-10"
-            />
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 transform">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/30 bg-tooltip shadow-lg">
+            <User className="h-10 w-10 text-white" aria-hidden="true" />
           </div>
         </div>
 
         {/* Logo */}
-        <div className="flex justify-center mb-6">
+        <div className="mb-6 flex justify-center">
           <img src={logo} alt="Logo" className="max-h-[60px] object-contain" />
         </div>
 
         {/* Título */}
-        <h1 className="text-[22px] font-bold text-white mb-1">Bem-vindo</h1>
-        <p className="text-gray-300 text-sm mb-6">Faça login para continuar</p>
+        <h1 className="mb-1 text-[22px] font-bold text-white">Bem-vindo</h1>
+        <p className="mb-6 text-sm text-gray-300">Faça login para continuar</p>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label htmlFor="username" className="sr-only">
+            Usuário
+          </label>
           <input
             id="username"
             type="text"
@@ -67,11 +74,13 @@ const Login: React.FC = () => {
             onChange={(e) => setUsername(e.target.value)}
             disabled={loading}
             placeholder="Usuário"
-            className="w-full h-[48px] px-4 rounded-lg bg-white/20 text-white placeholder-gray-300 
-                       focus:ring-2 focus:ring-blue-400 focus:outline-none disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
             required
           />
 
+          <label htmlFor="password" className="sr-only">
+            Senha
+          </label>
           <input
             id="password"
             type="password"
@@ -80,33 +89,19 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
             placeholder="Senha"
-            className="w-full h-[48px] px-4 rounded-lg bg-white/20 text-white placeholder-gray-300 
-                       focus:ring-2 focus:ring-blue-400 focus:outline-none disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
             required
           />
 
           {error && (
-            <div className="text-sm text-red-400 text-center bg-red-900/40 p-2 rounded-lg border border-red-500/40">
+            <div className="rounded-lg border border-red-500/40 bg-red-900/40 p-2 text-center text-sm text-red-400">
               {error}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full h-[48px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 
-                       text-white font-semibold text-[16px] rounded-lg transition flex items-center 
-                       justify-center shadow-md"
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Entrando...
-              </div>
-            ) : (
-              "Entrar"
-            )}
-          </button>
+          <Button type="submit" size="lg" fullWidth loading={loading} className="mt-2">
+            {loading ? "Entrando..." : "Entrar"}
+          </Button>
         </form>
       </div>
     </div>
