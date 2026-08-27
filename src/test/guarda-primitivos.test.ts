@@ -36,7 +36,8 @@ describe("contrato de port dos primitivos", () => {
       // "}}" verdadeiro logo depois - o achado simplesmente nao aparece e o
       // guarda fica cego para o proprio caso que deveria examinar.
       for (const achado of conteudo.match(/style=\{\{[\s\S]*?\}\}/g) ?? []) {
-        if (!permitido.test(achado)) infratores.push(`${caminho}: ${achado.slice(0, 60)}`);
+        if (!permitido.test(achado))
+          infratores.push(`${caminho}: ${achado.slice(0, 60)}`);
       }
     }
     expect(infratores).toEqual([]);

@@ -86,7 +86,14 @@ describe("tokens que os primitivos consomem", () => {
   });
 
   it("as tintas semanticas e seus pares de texto existem", () => {
-    for (const nome of ["primary", "success", "danger", "warning", "info", "neutral"]) {
+    for (const nome of [
+      "primary",
+      "success",
+      "danger",
+      "warning",
+      "info",
+      "neutral",
+    ]) {
       expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);
       expect(cores["on-tint"][nome]).toBe(`var(--on-tint-${nome})`);
     }
@@ -94,7 +101,9 @@ describe("tokens que os primitivos consomem", () => {
 
   it("as medidas da casca saem de token", () => {
     expect(config.theme.extend.width.sidebar).toBe("var(--sidebar-width)");
-    expect(config.theme.extend.width["sidebar-collapsed"]).toBe("var(--sidebar-width-collapsed)");
+    expect(config.theme.extend.width["sidebar-collapsed"]).toBe(
+      "var(--sidebar-width-collapsed)",
+    );
     expect(config.theme.extend.height.topbar).toBe("var(--topbar-height)");
   });
 

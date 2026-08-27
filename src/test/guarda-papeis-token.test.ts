@@ -8,7 +8,9 @@ const telas = readdirSync("src", { recursive: true, encoding: "utf8" })
 
 describe("papeis dos tokens de superficie", () => {
   it("darkBlue nao existe mais: era alias depreciado da Fase 0", () => {
-    const infratores = telas.filter((c) => /darkBlue/.test(readFileSync(c, "utf8")));
+    const infratores = telas.filter((c) =>
+      /darkBlue/.test(readFileSync(c, "utf8")),
+    );
     expect(infratores).toEqual([]);
   });
 

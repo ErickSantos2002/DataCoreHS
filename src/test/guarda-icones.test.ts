@@ -16,7 +16,8 @@ describe("guarda de icones", () => {
     for (const caminho of telas) {
       const conteudo = readFileSync(caminho, "utf8");
       conteudo.split("\n").forEach((linha, i) => {
-        if (/img\.icons8\.com/.test(linha)) infratores.push(`${caminho}:${i + 1}`);
+        if (/img\.icons8\.com/.test(linha))
+          infratores.push(`${caminho}:${i + 1}`);
       });
     }
     expect(infratores).toEqual([]);

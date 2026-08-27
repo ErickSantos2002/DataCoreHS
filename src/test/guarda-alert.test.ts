@@ -2,7 +2,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const arquivos = readdirSync("src", { recursive: true, encoding: "utf8" })
-  .filter((c) => /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"))
+  .filter(
+    (c) =>
+      /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"),
+  )
   .map((c) => `src/${c}`);
 
 describe("guarda de retorno ao usuario", () => {

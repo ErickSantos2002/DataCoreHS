@@ -186,20 +186,6 @@ module.exports = {
         tooltip: "300",
         toast: "400",
       },
-      keyframes: {
-        blinkLight: {
-          "0%, 100%": { color: "#000000" },
-          "50%": { color: "#dc2626" },
-        },
-        blinkDark: {
-          "0%, 100%": { color: "#ffffff" },
-          "50%": { color: "#dc2626" },
-        },
-      },
-      animation: {
-        blinkLight: "blinkLight 1s infinite",
-        blinkDark: "blinkDark 1s infinite",
-      },
     },
   },
   plugins: [],
