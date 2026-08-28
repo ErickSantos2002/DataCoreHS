@@ -70,6 +70,14 @@ module.exports = {
         info: "var(--color-info-500)",
         focus: "var(--focus-ring)",
         overlay: "var(--overlay)",
+        // Medalhas de bonificacao: os tres degraus de PL da Meta do
+        // trimestre. Cor de DOMINIO deste produto, nao do Design System —
+        // por isso a variavel nasce em src/styles/index.css e nao em
+        // tokens/. A classe existe para que o JSX escreva `stroke-ouro` em
+        // vez de hexadecimal cravado, que o guarda de cor proibe.
+        bronze: "var(--medalha-bronze)",
+        prata: "var(--medalha-prata)",
+        ouro: "var(--medalha-ouro)",
         // Balao de tooltip: escuro nos DOIS temas, de proposito. Ele flutua
         // acima de qualquer superficie e precisa se destacar tanto sobre card
         // branco quanto sobre navy. --color-slate-900 e --color-white ja
