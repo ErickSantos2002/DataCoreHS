@@ -148,7 +148,7 @@ describe("Meta do trimestre — leitura do valor da META", () => {
 
     // Meta zero: nao ha diferenca a percorrer, entao os tres velocimetros ja
     // nascem "atingidos" — e o progresso, que seria 0/0 = NaN, cai para 0.
-    expect(screen.getAllByText("Meta atingida! 🎉")).toHaveLength(3);
+    expect(screen.getAllByText("Meta atingida!")).toHaveLength(3);
     expect(screen.getAllByText("0.0%")).toHaveLength(3);
   });
 });
@@ -182,7 +182,7 @@ describe("Meta do trimestre — os tres degraus de bonificacao", () => {
     expect(degrau100).toContain("32.1%");
     expect(degrau100).toContain("R$2.850.000,00");
 
-    expect(screen.queryByText("Meta atingida! 🎉")).toBeNull();
+    expect(screen.queryByText("Meta atingida!")).toBeNull();
   });
 
   it("entre o primeiro e o segundo degrau, so o primeiro esta atingido", () => {
@@ -191,19 +191,19 @@ describe("Meta do trimestre — os tres degraus de bonificacao", () => {
     const [degrau55, degrau85, degrau100] = velocimetros();
     // Passou de 2.700.000: o progresso e limitado em 100%.
     expect(degrau55).toContain("100.0%");
-    expect(degrau55).toContain("Meta atingida! 🎉");
+    expect(degrau55).toContain("Meta atingida!");
     expect(degrau85).toContain("83.3%");
     expect(degrau85).toContain("R$600.000,00");
     expect(degrau100).toContain("71.4%");
     expect(degrau100).toContain("R$1.200.000,00");
 
-    expect(screen.getAllByText("Meta atingida! 🎉")).toHaveLength(1);
+    expect(screen.getAllByText("Meta atingida!")).toHaveLength(1);
   });
 
   it("acima do terceiro degrau, os tres estao atingidos e travados em 100%", () => {
     montar({ meta: "12000000", total: 5_000_000 });
 
-    expect(screen.getAllByText("Meta atingida! 🎉")).toHaveLength(3);
+    expect(screen.getAllByText("Meta atingida!")).toHaveLength(3);
     expect(screen.getAllByText("100.0%")).toHaveLength(3);
   });
 
@@ -298,7 +298,7 @@ describe("Meta do trimestre — estados da tela", () => {
   it("mostra o aviso de carregando no lugar do conteudo", () => {
     montar({ meta: "12000000", carregando: true });
 
-    expect(screen.getByText(/Carregando dados do dashboard/i)).toBeInTheDocument();
+    expect(screen.getByText(/Carregando os dados da meta do trimestre/i)).toBeInTheDocument();
     expect(screen.queryByText("Trimestre Atual")).toBeNull();
   });
 
