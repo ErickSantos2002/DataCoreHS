@@ -112,7 +112,6 @@ const PENDENTES_FASE_3: string[] = [
   "src/pages/ContasReceber.tsx",
   "src/pages/Estoque.tsx",
   "src/pages/GerenciamentoFinanceiro.tsx",
-  "src/pages/Locacao.tsx",
   "src/pages/Produtos.tsx",
   "src/pages/Servicos.tsx",
   "src/pages/Usuarios.tsx",
