@@ -5,8 +5,6 @@ import {
   emissaoEmAnoMes,
   extrairCFOP,
   rotuloDoMes,
-  somarServicos,
-  somarVendas,
   totaisPorMes,
   valorDoServico,
   vendaConta,
@@ -145,31 +143,6 @@ describe("valor da nota de serviço", () => {
   it("o que não vira número vale zero, e não NaN", () => {
     expect(valorDoServico(servico({ valor_servico: "" }))).toBe(0);
     expect(valorDoServico(servico({ valor_servico: "isento" }))).toBe(0);
-  });
-});
-
-describe("somas", () => {
-  it("soma só as vendas que passam pelo filtro", () => {
-    const total = somarVendas(
-      [
-        venda({ valor_nota: 1_000 }),
-        venda({ valor_nota: 500, descricao_situacao: "Cancelada" }),
-        venda({ valor_nota: 250, natureza_operacao: "9999 - Outra" }),
-        venda({ valor_nota: 300 }),
-      ],
-      REGRAS,
-    );
-
-    expect(total).toBe(1_300);
-  });
-
-  it("soma serviço sem filtrar por CFOP nem marcador", () => {
-    expect(
-      somarServicos([
-        servico({ valor_servico: "1.500,00" }),
-        servico({ valor_servico: "500.50" }),
-      ]),
-    ).toBeCloseTo(2_000.5, 2);
   });
 });
 

@@ -3,11 +3,12 @@ import type { NotaServico, NotaVenda } from "../services/notasapi";
 /**
  * As regras que decidem o que conta como faturamento no painel de Meta.
  *
- * Elas moram fora do DashboardContext porque o contexto passou a aplicá-las
- * em três recortes diferentes — o trimestre, o ano corrente e o ano anterior
- * — e três cópias da mesma regra divergem em silêncio: bastaria um dos três
- * esquecer o filtro de marcador para o ano e o trimestre pararem de fechar,
- * sem erro nenhum, só com dois números diferentes na mesma tela.
+ * Elas moram fora do DashboardContext porque o contexto as aplica em mais de
+ * um recorte — o ano corrente e o ano anterior — e cópias da mesma regra
+ * divergem em silêncio: bastaria uma delas esquecer o filtro de marcador para
+ * dois números da mesma tela pararem de fechar, sem erro nenhum. O trimestre
+ * em apuração não é um terceiro recorte: ele são três posições da série do
+ * ano corrente, e por isso não tem como discordar dela.
  *
  * Nada aqui é novo. É exatamente o filtro que o contexto já aplicava, movido
  * para um lugar onde dá para testar a regra pelo que ela é.
@@ -70,22 +71,6 @@ export function valorDoServico(nota: NotaServico): number {
     ? parseFloat(raw.replace(/\./g, "").replace(",", "."))
     : parseFloat(raw);
   return isNaN(valor) ? 0 : valor;
-}
-
-/** Soma as notas de venda que contam, pelas regras acima. */
-export function somarVendas(
-  notas: NotaVenda[],
-  regras: RegrasDeFaturamento,
-): number {
-  return notas
-    .filter((nota) => vendaConta(nota, regras))
-    .reduce((acc, nota) => acc + valorDaVenda(nota), 0);
-}
-
-/** Soma as notas de serviço. Serviço não passa pelo filtro de CFOP nem de
- *  marcador: o endpoint de NFS-e já devolve só o que foi emitido. */
-export function somarServicos(notas: NotaServico[]): number {
-  return notas.reduce((acc, nota) => acc + valorDoServico(nota), 0);
 }
 
 /** O ano e o mês (1..12) de uma data de emissão "AAAA-MM-DD".

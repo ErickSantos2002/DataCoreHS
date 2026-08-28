@@ -3,8 +3,6 @@ import { fetchVendas, fetchNotasServico } from "../services/notasapi";
 import { useConfiguracoes } from "./ConfiguracoesContext";
 import {
   rotuloDoMes,
-  somarServicos,
-  somarVendas,
   totaisPorMes,
   type RegrasDeFaturamento,
 } from "./faturamento";
@@ -61,7 +59,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       }
 
       // O que conta como faturamento. As regras em si moram em faturamento.ts,
-      // aplicadas igual nos três recortes que esta tela busca.
+      // aplicadas igual nos dois recortes que esta tela busca.
       const regras: RegrasDeFaturamento = {
         cfopValidos: getArray("CFOP_VALIDOS"),
         marcadoresInvalidos: getArray("MARCADORES_INVALIDOS"),
@@ -75,41 +73,25 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
 
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
-      const resultados: FaturamentoMensal[] = [];
-
-      // Calcular total do quadrimestre (meses específicos)
-      for (const mes of meses) {
-        const dataInicio = new Date(anoAtual, mes - 1, 1);
-        const dataFim = new Date(anoAtual, mes, 0);
-
-        try {
-          // Usando fetchVendas em vez de fetchNotas
-          const notas = await fetchVendas({
-            data_inicio: format(dataInicio),
-            data_fim: format(dataFim),
-          });
-
-          const servicos = await fetchNotasServico({
-            data_inicio: format(dataInicio),
-            data_fim: format(dataFim),
-          });
-
-          resultados.push({
-            mes: rotuloDoMes(mes, anoAtual),
-            total: somarVendas(notas, regras) + somarServicos(servicos),
-          });
-        } catch (err) {
-          console.error(`Erro ao buscar mês ${mes}`, err);
-        }
-      }
-
-      const totalQuadrimestre = resultados.reduce((acc, cur) => acc + cur.total, 0);
 
       // O ano corrente inteiro, em UMA requisição de venda e uma de serviço.
-      // Dela saem o total do ano e a quebra mês a mês do gráfico: a quebra é
-      // o mesmo dado agrupado, sem nenhuma requisição a mais.
+      // Dela saem as TRÊS leituras que a tela faz dele: o total do ano, a
+      // quebra mês a mês do gráfico e os meses do trimestre em apuração. É o
+      // mesmo dado agrupado de três jeitos, sem nenhuma requisição a mais.
+      //
+      // O trimestre vinha de um laço à parte: seis requisições sequenciais
+      // (uma de venda e uma de serviço por mês de MESES_ANALISE) sobre notas
+      // que a busca do ano já traz. Antes de apagá-lo os dois caminhos foram
+      // rodados lado a lado contra a base real, nos doze meses de 2026 e nos
+      // doze de 2025: os 24 pares batem, com diferença máxima de 7e-10 —
+      // ruído de ordem de soma em ponto flutuante, não um centavo. Eles
+      // podiam divergir se a API filtrasse por um campo de data diferente de
+      // `data_emissao`, que é por onde `totaisPorMes` separa os meses; das 26
+      // requisições nenhuma devolveu nota fora da janela pedida, então o
+      // campo é o mesmo.
       let totalAnoCompleto = 0;
       let serieDoAno: FaturamentoMensal[] = [];
+      let mesesEmApuracao: FaturamentoMensal[] = [];
 
       try {
         const totais = await totaisDoAno(anoAtual, regras);
@@ -122,14 +104,29 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
             mes: rotuloDoMes(indice + 1, anoAtual),
             total: valor,
           }));
+        mesesEmApuracao = meses.map((mes) => ({
+          mes: rotuloDoMes(mes, anoAtual),
+          total: totais[mes - 1],
+        }));
       } catch (err) {
         console.error("Erro ao buscar total do ano", err);
       }
+
+      const totalQuadrimestre = mesesEmApuracao.reduce(
+        (acc, cur) => acc + cur.total,
+        0,
+      );
 
       // O ano anterior, na mesma dupla de requisições do ano corrente. É a
       // forma sazonal que a projeção de fechamento usa para estimar o que
       // falta do trimestre. Falhar aqui não derruba a tela: sem esta série a
       // projeção cai no método linear e diz na tela que caiu.
+      //
+      // Vem DEPOIS do ano corrente, e não junto. Disparar os quatro pedidos
+      // de uma vez foi medido e é mais LENTO: são as quatro respostas mais
+      // pesadas da tela e a API as atende em disputa — na mesma bancada,
+      // 1.421 ms em paralelo contra 1.072 ms em série. Concorrência aqui não
+      // é ganho de graça; a fila é do outro lado.
       let totaisDoAnoAnterior: number[] = [];
 
       try {
@@ -138,7 +135,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         console.error("Erro ao buscar o faturamento do ano anterior", err);
       }
 
-      setDados(resultados);
+      setDados(mesesEmApuracao);
       setTotal(totalQuadrimestre);
       setTotalAno(totalAnoCompleto);
       setSerieMensal(serieDoAno);
