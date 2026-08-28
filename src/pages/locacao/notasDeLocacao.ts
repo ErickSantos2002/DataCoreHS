@@ -181,17 +181,17 @@ export interface LinhaDaPlanilha {
  * As linhas que vão para o Excel — exatamente as que estão na tabela, no
  * recorte e na ordem em que a pessoa as deixou.
  *
- * A coluna "Data" passa por `new Date(...).toLocaleDateString("pt-BR")`,
- * que NÃO é o mesmo caminho de `dataDaNota` usada na tela. Como a API manda
- * a data sem fuso ("2026-07-10"), o `Date` a lê como meia-noite em UTC e no
- * Brasil ela volta um dia: a planilha sai com 09/07/2026 onde a tela mostra
- * 10/07/2026. Está preservado tal como estava — o conserto é decisão à
- * parte, porque muda o conteúdo de um arquivo que já circulou.
+ * A coluna "Data" é a MESMA `dataDaNota` que a tela usa, de propósito: a
+ * data de emissão é data de calendário, sem instante e sem fuso, e quem
+ * abre a planilha espera ler ali o dia que viu na tela. Antes ela passava
+ * por `new Date(...).toLocaleDateString("pt-BR")`, que lê "2026-07-10" como
+ * meia-noite em UTC — a oeste de Greenwich isso é o dia anterior, e a
+ * planilha saía com 09/07/2026 onde a tela mostrava 10/07/2026.
  */
 export function linhasDaPlanilha(notas: NotaLocacao[]): LinhaDaPlanilha[] {
   return notas.map((nota) => ({
     Número: nota.numero || "",
-    Data: new Date(nota.data_emissao).toLocaleDateString("pt-BR"),
+    Data: dataDaNota(nota.data_emissao),
     Cliente: nota.cliente?.nome || "",
     CNPJ: nota.cliente?.cpf_cnpj || "",
     Valor: paraNumero(nota.valor_nota),

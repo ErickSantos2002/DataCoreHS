@@ -16,8 +16,9 @@ import {
  * ordenação e as colunas da planilha pelo que a tela mostra. Aqui ficam as
  * regras que a tela não consegue exercitar sozinha: o mapa de cor da
  * situação (a base real só tem uma situação, "Emitida DANFE"), o nome do
- * arquivo numa data fixa, e a divergência entre a data que a tela mostra e
- * a data que sai no Excel.
+ * arquivo numa data fixa, e a data que sai no Excel — esta última varrida
+ * em cinco fusos, porque o defeito que ela já teve só aparecia a oeste de
+ * Greenwich.
  */
 
 function nota(campos: Partial<NotaLocacao> & { id: number }): NotaLocacao {
@@ -93,21 +94,54 @@ describe("arquivo exportado", () => {
   });
 });
 
-describe("data na planilha", () => {
-  it("não é a mesma data que a tela mostra, e sai um dia antes", () => {
-    // REGISTRO DE DEFEITO, NÃO CONTRATO DESEJADO.
-    //
-    // A API manda a data sem fuso ("2026-07-10"). A tela quebra a string e
-    // acerta; a planilha passa por `new Date(...)`, que lê a string como
-    // meia-noite em UTC — e num fuso a oeste de Greenwich, como o do Brasil,
-    // isso é o dia anterior. A planilha sai com 09/07/2026 onde a tela
-    // mostra 10/07/2026.
-    const naTela = dataDaNota("2026-07-10");
-    const naPlanilha = linhasDaPlanilha([nota({ id: 1, data_emissao: "2026-07-10" })])[0].Data;
+/**
+ * Roda `corpo` com o fuso do processo fixado, e devolve o fuso como estava.
+ *
+ * Sem isto a asserção só valeria a oeste de Greenwich: em UTC,
+ * `new Date("2026-07-10")` cai no próprio dia 10 e o defeito não aparece.
+ * Um teste que só falha no fuso do Brasil passa no CI e não protege nada.
+ */
+function noFuso<T>(fuso: string, corpo: () => T): T {
+  const anterior = process.env.TZ;
+  process.env.TZ = fuso;
+  try {
+    return corpo();
+  } finally {
+    if (anterior === undefined) delete process.env.TZ;
+    else process.env.TZ = anterior;
+  }
+}
 
-    expect(naTela).toBe("10/07/2026");
-    const aOesteDeGreenwich = new Date("2026-07-10").getTimezoneOffset() > 0;
-    expect(naPlanilha).toBe(aOesteDeGreenwich ? "09/07/2026" : "10/07/2026");
+describe("data na planilha", () => {
+  /** Greenwich no meio, e os dois extremos do mundo de cada lado. */
+  const FUSOS = [
+    "America/Sao_Paulo",
+    "Pacific/Midway",
+    "UTC",
+    "Asia/Tokyo",
+    "Pacific/Kiritimati",
+  ];
+
+  it.each(FUSOS)("em %s, a planilha leva a data que a tela mostra", (fuso) => {
+    const naPlanilha = noFuso(
+      fuso,
+      () => linhasDaPlanilha([nota({ id: 1, data_emissao: "2026-07-10" })])[0].Data,
+    );
+
+    expect(naPlanilha).toBe("10/07/2026");
+    expect(naPlanilha).toBe(dataDaNota("2026-07-10"));
+  });
+
+  it.each(FUSOS)("em %s, as três datas do arquivo conferido saem no dia certo", (fuso) => {
+    const datas = noFuso(fuso, () =>
+      linhasDaPlanilha([
+        nota({ id: 1, data_emissao: "2026-07-10" }),
+        nota({ id: 2, data_emissao: "2026-05-22" }),
+        nota({ id: 3, data_emissao: "2026-03-24" }),
+      ]).map((linha) => linha.Data),
+    );
+
+    expect(datas).toEqual(["10/07/2026", "22/05/2026", "24/03/2026"]);
   });
 
   it("com hora junto, os dois caminhos concordam", () => {
