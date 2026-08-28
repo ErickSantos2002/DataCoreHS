@@ -22,7 +22,7 @@ function progressoAte(total: number, degrau: number): number {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { dados, total, carregando, totalAno } = useDashboard();
+  const { dados, total, carregando, totalAno, serieMensal } = useDashboard();
   const { configuracoes } = useConfiguracoes();
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
@@ -98,7 +98,10 @@ const Dashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.6fr]">
           <ResumoTrimestre meses={dados} total={total} totalAno={totalAno} />
-          <FaturamentoPorMes meses={dados} />
+          <FaturamentoPorMes
+            meses={serieMensal ?? []}
+            destacar={dados.map((mes) => mes.mes)}
+          />
         </div>
       </div>
     </div>

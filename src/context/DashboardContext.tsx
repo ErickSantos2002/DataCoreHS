@@ -1,6 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchVendas, fetchNotasServico } from "../services/notasapi";
 import { useConfiguracoes } from "./ConfiguracoesContext";
+import {
+  rotuloDoMes,
+  somarServicos,
+  somarVendas,
+  totaisPorMes,
+  type RegrasDeFaturamento,
+} from "./faturamento";
 
 interface FaturamentoMensal {
   mes: string;
@@ -8,9 +15,15 @@ interface FaturamentoMensal {
 }
 
 interface DashboardContextType {
+  /** Os meses do trimestre em apuração (MESES_ANALISE). */
   dados: FaturamentoMensal[];
+  /** A soma do trimestre — o número que os velocímetros medem. */
   total: number;
+  /** O faturamento do ano corrente inteiro. */
   totalAno: number;
+  /** Janeiro até o mês corrente, para o gráfico de barras. Sai da MESMA
+   *  requisição do `totalAno`: é a quebra por mês que antes era jogada fora. */
+  serieMensal: FaturamentoMensal[];
   carregando: boolean;
 }
 
@@ -18,6 +31,7 @@ const DashboardContext = createContext<DashboardContextType>({
   dados: [],
   total: 0,
   totalAno: 0,
+  serieMensal: [],
   carregando: true,
 });
 
@@ -25,6 +39,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   const [dados, setDados] = useState<FaturamentoMensal[]>([]);
   const [total, setTotal] = useState(0);
   const [totalAno, setTotalAno] = useState(0);
+  const [serieMensal, setSerieMensal] = useState<FaturamentoMensal[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const { configuracoes, carregando: carregandoConfig } = useConfiguracoes();
@@ -38,9 +53,13 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         return config?.valor?.split(",").map((v) => v.trim()) || [];
       }
 
-      // Extrai valores das configurações
-      const cfopValidos = getArray("CFOP_VALIDOS");
-      const marcadoresInvalidos = getArray("MARCADORES_INVALIDOS");
+      // O que conta como faturamento. As regras em si moram em faturamento.ts,
+      // aplicadas igual nos três recortes que esta tela busca.
+      const regras: RegrasDeFaturamento = {
+        cfopValidos: getArray("CFOP_VALIDOS"),
+        marcadoresInvalidos: getArray("MARCADORES_INVALIDOS"),
+      };
+
       // MESES_ANALISE é 1-based (1 = janeiro), do jeito que se digita em
       // Configurações. O Date do JS conta mês a partir de 0 — daí o -1 abaixo.
       const meses = getArray("MESES_ANALISE")
@@ -63,41 +82,14 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
             data_fim: format(dataFim),
           });
 
-          const filtradas = notas.filter((nota: any) => {
-            const cfop = extrairCFOP(nota.natureza_operacao);
-            const naturezaOk = cfopValidos.includes(cfop);
-            const situacaoOk = (nota.descricao_situacao || "").toLowerCase().trim() === "emitida danfe";
-            const marcadorOk =
-              !nota.marcadores ||
-              nota.marcadores.every((m: any) => {
-                const desc = (m?.descricao || "").toLowerCase().trim();
-                return !marcadoresInvalidos.includes(desc);
-              });
-            const valor = parseFloat(nota.valor_nota || "0");
-            return naturezaOk && situacaoOk && marcadorOk && !isNaN(valor) && valor > 0;
-          });
-
-          const totalVenda = filtradas.reduce((acc: number, nota: any) => acc + parseFloat(nota.valor_nota || "0"), 0);
-
           const servicos = await fetchNotasServico({
             data_inicio: format(dataInicio),
             data_fim: format(dataFim),
           });
 
-          const totalServico = servicos.reduce((acc: number, nota: any) => {
-            const raw = String(nota.valor_servico || "0");
-            const valor = raw.includes(",")
-              ? parseFloat(raw.replace(/\./g, "").replace(",", "."))
-              : parseFloat(raw);
-            return acc + (isNaN(valor) ? 0 : valor);
-          }, 0);
-
-          const totalMes = totalVenda + totalServico;
-          const nomeMes = dataInicio.toLocaleString("pt-BR", { month: "long" });
-
           resultados.push({
-            mes: `${nomeMes[0].toUpperCase()}${nomeMes.slice(1)}/${anoAtual}`,
-            total: totalMes,
+            mes: rotuloDoMes(mes, anoAtual),
+            total: somarVendas(notas, regras) + somarServicos(servicos),
           });
         } catch (err) {
           console.error(`Erro ao buscar mês ${mes}`, err);
@@ -106,53 +98,23 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
 
       const totalQuadrimestre = resultados.reduce((acc, cur) => acc + cur.total, 0);
 
-      // Calcular total do ano completo (todos os 12 meses)
+      // O ano corrente inteiro, em UMA requisição de venda e uma de serviço.
+      // Dela saem o total do ano e a quebra mês a mês do gráfico: a quebra é
+      // o mesmo dado agrupado, sem nenhuma requisição a mais.
       let totalAnoCompleto = 0;
-      
+      let serieDoAno: FaturamentoMensal[] = [];
+
       try {
-        const inicioAno = new Date(anoAtual, 0, 1);
-        const fimAno = new Date(anoAtual, 11, 31);
-
-        // Buscar todas as vendas do ano
-        const vendasAno = await fetchVendas({
-          data_inicio: format(inicioAno),
-          data_fim: format(fimAno),
-        });
-
-        const vendasFiltradas = vendasAno.filter((nota: any) => {
-          const cfop = extrairCFOP(nota.natureza_operacao);
-          const naturezaOk = cfopValidos.includes(cfop);
-          const situacaoOk = (nota.descricao_situacao || "").toLowerCase().trim() === "emitida danfe";
-          const marcadorOk =
-            !nota.marcadores ||
-            nota.marcadores.every((m: any) => {
-              const desc = (m?.descricao || "").toLowerCase().trim();
-              return !marcadoresInvalidos.includes(desc);
-            });
-          const valor = parseFloat(nota.valor_nota || "0");
-          return naturezaOk && situacaoOk && marcadorOk && !isNaN(valor) && valor > 0;
-        });
-
-        const totalVendasAno = vendasFiltradas.reduce(
-          (acc: number, nota: any) => acc + parseFloat(nota.valor_nota || "0"),
-          0
-        );
-
-        // Buscar todos os serviços do ano
-        const servicosAno = await fetchNotasServico({
-          data_inicio: format(inicioAno),
-          data_fim: format(fimAno),
-        });
-
-        const totalServicosAno = servicosAno.reduce((acc: number, nota: any) => {
-          const raw = String(nota.valor_servico || "0");
-          const valor = raw.includes(",")
-            ? parseFloat(raw.replace(/\./g, "").replace(",", "."))
-            : parseFloat(raw);
-          return acc + (isNaN(valor) ? 0 : valor);
-        }, 0);
-
-        totalAnoCompleto = totalVendasAno + totalServicosAno;
+        const totais = await totaisDoAno(anoAtual, regras);
+        totalAnoCompleto = totais.reduce((acc, valor) => acc + valor, 0);
+        // Mês futuro ficaria como barra vazia no fim do gráfico, sugerindo
+        // queda onde só há calendário. O gráfico para no mês corrente.
+        serieDoAno = totais
+          .slice(0, hoje.getMonth() + 1)
+          .map((valor, indice) => ({
+            mes: rotuloDoMes(indice + 1, anoAtual),
+            total: valor,
+          }));
       } catch (err) {
         console.error("Erro ao buscar total do ano", err);
       }
@@ -160,6 +122,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       setDados(resultados);
       setTotal(totalQuadrimestre);
       setTotalAno(totalAnoCompleto);
+      setSerieMensal(serieDoAno);
       setCarregando(false);
     };
 
@@ -167,7 +130,15 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   }, [carregandoConfig, configuracoes]);
 
   return (
-    <DashboardContext.Provider value={{ dados, total, totalAno, carregando }}>
+    <DashboardContext.Provider
+      value={{
+        dados,
+        total,
+        totalAno,
+        serieMensal,
+        carregando,
+      }}
+    >
       {children}
     </DashboardContext.Provider>
   );
@@ -176,12 +147,24 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
 export const useDashboard = () => useContext(DashboardContext);
 
 // Helpers
-function format(date: Date) {
-  return date.toISOString().slice(0, 10);
+
+/** O faturamento de cada mês de um ano, em doze posições. Duas requisições —
+ *  vendas e serviços do ano inteiro — e o agrupamento por data de emissão. */
+async function totaisDoAno(
+  ano: number,
+  regras: RegrasDeFaturamento,
+): Promise<number[]> {
+  const inicio = format(new Date(ano, 0, 1));
+  const fim = format(new Date(ano, 11, 31));
+
+  const [vendas, servicos] = await Promise.all([
+    fetchVendas({ data_inicio: inicio, data_fim: fim }),
+    fetchNotasServico({ data_inicio: inicio, data_fim: fim }),
+  ]);
+
+  return totaisPorMes({ vendas, servicos, regras, ano });
 }
 
-function extrairCFOP(texto: string | null | undefined): string {
-  if (!texto) return "";
-  const match = texto.match(/\b(\d{4})\b/);
-  return match ? match[1] : "";
+function format(date: Date) {
+  return date.toISOString().slice(0, 10);
 }

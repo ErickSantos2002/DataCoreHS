@@ -29,6 +29,8 @@ const estadoDashboard = vi.hoisted(() => ({
     dados: [] as { mes: string; total: number }[],
     total: 0,
     totalAno: 0,
+    serieMensal: [] as { mes: string; total: number }[],
+    totaisAnoAnterior: [] as number[],
     carregando: false,
   },
 }));
@@ -77,6 +79,10 @@ interface Cenario {
   total?: number;
   totalAno?: number;
   dados?: { mes: string; total: number }[];
+  /** Janeiro ate o mes corrente — a serie do grafico de barras. */
+  serieMensal?: { mes: string; total: number }[];
+  /** Faturamento de cada mes do ano anterior, indice 0 = janeiro. */
+  totaisAnoAnterior?: number[];
   carregando?: boolean;
 }
 
@@ -87,6 +93,8 @@ function montar({
   total = 0,
   totalAno = 0,
   dados = [],
+  serieMensal = [],
+  totaisAnoAnterior = [],
   carregando = false,
 }: Cenario) {
   const configuracoes: { id: number; chave: string; valor: string }[] = [];
@@ -97,7 +105,14 @@ function montar({
     configuracoes.push({ id: 3, chave: "MESES_ANALISE", valor: meses });
 
   estadoConfiguracoes.atual = configuracoes;
-  estadoDashboard.atual = { dados, total, totalAno, carregando };
+  estadoDashboard.atual = {
+    dados,
+    total,
+    totalAno,
+    serieMensal,
+    totaisAnoAnterior,
+    carregando,
+  };
 
   return render(<Dashboard />, { wrapper: Molde });
 }
@@ -443,21 +458,59 @@ describe("Meta do trimestre — a agulha e o percentual da faixa", () => {
 });
 
 describe("Meta do trimestre — faturamento por mes", () => {
-  it("desenha uma barra por mes do trimestre, em milhares de reais", () => {
+  /** Janeiro a julho, para exercitar o grafico com mais mes do que o
+   *  trimestre tem — que e o ponto do bloco. */
+  const ANO_ATE_JULHO = [
+    { mes: "Janeiro/2026", total: 300_000 },
+    { mes: "Fevereiro/2026", total: 420_000 },
+    { mes: "Março/2026", total: 380_000 },
+    { mes: "Abril/2026", total: 410_000 },
+    { mes: "Maio/2026", total: 390_000 },
+    { mes: "Junho/2026", total: 500_000 },
+    { mes: "Julho/2026", total: 850_000 },
+  ];
+
+  it("desenha uma barra por mes do ANO, de janeiro em diante", () => {
+    // O bloco nao repete o trimestre da lista ao lado: ele mostra o ano.
     montar({
       meta: "12000000",
       total: 1_350_000,
-      totalAno: 4_000_000,
+      totalAno: 3_250_000,
       dados: [
         { mes: "Junho/2026", total: 500_000 },
         { mes: "Julho/2026", total: 850_000 },
       ],
+      serieMensal: ANO_ATE_JULHO,
     });
 
-    expect(screen.getByText("Junho")).toBeInTheDocument();
-    expect(screen.getByText("Julho")).toBeInTheDocument();
-    expect(screen.getByText("500")).toBeInTheDocument();
+    expect(screen.getByText("Jan")).toBeInTheDocument();
+    expect(screen.getByText("Fev")).toBeInTheDocument();
+    expect(screen.getByText("Jul")).toBeInTheDocument();
+    expect(screen.getByText("300")).toBeInTheDocument();
     expect(screen.getByText("850")).toBeInTheDocument();
+  });
+
+  it("desenha os meses do trimestre na cor cheia e o resto do ano em cinza", () => {
+    // Sem isso o grafico vira um ano solto: nao da para ver onde o trimestre
+    // que os velocimetros medem cai dentro dele.
+    const { container } = montar({
+      meta: "12000000",
+      total: 1_350_000,
+      dados: [
+        { mes: "Junho/2026", total: 500_000 },
+        { mes: "Julho/2026", total: 850_000 },
+      ],
+      serieMensal: ANO_ATE_JULHO,
+    });
+
+    const barras = Array.from(
+      container.querySelectorAll("div[style*='height']"),
+    ).filter((barra) => barra.className.includes("rounded-t"));
+
+    expect(barras).toHaveLength(7);
+    expect(barras.filter((b) => b.className.includes("bg-primary-500"))).toHaveLength(2);
+    expect(barras.filter((b) => b.className.includes("bg-conteudo-faint"))).toHaveLength(5);
+    expect(screen.getByText("Trimestre em apuração")).toBeInTheDocument();
   });
 
   it("sem mes apurado, explica por que nao ha barra", () => {
