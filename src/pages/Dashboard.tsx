@@ -1,326 +1,117 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboard } from "../context/DashboardContext";
 import { useConfiguracoes } from "../context/ConfiguracoesContext";
-import { useToast } from "../components/ToastProvider";
-import confetti from "canvas-confetti";
+import { Spinner } from "../design-system/ui";
+import { CabecalhoMeta } from "./dashboard/CabecalhoMeta";
+import { FaturamentoPorMes } from "./dashboard/FaturamentoPorMes";
+import { ProjecaoFechamento } from "./dashboard/ProjecaoFechamento";
+import { ResumoTrimestre } from "./dashboard/ResumoTrimestre";
+import { Velocimetro } from "./dashboard/Velocimetro";
+import {
+  degrausDaMeta,
+  mesesDoTrimestre,
+  projecaoDeFechamento,
+} from "./dashboard/metaTrimestral";
+import { useComemoracaoMeta } from "./dashboard/useComemoracaoMeta";
+
+/** Percentual de um degrau, travado em 100% — passar da meta não estica o arco. */
+function progressoAte(total: number, degrau: number): number {
+  return Math.min((total / degrau) * 100, 100);
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { dados, total, carregando, totalAno } = useDashboard();
+  const {
+    dados,
+    total,
+    carregando,
+    totalAno,
+    serieMensal,
+    totaisAnoAnterior,
+  } = useDashboard();
   const { configuracoes } = useConfiguracoes();
-  const { sucesso, erro } = useToast();
-
-  // Parse robusto: aceita "12666666.72", "12.666.666,72" ou "12666666,72"
-  const parseValor = (raw?: string): number => {
-    if (!raw) return 0;
-    let s = raw.trim();
-    if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
-    else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, "");
-    const n = parseFloat(s);
-    return isNaN(n) ? 0 : n;
-  };
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
-  // A META é definida de forma ANUAL; o Dashboard é trimestral, então divide por 4.
-  const META = parseValor(metaConfig?.valor) / 4;
-  const META1 = META * 0.9;
-  const META2 = META * 1.2;
-  const META3 = META * 1.4;
+  const degraus = degrausDaMeta(metaConfig?.valor);
+  const { degrau55, degrau85, degrau100 } = degraus;
 
   const animacaoConfig = configuracoes.find((c) => c.chave === "ANIMACAO_META");
-  const animacaoHabilitada = animacaoConfig?.valor === "true";
 
-  const progresso80 = Math.min((total / META1) * 100, 100);
-  const progresso100 = Math.min((total / META2) * 100, 100);
-  const progresso140 = Math.min((total / META3) * 100, 100);
+  // Os mesmos meses que o DashboardContext usou para somar o `total`: é o
+  // calendário sobre o qual a projeção mede o ritmo.
+  const mesesConfig = configuracoes.find((c) => c.chave === "MESES_ANALISE");
+  const projecao = projecaoDeFechamento({
+    realizado: total,
+    meses: mesesDoTrimestre(mesesConfig?.valor),
+    hoje: new Date(),
+    // A forma do mesmo trimestre no ano anterior. Sem ela a projeção cai no
+    // método linear — e o card diz isso, em vez de calar.
+    totaisAnoAnterior: totaisAnoAnterior ?? [],
+  });
 
-  // Ref para garantir que a animação só dispare uma vez por sessão
-  const animacaoDisparada = useRef(false);
+  useComemoracaoMeta({
+    habilitada: animacaoConfig?.valor === "true",
+    carregando,
+    total,
+    degrau55,
+    degrau85,
+    degrau100,
+  });
 
-  // Função para disparar animações de comemoração
-  const dispararComemoracoes = () => {
-    const duration = 3000; // 3 segundos de animação
-    const animationEnd = Date.now() + duration;
-
-    // Confetes do lado esquerdo
-    const confettiEsquerda = () => {
-      confetti({
-        particleCount: 7,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 },
-        colors: ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32'],
-      });
-    };
-
-    // Confetes do lado direito
-    const confettiDireita = () => {
-      confetti({
-        particleCount: 7,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 },
-        colors: ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32'],
-      });
-    };
-
-    // Fogos de artifício (explosões no centro)
-    const fogosArtificio = () => {
-      confetti({
-        particleCount: 100,
-        spread: 360,
-        startVelocity: 30,
-        decay: 0.9,
-        scalar: 1.2,
-        origin: { x: Math.random(), y: Math.random() * 0.5 },
-        colors: ['#FFD700', '#FFA500', '#FF1493', '#00CED1', '#32CD32', '#FF6347'],
-      });
-    };
-
-    // Loop de animação
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-        return;
-      }
-
-      confettiEsquerda();
-      confettiDireita();
-
-      // Disparar fogos ocasionalmente
-      if (Math.random() > 0.7) {
-        fogosArtificio();
-      }
-    }, 150);
-
-    // Disparar fogos iniciais
-    setTimeout(fogosArtificio, 100);
-    setTimeout(fogosArtificio, 500);
-    setTimeout(fogosArtificio, 900);
-  };
-
-  // Verificar se alguma meta foi atingida e disparar animações
-  useEffect(() => {
-    if (!carregando && !animacaoDisparada.current && animacaoHabilitada) {
-      // Verifica se alguma meta foi atingida
-      const metaAtingida = total >= META1 || total >= META2 || total >= META3;
-
-      if (metaAtingida) {
-        animacaoDisparada.current = true;
-        dispararComemoracoes();
-      }
-    }
-  }, [carregando, total, META1, META2, META3, animacaoHabilitada]);
-
-  // ---------- COMPONENTE VELOCÍMETRO ----------
-  const Speedometer = ({
-    progress = 0,
-    color,
-    value = 0,
-    goal,
-    bonusLabel,
-  }: {
-    progress?: number;
-    color: string;
-    value?: number;
-    goal: number;
-    bonusLabel: string;
-  }) => {
-    const safeProgress = isNaN(progress)
-      ? 0
-      : Math.min(Math.max(progress, 0), 100);
-
-    const radius = 60;
-    const circumference = Math.PI * radius;
-    const dash = (safeProgress / 100) * circumference;
-
-    return (
-      <div className="flex flex-col items-center p-2 w-full">
-        <svg width="180" height="100" viewBox="0 0 160 100">
-          <path
-            d="M20 80 A60 60 0 0 1 140 80"
-            fill="none"
-            stroke="#e0e0e0" // cinza mais visível no dark
-            strokeWidth="12"
-          />
-          <path
-            d="M20 80 A60 60 0 0 1 140 80"
-            fill="none"
-            stroke={color}
-            strokeWidth="12"
-            strokeDasharray={`${dash}, ${circumference}`}
-            strokeLinecap="round"
-          />
-        </svg>
-        <div className="text-center mt-2">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Progresso</p>
-          <p className="text-xl font-bold text-blue-600 dark:text-yellow-400">
-            {safeProgress.toFixed(1)}%
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            Valor Atual:{" "}
-            <span className="font-semibold text-green-600 dark:text-green-400">
-              R$ {value.toLocaleString("pt-BR")}
-            </span>
-          </p>
-          {goal - value > 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-300">
-              Diferença até a meta:{" "}
-              <span className="text-red-600 dark:text-red-400">
-                R$
-                {(goal - value).toLocaleString("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </p>
-          ) : (
-            <p className="text-sm text-green-600 dark:text-green-400 font-semibold">
-              Meta atingida! 🎉
-            </p>
-          )}
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-300 mt-1">
-          {bonusLabel}
-        </p>
-      </div>
-    );
-  };
-
-  // ---------- MAIN ----------
   if (carregando) {
     return (
-      <div className="p-6 text-gray-500 dark:text-gray-300">
-        Carregando dados do dashboard...
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted md:min-h-0 md:h-full">
+        <Spinner size="lg" />
+        <p>Carregando os dados da meta do trimestre.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-surface-base transition-colors min-h-screen md:min-h-0 md:h-full">
-      {/* Cabeçalho */}
-      <div className="bg-white dark:bg-surface shadow-sm rounded-xl w-full">
-        <div className="px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
-            Meta Trimestral - Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-white mt-1">
-            Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
-          </p>
-          <p className="text-gray-500 dark:text-white text-sm mt-2">
-            Acompanhe o quanto falta para a empresa atingir a meta.
-          </p>
-          {/* === Botão para acionar webhook n8n (visível apenas para admin) === */}
-          {user?.role === "admin" && (
-            <button
-              onClick={async () => {
-                try {
-                  await fetch(
-                    "https://n8n.healthsafetytech.com/webhook/f26ad3d8-e178-4a35-93e2-14ae28d2da55",
-                    { method: "GET", mode: "no-cors" }
-                  );
+    <div className="min-h-screen bg-surface-base p-6 transition-colors md:min-h-0 md:h-full">
+      <div className="flex flex-col gap-4">
+        <CabecalhoMeta usuario={user} />
 
-                  sucesso(
-                    "Fluxo de busca de notas acionado. Aguarde cerca de 5 minutos para que todas as notas sejam atualizadas."
-                  );
-                } catch {
-                  erro("Não foi possível acionar o fluxo.");
-                }
-              }}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition"
-            >
-              Atualizar notas vendas
-            </button>
-          )}
+        <ProjecaoFechamento
+          realizado={total}
+          projecao={projecao}
+          degraus={degraus}
+        />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Velocimetro
+            progresso={progressoAte(total, degrau55)}
+            degrau={degrau55}
+            valor={total}
+            corDoArco="stroke-bronze"
+            rotuloBonus="55%"
+            descricaoDegrau="PL sobre 0,9× META÷4"
+          />
+          <Velocimetro
+            progresso={progressoAte(total, degrau85)}
+            degrau={degrau85}
+            valor={total}
+            corDoArco="stroke-prata"
+            rotuloBonus="85%"
+            descricaoDegrau="PL sobre 1,2× META÷4"
+          />
+          <Velocimetro
+            progresso={progressoAte(total, degrau100)}
+            degrau={degrau100}
+            valor={total}
+            corDoArco="stroke-ouro"
+            rotuloBonus="100%"
+            descricaoDegrau="PL sobre 1,4× META÷4"
+          />
         </div>
-      </div>
 
-      {/* CARD PRINCIPAL */}
-      <div className="bg-white dark:bg-surface rounded-xl shadow p-6 mt-4 w-full transition-colors">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-          {/* COLUNA ESQUERDA */}
-          <div className="lg:col-span-1">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-              Relatório de Faturamento e Bonificação
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 max-w-sm text-justify">
-              Esta página exibe o{" "}
-              <strong className="text-gray-900 dark:text-yellow-400">
-                faturamento total do trimestre atual
-              </strong>
-              , considerando as Notas Fiscais de Venda e Serviço. Ao lado, temos
-              um <strong className="dark:text-yellow-400">gráfico velocímetro</strong>{" "}
-              com faixas de bonificação. Ao atingir cada marcação, a equipe
-              receberá um{" "}
-              <strong className="dark:text-yellow-400">PL proporcional</strong>{" "}
-              à porcentagem alcançada da meta.
-            </p>
-          </div>
-
-          {/* COLUNA DIREITA */}
-          <div className="lg:col-span-3 flex flex-col w-full">
-            <div className="flex justify-center lg:justify-end">
-              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-                Trimestre Atual
-              </h2>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-8 w-full">
-              {/* Lista à esquerda */}
-              <div className="md:w-1/3">
-                <ul className="text-gray-700 dark:text-gray-200 space-y-4 text-left">
-                  {dados.map((item) => (
-                    <li key={item.mes}>
-                      <span className="font-medium">{item.mes}:</span>{" "}
-                      <span className="font-bold text-blue-700 dark:text-yellow-400">
-                        R${" "}
-                        {item.total.toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                  <li className="pt-3 border-t border-gray-300 dark:border-gray-500">
-                    <span className="font-medium">Total do Ano:</span>{" "}
-                    <span className="font-bold text-green-600 dark:text-green-400">
-                      R${" "}
-                      {totalAno.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Velocímetros à direita */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                <Speedometer
-                  progress={progresso80}
-                  goal={META1}
-                  value={total}
-                  color="#cd7f32"
-                  bonusLabel="55%"
-                />
-                <Speedometer
-                  progress={progresso100}
-                  goal={META2}
-                  value={total}
-                  color="#7f8c8d"
-                  bonusLabel="85%"
-                />
-                <Speedometer
-                  progress={progresso140}
-                  goal={META3}
-                  value={total}
-                  color="#ffd700"
-                  bonusLabel="100%"
-                />
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.6fr]">
+          <ResumoTrimestre meses={dados} total={total} totalAno={totalAno} />
+          <FaturamentoPorMes
+            meses={serieMensal ?? []}
+            destacar={dados.map((mes) => mes.mes)}
+          />
         </div>
       </div>
     </div>
