@@ -16,8 +16,7 @@ const CentralButton: React.FC = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className="fixed bottom-6 right-6 z-50
-                 bg-white hover:bg-gray-50
-                 dark:bg-gray-800 dark:hover:bg-gray-700
+                 bg-surface hover:bg-surface-elevated
                  border-2 border-blue-600 dark:border-blue-500
                  rounded-full
                  shadow-lg hover:shadow-2xl
@@ -50,8 +49,8 @@ const CentralButton: React.FC = () => {
       {isHovered && (
         <div
           className="fixed bottom-6 z-50
-                   bg-gray-900 dark:bg-gray-800
-                   text-white text-sm font-medium
+                   bg-tooltip
+                   text-tooltip-fg text-sm font-medium
                    px-3 py-2 rounded-lg shadow-lg
                    whitespace-nowrap
                    animate-fadeIn"
@@ -63,7 +62,7 @@ const CentralButton: React.FC = () => {
           {/* Seta do tooltip */}
           <div
             className="absolute top-1/2 -right-1
-                     w-2 h-2 bg-gray-900 dark:bg-gray-800
+                     w-2 h-2 bg-tooltip
                      transform rotate-45 -translate-y-1/2"
           />
         </div>

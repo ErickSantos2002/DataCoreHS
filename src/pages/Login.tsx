@@ -59,7 +59,7 @@ const Login: React.FC = () => {
 
         {/* Título */}
         <h1 className="mb-1 text-[22px] font-bold text-white">Bem-vindo</h1>
-        <p className="mb-6 text-sm text-gray-300">Faça login para continuar</p>
+        <p className="mb-6 text-sm text-white/70">Faça login para continuar</p>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -74,7 +74,7 @@ const Login: React.FC = () => {
             onChange={(e) => setUsername(e.target.value)}
             disabled={loading}
             placeholder="Usuário"
-            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
             required
           />
 
@@ -89,12 +89,12 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
             placeholder="Senha"
-            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
             required
           />
 
           {error && (
-            <div className="rounded-lg border border-red-500/40 bg-red-900/40 p-2 text-center text-sm text-red-400">
+            <div className="rounded-lg border border-danger bg-tint-danger p-2 text-center text-sm text-danger">
               {error}
             </div>
           )}
