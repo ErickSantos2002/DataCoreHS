@@ -405,36 +405,37 @@ describe("Locação — ordenação", () => {
     expect(numerosNaTela()).toEqual(["—", "1002"]);
   });
 
-  it("notas empatadas saem na ordem inversa da que vieram da API — nas duas direções", async () => {
-    // REGISTRO DE COMPORTAMENTO, NÃO CONTRATO DESEJADO.
+  it("notas empatadas mantêm a ordem em que a API as mandou — nas duas direções", async () => {
+    // O comparador devolve 0 no empate e o `Array.prototype.sort` é estável,
+    // então o bloco empatado sai na ordem da API: 1 antes de 2, nas duas
+    // direções. Ordenar por uma coluna não embaralha o que essa coluna não
+    // distingue.
     //
-    // O comparador da tela é `aVal > bVal ? 1 : -1`: ele nunca devolve 0.
-    // Para dois valores iguais ele responde "o primeiro vem antes" nas duas
-    // perguntas — comparador inconsistente. O `Array.prototype.sort` do V8
-    // reage a isso invertendo o bloco empatado; outro motor de JS poderia
-    // reagir de outro jeito, e é por isso que este teste descreve o que a
-    // tela faz hoje em vez de prometer o que ela deve fazer.
-    //
-    // Consequência visível: as notas de um mesmo dia aparecem ao contrário
-    // da ordem em que a API as mandou, e alternar a seta de "Data" não muda
-    // nada dentro do dia — só troca os dias de lugar.
+    // Até o commit que consertou o comparador ele era `aVal > bVal ? 1 : -1`
+    // e nunca devolvia 0: para valores iguais respondia "o primeiro vem
+    // antes" nas duas perguntas, e o bloco empatado saía invertido — 2 antes
+    // de 1.
     await montar([
       nota({ id: 1, numero: "1", valor_nota: 100, data_emissao: "2026-04-01T00:00:00" }),
       nota({ id: 2, numero: "2", valor_nota: 100, data_emissao: "2026-04-01T00:00:00" }),
       nota({ id: 3, numero: "3", valor_nota: 500, data_emissao: "2026-04-02T00:00:00" }),
     ]);
 
+    // Decrescente: a de 500 sobe, e as duas de 100 ficam na ordem da API.
     ordenarPor("Valor");
-    expect(numerosNaTela()).toEqual(["3", "2", "1"]);
+    expect(numerosNaTela()).toEqual(["3", "1", "2"]);
 
+    // Crescente: a de 500 desce, e o par empatado continua na ordem da API.
     ordenarPor("Valor");
-    expect(numerosNaTela()).toEqual(["2", "1", "3"]);
+    expect(numerosNaTela()).toEqual(["1", "2", "3"]);
   });
 
-  it("com empate total, crescente e decrescente devolvem a MESMA sequência", async () => {
-    // Continuação do registro acima: quando todas as notas empatam, as duas
-    // direções devolvem a lista da API de trás para frente, e clicar na seta
-    // não move nada. Para quem usa, o cabeçalho parece quebrado.
+  it("com empate total, as duas direções devolvem a ordem da API", async () => {
+    // Quando TODAS as notas empatam não há segunda ordem para a seta
+    // mostrar: as duas direções devolvem a lista como a API a mandou. Isso é
+    // o certo, e não resto do defeito — o que mudou é qual sequência sai.
+    // Antes as duas direções devolviam a lista de trás para frente
+    // (["3","2","1"]); agora devolvem ["1","2","3"].
     await montar([
       nota({ id: 1, numero: "1", valor_nota: 100 }),
       nota({ id: 2, numero: "2", valor_nota: 100 }),
@@ -442,10 +443,35 @@ describe("Locação — ordenação", () => {
     ]);
 
     ordenarPor("Valor");
-    expect(numerosNaTela()).toEqual(["3", "2", "1"]);
+    expect(numerosNaTela()).toEqual(["1", "2", "3"]);
 
     ordenarPor("Valor");
-    expect(numerosNaTela()).toEqual(["3", "2", "1"]);
+    expect(numerosNaTela()).toEqual(["1", "2", "3"]);
+  });
+
+  it("ordenar por Cliente não embaralha as notas do mesmo cliente", async () => {
+    // O caso da base real, com os números e os nomes que ela tem: duas notas
+    // da Mineração e uma da APERAM. Com o comparador velho o par da Mineração
+    // saía invertido em relação à ordem que a API mandou.
+    const MINERACAO = {
+      nome: "Mineracao Riacho dos Machados Ltda. ",
+      cpf_cnpj: "08.832.667/0001-62",
+    };
+    await montar([
+      nota({ id: 1, numero: "008406", cliente: MINERACAO }),
+      nota({ id: 2, numero: "008188", cliente: MINERACAO }),
+      nota({
+        id: 3,
+        numero: "007948",
+        cliente: { nome: "APERAM BIOENERGIA LTDA.", cpf_cnpj: "18.238.980/0029-21" },
+      }),
+    ]);
+
+    ordenarPor("Cliente");
+    expect(numerosNaTela()).toEqual(["008406", "008188", "007948"]);
+
+    ordenarPor("Cliente");
+    expect(numerosNaTela()).toEqual(["007948", "008406", "008188"]);
   });
 });
 

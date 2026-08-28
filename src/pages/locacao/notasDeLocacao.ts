@@ -115,24 +115,29 @@ const CHAVE_DE_ORDEM: Record<CampoOrdenavel, (nota: NotaLocacao) => number | str
 /**
  * Ordena por uma das quatro colunas, sem mexer na lista original.
  *
- * ATENÇÃO — o comparador abaixo nunca devolve 0. Para dois valores iguais
- * ele responde "o primeiro vem antes" tanto em `asc` quanto em `desc`, o
- * que é uma resposta contraditória: `comparar(a, b)` e `comparar(b, a)` dão
- * o mesmo sinal. O `Array.prototype.sort` do V8 reage invertendo o bloco
- * empatado, e com empate total as duas direções devolvem exatamente a mesma
- * sequência — clicar na seta não move nada.
+ * Empate devolve 0, e o `Array.prototype.sort` é estável — então o bloco
+ * empatado sai na ordem em que a API mandou as notas. Ordenar por cliente
+ * não embaralha as notas de um mesmo cliente, que é o que quem usa espera.
  *
- * Está preservado de propósito: é o comportamento que a tela sempre teve, o
- * teste de caracterização o fixa, e consertá-lo é decisão de produto (muda a
- * ordem das notas de um mesmo dia), não parte da migração visual.
+ * Antes o comparador era `x > y ? 1 : -1`, que nunca devolve 0: para dois
+ * valores iguais ele respondia "o primeiro vem antes" nas duas perguntas —
+ * `comparar(a, b)` e `comparar(b, a)` com o mesmo sinal, uma contradição. O
+ * bloco empatado saía invertido em relação à API, e com empate total as duas
+ * direções devolviam a mesma sequência: clicar na seta não movia nada.
+ *
+ * Com empate total as duas direções continuam devolvendo a mesma sequência —
+ * agora a da API, e não mais a dela ao contrário. Isso não é resto do
+ * defeito: sem nada que distinga uma nota da outra na coluna ordenada, não
+ * existe segunda ordem para a seta mostrar.
  */
 export function ordenarNotas(notas: NotaLocacao[], { campo, direcao }: Ordenacao): NotaLocacao[] {
   const chave = CHAVE_DE_ORDEM[campo];
+  const sentido = direcao === "asc" ? 1 : -1;
   return [...notas].sort((a, b) => {
     const x = chave(a);
     const y = chave(b);
-    if (direcao === "asc") return x > y ? 1 : -1;
-    return x < y ? 1 : -1;
+    if (x === y) return 0;
+    return x > y ? sentido : -sentido;
   });
 }
 
