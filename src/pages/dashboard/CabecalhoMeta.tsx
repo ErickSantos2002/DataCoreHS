@@ -41,8 +41,11 @@ export function CabecalhoMeta({ usuario }: CabecalhoMetaProps) {
             Bem-vindo, <span className="font-semibold">{usuario?.username}</span>{" "}
             ({usuario?.role})
           </p>
-          <p className="mt-2 text-sm text-conteudo-muted">
-            Acompanhe o quanto falta para a empresa atingir a meta.
+          <p className="mt-2 max-w-2xl text-sm text-conteudo-muted">
+            O faturamento considera as notas fiscais de venda e de serviço do
+            trimestre corrente. A META é anual e o PL é apurado por trimestre,
+            sobre META÷4. As três faixas âncora abaixo pagam PL de 55%, 85% e
+            100% — ao atingir cada marcação, a equipe recebe o PL proporcional.
           </p>
         </div>
 

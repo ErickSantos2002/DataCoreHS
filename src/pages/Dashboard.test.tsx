@@ -72,6 +72,8 @@ interface Cenario {
   meta?: string;
   /** Valor cru da chave ANIMACAO_META. */
   animacao?: string;
+  /** Valor cru da chave MESES_ANALISE — os meses do trimestre em apuração. */
+  meses?: string;
   total?: number;
   totalAno?: number;
   dados?: { mes: string; total: number }[];
@@ -81,6 +83,7 @@ interface Cenario {
 function montar({
   meta,
   animacao,
+  meses,
   total = 0,
   totalAno = 0,
   dados = [],
@@ -90,6 +93,8 @@ function montar({
   if (meta !== undefined) configuracoes.push({ id: 1, chave: "META", valor: meta });
   if (animacao !== undefined)
     configuracoes.push({ id: 2, chave: "ANIMACAO_META", valor: animacao });
+  if (meses !== undefined)
+    configuracoes.push({ id: 3, chave: "MESES_ANALISE", valor: meses });
 
   estadoConfiguracoes.atual = configuracoes;
   estadoDashboard.atual = { dados, total, totalAno, carregando };
@@ -323,5 +328,153 @@ describe("Meta do trimestre — estados da tela", () => {
 
     expect(screen.getByText("erick")).toBeInTheDocument();
     expect(screen.getByText(/\(admin\)/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * Daqui para baixo: os blocos que o design pede e que a primeira migração
+ * não trouxe — a projeção de fechamento, a agulha do velocímetro e o
+ * gráfico de barras. Nada acima foi tocado; a caracterização original
+ * continua valendo palavra por palavra.
+ */
+
+describe("Meta do trimestre — projeção de fechamento", () => {
+  /** Para o relógio num dia do trimestre. A projeção mede dias decorridos,
+   *  então sem relógio parado o teste muda de resultado a cada dia. */
+  function pararORelogioEm(ano: number, mes: number, dia: number) {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(ano, mes - 1, dia));
+  }
+
+  it("projeta o fechamento pelo ritmo dos dias ja apurados", () => {
+    // 31/07: 61 dos 92 dias do trimestre. R$ 1.220.000 em 61 dias sao
+    // R$ 20.000/dia, que em 92 dias fecham R$ 1.840.000.
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 1_220_000 });
+
+    expect(screen.getByText("R$ 1.840.000,00")).toBeInTheDocument();
+    expect(
+      screen.getByText(/61 dias apurados dos 92 dias do trimestre/),
+    ).toBeInTheDocument();
+  });
+
+  it("diz em qual faixa de PL a projecao fecha", () => {
+    // 2.000.000 em 61 dias projetam 3.016.393,44 — passa do degrau de 55%
+    // (2.700.000) e nao alcanca o de 85% (3.600.000).
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 2_000_000 });
+
+    expect(
+      screen.getByText("No ritmo de hoje, o trimestre fecha no PL de 55%."),
+    ).toBeInTheDocument();
+  });
+
+  it("diz tambem quando a projecao nao alcanca nem a primeira faixa", () => {
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 1_000_000 });
+
+    expect(
+      screen.getByText(
+        "No ritmo de hoje, o trimestre fecha abaixo da primeira faixa.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("nao inventa numero quando ainda nao ha dia apurado", () => {
+    // Maio: o trimestre de junho a agosto nem comecou. Um numero aqui
+    // seria plausivel e falso — o pior tipo de numero num painel de meta.
+    pararORelogioEm(2026, 5, 20);
+    montar({ meta: "12000000", meses: "6,7,8", total: 0 });
+
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(
+      screen.getByText(/não há ritmo para projetar/),
+    ).toBeInTheDocument();
+  });
+
+  it("mostra o PL que o realizado de hoje ja garante", () => {
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 3_000_000 });
+
+    expect(screen.getByText("PL garantido: 55%")).toBeInTheDocument();
+  });
+
+  it("sem nenhuma faixa batida, nao promete PL nenhum", () => {
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 1_000 });
+
+    expect(screen.getByText("Nenhuma faixa garantida ainda")).toBeInTheDocument();
+  });
+});
+
+describe("Meta do trimestre — a agulha e o percentual da faixa", () => {
+  /** Ponta da agulha de cada velocimetro, no eixo X do viewBox. */
+  function pontasDaAgulha(container: HTMLElement): (string | null)[] {
+    return Array.from(container.querySelectorAll("svg line")).map((linha) =>
+      linha.getAttribute("x2"),
+    );
+  }
+
+  it("desenha uma agulha em cada um dos tres velocimetros", () => {
+    const { container } = montar({ meta: "12000000", total: 1_350_000 });
+
+    expect(pontasDaAgulha(container)).toHaveLength(3);
+  });
+
+  it("com progresso zero, a agulha aponta para o comeco do arco", () => {
+    // Centro em x=110, agulha de 68: 110 - 68 = 42.
+    const { container } = montar({ meta: "12000000", total: 0 });
+
+    expect(pontasDaAgulha(container)).toEqual(["42.0", "42.0", "42.0"]);
+  });
+
+  it("com a faixa batida, a agulha aponta para o fim do arco", () => {
+    // 110 + 68 = 178, e nao passa disso: o progresso e travado em 100%.
+    const { container } = montar({ meta: "12000000", total: 9_000_000 });
+
+    expect(pontasDaAgulha(container)).toEqual(["178.0", "178.0", "178.0"]);
+  });
+
+  it("o percentual e apresentado como percentual DA FAIXA", () => {
+    montar({ meta: "12000000", total: 1_350_000 });
+
+    expect(screen.getAllByText("da faixa")).toHaveLength(3);
+  });
+});
+
+describe("Meta do trimestre — faturamento por mes", () => {
+  it("desenha uma barra por mes do trimestre, em milhares de reais", () => {
+    montar({
+      meta: "12000000",
+      total: 1_350_000,
+      totalAno: 4_000_000,
+      dados: [
+        { mes: "Junho/2026", total: 500_000 },
+        { mes: "Julho/2026", total: 850_000 },
+      ],
+    });
+
+    expect(screen.getByText("Junho")).toBeInTheDocument();
+    expect(screen.getByText("Julho")).toBeInTheDocument();
+    expect(screen.getByText("500")).toBeInTheDocument();
+    expect(screen.getByText("850")).toBeInTheDocument();
+  });
+
+  it("sem mes apurado, explica por que nao ha barra", () => {
+    montar({ meta: "12000000" });
+
+    expect(screen.getByText(/As barras aparecem aqui/)).toBeInTheDocument();
+  });
+
+  it("soma do trimestre e soma do ano fecham a lista de meses", () => {
+    montar({
+      meta: "12000000",
+      total: 1_350_000,
+      totalAno: 4_000_000,
+      dados: [{ mes: "Junho/2026", total: 1_350_000 }],
+    });
+
+    expect(screen.getByText("Total do trimestre:")).toBeInTheDocument();
+    expect(screen.getByText("Total do Ano:")).toBeInTheDocument();
   });
 });

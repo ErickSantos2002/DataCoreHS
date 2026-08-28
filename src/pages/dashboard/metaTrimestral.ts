@@ -53,3 +53,105 @@ export function degrausDaMeta(metaAnual?: string): DegrausDaMeta {
     degrau100: trimestre * 1.4,
   };
 }
+
+/** O degrau mais alto que o valor já alcançou — "55%", "85%", "100%" — ou
+ *  `null` quando nem o primeiro foi batido. É o PL que a equipe leva se o
+ *  trimestre fechar com esse valor. */
+export function faixaAlcancada(
+  valor: number,
+  { degrau55, degrau85, degrau100 }: DegrausDaMeta,
+): string | null {
+  if (valor >= degrau100) return "100%";
+  if (valor >= degrau85) return "85%";
+  if (valor >= degrau55) return "55%";
+  return null;
+}
+
+/** Os meses do trimestre em apuração, como vêm da chave MESES_ANALISE.
+ *
+ * Mesmo parse do DashboardContext, de propósito: é ele quem decide quais
+ * meses entram no `total`, e a projeção precisa medir o MESMO período. Um
+ * parse divergente aqui projetaria o faturamento de três meses sobre um
+ * calendário de quatro. Também não deduplica pelo mesmo motivo — se a
+ * configuração repetir um mês, o contexto soma o mês duas vezes, e os dias
+ * têm que ser contados duas vezes para a razão continuar honesta.
+ */
+export function mesesDoTrimestre(raw?: string): number[] {
+  return (raw?.split(",") ?? [])
+    .map((m) => Number(m.trim()))
+    .filter((m) => Number.isInteger(m) && m >= 1 && m <= 12);
+}
+
+export interface ProjecaoDeFechamento {
+  /** false quando não há como projetar sem inventar número. */
+  disponivel: boolean;
+  /** Quanto o trimestre fecha se o ritmo de hoje se mantiver. */
+  projetado: number;
+  /** Dias do trimestre já vividos (o mês corrente entra pelo dia de hoje). */
+  diasDecorridos: number;
+  /** Dias que o trimestre inteiro tem. */
+  diasTotais: number;
+}
+
+export interface EntradaDaProjecao {
+  /** O faturamento apurado do trimestre até agora. */
+  realizado: number;
+  /** Os meses do trimestre, 1-based, como em MESES_ANALISE. */
+  meses: number[];
+  /** Hoje. Parâmetro, e não `new Date()` aqui dentro, para o teste poder
+   *  parar o relógio em qualquer dia do trimestre. */
+  hoje: Date;
+}
+
+/** Projeta o fechamento do trimestre pelo ritmo até agora.
+ *
+ * A conta é uma regra de três sobre DIAS, não sobre meses fechados:
+ *
+ *     projetado = realizado × (dias do trimestre ÷ dias já decorridos)
+ *
+ * Contar mês fechado seria mais simples e estaria errado no dia 5 — o mês
+ * corrente entraria inteiro no divisor com cinco dias de faturamento, e a
+ * projeção despencaria toda virada de mês para subir de novo ao longo dela.
+ * Pelo dia, o mês corrente entra pela fração que de fato já passou, e a
+ * projeção é a mesma curva o mês todo.
+ *
+ * É uma projeção linear, e a tela diz isso com todas as letras ("no ritmo
+ * de X dias de Y"): não pretende adivinhar sazonalidade, só responder
+ * "mantido o ritmo, onde isto fecha?".
+ *
+ * Sem mês configurado, ou antes de o trimestre começar (zero dia decorrido),
+ * não há ritmo para projetar — devolve `disponivel: false` em vez de um
+ * número. Número inventado num painel de meta é pior que card faltando.
+ */
+export function projecaoDeFechamento({
+  realizado,
+  meses,
+  hoje,
+}: EntradaDaProjecao): ProjecaoDeFechamento {
+  const ano = hoje.getFullYear();
+  const mesDeHoje = hoje.getMonth() + 1;
+
+  let diasTotais = 0;
+  let diasDecorridos = 0;
+
+  for (const mes of meses) {
+    // Dia 0 do mês seguinte é o último dia deste mês — inclusive em fevereiro
+    // bissexto, sem tabela de dias por mês escrita à mão.
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+    diasTotais += diasNoMes;
+
+    if (mes < mesDeHoje) diasDecorridos += diasNoMes;
+    else if (mes === mesDeHoje) diasDecorridos += Math.min(hoje.getDate(), diasNoMes);
+  }
+
+  if (diasTotais === 0 || diasDecorridos === 0) {
+    return { disponivel: false, projetado: 0, diasDecorridos, diasTotais };
+  }
+
+  return {
+    disponivel: true,
+    projetado: realizado * (diasTotais / diasDecorridos),
+    diasDecorridos,
+    diasTotais,
+  };
+}
