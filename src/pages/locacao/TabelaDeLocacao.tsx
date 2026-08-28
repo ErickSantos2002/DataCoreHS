@@ -107,9 +107,9 @@ export function TabelaDeLocacao({
         </h2>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="w-full sm:w-72">
+          <div className="w-full sm:w-80">
             <Input
-              placeholder="Buscar cliente, CNPJ, número ou vendedor"
+              placeholder="Buscar cliente, nota ou vendedor"
               aria-label="Buscar nas notas de locação"
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
@@ -172,8 +172,8 @@ export function TabelaDeLocacao({
             Mostrando{" "}
             <span className="font-semibold text-conteudo">
               {filtrando
-                ? `${contarNotas(notas.length)} de ${totalDeNotas}`
-                : `as ${contarNotas(totalDeNotas)}`}
+                ? `${notas.length} de ${contarNotas(totalDeNotas)}`
+                : contarNotas(totalDeNotas)}
             </span>{" "}
             de locação, somando{" "}
             <span className="font-mono font-bold text-conteudo-heading">
