@@ -395,6 +395,58 @@ describe("Meta do trimestre — projeção de fechamento", () => {
     ).toBeInTheDocument();
   });
 
+  it("projeta pela forma do trimestre do ano anterior quando ela existe", () => {
+    // Junho/julho/agosto de 2025 em 1,0 / 0,8 / 0,6 mi. Em 31/07, 1,8 mi do
+    // ano anterior ja decorreu; 2,2 mi realizados sao fator 1,22, e agosto
+    // entra por 0,6 mi x 1,22 = 733.333,33.
+    pararORelogioEm(2026, 7, 31);
+    montar({
+      meta: "12000000",
+      meses: "6,7,8",
+      total: 2_200_000,
+      totaisAnoAnterior: [0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0],
+    });
+
+    expect(screen.getByText("R$ 2.933.333,33")).toBeInTheDocument();
+    expect(
+      screen.getByText("Na forma do trimestre de 2025, o trimestre fecha no PL de 55%."),
+    ).toBeInTheDocument();
+  });
+
+  it("diz de onde o numero saiu: o ano da forma e o fator de crescimento", () => {
+    // Quem le um painel que decide bonificacao precisa saber pelo que o
+    // numero foi calculado — e o fator e o que separa "o ano passado repetido"
+    // de "o ano passado corrigido pelo que este ano vem fazendo".
+    pararORelogioEm(2026, 7, 31);
+    montar({
+      meta: "12000000",
+      meses: "6,7,8",
+      total: 2_200_000,
+      totaisAnoAnterior: [0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0],
+    });
+
+    expect(
+      screen.getByText(
+        /sazonalidade do mesmo trimestre de 2025, corrigida pelo fator de crescimento 1,22× medido em 61 dias apurados dos 92 dias do trimestre/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("sem o ano anterior, avisa na tela que a projecao caiu no linear", () => {
+    // A projecao linear superestima quando o trimestre desacelera. Se a tela
+    // entregar o numero calado, ninguem tem como saber que ele e o metodo
+    // grosseiro — e o erro so aparece com o trimestre fechado.
+    pararORelogioEm(2026, 7, 31);
+    montar({ meta: "12000000", meses: "6,7,8", total: 1_220_000 });
+
+    expect(screen.getByText("R$ 1.840.000,00")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Sem faturamento de 2025 para comparar: projeção linear sobre 61 dias apurados/,
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("nao inventa numero quando ainda nao ha dia apurado", () => {
     // Maio: o trimestre de junho a agosto nem comecou. Um numero aqui
     // seria plausivel e falso — o pior tipo de numero num painel de meta.

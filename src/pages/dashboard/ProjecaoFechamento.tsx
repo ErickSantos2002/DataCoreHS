@@ -23,6 +23,41 @@ function largura(valor: number, teto: number): string {
   return `${Math.min((valor / teto) * 100, 100)}%`;
 }
 
+/** "1,06" — o fator de crescimento como se lê, sem casa sobrando. */
+function comoFator(fator: number): string {
+  return fator.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/** A meia-frase que abre o veredito. Ela muda com o método porque o método
+ *  muda o que a frase promete: "no ritmo de hoje" é uma afirmação linear, e
+ *  seria mentira em cima de uma conta sazonal. */
+function abertura(projecao: ProjecaoDeFechamento): string {
+  return projecao.metodo === "sazonal"
+    ? `Na forma do trimestre de ${projecao.anoAnterior}`
+    : "No ritmo de hoje";
+}
+
+/** De onde o número veio, em uma linha.
+ *
+ * Quem lê um painel de meta precisa saber isso — e precisa saber, sobretudo,
+ * quando a projeção NÃO é sazonal. Sem o ano anterior a conta vira a regra de
+ * três linear de antes, que superestima quando o trimestre desacelera; a
+ * linha diz que caiu no linear e por quê, em vez de entregar um número com
+ * cara de sazonal.
+ */
+function comoFoiCalculada(projecao: ProjecaoDeFechamento): string {
+  const janela = `${projecao.diasDecorridos} dias apurados dos ${projecao.diasTotais} dias do trimestre`;
+
+  if (projecao.metodo === "sazonal" && projecao.fatorCrescimento !== null) {
+    return `Projeção pela sazonalidade do mesmo trimestre de ${projecao.anoAnterior}, corrigida pelo fator de crescimento ${comoFator(projecao.fatorCrescimento)}× medido em ${janela}.`;
+  }
+
+  return `Sem faturamento de ${projecao.anoAnterior} para comparar: projeção linear sobre ${janela}.`;
+}
+
 /**
  * Projeção de fechamento contra o realizado até agora, na mesma barra.
  *
@@ -53,12 +88,14 @@ export function ProjecaoFechamento({
                 {emReais(projecao.projetado)}
               </p>
               <p className="mt-1 text-sm font-semibold text-conteudo">
-                {faixaProjetada
-                  ? `No ritmo de hoje, o trimestre fecha no PL de ${faixaProjetada}.`
-                  : "No ritmo de hoje, o trimestre fecha abaixo da primeira faixa."}
+                {`${abertura(projecao)}, ${
+                  faixaProjetada
+                    ? `o trimestre fecha no PL de ${faixaProjetada}.`
+                    : "o trimestre fecha abaixo da primeira faixa."
+                }`}
               </p>
               <p className="mt-1 text-xs text-conteudo-muted">
-                {`Projeção linear sobre ${projecao.diasDecorridos} dias apurados dos ${projecao.diasTotais} dias do trimestre.`}
+                {comoFoiCalculada(projecao)}
               </p>
             </>
           ) : (

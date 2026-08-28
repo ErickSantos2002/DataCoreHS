@@ -82,11 +82,29 @@ export function mesesDoTrimestre(raw?: string): number[] {
     .filter((m) => Number.isInteger(m) && m >= 1 && m <= 12);
 }
 
+
+/** Como a projeção chegou ao número.
+ *
+ *  `sazonal` — pela forma do mesmo trimestre no ano anterior, corrigida pelo
+ *  crescimento medido até aqui. É o método bom, e o padrão.
+ *
+ *  `linear` — a queda, quando não há ano anterior com que comparar. A tela é
+ *  obrigada a dizer que caiu: número que finge ser sazonal é pior que número
+ *  assumidamente grosseiro.
+ */
+export type MetodoDaProjecao = "sazonal" | "linear";
+
 export interface ProjecaoDeFechamento {
   /** false quando não há como projetar sem inventar número. */
   disponivel: boolean;
-  /** Quanto o trimestre fecha se o ritmo de hoje se mantiver. */
+  /** Quanto o trimestre fecha, pela conta do método abaixo. */
   projetado: number;
+  /** Qual dos dois métodos produziu o número. */
+  metodo: MetodoDaProjecao;
+  /** Realizado ÷ mesmo período do ano anterior. `null` no método linear. */
+  fatorCrescimento: number | null;
+  /** O ano cuja forma a projeção usou (ou usaria). */
+  anoAnterior: number;
   /** Dias do trimestre já vividos (o mês corrente entra pelo dia de hoje). */
   diasDecorridos: number;
   /** Dias que o trimestre inteiro tem. */
@@ -101,57 +119,136 @@ export interface EntradaDaProjecao {
   /** Hoje. Parâmetro, e não `new Date()` aqui dentro, para o teste poder
    *  parar o relógio em qualquer dia do trimestre. */
   hoje: Date;
+  /** Faturamento de cada mês do ano ANTERIOR, índice 0 = janeiro. É a forma
+   *  sazonal. Ausente ou zerado, a projeção cai no método linear. */
+  totaisAnoAnterior?: number[];
 }
 
-/** Projeta o fechamento do trimestre pelo ritmo até agora.
+/** Teto do fator de crescimento.
  *
- * A conta é uma regra de três sobre DIAS, não sobre meses fechados:
+ * O fator multiplica o que falta do trimestre. Se o mesmo período do ano
+ * passado tiver faturado quase nada — um mês em que o ERP não sincronizou,
+ * um trimestre em que a empresa nem vendia aquele produto — o fator explode
+ * e a projeção vira ficção. Triplicar o ano anterior já é um crescimento
+ * absurdo; acima disso o que está errado é o denominador, não a empresa.
+ */
+const TETO_DO_FATOR = 3;
+
+/** Projeta o fechamento do trimestre pela FORMA do mesmo trimestre do ano
+ *  anterior, corrigida pelo crescimento do ano corrente.
  *
- *     projetado = realizado × (dias do trimestre ÷ dias já decorridos)
+ * A conta anterior era uma regra de três sobre dias — realizado × (dias do
+ * trimestre ÷ dias decorridos) — e assumia que todo mês do trimestre vende
+ * no mesmo ritmo. Não vende. Em 2025, o trimestre de julho a setembro se
+ * repartiu em 44,0% / 31,8% / 24,2%: setembro valeu 55% de julho. Projetar
+ * linear no fim de agosto superestimava o fechamento em cerca de 12%, e o
+ * erro só apareceria com o trimestre fechado — num painel que decide
+ * bonificação.
  *
- * Contar mês fechado seria mais simples e estaria errado no dia 5 — o mês
- * corrente entraria inteiro no divisor com cinco dias de faturamento, e a
- * projeção despencaria toda virada de mês para subir de novo ao longo dela.
- * Pelo dia, o mês corrente entra pela fração que de fato já passou, e a
- * projeção é a mesma curva o mês todo.
+ * A conta agora é:
  *
- * É uma projeção linear, e a tela diz isso com todas as letras ("no ritmo
- * de X dias de Y"): não pretende adivinhar sazonalidade, só responder
- * "mantido o ritmo, onde isto fecha?".
+ *     fator      = realizado ÷ (mesmo período do ano anterior)
+ *     falta      = (período que resta, no ano anterior) × fator
+ *     projetado  = realizado + falta
+ *
+ * O fator responde "quanto este ano está acima ou abaixo do anterior"; o
+ * período que resta, medido no ano anterior, carrega a forma sazonal. O mês
+ * corrente é repartido: a parte já decorrida é realizado e não se estima, a
+ * parte que falta entra pelo mês correspondente do ano anterior, proporcional
+ * aos dias que restam. Os dias saem do calendário do ano CORRENTE, o mesmo
+ * que define `diasTotais` — fevereiro bissexto incluso.
+ *
+ * Como `falta` nunca é negativa, a projeção nunca fica abaixo do realizado.
+ * Com o trimestre encerrado não resta período nenhum, e ela é o próprio
+ * realizado.
+ *
+ * Sem ano anterior — série ausente, zerada, ou sem faturamento na parte que
+ * falta — não há forma nem fator para calcular, e a conta cai no método
+ * linear de antes. Isso é reportado em `metodo`, e a tela é obrigada a dizer.
  *
  * Sem mês configurado, ou antes de o trimestre começar (zero dia decorrido),
- * não há ritmo para projetar — devolve `disponivel: false` em vez de um
- * número. Número inventado num painel de meta é pior que card faltando.
+ * não há nem ritmo nem período comparável — devolve `disponivel: false` em
+ * vez de um número. Número inventado num painel de meta é pior que card
+ * faltando.
  */
 export function projecaoDeFechamento({
   realizado,
   meses,
   hoje,
+  totaisAnoAnterior = [],
 }: EntradaDaProjecao): ProjecaoDeFechamento {
   const ano = hoje.getFullYear();
   const mesDeHoje = hoje.getMonth() + 1;
+  const anoAnterior = ano - 1;
 
   let diasTotais = 0;
   let diasDecorridos = 0;
+  // O mesmo trimestre do ano anterior, partido no ponto em que hoje está:
+  // o que já teria acontecido, e o que ainda faltaria.
+  let anteriorDecorrido = 0;
+  let anteriorRestante = 0;
 
   for (const mes of meses) {
     // Dia 0 do mês seguinte é o último dia deste mês — inclusive em fevereiro
     // bissexto, sem tabela de dias por mês escrita à mão.
     const diasNoMes = new Date(ano, mes, 0).getDate();
+    const noAnoAnterior = totaisAnoAnterior[mes - 1] ?? 0;
     diasTotais += diasNoMes;
 
-    if (mes < mesDeHoje) diasDecorridos += diasNoMes;
-    else if (mes === mesDeHoje) diasDecorridos += Math.min(hoje.getDate(), diasNoMes);
+    if (mes < mesDeHoje) {
+      diasDecorridos += diasNoMes;
+      anteriorDecorrido += noAnoAnterior;
+    } else if (mes === mesDeHoje) {
+      const diasVividos = Math.min(hoje.getDate(), diasNoMes);
+      diasDecorridos += diasVividos;
+      const fracao = diasVividos / diasNoMes;
+      anteriorDecorrido += noAnoAnterior * fracao;
+      anteriorRestante += noAnoAnterior * (1 - fracao);
+    } else {
+      anteriorRestante += noAnoAnterior;
+    }
   }
+
+  const base = { anoAnterior, diasDecorridos, diasTotais };
 
   if (diasTotais === 0 || diasDecorridos === 0) {
-    return { disponivel: false, projetado: 0, diasDecorridos, diasTotais };
+    return {
+      ...base,
+      disponivel: false,
+      projetado: 0,
+      metodo: "linear",
+      fatorCrescimento: null,
+    };
   }
 
-  return {
+  const linear = {
+    ...base,
     disponivel: true,
     projetado: realizado * (diasTotais / diasDecorridos),
-    diasDecorridos,
-    diasTotais,
+    metodo: "linear" as const,
+    fatorCrescimento: null,
+  };
+
+  // Sem base do ano anterior não há fator. Sem faturamento no que resta do
+  // ano anterior não há forma — e um trimestre inteiro zerado ali é muito
+  // mais provavelmente dado que falta do que venda que não houve. Nos dois
+  // casos a projeção cai no linear em vez de fingir sazonalidade. O
+  // trimestre já encerrado é a exceção: ali não resta período nenhum, e é
+  // isso mesmo que a projeção tem que dizer.
+  const trimestreEncerrado = diasDecorridos >= diasTotais;
+  if (anteriorDecorrido <= 0) return linear;
+  if (anteriorRestante <= 0 && !trimestreEncerrado) return linear;
+
+  const fator = Math.min(
+    Math.max(realizado / anteriorDecorrido, 0),
+    TETO_DO_FATOR,
+  );
+
+  return {
+    ...base,
+    disponivel: true,
+    projetado: realizado + anteriorRestante * fator,
+    metodo: "sazonal",
+    fatorCrescimento: fator,
   };
 }

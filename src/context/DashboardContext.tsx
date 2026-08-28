@@ -24,6 +24,11 @@ interface DashboardContextType {
   /** Janeiro até o mês corrente, para o gráfico de barras. Sai da MESMA
    *  requisição do `totalAno`: é a quebra por mês que antes era jogada fora. */
   serieMensal: FaturamentoMensal[];
+  /** O faturamento de cada mês do ANO ANTERIOR, índice 0 = janeiro. É a forma
+   *  sazonal sobre a qual a projeção de fechamento estima o que falta do
+   *  trimestre. Vazio quando não há dado do ano anterior — e aí a projeção
+   *  cai no método linear e a tela diz que caiu. */
+  totaisAnoAnterior: number[];
   carregando: boolean;
 }
 
@@ -32,6 +37,7 @@ const DashboardContext = createContext<DashboardContextType>({
   total: 0,
   totalAno: 0,
   serieMensal: [],
+  totaisAnoAnterior: [],
   carregando: true,
 });
 
@@ -40,6 +46,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   const [total, setTotal] = useState(0);
   const [totalAno, setTotalAno] = useState(0);
   const [serieMensal, setSerieMensal] = useState<FaturamentoMensal[]>([]);
+  const [totaisAnoAnterior, setTotaisAnoAnterior] = useState<number[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const { configuracoes, carregando: carregandoConfig } = useConfiguracoes();
@@ -119,10 +126,23 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         console.error("Erro ao buscar total do ano", err);
       }
 
+      // O ano anterior, na mesma dupla de requisições do ano corrente. É a
+      // forma sazonal que a projeção de fechamento usa para estimar o que
+      // falta do trimestre. Falhar aqui não derruba a tela: sem esta série a
+      // projeção cai no método linear e diz na tela que caiu.
+      let totaisDoAnoAnterior: number[] = [];
+
+      try {
+        totaisDoAnoAnterior = await totaisDoAno(anoAtual - 1, regras);
+      } catch (err) {
+        console.error("Erro ao buscar o faturamento do ano anterior", err);
+      }
+
       setDados(resultados);
       setTotal(totalQuadrimestre);
       setTotalAno(totalAnoCompleto);
       setSerieMensal(serieDoAno);
+      setTotaisAnoAnterior(totaisDoAnoAnterior);
       setCarregando(false);
     };
 
@@ -136,6 +156,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         total,
         totalAno,
         serieMensal,
+        totaisAnoAnterior,
         carregando,
       }}
     >

@@ -22,7 +22,14 @@ function progressoAte(total: number, degrau: number): number {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { dados, total, carregando, totalAno, serieMensal } = useDashboard();
+  const {
+    dados,
+    total,
+    carregando,
+    totalAno,
+    serieMensal,
+    totaisAnoAnterior,
+  } = useDashboard();
   const { configuracoes } = useConfiguracoes();
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
@@ -38,6 +45,9 @@ const Dashboard: React.FC = () => {
     realizado: total,
     meses: mesesDoTrimestre(mesesConfig?.valor),
     hoje: new Date(),
+    // A forma do mesmo trimestre no ano anterior. Sem ela a projeção cai no
+    // método linear — e o card diz isso, em vez de calar.
+    totaisAnoAnterior: totaisAnoAnterior ?? [],
   });
 
   useComemoracaoMeta({
