@@ -577,3 +577,70 @@ disso.
 | `router.tsx` | 255 linhas, 6 guardas dentro | **190 linhas, zero** |
 | Providers globais | 10 | **2** |
 | Build | 1 chunk, 1.697 kB | **41 chunks, entrada 305 kB** |
+
+---
+
+## Estado em 28/08/2026 — fim da sexta
+
+**Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 2 das 12 telas.**
+73 commits à frente do `origin/main`. **Nada empurrado.**
+
+Suíte **649 testes / 60 arquivos** (verdes também com `TZ=UTC`), lint **159**
+(baseline original 192), `tsc` limpo, build em 41 chunks com entrada de 305 kB.
+
+### Telas da Fase 3
+
+| # | Tela | Estado |
+|---|---|---|
+| 1 | Dashboard (Meta do trimestre) | **feita** — 330 → 110 linhas |
+| 2 | Locação | **feita** — 386 → 108 linhas |
+| 3 | Usuários | próxima — firma o padrão de modal |
+| 4–5 | ContasReceber · ContasPagar | gêmeas, migram em par |
+| 6 | Financeiro + CentroCustoTab + MetaTab | única com abas |
+| 7–10 | Produtos · Serviços · Vendedores · Estoque | mesma anatomia |
+| 11 | Clientes | idem, com dado enriquecido |
+| 12 | Vendas | maior e mais crítica, por último |
+
+### A receita que se firmou nas duas primeiras
+
+1. **Teste de caracterização antes de mover uma linha**, observando a tela
+   renderizada — nunca exportando função só para testar. Foi o que fez os testes
+   das duas telas sobreviverem inteiros à quebra em componentes.
+2. **Provar que o teste enxerga**: plantar a quebra na forma mais óbvia, ver
+   falhar, reverter. Sem essa prova a task não está entregue.
+3. Quebrar em componentes por responsabilidade, com a conta pura num arquivo
+   próprio (`metaTrimestral.ts`, `notasDeLocacao.ts`).
+4. Zerar `dark:` e paleta crua; tirar a tela de `PENDENTES_FASE_3`.
+5. Checklist de 10 itens respondido **um a um**, nunca em bloco.
+6. Verificar no navegador nos dois temas, incluindo vazio e carregando.
+
+### Defeitos encontrados nas duas telas
+
+Nenhum deles era conhecido antes. Todos apareceram porque o teste veio primeiro.
+
+- **Projeção da meta superestimava 12%** — extrapolação linear por dia ignorando
+  que setembro vale 55% de julho. Era a diferença entre projetar 74% e 66% da
+  meta, num painel que decide bonificação.
+- **Datas da planilha de locação saíam um dia antes** — `new Date()` sobre data
+  pura. Toda planilha já emitida está errada.
+- **Comparador de ordenação nunca devolvia 0** — empate saía na ordem inversa da
+  API, e com empate total a seta não movia nada.
+- **Nota cancelada aparecia em selo verde.**
+- **`setInterval` do confete nunca era limpo.**
+- **Lista vazia renderizava `<ul>` mudo.**
+
+### Em aberto
+
+1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
+   aceita troca de senha sem `Authorization`? O cliente agora manda o token
+   sempre, mas se o endpoint for aberto isso não protege ninguém.
+2. **Chave de ordenação por data da Locação** ainda passa por `new Date()`.
+   Inofensivo enquanto a API mandar só date-only.
+3. **Empate total na ordenação** continua sem inverter — é consequência de
+   comparador correto e estável, não resíduo de bug. Mudar exige critério de
+   desempate, e aí a ordem deixa de vir da API.
+4. **Contraste da caixa de erro do Login** em ~3,6:1, abaixo de AA para corpo.
+5. **Confete não respeita `prefers-reduced-motion`** (é `<canvas>`).
+6. **Checkpoint humano de permissões da Fase 2** nunca foi feito — o Erick optou
+   por fundir sem ele.
+7. **`docs/DataCoreHS.html`** segue fora do versionamento, sem decisão.
