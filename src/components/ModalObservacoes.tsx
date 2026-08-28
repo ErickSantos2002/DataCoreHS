@@ -9,13 +9,13 @@ const ModalObservacoes: React.FC<ModalObservacoesProps> = ({ observacoes, onClos
   if (!observacoes) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-lg w-full">
-        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+    <div className="fixed inset-0 flex items-center justify-center bg-overlay z-50">
+      <div className="bg-surface rounded-lg shadow-lg p-6 max-w-lg w-full">
+        <h2 className="text-lg font-semibold mb-4 text-conteudo-heading">
           Observações da Nota
         </h2>
 
-        <div className="max-h-60 overflow-y-auto text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+        <div className="max-h-60 overflow-y-auto text-sm text-conteudo whitespace-pre-line">
           {observacoes}
         </div>
 

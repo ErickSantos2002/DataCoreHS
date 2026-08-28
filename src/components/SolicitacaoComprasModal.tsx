@@ -103,9 +103,9 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
   if (!aberto) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50">
+      <div className="bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
+        <h2 className="text-lg font-semibold text-conteudo mb-4">
           Selecionar Produtos
         </h2>
 
@@ -114,25 +114,25 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
           type="text"
           placeholder="Pesquisar produto..."
           className="w-full px-3 py-2 border rounded-lg mb-4
-                    bg-white dark:bg-surface text-gray-800 dark:text-gray-200
-                    border-gray-300 dark:border-gray-600
-                    placeholder-gray-400 dark:placeholder-gray-500
-                    focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    bg-surface text-conteudo
+                    border-borda
+                    placeholder-conteudo-faint
+                    focus:outline-none focus:ring-2 focus:ring-focus"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
 
         {/* Lista de produtos */}
-        <div className="max-h-64 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="max-h-64 overflow-y-auto divide-y divide-borda">
           {produtosFiltrados.map((produto) => (
             <div
               key={produto.id}
               className="flex items-center justify-between py-2
-                        text-gray-800 dark:text-gray-200"
+                        text-conteudo"
             >
               <span>
                 <span className="font-medium">{produto.codigo}</span> - {produto.nome}{" "}
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm text-conteudo-muted">
                   (Saldo: {produto.saldo})
                 </span>
               </span>
@@ -140,9 +140,9 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
                 type="number"
                 min={0}
                 className="w-24 px-2 py-1 border rounded-lg
-                          bg-white dark:bg-surface
-                          text-gray-800 dark:text-gray-200
-                          border-gray-300 dark:border-gray-600"
+                          bg-surface
+                          text-conteudo
+                          border-borda"
                 onChange={(e) =>
                   atualizarQuantidade(produto.id, Number(e.target.value))
                 }
@@ -156,8 +156,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
           <button
             onClick={fechar}
             className="px-4 py-2 rounded-lg
-                      bg-gray-300 text-gray-800 hover:bg-gray-400
-                      dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600
+                      border border-borda bg-surface text-conteudo hover:bg-surface-elevated
                       transition-colors"
           >
             Cancelar
@@ -165,7 +164,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
           <button
             onClick={gerarPDF}
             className="px-4 py-2 rounded-lg
-                      bg-green-600 text-white hover:bg-green-700 dark:hover:bg-green-500
+                      bg-success text-on-success hover:bg-success-hover
                       transition-colors"
           >
             Gerar PDF

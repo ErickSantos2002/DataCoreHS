@@ -45,8 +45,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       <div
         className={
           darkMode
-            ? "dark bg-surface-base text-white min-h-screen"
-            : "bg-gray-100 text-black min-h-screen"
+            ? "dark bg-surface-base text-conteudo min-h-screen"
+            : "bg-surface-base text-conteudo min-h-screen"
         }
       >
         {children}
