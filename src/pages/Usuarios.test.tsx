@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Usuarios from "./Usuarios";
 import { AuthContext } from "../context/AuthContext";
-import { ToastProvider } from "../components/ToastProvider";
 import type { Papel, Usuario } from "../services/api";
 
 /**
@@ -55,8 +54,10 @@ function Molde({ children }: { children: ReactNode }) {
         error: null,
       }}
     >
-      {/* ModalTrocarSenha usa useToast; sem o provider a tela nem monta. */}
-      <ToastProvider>{children}</ToastProvider>
+      {/* Sem ToastProvider de propósito: depois da migração, o aviso de erro
+          da troca de senha é do próprio diálogo, e não um toast solto. Se
+          alguém reintroduzir `useToast` aqui dentro, este molde quebra. */}
+      {children}
     </AuthContext.Provider>
   );
 }
@@ -113,9 +114,18 @@ async function montar(
   return resultado;
 }
 
-/** Linhas de dado da tabela — sem a linha de cabeçalho. */
+/**
+ * Linhas de DADO da tabela — sem o cabeçalho e sem a linha do estado vazio.
+ *
+ * O estado vazio é um `<tr>` de verdade, com uma célula só abrangendo as
+ * cinco colunas; contá-lo como linha faria "nenhum usuário" virar "um
+ * usuário". A linha de dado é a que tem uma célula por coluna.
+ */
 function linhasDaTabela(): HTMLElement[] {
-  return within(screen.getByRole("table")).getAllByRole("row").slice(1);
+  return within(screen.getByRole("table"))
+    .getAllByRole("row")
+    .slice(1)
+    .filter((linha) => within(linha).queryAllByRole("cell").length > 1);
 }
 
 /** O conteúdo das células de cada linha, na ordem em que a tela desenhou. */
@@ -139,13 +149,25 @@ function acao(username: string, titulo: string | RegExp): HTMLElement {
 }
 
 /**
- * Os campos de senha visíveis, na ordem do DOM. Os `<label>` da tela não têm
- * `htmlFor` nem `id` no input, então `getByLabelText` não acha nenhum deles —
- * é o motivo de a busca ser por tipo. (Suspeita de acessibilidade anotada no
- * relatório; aqui só fixamos o que existe.)
+ * Os campos de senha do diálogo aberto, achados PELO RÓTULO.
+ *
+ * Antes a busca era `document.querySelectorAll('input[type=password]')`,
+ * porque nenhum `<label>` da tela tinha `htmlFor` e `getByLabelText` não
+ * achava campo nenhum. Agora todos passam pelo `Input`/`Select` do design
+ * system, que amarra rótulo e campo por `useId` — então o teste pergunta
+ * pelo nome que a pessoa lê, e não pelo tipo do `<input>`. Se o rótulo se
+ * soltar do campo outra vez, isto quebra.
  */
 function camposDeSenha(): HTMLInputElement[] {
-  return Array.from(document.querySelectorAll<HTMLInputElement>('input[type="password"]'));
+  const rotulos = screen.queryByLabelText("Nova senha")
+    ? ["Nova senha", "Repita nova senha"]
+    : ["Senha", "Confirmar senha"];
+  return rotulos.map((rotulo) => screen.getByLabelText(rotulo) as HTMLInputElement);
+}
+
+/** O campo "Usuário" do diálogo aberto — o único campo de texto da tela. */
+function campoDeUsuario(): HTMLInputElement {
+  return screen.getByLabelText("Usuário") as HTMLInputElement;
 }
 
 /**
@@ -165,9 +187,9 @@ function modal(titulo: string | RegExp): HTMLElement {
   return no;
 }
 
-/** O `<select>` de perfil do único modal aberto. */
+/** O `<select>` de perfil do único diálogo aberto, achado pelo rótulo. */
 function selectDePerfil(): HTMLSelectElement {
-  return screen.getByRole("combobox") as HTMLSelectElement;
+  return screen.getByLabelText("Perfil") as HTMLSelectElement;
 }
 
 function opcoesDoSelect(): string[] {
@@ -183,7 +205,7 @@ async function preencherCriacao(
   confirmacao = senha,
 ) {
   const digitar = userEvent.setup();
-  if (usuarioTeclado) await digitar.type(screen.getByRole("textbox"), usuarioTeclado);
+  if (usuarioTeclado) await digitar.type(campoDeUsuario(), usuarioTeclado);
   const [campoSenha, campoConfirma] = camposDeSenha();
   if (senha) await digitar.type(campoSenha, senha);
   if (confirmacao) await digitar.type(campoConfirma, confirmacao);
@@ -234,6 +256,7 @@ describe("Usuários — carregamento", () => {
 
     await screen.findByRole("table");
     expect(linhasDaTabela()).toHaveLength(0);
+    expect(screen.getByText("Nenhum usuário cadastrado ainda.")).toBeInTheDocument();
     expect(screen.getByText(/0 usuários cadastrados/)).toBeInTheDocument();
     expect(screen.queryByText(/erro/i)).not.toBeInTheDocument();
   });
@@ -283,21 +306,30 @@ describe("Usuários — tabela", () => {
     expect(linhasDaTabela()).toHaveLength(2);
   });
 
-  it("sem nenhum usuário mostra a tabela só com o cabeçalho, sem aviso de lista vazia", async () => {
-    // Suspeita: as outras telas do sistema dizem "Nenhum ... encontrado";
-    // esta deixa o corpo da tabela em branco.
+  it("sem nenhum usuário, a tabela diz que está vazia e oferece a saída", async () => {
+    // ANTES: o corpo da tabela ficava em branco, sem uma palavra — a
+    // asserção era `queryByText(/nenhum/i)` NÃO estar no documento.
+    // AGORA: frase completa e o botão que resolve, dentro da própria tabela.
+    // O rótulo é outro ("Criar o primeiro usuário") de propósito: o
+    // "Novo Usuário" do cabeçalho continua sendo o primário da tela, e dois
+    // botões com o mesmo nome na mesma tela confundem quem lê.
     await montar({ usuarios: [] });
 
     expect(linhasDaTabela()).toHaveLength(0);
     expect(screen.getAllByRole("columnheader").map((c) => c.textContent)).toEqual([
-      "#",
+      "ID",
       "Usuário",
       "Perfil",
       "Criado em",
       "Ações",
     ]);
     expect(screen.getByText(/0 usuários cadastrados/)).toBeInTheDocument();
-    expect(screen.queryByText(/nenhum/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Nenhum usuário cadastrado ainda.")).toBeInTheDocument();
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar o primeiro usuário" }));
+    expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
   });
 
   it("usuário sem perfil aparece com travessão na coluna Perfil", async () => {
@@ -308,12 +340,20 @@ describe("Usuários — tabela", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("—");
   });
 
-  it("data que o navegador não sabe ler vira o texto 'Invalid Date' na célula", async () => {
-    // Suspeita: `formatarData` não valida nada. Um `created_at` vazio ou fora
-    // do padrão sai cru na tela em inglês, no meio de uma tabela em português.
-    await montar({ usuarios: [usuario({ id: 3, created_at: "" })] });
+  it("data que não presta vira travessão, o mesmo do perfil ausente", async () => {
+    // ANTES: `new Date("")` virava "Invalid Date" e a célula mostrava isso —
+    // em inglês, no meio de uma tabela em português. A asserção era
+    // literalmente `toBe("Invalid Date")`.
+    // AGORA: o mesmo travessão que a coluna Perfil já usa para "não tem".
+    await montar({
+      usuarios: [
+        usuario({ id: 3, created_at: "" }),
+        usuario({ id: 4, created_at: "ontem" }),
+      ],
+    });
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("Invalid Date");
+    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("—");
+    expect(celulasDaLinha(linhasDaTabela()[1])[3]).toBe("—");
   });
 });
 
@@ -328,29 +368,28 @@ describe("Usuários — data de criação e fuso", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("28/02/2026");
   });
 
-  it("data pura, sem hora, volta um dia em fuso negativo", async () => {
-    // Suspeita — é o mesmo defeito que a tela de Locação tinha: "2026-01-15"
-    // é lido como meia-noite UTC, e em UTC-3 isso ainda é dia 14 às 21h.
-    // O teste roda verde nos dois fusos porque diz o que cada um mostra.
-    const atrasado = new Date("2026-01-15").getTimezoneOffset() > 0;
+  it("data pura, sem hora, rende o dia escrito em QUALQUER fuso", async () => {
+    // ANTES: a asserção era condicional — `atrasado ? "14/01/2026" :
+    // "15/01/2026"`, porque `new Date("2026-01-15")` é meia-noite em UTC e
+    // em UTC-3 isso ainda é dia 14 às 21h. O teste dizia o que cada fuso
+    // mostrava, e o que ele mostrava em Brasília estava errado.
+    // AGORA: incondicional. A data é lida da string, sem `Date` nenhum, e a
+    // suíte roda em TZ=UTC e em TZ=America/Sao_Paulo com o mesmo resultado.
     await montar({ usuarios: [usuario({ id: 3, created_at: "2026-01-15" })] });
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe(
-      atrasado ? "14/01/2026" : "15/01/2026",
-    );
+    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("15/01/2026");
   });
 
-  it("data-hora em UTC (com Z) de madrugada também volta um dia em fuso negativo", async () => {
-    // Se o backend passar a mandar o instante em UTC, 02:00Z do dia 15 é
-    // 23:00 do dia 14 em Brasília — e é o 14 que aparece na tabela.
-    const atrasado = new Date("2026-01-15T02:00:00Z").getTimezoneOffset() > 0;
+  it("data-hora em UTC (com Z) de madrugada também não anda para trás", async () => {
+    // ANTES: condicional pelo mesmo motivo — 02:00Z do dia 15 é 23:00 do
+    // dia 14 em Brasília, e era o 14 que aparecia.
+    // AGORA: o `created_at` é dia de calendário. O dia é o que o backend
+    // escreveu, e a hora não move a célula.
     await montar({
       usuarios: [usuario({ id: 3, created_at: "2026-01-15T02:00:00Z" })],
     });
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe(
-      atrasado ? "14/01/2026" : "15/01/2026",
-    );
+    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("15/01/2026");
   });
 });
 
@@ -402,7 +441,7 @@ describe("Usuários — modal de criação", () => {
     await abrirCriar();
 
     expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(campoDeUsuario()).toHaveValue("");
     expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
     expect(selectDePerfil()).toHaveValue("comum");
   });
@@ -489,15 +528,17 @@ describe("Usuários — modal de criação", () => {
     await screen.findByRole("table");
 
     await abrirCriar();
-    expect(screen.getByRole("textbox")).toHaveValue("");
+    expect(campoDeUsuario()).toHaveValue("");
     expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
     expect(selectDePerfil()).toHaveValue("comum");
   });
 
-  it("o que foi digitado sobrevive ao Cancelar e reaparece na próxima abertura", async () => {
-    // Suspeita: o Cancelar só esconde o modal — os quatro campos continuam no
-    // estado da página. Quem desistiu de criar reabre com o rascunho antigo,
-    // senha inclusive.
+  it("o que foi digitado morre no Cancelar — reabre em branco", async () => {
+    // ANTES: os quatro campos viviam no estado da PÁGINA, então o Cancelar
+    // só escondia o modal. A asserção era que o rascunho voltava inteiro:
+    // "rascunho", ["senha123", "senha123"] e o perfil "vendas".
+    // AGORA: o diálogo é montado só enquanto está aberto, e o estado dele
+    // morre junto — inclusive a senha, que era o pior de sobreviver.
     const digitar = userEvent.setup();
     await montar();
     await abrirCriar();
@@ -506,9 +547,22 @@ describe("Usuários — modal de criação", () => {
     await digitar.click(screen.getByRole("button", { name: "Cancelar" }));
 
     await abrirCriar();
-    expect(screen.getByRole("textbox")).toHaveValue("rascunho");
-    expect(camposDeSenha().map((c) => c.value)).toEqual(["senha123", "senha123"]);
-    expect(selectDePerfil()).toHaveValue("vendas");
+    expect(campoDeUsuario()).toHaveValue("");
+    expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
+    expect(selectDePerfil()).toHaveValue("comum");
+  });
+
+  it("o Escape também fecha o cadastro, e também sem guardar o rascunho", async () => {
+    const digitar = userEvent.setup();
+    await montar();
+    await abrirCriar();
+    await preencherCriacao("rascunho", "senha123");
+    await digitar.keyboard("{Escape}");
+    expect(screen.queryByRole("heading", { name: "Novo Usuário" })).not.toBeInTheDocument();
+
+    await abrirCriar();
+    expect(campoDeUsuario()).toHaveValue("");
+    expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
   });
 
   it("mostra o detail que a API devolveu quando a criação falha", async () => {
@@ -552,11 +606,12 @@ describe("Usuários — perfis do select", () => {
     expect(opcoesDoSelect()).toEqual(PAPEIS_EMBUTIDOS);
   });
 
-  it("se a API não devolve 'comum', o select mostra um perfil e o payload manda outro", async () => {
-    // Suspeita: o estado inicial do perfil é a string "comum", chutada pela
-    // tela e não tirada da lista de perfis. Quando a API não tem "comum", o
-    // campo MOSTRA o primeiro perfil da lista e MANDA "comum" — quem preenche
-    // lê "suporte" na tela e cria um usuário comum.
+  it("sem 'comum' na API, o payload manda o perfil que o select mostra", async () => {
+    // ANTES: o valor inicial era a string "comum", chutada pela tela. Sem
+    // "comum" na lista, o campo MOSTRAVA "suporte" e o POST MANDAVA "comum"
+    // — a asserção fixava `role_name: "comum"`, que é ler uma coisa e
+    // gravar outra.
+    // AGORA: o inicial sai da lista real, e é o mesmo valor nos dois lados.
     await montar({ papeis: [{ id: 9, name: "suporte" }] });
     await abrirCriar();
     expect(selectDePerfil().value).toBe("suporte");
@@ -567,7 +622,47 @@ describe("Usuários — perfis do select", () => {
     expect(api.createUser).toHaveBeenCalledWith({
       username: "novato",
       password: "senha123",
-      role_name: "comum",
+      role_name: "suporte",
+    });
+  });
+
+  it("com vários perfis e nenhum 'comum', abre no primeiro e grava o primeiro", async () => {
+    await montar({
+      papeis: [
+        { id: 9, name: "suporte" },
+        { id: 10, name: "auditoria" },
+      ],
+    });
+    await abrirCriar();
+    expect(selectDePerfil().value).toBe("suporte");
+
+    await preencherCriacao("novato", "senha123");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+
+    expect(api.createUser).toHaveBeenCalledWith({
+      username: "novato",
+      password: "senha123",
+      role_name: "suporte",
+    });
+  });
+
+  it("o perfil escolhido à mão continua sendo o que vai no payload", async () => {
+    const digitar = userEvent.setup();
+    await montar({
+      papeis: [
+        { id: 9, name: "suporte" },
+        { id: 10, name: "auditoria" },
+      ],
+    });
+    await abrirCriar();
+    await preencherCriacao("novato", "senha123");
+    await digitar.selectOptions(selectDePerfil(), "auditoria");
+    await digitar.click(screen.getByRole("button", { name: "Criar Usuário" }));
+
+    expect(api.createUser).toHaveBeenCalledWith({
+      username: "novato",
+      password: "senha123",
+      role_name: "auditoria",
     });
   });
 });
@@ -578,7 +673,7 @@ describe("Usuários — modal de edição", () => {
     await userEvent.setup().click(acao("maria", "Editar"));
 
     expect(screen.getByRole("heading", { name: "Editar — maria" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox")).toHaveValue("maria");
+    expect(campoDeUsuario()).toHaveValue("maria");
     expect(selectDePerfil()).toHaveValue("vendas");
   });
 
@@ -595,8 +690,8 @@ describe("Usuários — modal de edição", () => {
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("maria", "Editar"));
-    await digitar.clear(screen.getByRole("textbox"));
-    await digitar.type(screen.getByRole("textbox"), "  maria.silva  ");
+    await digitar.clear(campoDeUsuario());
+    await digitar.type(campoDeUsuario(), "  maria.silva  ");
     await digitar.selectOptions(selectDePerfil(), "financeiro");
     await digitar.click(screen.getByRole("button", { name: "Salvar" }));
 
@@ -614,7 +709,7 @@ describe("Usuários — modal de edição", () => {
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("maria", "Editar"));
-    await digitar.clear(screen.getByRole("textbox"));
+    await digitar.clear(campoDeUsuario());
     await digitar.click(screen.getByRole("button", { name: "Salvar" }));
 
     expect(screen.getByText("Informe um nome de usuário.")).toBeInTheDocument();
@@ -710,7 +805,12 @@ describe("Usuários — modal de troca de senha", () => {
 
     expect(api.updateUserPassword).toHaveBeenCalledTimes(1);
     expect(api.updateUserPassword).toHaveBeenCalledWith(7, "outrasenha");
-    expect(screen.queryByRole("heading", { name: "Trocar Senha" })).not.toBeInTheDocument();
+    // Fecha só DEPOIS de a API responder — por isso o await.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Trocar Senha" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("senhas diferentes viram aviso e não chamam a API", async () => {
@@ -728,21 +828,48 @@ describe("Usuários — modal de troca de senha", () => {
     expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
   });
 
-  it("aceita senha vazia: aqui não há o mínimo de 6 caracteres da criação", async () => {
-    // Suspeita: a criação exige 6 caracteres, a troca não exige nada — dá
-    // para gravar senha em branco em um usuário existente.
+  it("recusa senha vazia — o mesmo mínimo de 6 da criação", async () => {
+    // ANTES: a troca não exigia nada, e a asserção era que a API era chamada
+    // com a senha em branco — `toHaveBeenCalledWith(7, "")`. Dava para
+    // gravar senha vazia num usuário que já existia.
+    // AGORA: os dois formulários chamam a mesma `validarSenha`, então o
+    // mínimo é um só e não há como um subir e o outro ficar para trás.
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("maria", "Trocar senha"));
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
-    expect(api.updateUserPassword).toHaveBeenCalledWith(7, "");
+    expect(
+      await screen.findByText("A senha deve ter pelo menos 6 caracteres."),
+    ).toBeInTheDocument();
+    expect(api.updateUserPassword).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
   });
 
-  it("a senha digitada continua nos campos na próxima vez que o modal abre", async () => {
-    // Suspeita: o ModalTrocarSenha nunca desmonta (só devolve null quando
-    // fechado), então o estado dele sobrevive. Abrir para OUTRO usuário e
-    // clicar em Confirmar reenvia a senha digitada da vez anterior.
+  it("recusa senha curta, e a mensagem é a mesma da criação", async () => {
+    const digitar = userEvent.setup();
+    await montar();
+    await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "12345");
+    await digitar.type(repita, "12345");
+    await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(
+      await screen.findByText("A senha deve ter pelo menos 6 caracteres."),
+    ).toBeInTheDocument();
+    expect(api.updateUserPassword).not.toHaveBeenCalled();
+  });
+
+  it("a senha de um usuário não sobrevive para o formulário de outro", async () => {
+    // ANTES: o diálogo era `if (!isOpen) return null`, nunca desmontava, e o
+    // estado dele atravessava o fechamento. A asserção era que os campos
+    // voltavam com ["senha-da-maria", "senha-da-maria"] ao abrir para o
+    // joao, e que um Confirmar distraído mandava a senha da maria para o id
+    // 9 — `toHaveBeenCalledWith(9, "senha-da-maria")`.
+    // AGORA: a tela monta o diálogo só enquanto ele está aberto, então
+    // fechar destrói o estado. Os campos voltam vazios e o Confirmar seco
+    // esbarra na validação em vez de gravar a senha do outro.
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("maria", "Trocar senha"));
@@ -752,62 +879,140 @@ describe("Usuários — modal de troca de senha", () => {
     await digitar.click(screen.getByRole("button", { name: "Cancelar" }));
 
     await digitar.click(acao("joao", "Trocar senha"));
-    expect(camposDeSenha().map((c) => c.value)).toEqual([
-      "senha-da-maria",
-      "senha-da-maria",
-    ]);
+    expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
 
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
-    expect(api.updateUserPassword).toHaveBeenCalledWith(9, "senha-da-maria");
+    expect(api.updateUserPassword).not.toHaveBeenCalled();
   });
 
-  it("fecha o modal antes de a API responder, sem conferir o resultado", async () => {
-    // Suspeita: `handleTrocarSenha` não tem try/catch e o ModalTrocarSenha
-    // chama `onClose()` na mesma linha do `onConfirm()`. O modal some assim
-    // que se clica em Confirmar, mesmo com a requisição ainda em voo — e se
-    // ela falhar não há nada na tela dizendo isso. (A falha de verdade não é
-    // testável aqui: sem catch ela vira "unhandled rejection" e derruba a
-    // suíte inteira, o que já é o achado.)
+  it("o diálogo diz de quem é a senha que está sendo trocada", async () => {
+    // O nome no corpo é a segunda trava do mesmo defeito: mesmo que os
+    // campos voltassem sujos, dá para ver de quem é o formulário.
+    await montar();
+    await userEvent.setup().click(acao("joao", "Trocar senha"));
+
+    const caixa = modal("Trocar Senha");
+    expect(within(caixa).getByText("joao")).toBeInTheDocument();
+  });
+
+  it("com a requisição em voo, o diálogo continua aberto", async () => {
+    // ANTES: o diálogo chamava `onClose()` na mesma linha do `onConfirm()`,
+    // então sumia assim que se clicava em Confirmar, com a requisição ainda
+    // em voo — a asserção era justamente que o título NÃO estava mais no
+    // documento.
+    // AGORA: ele espera. Enquanto a promessa não resolve, o diálogo fica na
+    // tela, para a pessoa não ir embora achando que gravou.
     const digitar = userEvent.setup();
     api.updateUserPassword.mockReturnValue(new Promise(() => {}));
     await montar();
     await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "outrasenha");
+    await digitar.type(repita, "outrasenha");
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
-    expect(api.updateUserPassword).toHaveBeenCalledWith(7, "");
-    expect(screen.queryByRole("heading", { name: "Trocar Senha" })).not.toBeInTheDocument();
-    expect(screen.queryByText(/erro/i)).not.toBeInTheDocument();
+    expect(api.updateUserPassword).toHaveBeenCalledWith(7, "outrasenha");
+    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+  });
+
+  it("a API recusando, o motivo aparece no diálogo e ele não fecha", async () => {
+    // Este teste NÃO existia: sem `try/catch` no `handleTrocarSenha`, a
+    // promessa rejeitada virava "unhandled rejection" e derrubava a suíte
+    // inteira — não dava para escrever o caminho de falha.
+    const digitar = userEvent.setup();
+    api.updateUserPassword.mockRejectedValue(erroApi("Senha igual à anterior"));
+    await montar();
+    await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "outrasenha");
+    await digitar.type(repita, "outrasenha");
+    await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByText("Senha igual à anterior")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    // O que foi digitado continua ali — a pessoa corrige, não redigita tudo.
+    expect(camposDeSenha().map((c) => c.value)).toEqual(["outrasenha", "outrasenha"]);
+  });
+
+  it("sem detail na resposta, cai na mensagem genérica da troca de senha", async () => {
+    const digitar = userEvent.setup();
+    api.updateUserPassword.mockRejectedValue(new Error("Network Error"));
+    await montar();
+    await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "outrasenha");
+    await digitar.type(repita, "outrasenha");
+    await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByText("Erro ao trocar a senha.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+  });
+
+  it("depois de uma falha, o Confirmar volta a funcionar", async () => {
+    const digitar = userEvent.setup();
+    api.updateUserPassword.mockRejectedValueOnce(new Error("Network Error"));
+    await montar();
+    await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "outrasenha");
+    await digitar.type(repita, "outrasenha");
+    await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
+    await screen.findByText("Erro ao trocar a senha.");
+
+    await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(api.updateUserPassword).toHaveBeenCalledTimes(2);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Trocar Senha" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("trocar senha não recarrega a lista", async () => {
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("maria", "Trocar senha"));
+    const [nova, repita] = camposDeSenha();
+    await digitar.type(nova, "outrasenha");
+    await digitar.type(repita, "outrasenha");
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
+    await waitFor(() => expect(api.updateUserPassword).toHaveBeenCalled());
     expect(api.getUsers).toHaveBeenCalledTimes(1);
   });
 });
 
-describe("Usuários — a mensagem de erro é uma só para todos os modais", () => {
-  it("com dois modais abertos, o erro de um aparece dentro do outro também", async () => {
-    // Suspeita: `erroModal` é um único estado compartilhado pelos modais de
-    // criar, editar e excluir. Nada impede que dois estejam abertos ao mesmo
-    // tempo, e aí a mesma frase é desenhada duas vezes — uma delas no modal
-    // que não tem nada a ver com o erro.
+describe("Usuários — um diálogo de cada vez, e o erro é de quem o produziu", () => {
+  it("abrir outro diálogo fecha o anterior — nunca dois na tela", async () => {
+    // ANTES: eram quatro estados independentes e nada impedia dois modais
+    // abertos ao mesmo tempo. A asserção fixava justamente isso: os dois
+    // títulos no documento e a MESMA frase de erro desenhada duas vezes
+    // (`getAllByText(...).toHaveLength(2)`), uma delas no modal que não
+    // tinha nada com ela.
+    // AGORA: a tela guarda um estado só, com o tipo dizendo qual diálogo
+    // está aberto. Dois ao mesmo tempo não é mais escrevível.
     const digitar = userEvent.setup();
     await montar();
     await abrirCriar();
     await digitar.click(acao("joao", "Excluir"));
 
-    expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Novo Usuário" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Confirmar Exclusão" })).toBeInTheDocument();
-
-    await digitar.click(screen.getByRole("button", { name: "Criar Usuário" }));
-    expect(screen.getAllByText("Informe um nome de usuário.")).toHaveLength(2);
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
 
-  it("abrir qualquer um dos três modais limpa o erro que sobrou do anterior", async () => {
+  it("o erro de um diálogo é desenhado uma vez só, dentro dele", async () => {
+    const digitar = userEvent.setup();
+    await montar();
+    await abrirCriar();
+    await digitar.click(screen.getByRole("button", { name: "Criar Usuário" }));
+
+    const avisos = screen.getAllByText("Informe um nome de usuário.");
+    expect(avisos).toHaveLength(1);
+    expect(modal("Novo Usuário").contains(avisos[0])).toBe(true);
+  });
+
+  it("o erro não atravessa para o diálogo seguinte", async () => {
     const digitar = userEvent.setup();
     await montar();
     await abrirCriar();
@@ -817,5 +1022,23 @@ describe("Usuários — a mensagem de erro é uma só para todos os modais", () 
     await digitar.click(screen.getByRole("button", { name: "Cancelar" }));
     await digitar.click(acao("maria", "Editar"));
     expect(screen.queryByText("Informe um nome de usuário.")).not.toBeInTheDocument();
+  });
+
+  it("erro de exclusão fica no diálogo de exclusão, e some ao abrir o de edição", async () => {
+    const digitar = userEvent.setup();
+    api.deleteUser.mockRejectedValue(erroApi("Usuário tem notas vinculadas"));
+    await montar();
+    await digitar.click(acao("joao", "Excluir"));
+    await digitar.click(
+      within(modal("Confirmar Exclusão")).getByRole("button", { name: "Excluir" }),
+    );
+    const aviso = await screen.findByText("Usuário tem notas vinculadas");
+    expect(modal("Confirmar Exclusão").contains(aviso)).toBe(true);
+
+    await digitar.click(
+      within(modal("Confirmar Exclusão")).getByRole("button", { name: "Cancelar" }),
+    );
+    await digitar.click(acao("maria", "Editar"));
+    expect(screen.queryByText("Usuário tem notas vinculadas")).not.toBeInTheDocument();
   });
 });
