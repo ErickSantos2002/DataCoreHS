@@ -9,7 +9,6 @@ export interface PaginationProps {
 }
 
 const TAMANHO_JANELA = 5;
-const MENSAGEM_VAZIO = "Nenhum resultado encontrado.";
 
 function calcularJanela(page: number, totalPages: number): number[] {
   const metade = Math.floor(TAMANHO_JANELA / 2);
@@ -34,10 +33,22 @@ function calcularJanela(page: number, totalPages: number): number[] {
  * ```tsx
  * <Pagination page={pagina} pageSize={10} total={total} itemLabel="notas" onPageChange={setPagina} />
  * ```
+ *
+ * **Com `total` zero não renderiza nada.** Paginar o nada não significa
+ * coisa alguma: a frase de contagem não conta, os botões Anterior e Próxima
+ * nascem desabilitados e o botão de página "1" leva à mesma página vazia. E
+ * a tabela logo acima já disse que está vazia.
+ *
+ * Por isso o primitivo **pressupõe um estado vazio na listagem que ele
+ * pagina** — `TableEmpty` na tabela, ou equivalente. Quem usar `Pagination`
+ * sem esse estado vazio perde, no zero, a única informação que havia na
+ * tela. É a regra que as telas do sistema seguem.
  */
 export function Pagination({ page, pageSize, total, onPageChange, itemLabel = "registros" }: PaginationProps) {
+  if (total === 0) return null;
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
   const janela = calcularJanela(page, totalPages);
 
@@ -46,7 +57,7 @@ export function Pagination({ page, pageSize, total, onPageChange, itemLabel = "r
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borda pt-3 text-sm text-conteudo-muted">
-      <p>{total === 0 ? MENSAGEM_VAZIO : `Mostrando ${from} a ${to} de ${total} ${itemLabel}`}</p>
+      <p>{`Mostrando ${from} a ${to} de ${total} ${itemLabel}`}</p>
       <div className="flex items-center gap-1.5">
         <button
           type="button"

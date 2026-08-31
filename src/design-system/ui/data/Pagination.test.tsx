@@ -41,8 +41,23 @@ describe("Pagination", () => {
     expect(screen.getByText(/Mostrando 1 a 10 de 84 registros/)).toBeInTheDocument();
   });
 
-  it("mostra a frase de vazio com ponto final quando o total e zero", () => {
+  it("com total zero nao renderiza nada — paginar o nada nao significa coisa alguma", () => {
+    const { container } = render(
+      <Pagination page={1} pageSize={10} total={0} onPageChange={() => {}} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("com total zero nao sobra nem botao de pagina nem frase de vazio", () => {
+    // O vazio e assunto da tabela acima (`TableEmpty`). Aqui sobravam uma
+    // segunda frase, dois botoes desabilitados e um botao de pagina "1".
     render(<Pagination page={1} pageSize={10} total={0} onPageChange={() => {}} />);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nenhum resultado encontrado.")).not.toBeInTheDocument();
+  });
+
+  it("com um registro so continua paginando — o corte e no zero, nao no pouco", () => {
+    render(<Pagination page={1} pageSize={10} total={1} itemLabel="notas" onPageChange={() => {}} />);
+    expect(screen.getByText(/Mostrando 1 a 1 de 1 notas/)).toBeInTheDocument();
   });
 });

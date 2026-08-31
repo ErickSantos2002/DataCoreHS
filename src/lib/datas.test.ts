@@ -36,7 +36,9 @@ describe("data de calendário", () => {
   });
 
   it.each(FUSOS)("em %s, a data pura rende o dia que está escrito", (fuso) => {
-    expect(noFuso(fuso, () => dataDeCalendario("2026-01-15"))).toBe("15/01/2026");
+    expect(noFuso(fuso, () => dataDeCalendario("2026-01-15"))).toBe(
+      "15/01/2026",
+    );
   });
 
   it.each(FUSOS)("em %s, a madrugada em UTC não anda para trás", (fuso) => {

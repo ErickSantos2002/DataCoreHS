@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { fetchContasPagar } from "../services/notasapi";
+import { converterParaNumero } from "../lib/dinheiro";
 
 export interface ContaPagar {
   id: number;
@@ -50,35 +51,34 @@ interface ContasPagarContextType {
   contas: ContaPagar[];
   contasEnriquecidas: ContaPagarEnriquecida[];
   carregando: boolean;
+  /**
+   * A mensagem de falha da última busca, ou `null` quando deu certo.
+   *
+   * O `catch` só escrevia no console: a tela abria zerada e quem usava não
+   * tinha como distinguir "a API caiu" de "não há conta nenhuma" (defeito
+   * 1.10). Quem desenha o aviso é a tela, com o `Alert` do design system.
+   */
+  erro: string | null;
   atualizarContas: () => Promise<void>;
 }
 
 const ContasPagarContext = createContext<ContasPagarContextType | undefined>(undefined);
 
-const converterParaNumero = (valor: string | number | undefined): number => {
-  if (typeof valor === "number") return valor;
-  if (!valor) return 0;
-  const str = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
-  // Formato BR (1.234,56): tem vírgula — remove pontos de milhar e troca vírgula por ponto
-  if (str.includes(",")) {
-    const limpo = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(limpo) || 0;
-  }
-  // Formato EN (1234.56): ponto já é decimal — parse direto
-  return parseFloat(str) || 0;
-};
-
 export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contas, setContas] = useState<ContaPagar[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   const atualizarContas = useCallback(async () => {
     try {
       setCarregando(true);
       const data = await fetchContasPagar();
-      setContas(data);
+      setContas(Array.isArray(data) ? data : []);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar contas a pagar:", error);
+      setContas([]);
+      setErro("Não foi possível carregar as contas a pagar.");
     } finally {
       setCarregando(false);
     }
@@ -114,7 +114,7 @@ export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [atualizarContas]);
 
   return (
-    <ContasPagarContext.Provider value={{ contas, contasEnriquecidas, carregando, atualizarContas }}>
+    <ContasPagarContext.Provider value={{ contas, contasEnriquecidas, carregando, erro, atualizarContas }}>
       {children}
     </ContasPagarContext.Provider>
   );

@@ -50,7 +50,9 @@ const MENSAGEM_VAZIO_PADRAO = "Nenhum resultado encontrado.";
  * ```
  *
  * Vive dentro de `<Card padding="none">`. Sempre com `TableEmpty` para a
- * lista vazia, e `Pagination` abaixo quando passa de uma página. Coluna de
+ * lista vazia, e `Pagination` abaixo — o primitivo mostra a contagem em
+ * qualquer total maior que zero e some por inteiro quando o total é zero,
+ * contando com o `TableEmpty` para dizer que a lista está vazia. Coluna de
  * texto livre precisa de largura declarada — a tabela usa `table-layout:
  * auto`, e uma célula com conteúdo longo colapsa para a largura da palavra
  * mais longa se nenhuma coluna tiver largura explícita.
