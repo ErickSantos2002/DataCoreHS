@@ -214,27 +214,26 @@ describe("qual campo de data manda — a segunda divergência de domínio", () =
 });
 
 describe("opções dos filtros", () => {
-  it("são os valores distintos, e o vazio some quando é para sumir", () => {
-    expect(opcoesDistintas(["Zinco", "Boletos", "Boletos", null], { removerVazio: true })).toEqual(
-      ["Boletos", "Zinco"],
-    );
-    expect(opcoesDistintas(["Zeta", "", "Alfa"], { removerVazio: false })).toEqual([
-      "",
-      "Alfa",
-      "Zeta",
+  it("são os valores distintos, e o vazio nunca vira opção", () => {
+    expect(opcoesDistintas(["Zinco", "Boletos", "Boletos", null])).toEqual([
+      "Boletos",
+      "Zinco",
     ]);
+    // Também na lista de cliente/fornecedor, que era a única que deixava o
+    // vazio passar e virar a opção "(vazio)".
+    expect(opcoesDistintas(["Zeta", "", "Alfa", null])).toEqual(["Alfa", "Zeta"]);
   });
 
   it("o acento entra na ordem do alfabeto, e não no fim da lista", () => {
     // `.sort()` cru ordenava por código UTF-16 e jogava "Água" depois de
     // "Zinco"; `localeCompare` com pt-BR põe cada palavra no lugar dela.
-    expect(opcoesDistintas(["Zinco", "Água", "Boletos"], { removerVazio: true })).toEqual([
+    expect(opcoesDistintas(["Zinco", "Água", "Boletos"])).toEqual([
       "Água",
       "Boletos",
       "Zinco",
     ]);
     expect(
-      opcoesDistintas(["Óleo", "Nafta", "Ácido", "Zinco"], { removerVazio: true }),
+      opcoesDistintas(["Óleo", "Nafta", "Ácido", "Zinco"]),
     ).toEqual(["Ácido", "Nafta", "Óleo", "Zinco"]);
   });
 });

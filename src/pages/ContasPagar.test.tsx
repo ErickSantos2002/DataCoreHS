@@ -905,10 +905,10 @@ describe("Contas a Pagar — filtros", () => {
     ]);
   });
 
-  it("situação vazia e nula somem da lista de situações, mas fornecedor vazio vira (vazio)", async () => {
-    // Suspeita: situação e categoria passam por `.filter(Boolean)`; o
-    // fornecedor não. Um `cliente_nome` vazio vira uma opção "(vazio)" na
-    // lista, que é o texto que o multi-select usa para o nada.
+  it("vazio e nulo somem das TRÊS listas — inclusive da de fornecedor", async () => {
+    // Situação e categoria já passavam por `.filter(Boolean)`; o fornecedor
+    // não, e um `cliente_nome` vazio virava a opção "(vazio)" ao lado dos
+    // cadastros de verdade.
     await montar([
       conta({ id: 1, situacao: "", categoria: "", cliente_nome: "" }),
       conta({ id: 2, situacao: null, categoria: null, cliente_nome: "Zeta" }),
@@ -916,7 +916,7 @@ describe("Contas a Pagar — filtros", () => {
 
     expect(opcoesDoFiltro("Situação")).toEqual([]);
     expect(opcoesDoFiltro("Categoria")).toEqual([]);
-    expect(opcoesDoFiltro("Fornecedor")).toEqual(["(vazio)", "Zeta"]);
+    expect(opcoesDoFiltro("Fornecedor")).toEqual(["Zeta"]);
   });
 
   it("filtro de situação isolado", async () => {

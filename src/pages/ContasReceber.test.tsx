@@ -769,9 +769,10 @@ describe("Contas a Receber — opções dos filtros", () => {
     expect(opcoesDoFiltro("Categoria")).toEqual(["Água", "Boletos", "Zinco"]);
   });
 
-  it("os clientes são os distintos, e o nome vazio vira a opção (vazio)", async () => {
-    // A lista de clientes não filtra o vazio como as outras duas: um cliente
-    // sem nome vira uma opção clicável escrita "(vazio)".
+  it("os clientes são os distintos, e o nome vazio NÃO vira opção", async () => {
+    // A lista de clientes era a única que deixava o vazio passar: um cliente
+    // sem nome virava uma opção clicável escrita "(vazio)", ao lado dos
+    // cadastros de verdade. Agora as três listas tratam o vazio igual.
     await montar([
       conta({ id: 1, cliente_nome: "Zeta" }),
       conta({ id: 2, cliente_nome: "" }),
@@ -779,7 +780,7 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 4, cliente_nome: "Alfa" }),
     ]);
 
-    expect(opcoesDoFiltro("Cliente")).toEqual(["(vazio)", "Alfa", "Zeta"]);
+    expect(opcoesDoFiltro("Cliente")).toEqual(["Alfa", "Zeta"]);
   });
 
   it("as opções saem da base inteira, e não do que sobrou dos outros filtros", async () => {

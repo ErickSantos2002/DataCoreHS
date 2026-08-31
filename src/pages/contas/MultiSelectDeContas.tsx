@@ -130,7 +130,7 @@ export function MultiSelectDeContas({
                   onChange={() => alternar(opcao)}
                   className="mr-2 accent-action focus-visible:ring-2 focus-visible:ring-focus"
                 />
-                <span className="text-sm text-conteudo">{opcao || "(vazio)"}</span>
+                <span className="text-sm text-conteudo">{opcao}</span>
               </label>
             ))
           ) : (

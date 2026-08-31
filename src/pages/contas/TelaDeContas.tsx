@@ -111,18 +111,9 @@ export function TelaDeContas<C extends ContaBase>({
   // assim a lista não encolhe embaixo do dedo de quem está escolhendo.
   const opcoes = useMemo(
     () => ({
-      situacao: opcoesDistintas(
-        contas.map((conta) => conta.situacao),
-        { removerVazio: true },
-      ),
-      categoria: opcoesDistintas(
-        contas.map((conta) => conta.categoria),
-        { removerVazio: true },
-      ),
-      contraparte: opcoesDistintas(
-        contas.map((conta) => conta.cliente_nome),
-        { removerVazio: false },
-      ),
+      situacao: opcoesDistintas(contas.map((conta) => conta.situacao)),
+      categoria: opcoesDistintas(contas.map((conta) => conta.categoria)),
+      contraparte: opcoesDistintas(contas.map((conta) => conta.cliente_nome)),
     }),
     [contas],
   );

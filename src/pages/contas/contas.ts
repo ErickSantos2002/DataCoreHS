@@ -193,20 +193,22 @@ export function estaEmAberto(situacao: string | null): boolean {
 // ── Opções dos filtros ─────────────────────────────────────────────────────
 
 /**
- * Os valores distintos de um campo, na ordem do alfabeto brasileiro.
+ * Os valores distintos e NÃO VAZIOS de um campo, na ordem do alfabeto
+ * brasileiro.
  *
  * `localeCompare` com `pt-BR`, e não `.sort()` cru: o `sort` sem comparador
  * ordena por código UTF-16, e aí "Água" cai depois de "Zinco" na lista que a
  * pessoa lê (defeito 1.11).
+ *
+ * O vazio some das três listas. Situação e categoria já o tiravam; a de
+ * cliente/fornecedor não, e um `cliente_nome` em branco virava uma opção
+ * clicável escrita "(vazio)" — que não filtrava nada de útil e ainda dava a
+ * entender que existe um cadastro chamado assim.
  */
-export function opcoesDistintas(
-  valores: (string | null)[],
-  { removerVazio }: { removerVazio: boolean },
-): string[] {
-  const distintos = Array.from(new Set(valores.map((valor) => valor ?? "")));
-  return (removerVazio ? distintos.filter(Boolean) : distintos).sort((a, b) =>
-    a.localeCompare(b, "pt-BR"),
-  );
+export function opcoesDistintas(valores: (string | null)[]): string[] {
+  return Array.from(new Set(valores.map((valor) => valor ?? "")))
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 // ── Período ────────────────────────────────────────────────────────────────
