@@ -13,6 +13,8 @@ export type {
   TableHeaderCellProps,
   TableCellProps,
 } from "./Table";
+export { ChartEmpty } from "./ChartEmpty";
+export type { ChartEmptyProps } from "./ChartEmpty";
 export { Pagination } from "./Pagination";
 export type { PaginationProps } from "./Pagination";
 export { Progress } from "./Progress";
