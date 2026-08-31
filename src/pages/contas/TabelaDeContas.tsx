@@ -118,7 +118,9 @@ function SeloDeSituacao<C extends ContaBase>({
   // e por isso apaga a situação de verdade depois do vencimento (defeito 1.5).
   if (conta.vencida) return <Badge variant="danger">Vencida</Badge>;
   if (estaEmAberto(conta.situacao)) return <Badge variant="warning">{conta.situacao}</Badge>;
-  return <Badge variant="secondary">{conta.situacao ?? "-"}</Badge>;
+  // `?? "-"` cobria só o `null`: a string vazia passava e desenhava uma
+  // pílula colorida sem texto nenhum dentro (defeito 1.6). `||` cobre as duas.
+  return <Badge variant="secondary">{conta.situacao || "-"}</Badge>;
 }
 
 /**

@@ -690,15 +690,15 @@ describe("Contas a Receber — situação", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("cancelado");
   });
 
-  it("situação vazia entra no aberto e desenha uma badge SEM TEXTO", async () => {
-    // Suspeita: a badge de fallback mostra `situacao ?? "-"`, e string vazia
-    // não é nula — a célula fica com uma bolinha cinza vazia.
+  it("situação vazia entra no aberto e mostra o travessão, igual à nula", async () => {
+    // A badge de fallback mostrava `situacao ?? "-"`, e string vazia não é
+    // nula: a célula ficava com uma pílula cinza sem texto nenhum dentro.
     await montar([
       conta({ id: 1, vencimento: "2026-12-01", valor: "900", saldo: "700", situacao: "" }),
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 700,00");
-    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("");
+    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
   });
 
   it("situação nula entra no aberto e mostra o travessão curto", async () => {

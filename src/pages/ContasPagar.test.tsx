@@ -796,12 +796,12 @@ describe("Contas a Pagar — situação na tabela", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
   });
 
-  it("situação vazia deixa a etiqueta em branco, sem nem o travessão", async () => {
-    // Suspeita: `situacao ?? "-"` só cobre `null`; a string vazia passa e
-    // desenha uma pílula colorida sem texto nenhum dentro.
+  it("situação vazia mostra o travessão, do mesmo jeito que a nula", async () => {
+    // `situacao ?? "-"` só cobria `null`; a string vazia passava e desenhava
+    // uma pílula colorida sem texto nenhum dentro.
     await montar([conta({ id: 1, vencimento: "2026-12-01", situacao: "" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("");
+    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
   });
 
   it("uma conta paga nunca aparece como vencida, mesmo com vencimento antigo", async () => {
