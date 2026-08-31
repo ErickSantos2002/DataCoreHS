@@ -51,13 +51,14 @@ const CONFIGURACAO: ConfiguracaoDeContas<ContaPagarEnriquecida> = {
 
 /** Contas a Pagar — os títulos do Tiny ERP que a empresa tem para pagar. */
 const ContasPagar: React.FC = () => {
-  const { contasEnriquecidas, carregando } = useContasPagar();
+  const { contasEnriquecidas, carregando, erro } = useContasPagar();
 
   return (
     <TelaDeContas
       configuracao={CONFIGURACAO}
       contas={contasEnriquecidas}
       carregando={carregando}
+      erro={erro}
     />
   );
 };

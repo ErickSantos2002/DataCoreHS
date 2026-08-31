@@ -566,18 +566,28 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     expect(buscarContas).toHaveBeenCalledTimes(1);
   });
 
-  it("falha na busca é silenciosa: a tela abre vazia e não diz que deu erro", async () => {
-    // O `catch` do contexto só faz `console.error`; quem olha a tela vê uma
-    // lista vazia e não fica sabendo que a API caiu. É o de hoje.
+  it("falha na busca avisa em bloco, e a tabela fica vazia", async () => {
+    // O `catch` do contexto só fazia `console.error`: quem olhava a tela via
+    // uma lista vazia e não ficava sabendo que a API caiu (defeito 1.10).
+    // O aviso é um `Alert` no fluxo da página, do mesmo jeito que na gêmea e
+    // na tela de Locação.
     const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
     buscarContas.mockRejectedValue(new Error("500"));
     render(<ContasPagar />, { wrapper: Molde });
 
     await screen.findByRole("table");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as contas a pagar.",
+    );
     expect(linhasDaTabela()).toHaveLength(0);
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
-    expect(screen.queryByText(/erro/i)).not.toBeInTheDocument();
     erroNoConsole.mockRestore();
+  });
+
+  it("busca que dá certo não desenha aviso nenhum", async () => {
+    await montar();
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("sem nenhuma conta, os cinco KPIs vão a zero e a tabela diz que está vazia", async () => {

@@ -59,13 +59,14 @@ const CONFIGURACAO: ConfiguracaoDeContas<ContaReceberEnriquecida> = {
 
 /** Contas a Receber — os títulos do Tiny ERP que a empresa tem para receber. */
 const ContasReceber: React.FC = () => {
-  const { contasEnriquecidas, carregando } = useContasReceber();
+  const { contasEnriquecidas, carregando, erro } = useContasReceber();
 
   return (
     <TelaDeContas
       configuracao={CONFIGURACAO}
       contas={contasEnriquecidas}
       carregando={carregando}
+      erro={erro}
     />
   );
 };

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 
-import { Spinner } from "../../design-system/ui";
+import { Alert, Spinner } from "../../design-system/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { CabecalhoContas } from "./CabecalhoContas";
 import { FiltrosDeContas } from "./FiltrosDeContas";
@@ -61,6 +61,8 @@ export interface TelaDeContasProps<C extends ContaBase> {
   configuracao: ConfiguracaoDeContas<C>;
   contas: C[];
   carregando: boolean;
+  /** A mensagem de falha da busca, ou `null`/ausente quando deu certo. */
+  erro?: string | null;
 }
 
 /**
@@ -83,6 +85,7 @@ export function TelaDeContas<C extends ContaBase>({
   configuracao,
   contas,
   carregando,
+  erro = null,
 }: TelaDeContasProps<C>) {
   const { user } = useAuth();
   const { dialeto } = configuracao;
@@ -193,6 +196,18 @@ export function TelaDeContas<C extends ContaBase>({
           descricao={configuracao.descricao}
           usuario={user}
         />
+
+        {/*
+          Falha de busca é AVISO EM BLOCO, e não toast. A tela abria zerada e
+          quem usava não distinguia "a API caiu" de "não há conta nenhuma"
+          (defeito 1.10). O estado é permanente até recarregar, então o aviso
+          tem de ficar na tela — um toast some em 4 segundos e quem desviou o
+          olhar volta para uma tela vazia sem explicação. É o mesmo padrão que
+          a tela de Locação já usa, e o que o `Alert` do design system diz de
+          si: "erro de carregamento (...) não empilhe com <Toast> para o mesmo
+          evento". O `role="alert"` do primitivo anuncia sozinho.
+        */}
+        {erro ? <Alert variant="danger">{erro}</Alert> : null}
 
         <FiltrosDeContas
           rotuloDaContraparte={configuracao.rotuloDaContraparte}

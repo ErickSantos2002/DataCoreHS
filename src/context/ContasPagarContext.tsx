@@ -51,6 +51,14 @@ interface ContasPagarContextType {
   contas: ContaPagar[];
   contasEnriquecidas: ContaPagarEnriquecida[];
   carregando: boolean;
+  /**
+   * A mensagem de falha da última busca, ou `null` quando deu certo.
+   *
+   * O `catch` só escrevia no console: a tela abria zerada e quem usava não
+   * tinha como distinguir "a API caiu" de "não há conta nenhuma" (defeito
+   * 1.10). Quem desenha o aviso é a tela, com o `Alert` do design system.
+   */
+  erro: string | null;
   atualizarContas: () => Promise<void>;
 }
 
@@ -59,14 +67,18 @@ const ContasPagarContext = createContext<ContasPagarContextType | undefined>(und
 export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contas, setContas] = useState<ContaPagar[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   const atualizarContas = useCallback(async () => {
     try {
       setCarregando(true);
       const data = await fetchContasPagar();
-      setContas(data);
+      setContas(Array.isArray(data) ? data : []);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar contas a pagar:", error);
+      setContas([]);
+      setErro("Não foi possível carregar as contas a pagar.");
     } finally {
       setCarregando(false);
     }
@@ -102,7 +114,7 @@ export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [atualizarContas]);
 
   return (
-    <ContasPagarContext.Provider value={{ contas, contasEnriquecidas, carregando, atualizarContas }}>
+    <ContasPagarContext.Provider value={{ contas, contasEnriquecidas, carregando, erro, atualizarContas }}>
       {children}
     </ContasPagarContext.Provider>
   );

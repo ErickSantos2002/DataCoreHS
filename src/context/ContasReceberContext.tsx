@@ -56,6 +56,14 @@ interface ContasReceberContextType {
   contas: ContaReceber[];
   contasEnriquecidas: ContaReceberEnriquecida[];
   carregando: boolean;
+  /**
+   * A mensagem de falha da última busca, ou `null` quando deu certo.
+   *
+   * O `catch` só escrevia no console: a tela abria zerada e quem usava não
+   * tinha como distinguir "a API caiu" de "não há conta nenhuma" (defeito
+   * 1.10). Quem desenha o aviso é a tela, com o `Alert` do design system.
+   */
+  erro: string | null;
   atualizarContas: () => Promise<void>;
 }
 
@@ -64,14 +72,18 @@ const ContasReceberContext = createContext<ContasReceberContextType | undefined>
 export const ContasReceberProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contas, setContas] = useState<ContaReceber[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   const atualizarContas = useCallback(async () => {
     try {
       setCarregando(true);
       const data = await fetchContasReceber();
-      setContas(data);
+      setContas(Array.isArray(data) ? data : []);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar contas a receber:", error);
+      setContas([]);
+      setErro("Não foi possível carregar as contas a receber.");
     } finally {
       setCarregando(false);
     }
@@ -107,7 +119,7 @@ export const ContasReceberProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [atualizarContas]);
 
   return (
-    <ContasReceberContext.Provider value={{ contas, contasEnriquecidas, carregando, atualizarContas }}>
+    <ContasReceberContext.Provider value={{ contas, contasEnriquecidas, carregando, erro, atualizarContas }}>
       {children}
     </ContasReceberContext.Provider>
   );
