@@ -835,6 +835,22 @@ describe("Contas a Receber — cada filtro isolado", () => {
     expect(idsNaTela()).toEqual(["102", "105", "106"]);
   });
 
+  it("o gatilho do multi-select se anuncia com o rótulo E com o que está escolhido", async () => {
+    // O `<label>` era solto: quem usa leitor de tela ouvia só "Todas" e não
+    // sabia de qual campo (defeito 1.14). `<label for>` no botão resolveria
+    // metade e estragaria a outra — o nome viraria só "Situação" e sumiria o
+    // estado. `aria-labelledby` com o rótulo e o valor anuncia os dois.
+    await montar();
+    expect(screen.getByRole("button", { name: "Situação Todas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cliente Todos" })).toBeInTheDocument();
+
+    marcarOpcao("Situação", "aberto");
+    expect(
+      screen.getByRole("button", { name: "Situação 1 selecionado(s)" }),
+    ).toBeInTheDocument();
+  });
+
   it("o botão do multi-select conta quantas opções estão marcadas", async () => {
     await montar();
     expect(texto(within(blocoDoFiltro("Situação")).getByRole("button"))).toBe("Todas");

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export interface MultiSelectDeContasProps {
   /** Rótulo do campo — "Situação", "Categoria", "Cliente", "Fornecedor". */
@@ -44,6 +44,16 @@ export function MultiSelectDeContas({
   const [busca, setBusca] = useState("");
   const envolvente = useRef<HTMLDivElement>(null);
 
+  // O gatilho é um `<button>`, e não um campo de formulário. `<label for>`
+  // até é HTML válido apontando para um botão — botão é elemento rotulável —,
+  // mas ele SUBSTITUI o nome acessível do gatilho: quem usa leitor de tela
+  // ouviria "Situação" e perderia "2 selecionado(s)", que é justamente o
+  // estado do filtro. `aria-labelledby` com os dois ids soma as duas coisas:
+  // o leitor anuncia "Situação, 2 selecionado(s)" (defeito 1.14).
+  const id = useId();
+  const idDoRotulo = `${id}-rotulo`;
+  const idDoValor = `${id}-valor`;
+
   useEffect(() => {
     const aoClicarFora = (evento: MouseEvent) => {
       if (envolvente.current && !envolvente.current.contains(evento.target as Node)) {
@@ -68,13 +78,16 @@ export function MultiSelectDeContas({
 
   return (
     <div className="relative flex flex-col gap-1.5" ref={envolvente}>
-      <label className="text-sm font-medium text-conteudo">{rotulo}</label>
+      <label id={idDoRotulo} className="text-sm font-medium text-conteudo">
+        {rotulo}
+      </label>
 
       <button
         type="button"
         onClick={() => setAberto(!aberto)}
         aria-haspopup="listbox"
         aria-expanded={aberto}
+        aria-labelledby={`${idDoRotulo} ${idDoValor}`}
         className={[
           "w-full rounded-lg border bg-surface px-3 py-2 text-left text-sm text-conteudo transition-colors",
           "hover:bg-surface-elevated",
@@ -82,7 +95,7 @@ export function MultiSelectDeContas({
           aberto ? "border-action" : "border-borda",
         ].join(" ")}
       >
-        <span className="text-sm text-conteudo">
+        <span id={idDoValor} className="text-sm text-conteudo">
           {selecionadas.length > 0 ? `${selecionadas.length} selecionado(s)` : placeholder}
         </span>
       </button>

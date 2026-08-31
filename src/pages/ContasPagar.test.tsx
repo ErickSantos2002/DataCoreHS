@@ -967,6 +967,20 @@ describe("Contas a Pagar — filtros", () => {
     expect(idsNaTela()).toEqual(["101", "106", "104"]);
   });
 
+  it("o gatilho do multi-select se anuncia com o rótulo E com o que está escolhido", async () => {
+    // O `<label>` era solto e o gatilho é um `<button>`: o leitor de tela
+    // anunciava só "Todas", sem dizer de qual campo (defeito 1.14).
+    await montar();
+    expect(screen.getByRole("button", { name: "Situação Todas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fornecedor Todos" })).toBeInTheDocument();
+
+    selecionar("Fornecedor", "Beta Energia");
+    expect(
+      screen.getByRole("button", { name: "Fornecedor 1 selecionado(s)" }),
+    ).toBeInTheDocument();
+  });
+
   it("a contagem no botão do filtro diz quantas opções estão marcadas", async () => {
     await montar();
 
