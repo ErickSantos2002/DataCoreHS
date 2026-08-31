@@ -1820,7 +1820,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
   });
 
   it("as datas da planilha são o dia que a API escreveu, em qualquer fuso", async () => {
-    // A `formatarData` fatia a string e não passa por `Date` nenhum, então
+    // `dataDeCalendario` lê a string e não passa por `Date` nenhum, então
     // não há o clássico "planilha um dia antes" aqui. Roda igual em TZ=UTC
     // e em TZ=America/Sao_Paulo.
     await montar([
@@ -1833,10 +1833,10 @@ describe("Contas a Pagar — exportação para Excel", () => {
     expect(planilha.linhas[0]["Liquidação"]).toBe("10/07/2026");
   });
 
-  it("campo de texto ausente vira string vazia, e data ausente vira um traço", async () => {
-    // Suspeita miúda: o traço da planilha é o hífen "-", enquanto o resto do
-    // sistema (`dataDeCalendario`) usa o travessão "—". São dois caracteres
-    // diferentes para a mesma ausência.
+  it("campo de texto ausente vira string vazia, e data ausente vira o travessão", async () => {
+    // O traço da planilha era o hífen "-", enquanto o resto do sistema
+    // (`dataDeCalendario`) usa o travessão "—". Agora é o mesmo caractere
+    // porque é a mesma função.
     await montar([conta({ id: 1, vencimento: "2026-12-01" })]);
     exportar();
 
@@ -1845,7 +1845,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
       Categoria: "",
       "Nº Documento": "",
       "Histórico": "",
-      "Liquidação": "-",
+      "Liquidação": "—",
       "Situação": "",
       Vencida: "Não",
       Cidade: "",

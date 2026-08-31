@@ -16,12 +16,12 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../design-system/ui";
+import { dataDeCalendario } from "../../lib/datas";
 import {
   ITENS_POR_PAGINA,
   emissaoDe,
   estaEmAberto,
   estaQuitada,
-  formatarData,
   formatarMoeda,
   type ContaBase,
   type DialetoDeContas,
@@ -172,13 +172,13 @@ export function TabelaDeContas<C extends ContaBase>({
       case "vencimento":
         return (
           <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
-            {formatarData(conta.vencimento)}
+            {dataDeCalendario(conta.vencimento)}
           </TableCell>
         );
       case "emissao":
         return (
           <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
-            {formatarData(emissaoDe(conta, dialeto))}
+            {dataDeCalendario(emissaoDe(conta, dialeto))}
           </TableCell>
         );
       case "contraparte":

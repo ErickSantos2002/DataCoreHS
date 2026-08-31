@@ -22,6 +22,8 @@
  * uma vez.
  */
 
+import { dataDeCalendario } from "../../lib/datas";
+
 /** Os campos que as duas telas leem de uma conta, já enriquecida pelo contexto. */
 export interface ContaBase {
   id: number;
@@ -158,20 +160,6 @@ export function formatarValorAbreviado(valor: number): string {
   if (valor >= 1_000_000) return `R$ ${(valor / 1_000_000).toFixed(1)}M`;
   if (valor >= 1_000) return `R$ ${(valor / 1_000).toFixed(1)}K`;
   return `R$ ${valor.toLocaleString("pt-BR")}`;
-}
-
-/**
- * `2026-01-18` → `18/01/2026`.
- *
- * DEFEITO CONHECIDO (2 da seção "uma tela só"): fatia a string em `-` e
- * ignora o `T`, então `2026-01-18T10:00:00` sai `18T10:00:00/01/2026`. Hoje a
- * API manda data pura e não aparece. `src/lib/datas.ts` já resolve isso — a
- * troca é da Fase 2, porque muda o que a planilha grava.
- */
-export function formatarData(data: string | null): string {
-  if (!data) return "-";
-  const [ano, mes, dia] = data.split("-");
-  return `${dia}/${mes}/${ano}`;
 }
 
 // ── Situação ───────────────────────────────────────────────────────────────
@@ -618,7 +606,10 @@ export interface FormatoDaPlanilha<C extends ContaBase> {
  * As linhas que vão para o `xlsx`, na ordem em que as colunas aparecem.
  *
  * Dinheiro sai como NÚMERO (para o Excel somar) e data sai como texto
- * `dd/mm/aaaa`.
+ * `dd/mm/aaaa`, pelo `dataDeCalendario` de `src/lib/datas.ts` — o mesmo das
+ * telas de Locação e Usuários. A `formatarData` daqui fatiava a string em `-`
+ * e ignorava o `T`, então uma data com hora saía `18T10:00:00/01/2026`; e a
+ * ausência virava o hífen `-`, enquanto o resto do sistema usa o travessão.
  *
  * `Situação` é sempre a que o Tiny mandou, e o vencimento vira uma coluna
  * PRÓPRIA (`Vencida`, com Sim/Não). Antes a `Situação` era trocada por
@@ -641,9 +632,9 @@ export function linhasDaPlanilha<C extends ContaBase>(
     Histórico: conta.historico ?? "",
     Valor: conta.valor_numero,
     Saldo: conta.saldo_numero,
-    Emissão: formatarData(emissaoDe(conta, dialeto)),
-    Vencimento: formatarData(conta.vencimento),
-    Liquidação: formatarData(conta.liquidacao),
+    Emissão: dataDeCalendario(emissaoDe(conta, dialeto)),
+    Vencimento: dataDeCalendario(conta.vencimento),
+    Liquidação: dataDeCalendario(conta.liquidacao),
     Situação: conta.situacao ?? "",
     Vencida: conta.vencida ? "Sim" : "Não",
     ...formato.colunasProprias(conta),

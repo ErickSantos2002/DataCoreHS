@@ -7,7 +7,6 @@ import {
   estaQuitada,
   fatiaDaPagina,
   filtrarContas,
-  formatarData,
   formatarMoeda,
   formatarValorAbreviado,
   linhasDaPlanilha,
@@ -105,15 +104,25 @@ describe("formatação", () => {
     expect(formatarValorAbreviado(999)).toBe("R$ 999");
   });
 
-  it("data vira dd/mm/aaaa, e a ausência vira travessão", () => {
-    expect(formatarData("2026-01-18")).toBe("18/01/2026");
-    expect(formatarData(null)).toBe("-");
-  });
+  it("a data da planilha sai por `dataDeCalendario`, e aguenta hora e travessão", () => {
+    // A `formatarData` daqui fatiava a string em "-" e ignorava o "T": uma
+    // data com hora saía "18T10:00:00/01/2026". Agora é a mesma função das
+    // telas de Locação e Usuários, e a ausência vira o travessão do resto do
+    // sistema em vez do hífen.
+    const linha = linhasDaPlanilha(
+      [conta({ id: 1, data: "2026-01-18T10:00:00", vencimento: "2026-02-20", liquidacao: null })],
+      RECEBER,
+      {
+        aba: "x",
+        prefixoDoArquivo: "x",
+        rotuloDaContraparte: "Cliente",
+        colunasProprias: () => ({}),
+      },
+    )[0];
 
-  it("DEFEITO PRESERVADO: data com hora sai com a hora colada no dia", () => {
-    // `formatarData` fatia em "-" e ignora o "T". Hoje a API manda data pura;
-    // a troca por `src/lib/datas.ts` é da Fase 2.
-    expect(formatarData("2026-01-18T10:00:00")).toBe("18T10:00:00/01/2026");
+    expect(linha.Emissão).toBe("18/01/2026");
+    expect(linha.Vencimento).toBe("20/02/2026");
+    expect(linha.Liquidação).toBe("—");
   });
 });
 
@@ -771,7 +780,7 @@ describe("planilha", () => {
     const linha = linhasDaPlanilha([umaConta], RECEBER, FORMATO_RECEBER)[0];
     expect(linha.Valor).toBe(1000);
     expect(linha.Emissão).toBe("10/01/2026");
-    expect(linha.Liquidação).toBe("-");
+    expect(linha.Liquidação).toBe("—");
   });
 
   it("a coluna Situação guarda a situação real, e o vencimento vira coluna própria", () => {

@@ -1740,12 +1740,13 @@ describe("Contas a Receber — linha da tabela", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[4]).toBe("-");
   });
 
-  it("data-hora na coluna de data sai quebrada, com a hora colada no dia", async () => {
-    // Suspeita: `formatarData` fatia a string em "-" e não olha o "T". Se a
-    // API mandar data com hora, a célula mostra "10T00:00:00/01/2026".
+  it("data-hora na coluna de data mostra só o dia", async () => {
+    // A `formatarData` da tela fatiava a string em "-" e não olhava o "T":
+    // a célula mostrava "10T00:00:00/01/2026". Agora é o `dataDeCalendario`
+    // de `src/lib/datas.ts`, o mesmo de Locação e Usuários.
     await montar([conta({ id: 1, data: "2026-01-10T00:00:00" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("10T00:00:00/01/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("10/01/2026");
   });
 });
 
@@ -1870,8 +1871,9 @@ describe("Contas a Receber — exportação para Excel", () => {
   });
 
   it("campo de texto ausente vira string vazia, mas data ausente vira travessão", async () => {
-    // Suspeita: dois buracos diferentes para a mesma ideia de "não tem" — a
-    // planilha fica com célula vazia numas colunas e com "-" na Liquidação.
+    // São dois buracos diferentes para a mesma ideia de "não tem" — célula
+    // vazia nas colunas de texto e travessão na Liquidação —, mas é o que a
+    // tabela também mostra, e mudar isso seria decisão de produto.
     await montar([conta({ id: 1, vencimento: "2026-12-01" })]);
     exportar();
 
@@ -1887,7 +1889,7 @@ describe("Contas a Receber — exportação para Excel", () => {
         Saldo: 0,
         Emissão: "10/01/2026",
         Vencimento: "01/12/2026",
-        Liquidação: "-",
+        Liquidação: "—",
         Situação: "",
         Vencida: "Não",
         "Forma Pagamento": "",
@@ -1916,12 +1918,11 @@ describe("Contas a Receber — exportação para Excel", () => {
     expect(planilha.linhas.map((l) => l["Vencida"])).toEqual(["Sim", "Sim", "Não"]);
   });
 
-  it("data com hora sai quebrada também na planilha", async () => {
-    // O mesmo `formatarData` da tabela: o dia leva a hora colada.
+  it("data com hora sai como o dia também na planilha", async () => {
     await montar([conta({ id: 1, liquidacao: "2026-01-18T10:00:00" })]);
     exportar();
 
-    expect(planilha.linhas[0]["Liquidação"]).toBe("18T10:00:00/01/2026");
+    expect(planilha.linhas[0]["Liquidação"]).toBe("18/01/2026");
   });
 
   it("exporta a lista filtrada e ordenada, e não só a página que está na tela", async () => {
