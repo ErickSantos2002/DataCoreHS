@@ -1813,15 +1813,11 @@ describe("Contas a Pagar — exportação para Excel", () => {
     expect(planilha.linhas.map((l) => l["Nº Documento"])).toEqual(["NF-001"]);
   });
 
-  it("sem nada para exportar o botão continua ativo e gera uma planilha vazia", async () => {
-    // Divergência com a tela de Locação, que desabilita o botão quando não
-    // há linha. Aqui o clique passa e escreve um arquivo sem nenhuma linha.
+  it("sem nada para exportar, o botão fica desabilitado", async () => {
+    // Antes o clique passava e escrevia um arquivo sem nenhuma linha.
     await montar([]);
 
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
-    exportar();
-    expect(planilha.linhas).toEqual([]);
-    expect(planilha.aba).toBe("Contas a Pagar");
+    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
   });
 
   it("o arquivo se chama contas_a_pagar_ mais a data LOCAL de hoje", async () => {

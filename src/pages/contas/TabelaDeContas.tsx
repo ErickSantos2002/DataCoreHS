@@ -236,6 +236,11 @@ export function TabelaDeContas<C extends ContaBase>({
           </div>
           <Button
             onClick={onExportar}
+            // Sem nenhuma linha o clique gerava uma planilha vazia (defeito
+            // 1.9). A tela de Locação já desabilitava nesse caso; agora as
+            // três fazem igual. `total` é o recorte inteiro, e não a página:
+            // uma busca que não casa com nada também desabilita.
+            disabled={total === 0}
             icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
           >
             Exportar Excel

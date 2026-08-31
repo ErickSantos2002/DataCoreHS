@@ -508,15 +508,26 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=0 aberto=0");
   });
 
-  it("sem nenhuma conta, exportar gera uma planilha sem nenhuma linha", async () => {
-    // Suspeita: em Locação o botão fica desabilitado quando não há o que
-    // exportar. Aqui ele exporta um arquivo vazio.
+  it("sem nenhuma conta, o botão de exportar fica desabilitado", async () => {
+    // Antes ele clicava e escrevia um arquivo sem linha nenhuma. A tela de
+    // Locação já desabilitava nesse caso.
     await montar([]);
+
+    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
+  });
+
+  it("uma busca que não casa com nada também desabilita o exportar", async () => {
+    // O botão olha o recorte inteiro, e não a página: filtrar até sobrar
+    // zero linha é o mesmo caso de não ter conta nenhuma.
+    await montar();
     expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
 
-    exportar();
-    expect(planilha.linhas).toEqual([]);
-    expect(planilha.aba).toBe("Contas a Receber");
+    buscar("nao existe esse cliente");
+    expect(linhasDaTabela()).toHaveLength(0);
+    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
+
+    buscar("");
+    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
   });
 
   it("apresenta a tela e diz quem está logado", async () => {
