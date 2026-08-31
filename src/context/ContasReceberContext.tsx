@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { fetchContasReceber } from "../services/notasapi";
+import { converterParaNumero } from "../lib/dinheiro";
 
 export interface ContaReceber {
   id: number;
@@ -59,17 +60,6 @@ interface ContasReceberContextType {
 }
 
 const ContasReceberContext = createContext<ContasReceberContextType | undefined>(undefined);
-
-const converterParaNumero = (valor: string | number | undefined): number => {
-  if (typeof valor === "number") return valor;
-  if (!valor) return 0;
-  const str = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
-  if (str.includes(",")) {
-    const limpo = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(limpo) || 0;
-  }
-  return parseFloat(str) || 0;
-};
 
 export const ContasReceberProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contas, setContas] = useState<ContaReceber[]>([]);

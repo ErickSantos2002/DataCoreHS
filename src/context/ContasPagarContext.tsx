@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { fetchContasPagar } from "../services/notasapi";
+import { converterParaNumero } from "../lib/dinheiro";
 
 export interface ContaPagar {
   id: number;
@@ -54,19 +55,6 @@ interface ContasPagarContextType {
 }
 
 const ContasPagarContext = createContext<ContasPagarContextType | undefined>(undefined);
-
-const converterParaNumero = (valor: string | number | undefined): number => {
-  if (typeof valor === "number") return valor;
-  if (!valor) return 0;
-  const str = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
-  // Formato BR (1.234,56): tem vírgula — remove pontos de milhar e troca vírgula por ponto
-  if (str.includes(",")) {
-    const limpo = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(limpo) || 0;
-  }
-  // Formato EN (1234.56): ponto já é decimal — parse direto
-  return parseFloat(str) || 0;
-};
 
 export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contas, setContas] = useState<ContaPagar[]>([]);

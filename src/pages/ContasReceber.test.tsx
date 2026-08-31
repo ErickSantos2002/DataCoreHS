@@ -1757,13 +1757,22 @@ describe("Contas a Receber — dinheiro", () => {
     expect(kpi("Total a Receber")).toBe("R$ 1.234,56");
   });
 
-  it("texto com ponto de milhar SEM centavo perde o valor inteiro", async () => {
-    // Suspeita séria: "1.234" (mil duzentos e trinta e quatro) não tem
-    // vírgula, então o ponto é lido como decimal e vira R$ 1,23.
+  it("texto com ponto de milhar SEM centavo é lido como milhar", async () => {
+    // "1.234" (mil duzentos e trinta e quatro) não tem vírgula: o ponto era
+    // lido como decimal e a nota virava R$ 1,23 na tela, no KPI e na
+    // planilha. Era o pior defeito de dinheiro das duas telas.
     await montar([conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" })]);
 
+    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,00");
+    expect(kpi("Total a Receber")).toBe("R$ 1.234,00");
+  });
+
+  it("uma ou duas casas depois do ponto continuam sendo centavo", async () => {
+    // A régua é o tamanho do grupo: três dígitos agrupados é milhar, uma ou
+    // duas casas é centavo. "1.23" continua um real e vinte e três.
+    await montar([conta({ id: 1, valor: "1.23", saldo: "1.23", situacao: "pendente" })]);
+
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1,23");
-    expect(kpi("Total a Receber")).toBe("R$ 1,23");
   });
 
   it("o R$ e os espaços vêm junto sem atrapalhar", async () => {

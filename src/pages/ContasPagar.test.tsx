@@ -862,6 +862,15 @@ describe("Contas a Pagar — dinheiro", () => {
     expect(kpi("Total em Aberto")).toBe("R$ 2.469,12");
   });
 
+  it("ponto de milhar sem centavo é milhar, e não decimal", async () => {
+    // "1.234" não tem vírgula: o ponto era lido como decimal e a conta de
+    // mil duzentos e trinta e quatro reais virava R$ 1,23.
+    await montar([conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" })]);
+
+    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,00");
+    expect(kpi("Total em Aberto")).toBe("R$ 1.234,00");
+  });
+
   it("engole o R$ e os espaços que vierem colados no número", async () => {
     await montar([conta({ id: 1, valor: "R$ 2.000,00", saldo: "R$ 2.000,00", situacao: "pendente" })]);
 
