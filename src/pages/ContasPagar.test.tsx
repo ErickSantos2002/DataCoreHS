@@ -1248,16 +1248,19 @@ describe("Contas a Pagar — busca da tabela", () => {
     expect(idsNaTela()).toEqual(["101", "104"]);
   });
 
-  it("diferencia acento: 'servicos' não acha 'Serviços'", async () => {
-    // Suspeita: a busca só baixa a caixa, não tira acento. Quem digita sem
-    // acento não acha a categoria "Serviços" nem o fornecedor "Gama
-    // Serviços". É o comportamento de hoje.
+  it("ignora acento: 'servicos' acha 'Serviços'", async () => {
+    // A busca só baixava a caixa: quem digitava sem acento não achava nem a
+    // categoria "Serviços" nem o fornecedor "Gama Serviços".
     await montar();
 
     buscar("Serviços");
     expect(idsNaTela()).toEqual(["103"]);
 
     buscar("servicos");
+    expect(idsNaTela()).toEqual(["103"]);
+
+    // E quem não está lá continua não aparecendo.
+    buscar("servicais");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
 

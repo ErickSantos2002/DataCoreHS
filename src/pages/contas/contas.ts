@@ -457,21 +457,37 @@ export function montarContrapartes<C extends ContaBase>(contas: C[]): PontoDeCon
 // ── Tabela ─────────────────────────────────────────────────────────────────
 
 /**
+ * Caixa baixa e SEM ACENTO — a forma em que a busca compara os dois lados.
+ *
+ * `NFD` quebra cada letra acentuada em letra + sinal, e o intervalo
+ * `\u0300-\u036f` é o dos sinais soltos que sobram. `Serviços` e `servicos`
+ * viram a mesma coisa; `ç` vira `c` pelo mesmo caminho.
+ */
+function paraBusca(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+/**
  * A busca da tabela: nome da contraparte, categoria, nº do documento e
  * histórico. Não olha situação, valor, saldo, id nem data.
  *
- * DEFEITO CONHECIDO (1.8): só baixa a caixa, não tira acento — quem digita
- * `servicos` não acha `Serviços`.
+ * Ignora acento nos DOIS lados: quem digita `servicos` acha `Serviços`, e
+ * quem digita `Serviços` continua achando. Antes só baixava a caixa, e
+ * teclado apressado não achava cliente nenhum com acento no nome (1.8).
  */
 export function buscarNasContas<C extends ContaBase>(contas: C[], termo: string): C[] {
   if (!termo) return contas;
-  const alvo = termo.toLowerCase();
+  const alvo = paraBusca(termo);
+  const casa = (campo: string | null) => (campo ? paraBusca(campo).includes(alvo) : false);
   return contas.filter(
     (conta) =>
-      conta.cliente_nome.toLowerCase().includes(alvo) ||
-      (conta.categoria?.toLowerCase().includes(alvo) ?? false) ||
-      (conta.nro_documento?.toLowerCase().includes(alvo) ?? false) ||
-      (conta.historico?.toLowerCase().includes(alvo) ?? false),
+      casa(conta.cliente_nome) ||
+      casa(conta.categoria) ||
+      casa(conta.nro_documento) ||
+      casa(conta.historico),
   );
 }
 

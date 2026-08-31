@@ -1099,15 +1099,19 @@ describe("Contas a Receber — busca da tabela", () => {
     expect(idsNaTela()).toEqual(["103"]);
   });
 
-  it("é sensível a acento: mineracao não acha Mineração", async () => {
-    // Suspeita: a busca só baixa a caixa, não tira acento. Quem digita sem
-    // acento (o normal em teclado apressado) não acha o cliente.
+  it("ignora acento: mineracao acha Mineração, e vice-versa", async () => {
+    // A busca só baixava a caixa. Quem digita sem acento — o normal em
+    // teclado apressado — não achava o cliente.
     await montar();
     buscar("mineração");
     expect(idsNaTela()).toEqual(["102"]);
 
     buscar("mineracao");
-    expect(linhasDaTabela()).toHaveLength(0);
+    expect(idsNaTela()).toEqual(["102"]);
+
+    // A categoria "Serviços" entra pela cedilha, no mesmo caminho.
+    buscar("servicos");
+    expect(idsNaTela()).toEqual(["101", "103"]);
   });
 
   it("NÃO procura em situação, valor, saldo, id nem data", async () => {

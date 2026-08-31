@@ -518,9 +518,14 @@ describe("busca da tabela", () => {
     expect(buscarNasContas(contas, "")).toHaveLength(2);
   });
 
-  it("DEFEITO PRESERVADO: a busca não tira acento", () => {
+  it("a busca ignora acento nos dois lados", () => {
     expect(buscarNasContas(contas, "mineração").map((c) => c.id)).toEqual([1]);
-    expect(buscarNasContas(contas, "mineracao")).toEqual([]);
+    expect(buscarNasContas(contas, "mineracao").map((c) => c.id)).toEqual([1]);
+    // A cedilha entra pelo mesmo caminho: `ç` normalizado vira `c`.
+    expect(buscarNasContas(contas, "locacao").map((c) => c.id)).toEqual([1]);
+    expect(buscarNasContas(contas, "LOCAÇÃO").map((c) => c.id)).toEqual([1]);
+    // E continua sem casar quem de fato não está lá.
+    expect(buscarNasContas(contas, "mineradora")).toEqual([]);
   });
 });
 
