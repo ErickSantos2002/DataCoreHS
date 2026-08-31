@@ -583,7 +583,7 @@ disso.
 ## Estado em 31/08/2026 — fim do domingo
 
 **Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 3 das 12 telas.**
-82 commits à frente do `origin/main`. **Nada empurrado.**
+80 commits à frente do `origin/main`. **Nada empurrado.**
 
 Suíte **753 testes / 63 arquivos** (verdes também com `TZ=UTC` e
 `TZ=America/Sao_Paulo`), lint **156** (baseline original 192), `tsc` limpo,
