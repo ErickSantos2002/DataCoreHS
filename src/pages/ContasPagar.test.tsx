@@ -774,7 +774,8 @@ describe("Contas a Pagar — situação na tabela", () => {
     // 102 está paga; 101 e 106 venceram e mostram "Vencida" no lugar de
     // "pendente"; 103 continua "aberto"; 104 e 105 continuam "pendente".
     const porId = new Map(linhasDaTabela().map((l) => [celulasDaLinha(l)[0], celulasDaLinha(l)[7]]));
-    expect(porId.get("102")).toBe("Pago");
+    // O selo mostra o texto cru que a API mandou, e não o literal "Pago".
+    expect(porId.get("102")).toBe("pago");
     expect(porId.get("101")).toBe("Vencida");
     expect(porId.get("106")).toBe("Vencida");
     expect(porId.get("103")).toBe("aberto");
@@ -791,7 +792,7 @@ describe("Contas a Pagar — situação na tabela", () => {
   it("situação nula vira travessão curto, e a categoria nula também", async () => {
     await montar([conta({ id: 1, vencimento: "2026-12-01", situacao: null, categoria: null })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("-");
+    expect(celulasDaLinha(linhasDaTabela()[0])[4]).toBe("-");
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
   });
 
@@ -806,31 +807,33 @@ describe("Contas a Pagar — situação na tabela", () => {
   it("uma conta paga nunca aparece como vencida, mesmo com vencimento antigo", async () => {
     await montar([conta({ id: 1, vencimento: "2020-01-01", situacao: "pago" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("Pago");
+    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("pago");
     expect(kpi("Contas Vencidas")).toBe("0");
   });
 
-  it("a tabela mostra id, fornecedor, categoria, valor, saldo e as duas datas", async () => {
+  it("a tabela mostra id, as duas datas, fornecedor, categoria, valor, saldo e situação", async () => {
     await montar([CONTAS[0]]);
 
     expect(cabecalhos()).toEqual([
       "ID Tiny",
+      "Vencimento",
+      "Emissão",
       "Fornecedor",
       "Categoria",
       "Valor",
       "Saldo",
-      "Emissão",
-      "Vencimento",
       "Situação",
     ]);
+    // A célula do fornecedor leva o CPF/CNPJ numa segunda linha, como a da
+    // gêmea: é o que desempata dois cadastros com o mesmo nome.
     expect(celulasDaLinha(linhasDaTabela()[0])).toEqual([
       "101",
-      "Alfa Papelaria",
+      "10/02/2026",
+      "10/01/2026",
+      "Alfa Papelaria11.111.111/0001-11",
       "Material",
       "R$ 1.000,00",
       "R$ 1.000,00",
-      "10/01/2026",
-      "10/02/2026",
       "Vencida",
     ]);
   });
@@ -843,7 +846,7 @@ describe("Contas a Pagar — dinheiro", () => {
       conta({ id: 2, valor: "1234.56", saldo: "1234.56", situacao: "pendente" }),
     ]);
 
-    const valores = linhasDaTabela().map((l) => celulasDaLinha(l)[3]);
+    const valores = linhasDaTabela().map((l) => celulasDaLinha(l)[5]);
     expect(valores).toEqual(["R$ 1.234,56", "R$ 1.234,56"]);
     expect(kpi("Total em Aberto")).toBe("R$ 2.469,12");
   });
@@ -851,13 +854,13 @@ describe("Contas a Pagar — dinheiro", () => {
   it("engole o R$ e os espaços que vierem colados no número", async () => {
     await montar([conta({ id: 1, valor: "R$ 2.000,00", saldo: "R$ 2.000,00", situacao: "pendente" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("R$ 2.000,00");
+    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 2.000,00");
   });
 
   it("valor negativo passa inteiro, com o sinal", async () => {
     await montar([conta({ id: 1, valor: "-250.75", saldo: "-250.75", situacao: "pendente" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("-R$ 250,75");
+    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("-R$ 250,75");
     expect(kpi("Total em Aberto")).toBe("-R$ 250,75");
   });
 
@@ -868,7 +871,7 @@ describe("Contas a Pagar — dinheiro", () => {
       conta({ id: 3, valor: "sem valor", saldo: "sem valor", situacao: "pendente" }),
     ]);
 
-    expect(linhasDaTabela().map((l) => celulasDaLinha(l)[3])).toEqual([
+    expect(linhasDaTabela().map((l) => celulasDaLinha(l)[5])).toEqual([
       "R$ 0,00",
       "R$ 0,00",
       "R$ 0,00",
@@ -879,7 +882,7 @@ describe("Contas a Pagar — dinheiro", () => {
   it("valor que já vem número passa direto, sem passar pelo parse", async () => {
     await montar([conta({ id: 1, valor: 1234.5, saldo: 1234.5, situacao: "pendente" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("R$ 1.234,50");
+    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,50");
   });
 });
 
@@ -1185,8 +1188,8 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
   it("as datas da tabela são lidas da string, então não andam para trás em nenhum fuso", async () => {
     await montar([CONTAS[0]]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("10/01/2026");
-    expect(celulasDaLinha(linhasDaTabela()[0])[6]).toBe("10/02/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("10/01/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[1]).toBe("10/02/2026");
   });
 });
 
@@ -1668,11 +1671,12 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
 });
 
 describe("Contas a Pagar — exportação para Excel", () => {
-  it("exporta catorze colunas, com estes rótulos e nesta ordem, na aba Contas a Pagar", async () => {
+  it("exporta quinze colunas, com estes rótulos e nesta ordem, na aba Contas a Pagar", async () => {
     await montar();
     exportar();
 
     expect(Object.keys(planilha.linhas[0])).toEqual([
+      "ID Tiny",
       "Fornecedor",
       "CPF_CNPJ",
       "Categoria",
@@ -1697,6 +1701,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
 
     expect(planilha.linhas).toEqual([
       {
+        "ID Tiny": 102,
         Fornecedor: "Beta Energia",
         CPF_CNPJ: "22.222.222/0001-22",
         Categoria: "Energia",

@@ -17,6 +17,7 @@ import {
 } from "../../design-system/ui";
 import { PaginacaoDeContas } from "./PaginacaoDeContas";
 import {
+  emissaoDe,
   estaEmAberto,
   estaQuitada,
   formatarData,
@@ -26,28 +27,61 @@ import {
   type Ordenacao,
 } from "./contas";
 
-/** As oito colunas que as duas telas conhecem. A ORDEM vem da configuração. */
+/** As oito colunas da tabela, na ordem em que aparecem. */
 export type ChaveDeColuna =
   | "id"
+  | "vencimento"
+  | "emissao"
   | "contraparte"
   | "categoria"
-  | "emissao"
-  | "vencimento"
   | "valor"
   | "saldo"
   | "situacao";
 
 export interface ColunaDeContas {
   chave: ChaveDeColuna;
-  /** O que o cabeçalho mostra — "Cliente"/"Fornecedor", "Data"/"Emissão". */
   rotulo: string;
   /** O campo da conta por onde a coluna ordena. */
   campo: string;
 }
 
+/** A frase da tabela sem nenhuma linha, a mesma nas duas telas. */
+const MENSAGEM_DE_VAZIO = "Nenhuma conta encontrada.";
+
+/**
+ * As colunas das duas telas — a MESMA ordem para as duas.
+ *
+ * O vencimento vem primeiro porque é o que se procura numa tela de contas, e
+ * a emissão vem logo ao lado para as duas datas não ficarem separadas por
+ * cinco colunas de outro assunto. Antes cada gêmea tinha uma ordem: Receber
+ * punha as datas entre a categoria e o dinheiro, Pagar punha depois do
+ * dinheiro. Nenhuma das duas tinha razão para isso.
+ *
+ * Só dois pontos ainda variam, e os dois são de domínio: como a contraparte
+ * se chama no negócio (cliente ou fornecedor) e como a API nomeia o campo da
+ * emissão (`data` ou `data_emissao`) — este último só para ORDENAR, porque o
+ * rótulo da coluna é "Emissão" nas duas.
+ */
+export function colunasDeContas(
+  rotuloDaContraparte: string,
+  campoDaEmissao: string,
+): ColunaDeContas[] {
+  return [
+    { chave: "id", rotulo: "ID Tiny", campo: "id_tiny" },
+    { chave: "vencimento", rotulo: "Vencimento", campo: "vencimento" },
+    { chave: "emissao", rotulo: "Emissão", campo: campoDaEmissao },
+    { chave: "contraparte", rotulo: rotuloDaContraparte, campo: "cliente_nome" },
+    { chave: "categoria", rotulo: "Categoria", campo: "categoria" },
+    { chave: "valor", rotulo: "Valor", campo: "valor_numero" },
+    { chave: "saldo", rotulo: "Saldo", campo: "saldo_numero" },
+    { chave: "situacao", rotulo: "Situação", campo: "situacao" },
+  ];
+}
+
 export interface TabelaDeContasProps<C extends ContaBase> {
   titulo: string;
-  colunas: ColunaDeContas[];
+  /** "Cliente" ou "Fornecedor" — o rótulo da coluna da contraparte. */
+  rotuloDaContraparte: string;
   dialeto: DialetoDeContas<C>;
   /** A página que está na tela. */
   contas: C[];
@@ -60,46 +94,25 @@ export interface TabelaDeContasProps<C extends ContaBase> {
   ordenacao: Ordenacao;
   onOrdenar: (campo: string) => void;
   onExportar: () => void;
-  /**
-   * O que a tabela diz quando não sobra linha nenhuma. Ausente, o corpo fica
-   * mudo — é o que Contas a Receber faz hoje.
-   *
-   * DIVERGÊNCIA ACIDENTAL 3.1, ainda não unificada: Contas a Pagar diz
-   * "Nenhuma conta encontrada." e Contas a Receber não diz nada. Unificar
-   * muda a asserção de caracterização de Receber, então aguarda a decisão do
-   * Erick.
-   */
-  mensagemDeVazio?: string;
-  /**
-   * O texto do selo verde de conta quitada. Ausente, o selo mostra a situação
-   * crua que a API mandou.
-   *
-   * DIVERGÊNCIA ACIDENTAL 3.2, ainda não unificada: Receber desenha
-   * `{situacao}` cru ("PAGO" da API aparece "PAGO") e Pagar desenha o literal
-   * "Pago". A mesma linha do Tiny sai escrita diferente nas duas telas.
-   */
-  rotuloDeQuitada?: string;
-  /**
-   * Se a célula da contraparte mostra o CPF/CNPJ numa segunda linha.
-   *
-   * DIVERGÊNCIA ACIDENTAL 3.5, ainda não unificada: Receber mostra, Pagar
-   * trunca o nome e não mostra documento nenhum.
-   */
-  mostrarDocumento?: boolean;
 }
 
-/** O selo de situação: quitada, vencida, em aberto, ou o que a API mandou. */
+/**
+ * O selo de situação: o texto é sempre o que a API mandou, sem tradução.
+ *
+ * Contas a Pagar escrevia o literal "Pago" no lugar da situação crua, e era a
+ * exceção dentro do próprio `if`: as outras três pernas — "Vencida" à parte,
+ * que é estado calculado — já mostravam o texto cru. Uma linha do Tiny com
+ * `situacao: "PAGO"` saía "PAGO" numa tela e "Pago" na outra.
+ */
 function SeloDeSituacao<C extends ContaBase>({
   conta,
   dialeto,
-  rotuloDeQuitada,
 }: {
   conta: C;
   dialeto: DialetoDeContas<C>;
-  rotuloDeQuitada?: string;
 }) {
   if (estaQuitada(conta.situacao, dialeto)) {
-    return <Badge variant="success">{rotuloDeQuitada ?? conta.situacao}</Badge>;
+    return <Badge variant="success">{conta.situacao}</Badge>;
   }
   // A ordem importa e é a de hoje: "Vencida" vem ANTES de "pendente"/"aberto",
   // e por isso apaga a situação de verdade depois do vencimento (defeito 1.5).
@@ -124,7 +137,7 @@ function SeloDeSituacao<C extends ContaBase>({
  */
 export function TabelaDeContas<C extends ContaBase>({
   titulo,
-  colunas,
+  rotuloDaContraparte,
   dialeto,
   contas,
   total,
@@ -135,10 +148,9 @@ export function TabelaDeContas<C extends ContaBase>({
   ordenacao,
   onOrdenar,
   onExportar,
-  mensagemDeVazio,
-  rotuloDeQuitada,
-  mostrarDocumento = false,
 }: TabelaDeContasProps<C>) {
+  const colunas = colunasDeContas(rotuloDaContraparte, dialeto.campoDaEmissao);
+
   const celula = (conta: C, chave: ChaveDeColuna): ReactNode => {
     switch (chave) {
       case "id":
@@ -147,41 +159,34 @@ export function TabelaDeContas<C extends ContaBase>({
             {conta.id_tiny}
           </TableCell>
         );
+      case "vencimento":
+        return (
+          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
+            {formatarData(conta.vencimento)}
+          </TableCell>
+        );
+      case "emissao":
+        return (
+          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
+            {formatarData(emissaoDe(conta, dialeto))}
+          </TableCell>
+        );
       case "contraparte":
+        // O CPF/CNPJ na segunda linha é o que desempata dois cadastros com o
+        // mesmo nome — e é dado que as duas APIs entregam. Contas a Pagar
+        // escondia por descuido, não por decisão.
         return (
           <TableCell key={chave} className="min-w-[200px]">
-            {mostrarDocumento ? (
-              <>
-                <p className="font-medium">{conta.cliente_nome}</p>
-                {conta.cliente_cpf_cnpj ? (
-                  <p className="font-mono text-xs text-conteudo-muted">
-                    {conta.cliente_cpf_cnpj}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <span className="block max-w-[200px] truncate font-medium" title={conta.cliente_nome}>
-                {conta.cliente_nome}
-              </span>
-            )}
+            <p className="font-medium">{conta.cliente_nome}</p>
+            {conta.cliente_cpf_cnpj ? (
+              <p className="font-mono text-xs text-conteudo-muted">{conta.cliente_cpf_cnpj}</p>
+            ) : null}
           </TableCell>
         );
       case "categoria":
         return (
           <TableCell key={chave} muted>
             {conta.categoria ?? "-"}
-          </TableCell>
-        );
-      case "emissao":
-        return (
-          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
-            {formatarData(dialeto.emissao(conta))}
-          </TableCell>
-        );
-      case "vencimento":
-        return (
-          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
-            {formatarData(conta.vencimento)}
           </TableCell>
         );
       case "valor":
@@ -199,7 +204,7 @@ export function TabelaDeContas<C extends ContaBase>({
       case "situacao":
         return (
           <TableCell key={chave}>
-            <SeloDeSituacao conta={conta} dialeto={dialeto} rotuloDeQuitada={rotuloDeQuitada} />
+            <SeloDeSituacao conta={conta} dialeto={dialeto} />
           </TableCell>
         );
     }
@@ -258,14 +263,13 @@ export function TabelaDeContas<C extends ContaBase>({
         </TableHead>
 
         <TableBody>
-          {contas.map((conta) => (
-            <TableRow key={conta.id}>
-              {colunas.map(({ chave }) => celula(conta, chave))}
-            </TableRow>
-          ))}
-          {contas.length === 0 && mensagemDeVazio ? (
-            <TableEmpty colSpan={colunas.length} message={mensagemDeVazio} />
-          ) : null}
+          {contas.length === 0 ? (
+            <TableEmpty colSpan={colunas.length} message={MENSAGEM_DE_VAZIO} />
+          ) : (
+            contas.map((conta) => (
+              <TableRow key={conta.id}>{colunas.map(({ chave }) => celula(conta, chave))}</TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 

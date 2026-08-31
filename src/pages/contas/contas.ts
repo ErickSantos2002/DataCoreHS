@@ -45,23 +45,36 @@ export interface ContaBase {
 /**
  * As duas divergências de domínio do par, num tipo só.
  *
- * `emissao` existe porque a API entrega o mesmo dado com dois nomes:
- * `contas_receber.data` e `contas_pagar.data_emissao`.
+ * `campoDaEmissao` existe porque a API entrega o mesmo dado com dois nomes:
+ * `contas_receber.data` e `contas_pagar.data_emissao`. A coluna que sai disso
+ * se chama "Emissão" nas duas telas.
  *
  * SUPOSIÇÃO NÃO CONFIRMADA CONTRA O TINY: que `contas_receber.data` é mesmo a
  * data de EMISSÃO da conta, e não outra coisa (competência, cadastro). A
  * decisão do Erick em 31/08/2026 foi preservar o comportamento atual
  * exatamente como está e travá-lo por teste, em vez de unificar às cegas. Se
  * a conferência contra o Tiny disser outra coisa, é aqui que muda — e o
- * rótulo da coluna "Data" muda junto.
+ * rótulo "Emissão" da coluna e da planilha muda junto.
  */
 export interface DialetoDeContas<C extends ContaBase> {
-  /** A data que manda no filtro de período, no eixo X do gráfico e na média. */
-  emissao: (conta: C) => string;
+  /**
+   * O NOME do campo que guarda a data de emissão — `data` em Contas a
+   * Receber, `data_emissao` em Contas a Pagar.
+   *
+   * É nome de campo, e não uma função que lê o campo, porque a tabela
+   * precisa do nome para ORDENAR por ele. Com os dois separados dava para a
+   * tela filtrar por um campo e ordenar por outro sem ninguém perceber.
+   */
+  campoDaEmissao: Extract<keyof C, string>;
   /** Situações que contam como quitada, em minúscula. */
   situacoesQuitadas: readonly string[];
   /** Nome da série de quitado nos dados do gráfico ("recebido" / "pago"). */
   chaveQuitado: string;
+}
+
+/** A data de emissão de uma conta, seja qual for o nome que a API deu a ela. */
+export function emissaoDe<C extends ContaBase>(conta: C, dialeto: DialetoDeContas<C>): string {
+  return String(conta[dialeto.campoDaEmissao]);
 }
 
 export interface Ordenacao {
@@ -289,7 +302,7 @@ export function filtrarContas<C extends ContaBase>(
     if (filtros.contraparte.length > 0 && !filtros.contraparte.includes(conta.cliente_nome)) {
       return false;
     }
-    const emissao = dialeto.emissao(conta);
+    const emissao = emissaoDe(conta, dialeto);
     if (filtros.dataInicio && emissao < filtros.dataInicio) return false;
     if (filtros.dataFim && emissao > filtros.dataFim) return false;
     return true;
@@ -336,7 +349,7 @@ export function calcularKpis<C extends ContaBase>(
     if (vencimento >= hoje && vencimento <= em30Dias && !quitada) aVencer30 += 1;
   }
 
-  const mesesComDados = new Set(contas.map((conta) => dialeto.emissao(conta).slice(0, 7))).size;
+  const mesesComDados = new Set(contas.map((conta) => emissaoDe(conta, dialeto).slice(0, 7))).size;
   const mediaMensal = mesesComDados > 0 ? (totalAberto + totalQuitado) / mesesComDados : 0;
 
   return { totalAberto, totalQuitado, contasVencidas, aVencer30, mediaMensal };
@@ -380,7 +393,7 @@ export function montarEvolucao<C extends ContaBase>(
     aberto: 0,
   }));
   for (const conta of contas) {
-    const indice = Number(dialeto.emissao(conta).split("-")[1]) - 1;
+    const indice = Number(emissaoDe(conta, dialeto).split("-")[1]) - 1;
     const ponto = meses[indice];
     if (estaQuitada(conta.situacao, dialeto)) {
       ponto[chave] = (ponto[chave] as number) + conta.valor_numero;
@@ -509,17 +522,11 @@ export interface FormatoDaPlanilha<C extends ContaBase> {
   /** Nome da aba e raiz do nome do arquivo. */
   aba: string;
   prefixoDoArquivo: string;
-  /** "Cliente" numa tela, "Fornecedor" na outra. */
-  rotuloDaContraparte: string;
-  /** "Data" numa tela, "Emissão" na outra. */
-  rotuloDaEmissao: string;
   /**
-   * A coluna `ID Tiny` existe só em Contas a Receber.
-   *
-   * DIVERGÊNCIA ACIDENTAL 3.4, ainda não unificada: aguarda a decisão do
-   * Erick, porque unificar muda a asserção de caracterização das duas telas.
+   * "Cliente" numa tela, "Fornecedor" na outra — o dado é o mesmo, o nome
+   * dele no negócio não é.
    */
-  incluirIdTiny: boolean;
+  rotuloDaContraparte: string;
   /**
    * As colunas que só existem numa das duas APIs, entre `Situação` e
    * `Cidade`: `Forma Pagamento`/`Portador` em Receber, `Ocorrência` em Pagar.
@@ -543,7 +550,7 @@ export function linhasDaPlanilha<C extends ContaBase>(
   formato: FormatoDaPlanilha<C>,
 ): Record<string, unknown>[] {
   return contas.map((conta) => ({
-    ...(formato.incluirIdTiny ? { "ID Tiny": conta.id_tiny } : {}),
+    "ID Tiny": conta.id_tiny,
     [formato.rotuloDaContraparte]: conta.cliente_nome,
     CPF_CNPJ: conta.cliente_cpf_cnpj ?? "",
     Categoria: conta.categoria ?? "",
@@ -551,7 +558,7 @@ export function linhasDaPlanilha<C extends ContaBase>(
     Histórico: conta.historico ?? "",
     Valor: conta.valor_numero,
     Saldo: conta.saldo_numero,
-    [formato.rotuloDaEmissao]: formatarData(dialeto.emissao(conta)),
+    Emissão: formatarData(emissaoDe(conta, dialeto)),
     Vencimento: formatarData(conta.vencimento),
     Liquidação: formatarData(conta.liquidacao),
     Situação: conta.vencida ? "Vencida" : (conta.situacao ?? ""),

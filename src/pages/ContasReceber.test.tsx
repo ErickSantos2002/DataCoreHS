@@ -294,9 +294,12 @@ function kpi(rotulo: string): string {
   return texto(valor);
 }
 
-/** Linhas de dado da tabela — sem a linha de cabeçalho. */
+/** Linhas de DADO — sem o cabeçalho e sem a linha de "nenhuma conta". */
 function linhasDaTabela(): HTMLElement[] {
-  return within(screen.getByRole("table")).getAllByRole("row").slice(1);
+  return within(screen.getByRole("table"))
+    .getAllByRole("row")
+    .slice(1)
+    .filter((linha) => within(linha).queryAllByRole("cell").length > 1);
 }
 
 /** A coluna "ID Tiny" de cada linha, na ordem em que a tela desenhou. */
@@ -462,19 +465,17 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     console_error.mockRestore();
   });
 
-  it("sem nenhuma conta, a tabela fica vazia SEM nenhuma mensagem", async () => {
-    // Suspeita: as outras telas dizem "Nenhum ... encontrado". Esta deixa o
-    // corpo da tabela em branco, sem uma palavra.
+  it("sem nenhuma conta, a tabela diz que está vazia", async () => {
     await montar([]);
 
     expect(linhasDaTabela()).toHaveLength(0);
-    expect(screen.queryByText(/nenhuma conta/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader").map((c) => texto(c))).toEqual([
       "ID Tiny",
+      "Vencimento",
+      "Emissão",
       "Cliente",
       "Categoria",
-      "Data",
-      "Vencimento",
       "Valor",
       "Saldo",
       "Situação",
@@ -997,8 +998,8 @@ describe("Contas a Receber — fuso horário", () => {
     // TZ=UTC e em TZ=America/Sao_Paulo.
     await montar([conta({ id: 1, data: "2026-01-01", vencimento: "2026-03-01" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("01/01/2026");
-    expect(celulasDaLinha(linhasDaTabela()[0])[4]).toBe("01/03/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("01/01/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[1]).toBe("01/03/2026");
   });
 
   it("na virada do mês, o Mês atual mistura o mês LOCAL com o dia em UTC", async () => {
@@ -1153,12 +1154,12 @@ describe("Contas a Receber — ordenação", () => {
     expect(idsNaTela()).toEqual(["106", "102", "104", "105", "101", "103"]);
   });
 
-  it("Data nos dois sentidos", async () => {
+  it("Emissão nos dois sentidos", async () => {
     await montar();
-    ordenarPor("Data");
+    ordenarPor("Emissão");
     expect(idsNaTela()).toEqual(["106", "105", "104", "103", "102", "101"]);
 
-    ordenarPor("Data");
+    ordenarPor("Emissão");
     expect(idsNaTela()).toEqual(["101", "102", "103", "104", "105", "106"]);
   });
 
@@ -1592,10 +1593,10 @@ describe("Contas a Receber — linha da tabela", () => {
 
     expect(celulasDaLinha(linhasDaTabela()[0])).toEqual([
       "101",
+      "20/01/2026",
+      "10/01/2026",
       "Alfa Transportes11.111.111/0001-11",
       "Serviços",
-      "10/01/2026",
-      "20/01/2026",
       "R$ 1.000,00",
       "R$ 0,00",
       "recebido",
@@ -1605,13 +1606,13 @@ describe("Contas a Receber — linha da tabela", () => {
   it("sem CPF/CNPJ a segunda linha da célula do cliente não é desenhada", async () => {
     await montar([conta({ id: 1, cliente_nome: "Só o Nome" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[1]).toBe("Só o Nome");
+    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("Só o Nome");
   });
 
   it("categoria ausente vira travessão na célula", async () => {
     await montar([conta({ id: 1, categoria: null })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("-");
+    expect(celulasDaLinha(linhasDaTabela()[0])[4]).toBe("-");
   });
 
   it("data-hora na coluna de data sai quebrada, com a hora colada no dia", async () => {
@@ -1619,7 +1620,7 @@ describe("Contas a Receber — linha da tabela", () => {
     // API mandar data com hora, a célula mostra "10T00:00:00/01/2026".
     await montar([conta({ id: 1, data: "2026-01-10T00:00:00" })]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[3]).toBe("10T00:00:00/01/2026");
+    expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("10T00:00:00/01/2026");
   });
 });
 
@@ -1693,7 +1694,7 @@ describe("Contas a Receber — exportação para Excel", () => {
       "Histórico",
       "Valor",
       "Saldo",
-      "Data",
+      "Emissão",
       "Vencimento",
       "Liquidação",
       "Situação",
@@ -1720,7 +1721,7 @@ describe("Contas a Receber — exportação para Excel", () => {
         // Valor e Saldo saem como NÚMERO, não como texto formatado.
         Valor: 1000,
         Saldo: 0,
-        Data: "10/01/2026",
+        Emissão: "10/01/2026",
         Vencimento: "20/01/2026",
         Liquidação: "18/01/2026",
         Situação: "recebido",
@@ -1748,7 +1749,7 @@ describe("Contas a Receber — exportação para Excel", () => {
         Histórico: "",
         Valor: 0,
         Saldo: 0,
-        Data: "10/01/2026",
+        Emissão: "10/01/2026",
         Vencimento: "01/12/2026",
         Liquidação: "-",
         Situação: "",

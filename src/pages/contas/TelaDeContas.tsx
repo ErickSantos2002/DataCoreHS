@@ -7,7 +7,7 @@ import { CabecalhoContas } from "./CabecalhoContas";
 import { FiltrosDeContas } from "./FiltrosDeContas";
 import { GraficosDeContas } from "./GraficosDeContas";
 import { KpisDeContas } from "./KpisDeContas";
-import { TabelaDeContas, type ColunaDeContas } from "./TabelaDeContas";
+import { TabelaDeContas } from "./TabelaDeContas";
 import {
   ORDENACAO_INICIAL,
   buscarNasContas,
@@ -32,12 +32,13 @@ import {
 /**
  * Tudo o que difere entre Contas a Receber e Contas a Pagar, num objeto só.
  *
- * A régua para uma entrada existir aqui é simples: ou ela é uma divergência
- * de DOMÍNIO (o que conta como quitado, qual campo de data é a emissão), ou é
- * uma divergência ACIDENTAL que ainda espera autorização para sumir. Não há
- * terceira categoria — o que era divergência por descuido e já pôde ser
- * unificado (cor de KPI, cor de barra, moldura de card, paginação) não tem
- * entrada nenhuma: virou código igual para as duas.
+ * A régua para uma entrada existir aqui é uma só: ela tem de ser divergência
+ * de DOMÍNIO — o que conta como quitado, qual campo de data é a emissão, e o
+ * vocabulário do negócio (cliente ou fornecedor, receber ou pagar). Não há
+ * segunda categoria. O que divergia por descuido — a ordem das colunas, as
+ * colunas da planilha, a mensagem de lista vazia, o texto do selo, o CPF/CNPJ
+ * na célula, além de cor de KPI, cor de barra, moldura de card e paginação —
+ * não tem entrada nenhuma: virou código igual para as duas.
  */
 export interface ConfiguracaoDeContas<C extends ContaBase> {
   titulo: string;
@@ -52,15 +53,8 @@ export interface ConfiguracaoDeContas<C extends ContaBase> {
   legendaQuitado: string;
   legendaAberto: string;
   tomDoAberto: "acao" | "perigo";
-  colunas: ColunaDeContas[];
   dialeto: DialetoDeContas<C>;
   planilha: FormatoDaPlanilha<C>;
-  /** Divergência acidental 3.1 — ver `TabelaDeContas`. */
-  mensagemDeVazio?: string;
-  /** Divergência acidental 3.2 — ver `TabelaDeContas`. */
-  rotuloDeQuitada?: string;
-  /** Divergência acidental 3.5 — ver `TabelaDeContas`. */
-  mostrarDocumento?: boolean;
 }
 
 export interface TelaDeContasProps<C extends ContaBase> {
@@ -259,7 +253,7 @@ export function TelaDeContas<C extends ContaBase>({
 
         <TabelaDeContas
           titulo={configuracao.tituloDaTabela}
-          colunas={configuracao.colunas}
+          rotuloDaContraparte={configuracao.rotuloDaContraparte}
           dialeto={dialeto}
           contas={daPagina}
           total={daTabela.length}
@@ -273,9 +267,6 @@ export function TelaDeContas<C extends ContaBase>({
           ordenacao={ordenacao}
           onOrdenar={(campo) => setOrdenacao((atual) => proximaOrdenacao(atual, campo))}
           onExportar={exportar}
-          mensagemDeVazio={configuracao.mensagemDeVazio}
-          rotuloDeQuitada={configuracao.rotuloDeQuitada}
-          mostrarDocumento={configuracao.mostrarDocumento}
         />
       </div>
     </div>

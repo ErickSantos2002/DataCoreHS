@@ -74,13 +74,13 @@ function conta(campos: Partial<ContaDeExemplo> & { id: number }): ContaDeExemplo
 }
 
 const RECEBER: DialetoDeContas<ContaDeExemplo> = {
-  emissao: (c) => c.data,
+  campoDaEmissao: "data",
   situacoesQuitadas: ["recebido", "pago"],
   chaveQuitado: "recebido",
 };
 
 const PAGAR: DialetoDeContas<ContaDeExemplo> = {
-  emissao: (c) => c.data_emissao,
+  campoDaEmissao: "data_emissao",
   situacoesQuitadas: ["pago"],
   chaveQuitado: "pago",
 };
@@ -565,8 +565,6 @@ describe("planilha", () => {
     aba: "Contas a Receber",
     prefixoDoArquivo: "contas_a_receber",
     rotuloDaContraparte: "Cliente",
-    rotuloDaEmissao: "Data",
-    incluirIdTiny: true,
     colunasProprias: () => ({ "Forma Pagamento": "Boleto", Portador: "Banco Um" }),
   };
 
@@ -574,8 +572,6 @@ describe("planilha", () => {
     aba: "Contas a Pagar",
     prefixoDoArquivo: "contas_a_pagar",
     rotuloDaContraparte: "Fornecedor",
-    rotuloDaEmissao: "Emissão",
-    incluirIdTiny: false,
     colunasProprias: (c: ContaDeExemplo) => ({ Ocorrência: c.ocorrencia }),
   };
 
@@ -589,7 +585,9 @@ describe("planilha", () => {
     vencimento: "2026-01-20",
   });
 
-  it("as colunas saem na ordem, e o formato decide quais existem", () => {
+  it("as duas telas exportam as mesmas colunas, na mesma ordem", () => {
+    // Só o nome da contraparte e a coluna que existe numa API só é que
+    // mudam. `ID Tiny` e `Emissão` existem nas duas.
     expect(Object.keys(linhasDaPlanilha([umaConta], RECEBER, FORMATO_RECEBER)[0])).toEqual([
       "ID Tiny",
       "Cliente",
@@ -599,7 +597,7 @@ describe("planilha", () => {
       "Histórico",
       "Valor",
       "Saldo",
-      "Data",
+      "Emissão",
       "Vencimento",
       "Liquidação",
       "Situação",
@@ -610,6 +608,7 @@ describe("planilha", () => {
     ]);
 
     expect(Object.keys(linhasDaPlanilha([umaConta], PAGAR, FORMATO_PAGAR)[0])).toEqual([
+      "ID Tiny",
       "Fornecedor",
       "CPF_CNPJ",
       "Categoria",
@@ -630,7 +629,7 @@ describe("planilha", () => {
   it("dinheiro sai como número e data sai como texto dd/mm/aaaa", () => {
     const linha = linhasDaPlanilha([umaConta], RECEBER, FORMATO_RECEBER)[0];
     expect(linha.Valor).toBe(1000);
-    expect(linha.Data).toBe("10/01/2026");
+    expect(linha.Emissão).toBe("10/01/2026");
     expect(linha.Liquidação).toBe("-");
   });
 
