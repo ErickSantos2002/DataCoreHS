@@ -1,5 +1,6 @@
 import type {
   HTMLAttributes,
+  ReactNode,
   TableHTMLAttributes,
   TdHTMLAttributes,
   ThHTMLAttributes,
@@ -185,8 +186,18 @@ export function TableCell({ muted = false, className, children, ...rest }: Table
  * Estado vazio da tabela — uma linha, uma célula centralizada abrangendo
  * todas as colunas. Precisa viver dentro de `<TableBody>`, senão o `<tr>`
  * solto produz HTML inválido.
+ *
+ * `message` aceita nó, e não só texto: quando a lista vazia tem uma saída
+ * ("Criar o primeiro usuário"), a frase e o botão que a resolve moram no
+ * mesmo lugar em que a pessoa está olhando.
  */
-export function TableEmpty({ colSpan, message = MENSAGEM_VAZIO_PADRAO }: { colSpan: number; message?: string }) {
+export function TableEmpty({
+  colSpan,
+  message = MENSAGEM_VAZIO_PADRAO,
+}: {
+  colSpan: number;
+  message?: ReactNode;
+}) {
   return (
     <tr>
       <td colSpan={colSpan} className="px-4 py-12 text-center text-sm text-conteudo-muted">
