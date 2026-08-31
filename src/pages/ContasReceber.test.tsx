@@ -495,7 +495,7 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     expect(kpi("Total Recebido")).toBe("R$ 0,00");
     expect(kpi("Contas Vencidas")).toBe("0");
     expect(kpi("A Vencer (30 dias)")).toBe("0");
-    expect(kpi("Média Mensal")).toBe("R$ 0,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 0,00");
   });
 
   it("sem nenhuma conta, o gráfico cai no ano do relógio e desenha os 12 meses zerados", async () => {
@@ -545,29 +545,35 @@ describe("Contas a Receber — KPIs", () => {
   it("os cinco KPIs, com a conta feita por fora", async () => {
     await montar();
 
-    // Recebido = VALOR das pagas/recebidas: 1000 + 500,50 = 1500,50
+    // Recebido = (valor − saldo) de TODAS: (1000-0) + (500,50-0) + 0 + 0 +
+    // 0 + 0 = 1500,50
     expect(kpi("Total Recebido")).toBe("R$ 1.500,50");
-    // A receber = SALDO das demais: 300 + 200 + 400 + 100 = 1000
+    // A receber = SALDO das não quitadas: 300 + 200 + 400 + 100 = 1000
     expect(kpi("Total a Receber")).toBe("R$ 1.000,00");
     // Vencida = só a 103 (venceu 30/08, hoje é 31/08)
     expect(kpi("Contas Vencidas")).toBe("1");
     // A vencer = 104 (vence hoje) e 105 (vence no 30º dia)
     expect(kpi("A Vencer (30 dias)")).toBe("2");
-    // Média = (1000 + 1500,50) / 4 meses de emissão = 2500,50 / 4 = 625,125
-    expect(kpi("Média Mensal")).toBe("R$ 625,13");
+    // Média faturada = (1000 + 1500,50) / 4 meses de emissão = 625,125.
+    // E os dois somados são o faturado: 1000 + 500,50 + 300 + 200 + 400 +
+    // 100 = 2500,50.
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 625,13");
   });
 
-  it("o total a receber soma SALDO e o total recebido soma VALOR", async () => {
-    // Suspeita: os dois KPIs somam campos diferentes, e a média mensal soma
-    // um com o outro. Uma conta em aberto com saldo parcial entra pelo saldo
-    // (o que falta receber) e uma recebida entra pelo valor cheio.
+  it("o recebimento parcial de uma conta em aberto aparece no Total Recebido", async () => {
+    // Antes uma nota de R$ 1.000 com R$ 750 já recebidos aparecia como
+    // R$ 250 em "a receber" e os R$ 750 não apareciam em lugar nenhum: o
+    // KPI de recebido só olhava as quitadas, e pelo valor cheio (defeito
+    // 1.1).
     await montar([
       conta({ id: 1, valor: "1000", saldo: "250", situacao: "pendente" }),
-      conta({ id: 2, valor: "800", saldo: "800", situacao: "recebido" }),
+      conta({ id: 2, valor: "800", saldo: "0", situacao: "recebido" }),
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 250,00");
-    expect(kpi("Total Recebido")).toBe("R$ 800,00");
+    expect(kpi("Total Recebido")).toBe("R$ 1.550,00");
+    // Os dois somados são o faturado: 1000 + 800.
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.800,00");
   });
 
   it("vencida é ESTRITAMENTE antes de hoje: a que vence hoje não é vencida", async () => {
@@ -621,7 +627,7 @@ describe("Contas a Receber — KPIs", () => {
       conta({ id: 3, data: "2026-05-31", vencimento: "2026-08-01", valor: "300", saldo: "300", situacao: "pendente" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 600,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 600,00");
   });
 
   it("a média mensal divide por mês do calendário, não por mês corrido", async () => {
@@ -632,18 +638,22 @@ describe("Contas a Receber — KPIs", () => {
       conta({ id: 2, data: "2026-01-01", valor: "300", saldo: "300", situacao: "pendente" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 300,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 300,00");
   });
 
-  it("a média mensal soma saldo em aberto com valor recebido no mesmo bolo", async () => {
-    // Suspeita: uma conta de R$ 1.000 com R$ 900 já recebidos entra na média
-    // pelos R$ 100 que faltam; uma quitada entra pelos R$ 1.000 cheios.
+  it("a média mensal faturada é o que a empresa faturou no mês, e não uma mistura", async () => {
+    // O exemplo do levantamento: uma nota de R$ 1.000 com R$ 900 já
+    // recebidos e uma nota de R$ 1.000 quitada, as duas emitidas em janeiro.
+    // A tela mostrava R$ 1.100 — nem o faturado (R$ 2.000) nem o que entrou
+    // (R$ 1.900), porque somava saldo com valor cheio (defeito 1.2).
     await montar([
       conta({ id: 1, data: "2026-01-05", valor: "1000", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "1000", situacao: "recebido" }),
+      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "0", situacao: "recebido" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 1.100,00");
+    expect(kpi("Total Recebido")).toBe("R$ 1.900,00");
+    expect(kpi("Total a Receber")).toBe("R$ 100,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 2.000,00");
   });
 
   it("os KPIs seguem os filtros", async () => {
@@ -655,7 +665,7 @@ describe("Contas a Receber — KPIs", () => {
     expect(kpi("Contas Vencidas")).toBe("1");
     expect(kpi("A Vencer (30 dias)")).toBe("1");
     // 500 / 2 meses de emissão (março e agosto) = 250
-    expect(kpi("Média Mensal")).toBe("R$ 250,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 250,00");
   });
 
   it("os KPIs NÃO seguem a busca da tabela", async () => {
@@ -674,10 +684,10 @@ describe("Contas a Receber — KPIs", () => {
 describe("Contas a Receber — situação", () => {
   it("recebido e pago valem a mesma coisa, em qualquer caixa", async () => {
     await montar([
-      conta({ id: 1, valor: "100", saldo: "100", situacao: "recebido" }),
-      conta({ id: 2, valor: "200", saldo: "200", situacao: "pago" }),
-      conta({ id: 3, valor: "400", saldo: "400", situacao: "PAGO" }),
-      conta({ id: 4, valor: "800", saldo: "800", situacao: "Recebido" }),
+      conta({ id: 1, valor: "100", saldo: "0", situacao: "recebido" }),
+      conta({ id: 2, valor: "200", saldo: "0", situacao: "pago" }),
+      conta({ id: 3, valor: "400", saldo: "0", situacao: "PAGO" }),
+      conta({ id: 4, valor: "800", saldo: "0", situacao: "Recebido" }),
     ]);
 
     expect(kpi("Total Recebido")).toBe("R$ 1.500,00");
@@ -685,7 +695,7 @@ describe("Contas a Receber — situação", () => {
   });
 
   it("a caixa alta vale para a conta mas não para o rótulo: a badge mostra o texto cru", async () => {
-    await montar([conta({ id: 1, valor: "100", saldo: "100", situacao: "PAGO" })]);
+    await montar([conta({ id: 1, valor: "100", saldo: "0", situacao: "PAGO" })]);
 
     expect(kpi("Total Recebido")).toBe("R$ 100,00");
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("PAGO");
@@ -697,7 +707,9 @@ describe("Contas a Receber — situação", () => {
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 700,00");
-    expect(kpi("Total Recebido")).toBe("R$ 0,00");
+    // Os 200 que já entraram contam mesmo com a situação desconhecida: o
+    // recebido é `valor − saldo`, e não depende de a conta estar quitada.
+    expect(kpi("Total Recebido")).toBe("R$ 200,00");
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("cancelado");
   });
 
@@ -885,7 +897,7 @@ describe("Contas a Receber — cada filtro isolado", () => {
 
     expect(linhasDaTabela()).toHaveLength(0);
     expect(kpi("Total a Receber")).toBe("R$ 0,00");
-    expect(kpi("Média Mensal")).toBe("R$ 0,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 0,00");
   });
 });
 
@@ -1449,14 +1461,16 @@ describe("Contas a Receber — gráfico de evolução", () => {
   it("com dois anos na base, troca para ANUAL e ordena do mais antigo ao mais novo", async () => {
     await montar([
       conta({ id: 1, data: "2026-05-01", valor: "100", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2024-05-01", valor: "700", saldo: "700", situacao: "recebido" }),
+      conta({ id: 2, data: "2024-05-01", valor: "700", saldo: "0", situacao: "recebido" }),
       conta({ id: 3, data: "2025-05-01", valor: "300", saldo: "250", situacao: "pendente" }),
     ]);
 
     expect(screen.getByRole("heading", { name: "Evolução Anual" })).toBeInTheDocument();
+    // 2025 tem uma conta em aberto de 300 com 50 já recebidos: ela aparece
+    // nas duas barras do ano.
     expect(itensDoGrafico(/Evolução/)).toEqual([
       "label=2024 recebido=700 aberto=0",
-      "label=2025 recebido=0 aberto=250",
+      "label=2025 recebido=50 aberto=250",
       "label=2026 recebido=0 aberto=100",
     ]);
   });
@@ -1473,13 +1487,19 @@ describe("Contas a Receber — gráfico de evolução", () => {
     ]);
   });
 
-  it("a barra separa recebido (valor cheio) de aberto (saldo)", async () => {
+  it("a barra separa o que entrou (valor − saldo) do que falta (saldo)", async () => {
+    // A conta 1 está em aberto e já recebeu 600: ela entra nas DUAS barras.
+    // Antes cada conta ia inteira para uma barra só — a quitada pelo valor
+    // cheio, a em aberto pelo saldo — e os 600 sumiam do gráfico.
     await montar([
       conta({ id: 1, data: "2026-01-05", valor: "1000", saldo: "400", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "400", situacao: "recebido" }),
+      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "0", situacao: "recebido" }),
     ]);
 
-    expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=1000 aberto=400");
+    expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=1600 aberto=400");
+    // E as duas barras somadas dão os dois KPIs do topo.
+    expect(kpi("Total Recebido")).toBe("R$ 1.600,00");
+    expect(kpi("Total a Receber")).toBe("R$ 400,00");
   });
 
   it("clicar numa barra mensal filtra o mês inteiro e vira Personalizado", async () => {
@@ -1606,6 +1626,29 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
       "name=Sem categoria value=100",
       "name= value=50",
     ]);
+  });
+
+  it("a pizza e o Top 10 FECHAM com o painel de KPIs", async () => {
+    // Os gráficos somavam sempre `valor_numero` e o painel somava outra
+    // coisa: o topo da tela e o gráfico logo abaixo não batiam, e nada
+    // avisava (defeito 1.1). Uma conta marcada como recebida com saldo
+    // sobrando é o caso em que os dois discordavam.
+    await montar([
+      conta({ id: 1, data: "2026-01-05", categoria: "Serviços", cliente_nome: "Alfa", valor: "1000", saldo: "300", situacao: "recebido" }),
+      conta({ id: 2, data: "2026-01-06", categoria: "Locação", cliente_nome: "Beta", valor: "500", saldo: "500", situacao: "pendente" }),
+    ]);
+
+    expect(itensDoGrafico("Distribuição por Categoria")).toEqual([
+      "name=Serviços value=700",
+      "name=Locação value=500",
+    ]);
+    expect(itensDoGrafico("Top 10 Clientes")).toEqual([
+      "nome=Alfa valor=700",
+      "nome=Beta valor=500",
+    ]);
+    expect(kpi("Total Recebido")).toBe("R$ 700,00");
+    expect(kpi("Total a Receber")).toBe("R$ 500,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.200,00");
   });
 
   it("clientes soma o VALOR por nome e ordena do maior", async () => {

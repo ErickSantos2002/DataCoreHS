@@ -346,34 +346,85 @@ describe("KPIs", () => {
 
   it("a mesma base dá números diferentes nos dois dialetos", () => {
     // A conta 1 está "recebido": quitada para Contas a Receber, em aberto
-    // para Contas a Pagar. É a divergência de domínio aparecendo no número.
+    // para Contas a Pagar. É a divergência de domínio aparecendo no número —
+    // e ela aparece só no ABERTO, porque o que já entrou é o mesmo dinheiro
+    // nos dois dialetos.
     const receber = calcularKpis(contas, RECEBER, AGORA);
     expect(receber.totalQuitado).toBe(1000);
     expect(receber.totalAberto).toBe(400);
 
     const pagar = calcularKpis(contas, PAGAR, AGORA);
-    expect(pagar.totalQuitado).toBe(0);
+    expect(pagar.totalQuitado).toBe(1000);
     expect(pagar.totalAberto).toBe(500);
   });
 
-  it("DEFEITO PRESERVADO: quitada entra pelo valor cheio, aberta entra pelo saldo", () => {
-    // A conta 1 vale 1000 e ainda deve 100. Ela entra com 1000 no "recebido";
-    // se estivesse em aberto entraria com 100. São grandezas diferentes no
-    // mesmo painel — defeito 1.1 do levantamento.
-    const kpis = calcularKpis([contas[0]], RECEBER, AGORA);
-    expect(kpis.totalQuitado).toBe(1000);
-    expect(calcularKpis([contas[0]], PAGAR, AGORA).totalAberto).toBe(100);
+  it("o quitado é `valor − saldo` de TODAS as contas, quitadas ou não", () => {
+    // A conta 1 vale 1000 e ainda deve 100: 900 já entraram. Antes ela
+    // entrava com os 1000 CHEIOS no "recebido" — e, enquanto estivesse em
+    // aberto, os 900 que de fato entraram não apareciam em lugar nenhum
+    // (defeito 1.1).
+    expect(calcularKpis([contas[0]], RECEBER, AGORA)).toMatchObject({
+      totalQuitado: 900,
+      totalAberto: 0,
+    });
+
+    // Em Contas a Pagar a mesma conta não está quitada ("recebido" não conta
+    // lá): os 900 pagos entram do mesmo jeito, e os 100 que faltam entram no
+    // aberto.
+    expect(calcularKpis([contas[0]], PAGAR, AGORA)).toMatchObject({
+      totalQuitado: 900,
+      totalAberto: 100,
+    });
   });
 
-  it("DEFEITO PRESERVADO: a média divide pelos meses distintos de EMISSÃO", () => {
+  it("aberto mais quitado é o faturado da base — nenhuma conta entra duas vezes", () => {
+    // Uma quitada (saldo zerado, como o Tiny faz), uma em aberto com
+    // recebimento parcial e uma em aberto intocada.
+    const base = [
+      conta({ id: 1, data: "2026-01-05", valor_numero: 1000, saldo_numero: 0, situacao: "recebido" }),
+      conta({ id: 2, data: "2026-02-05", valor_numero: 500, saldo_numero: 200, situacao: "pendente" }),
+      conta({ id: 3, data: "2026-03-05", valor_numero: 300, saldo_numero: 300, situacao: "aberto" }),
+    ];
+    const kpis = calcularKpis(base, RECEBER, AGORA);
+
+    expect(kpis.totalQuitado).toBe(1300); // 1000 + 300 + 0
+    expect(kpis.totalAberto).toBe(500); // 200 + 300
+    expect(kpis.totalAberto + kpis.totalQuitado).toBe(1800);
+    expect(base.reduce((total, c) => total + c.valor_numero, 0)).toBe(1800);
+  });
+
+  it("a média mensal é o faturado dividido pelos meses distintos de EMISSÃO", () => {
     // Três contas emitidas no mesmo mês, vencendo em três meses diferentes:
-    // um mês só, então a média é a soma inteira.
+    // um mês só, então a média é o faturado inteiro.
     const mesmoMes = [
-      conta({ id: 1, data: "2026-05-01", vencimento: "2026-06-01", saldo_numero: 100 }),
-      conta({ id: 2, data: "2026-05-20", vencimento: "2026-07-01", saldo_numero: 200 }),
-      conta({ id: 3, data: "2026-05-31", vencimento: "2026-08-01", saldo_numero: 300 }),
+      conta({ id: 1, data: "2026-05-01", vencimento: "2026-06-01", valor_numero: 100, saldo_numero: 100 }),
+      conta({ id: 2, data: "2026-05-20", vencimento: "2026-07-01", valor_numero: 200, saldo_numero: 200 }),
+      conta({ id: 3, data: "2026-05-31", vencimento: "2026-08-01", valor_numero: 300, saldo_numero: 300 }),
     ];
     expect(calcularKpis(mesmoMes, RECEBER, AGORA).mediaMensal).toBe(600);
+
+    // Espalhadas por três meses de emissão, a mesma soma vira 200 por mês.
+    const tresMeses = mesmoMes.map((c, i) => ({
+      ...c,
+      data: `2026-0${5 + i}-01`,
+    }));
+    expect(calcularKpis(tresMeses, RECEBER, AGORA).mediaMensal).toBe(200);
+  });
+
+  it("a média deixa de misturar saldo com valor cheio", () => {
+    // O exemplo do levantamento: uma nota de 1.000 com 900 já recebidos e
+    // uma nota de 1.000 quitada, as duas emitidas em janeiro. A tela mostrava
+    // R$ 1.100 — nem o faturado (2.000) nem o que entrou (1.900). Agora é o
+    // faturado do mês, que é o que o rótulo passa a prometer.
+    const janeiro = [
+      conta({ id: 1, data: "2026-01-05", valor_numero: 1000, saldo_numero: 100, situacao: "pendente" }),
+      conta({ id: 2, data: "2026-01-06", valor_numero: 1000, saldo_numero: 0, situacao: "recebido" }),
+    ];
+    const kpis = calcularKpis(janeiro, RECEBER, AGORA);
+
+    expect(kpis.totalQuitado).toBe(1900);
+    expect(kpis.totalAberto).toBe(100);
+    expect(kpis.mediaMensal).toBe(2000);
   });
 
   it("sem nenhuma conta, a média é zero e não vira NaN", () => {
@@ -430,8 +481,8 @@ describe("gráfico de evolução", () => {
 
   it("com mais de um ano, troca para anual e só desenha ano que tem conta", () => {
     const contas = [
-      conta({ id: 1, data: "2026-01-01", saldo_numero: 20 }),
-      conta({ id: 2, data: "2020-01-01", saldo_numero: 10 }),
+      conta({ id: 1, data: "2026-01-01", valor_numero: 20, saldo_numero: 20 }),
+      conta({ id: 2, data: "2020-01-01", valor_numero: 10, saldo_numero: 10 }),
     ];
     const evolucao = montarEvolucao(contas, RECEBER, AGORA);
 
@@ -446,6 +497,21 @@ describe("gráfico de evolução", () => {
   it("sem nenhuma conta, cai no ano do relógio", () => {
     expect(montarEvolucao([], RECEBER, AGORA).titulo).toBe("Evolução Mensal — 2026");
   });
+
+  it("uma conta em aberto com recebimento parcial entra nas DUAS séries", () => {
+    // Antes cada conta ia inteira para uma barra só — a quitada pelo valor
+    // cheio, a em aberto pelo saldo —, e o recebimento parcial de uma conta
+    // em aberto não aparecia em barra nenhuma (defeito 1.1).
+    const parcial = [
+      conta({ id: 1, data: "2026-01-05", valor_numero: 1000, saldo_numero: 400, situacao: "pendente" }),
+    ];
+
+    expect(montarEvolucao(parcial, RECEBER, AGORA).dados[0]).toEqual({
+      label: "Jan",
+      recebido: 600,
+      aberto: 400,
+    });
+  });
 });
 
 describe("gráficos de categoria e de contraparte", () => {
@@ -453,7 +519,7 @@ describe("gráficos de categoria e de contraparte", () => {
     const contas = Array.from({ length: 10 }, (_, i) =>
       conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
-    const fatias = montarCategorias(contas);
+    const fatias = montarCategorias(contas, RECEBER);
 
     expect(fatias).toHaveLength(8);
     expect(fatias[0]).toEqual({ name: "Cat 10", value: 100 });
@@ -467,7 +533,7 @@ describe("gráficos de categoria e de contraparte", () => {
     const contas = Array.from({ length: 10 }, (_, i) =>
       conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
-    const fatias = montarCategorias(contas);
+    const fatias = montarCategorias(contas, RECEBER);
 
     // Cat 3 + Cat 2 + Cat 1 = 30 + 20 + 10.
     expect(fatias[7]).toEqual({ name: "Outros", value: 60 });
@@ -480,7 +546,7 @@ describe("gráficos de categoria e de contraparte", () => {
     const contas = Array.from({ length: 8 }, (_, i) =>
       conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
-    expect(montarCategorias(contas).map((f) => f.name)).toEqual([
+    expect(montarCategorias(contas, RECEBER).map((f) => f.name)).toEqual([
       "Cat 8",
       "Cat 7",
       "Cat 6",
@@ -497,18 +563,39 @@ describe("gráficos de categoria e de contraparte", () => {
       conta({ id: 1, categoria: null, valor_numero: 100 }),
       conta({ id: 2, categoria: "", valor_numero: 50 }),
     ];
-    expect(montarCategorias(contas)).toEqual([
+    expect(montarCategorias(contas, RECEBER)).toEqual([
       { name: "Sem categoria", value: 100 },
       { name: "", value: 50 },
     ]);
+  });
+
+  it("categoria e contraparte somam a MESMA base dos KPIs, e fecham com o painel", () => {
+    // Antes os gráficos somavam sempre `valor_numero`, e o topo da tela não
+    // fechava com o gráfico logo abaixo (defeito 1.1). Uma quitada com saldo
+    // sobrando é o caso em que os dois discordavam.
+    const contas = [
+      conta({ id: 1, categoria: "Serviços", cliente_nome: "Alfa", valor_numero: 1000, saldo_numero: 400, situacao: "pendente" }),
+      conta({ id: 2, categoria: "Locação", cliente_nome: "Beta", valor_numero: 500, saldo_numero: 200, situacao: "recebido" }),
+    ];
+    const kpis = calcularKpis(contas, RECEBER, AGORA);
+
+    expect(montarCategorias(contas, RECEBER)).toEqual([
+      { name: "Serviços", value: 1000 },
+      { name: "Locação", value: 300 },
+    ]);
+    expect(montarContrapartes(contas, RECEBER)).toEqual([
+      { nome: "Alfa", valor: 1000 },
+      { nome: "Beta", valor: 300 },
+    ]);
+    expect(kpis.totalAberto + kpis.totalQuitado).toBe(1300);
   });
 
   it("contraparte soma por nome cru e para em dez", () => {
     const contas = Array.from({ length: 12 }, (_, i) =>
       conta({ id: i + 1, cliente_nome: `Cliente ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
-    expect(montarContrapartes(contas)).toHaveLength(10);
-    expect(montarContrapartes(contas)[0]).toEqual({ nome: "Cliente 12", valor: 120 });
+    expect(montarContrapartes(contas, RECEBER)).toHaveLength(10);
+    expect(montarContrapartes(contas, RECEBER)[0]).toEqual({ nome: "Cliente 12", valor: 120 });
   });
 
   it("DEFEITO PRESERVADO: caixa e espaço sobrando viram contrapartes diferentes", () => {
@@ -517,7 +604,7 @@ describe("gráficos de categoria e de contraparte", () => {
       conta({ id: 2, cliente_nome: "ALFA", valor_numero: 50 }),
       conta({ id: 3, cliente_nome: "Alfa ", valor_numero: 10 }),
     ];
-    expect(montarContrapartes(contas)).toHaveLength(3);
+    expect(montarContrapartes(contas, RECEBER)).toHaveLength(3);
   });
 });
 

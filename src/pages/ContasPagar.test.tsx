@@ -588,7 +588,7 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     expect(kpi("Contas Vencidas")).toBe("0");
     expect(kpi("A Vencer (30 dias)")).toBe("0");
     // `mesesComDados` é 0 e a média cai no ramo do zero, sem dividir por zero.
-    expect(kpi("Média Mensal")).toBe("R$ 0,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 0,00");
     expect(linhasDaTabela()).toHaveLength(0);
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
@@ -630,27 +630,32 @@ describe("Contas a Pagar — KPIs", () => {
 
     // Em aberto = SALDO das não pagas: 1000 + 300 + 1500 + 700 + 400,50.
     expect(kpi("Total em Aberto")).toBe("R$ 3.900,50");
-    // Pago = VALOR das pagas: só a conta 102.
-    expect(kpi("Total Pago")).toBe("R$ 500,00");
+    // Pago = (valor − saldo) de TODAS: a 102 quitada (500) e a 104, que está
+    // em aberto mas já teve 500 pagos (2000 − 1500). As outras não tiveram
+    // pagamento nenhum.
+    expect(kpi("Total Pago")).toBe("R$ 1.000,00");
     // Vencidas: 101 (10/02) e 106 (01/03), ambas antes de 15/03.
     expect(kpi("Contas Vencidas")).toBe("2");
     // A vencer: 103 (vence hoje) e 104 (vence em hoje+30).
     expect(kpi("A Vencer (30 dias)")).toBe("2");
-    // Média = (3900,50 + 500) / 3 meses de emissão distintos = 1466,8333...
-    expect(kpi("Média Mensal")).toBe("R$ 1.466,83");
+    // Média faturada = (3900,50 + 1000) / 3 meses de emissão = 1633,50 — e
+    // 4900,50 é a soma dos valores das seis contas.
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.633,50");
   });
 
-  it("Total em Aberto soma o SALDO e Total Pago soma o VALOR", async () => {
-    // Suspeita: os dois KPIs medem campos diferentes. Uma conta paga
-    // parcialmente entra inteira no "pago" pelo valor, e uma conta em aberto
-    // entra pelo que sobrou. Fixado como está; comparar com a gêmea.
+  it("Total em Aberto é o SALDO das não pagas e Total Pago é `valor − saldo` de todas", async () => {
+    // Antes uma conta em aberto de 1000 com 750 já pagos aparecia como 250
+    // em "aberto" e os 750 não apareciam em lugar nenhum; e uma paga entrava
+    // pelo valor CHEIO, ainda que o saldo dissesse outra coisa (defeito 1.1).
     await montar([
       conta({ id: 1, valor: "1000.00", saldo: "250.00", situacao: "pendente" }),
-      conta({ id: 2, valor: "800.00", saldo: "300.00", situacao: "pago" }),
+      conta({ id: 2, valor: "800.00", saldo: "0.00", situacao: "pago" }),
     ]);
 
     expect(kpi("Total em Aberto")).toBe("R$ 250,00");
-    expect(kpi("Total Pago")).toBe("R$ 800,00");
+    expect(kpi("Total Pago")).toBe("R$ 1.550,00");
+    // Os dois somados são o faturado: 1000 + 800.
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.800,00");
   });
 
   it("vencer HOJE não é vencer: a comparação com hoje é estritamente menor", async () => {
@@ -690,14 +695,16 @@ describe("Contas a Pagar — KPIs", () => {
       conta({ id: 2, valor: "200.00", saldo: "0.00", situacao: "pago" }),
     ]);
 
+    // Os 90 que faltam entram no aberto porque "recebido" não quita aqui —
+    // na gêmea entrariam em zero. Os 10 já pagos contam nos dois dialetos.
     expect(kpi("Total em Aberto")).toBe("R$ 90,00");
-    expect(kpi("Total Pago")).toBe("R$ 200,00");
+    expect(kpi("Total Pago")).toBe("R$ 210,00");
   });
 
   it("'PAGO' em maiúsculas quita igual, porque a comparação é em minúsculas", async () => {
     await montar([
-      conta({ id: 1, valor: "100.00", saldo: "100.00", situacao: "PAGO" }),
-      conta({ id: 2, valor: "50.00", saldo: "50.00", situacao: "Pago" }),
+      conta({ id: 1, valor: "100.00", saldo: "0.00", situacao: "PAGO" }),
+      conta({ id: 2, valor: "50.00", saldo: "0.00", situacao: "Pago" }),
     ]);
 
     expect(kpi("Total Pago")).toBe("R$ 150,00");
@@ -714,7 +721,8 @@ describe("Contas a Pagar — KPIs", () => {
     ]);
 
     expect(kpi("Total em Aberto")).toBe("R$ 60,00");
-    expect(kpi("Total Pago")).toBe("R$ 0,00");
+    // O que já foi pago conta mesmo sem situação de quitada: 90 + 180 + 270.
+    expect(kpi("Total Pago")).toBe("R$ 540,00");
   });
 
   it("a média mensal conta meses DISTINTOS de emissão, não lançamentos", async () => {
@@ -725,19 +733,21 @@ describe("Contas a Pagar — KPIs", () => {
       conta({ id: 3, data_emissao: "2026-02-01", valor: "100.00", saldo: "100.00" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 150,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 150,00");
   });
 
-  it("a média mensal mistura saldo em aberto com valor pago no mesmo numerador", async () => {
-    // Suspeita: o numerador é `totalAberto + totalPago`, ou seja, saldo de
-    // umas somado a valor de outras. Com uma conta paga de 900 e uma em
-    // aberto com saldo 100 (valor 500), a média de um mês dá 1000, não 1400.
+  it("a média mensal faturada é o faturado do mês, e não uma mistura de grandezas", async () => {
+    // O numerador era `totalAberto + totalPago`: saldo de umas somado a valor
+    // de outras. Com uma paga de 900 e uma em aberto de 500 com saldo 100, a
+    // média dava 1000 — nem o faturado (1400) nem o que saiu (1300).
     await montar([
       conta({ id: 1, data_emissao: "2026-01-05", valor: "900.00", saldo: "0.00", situacao: "pago" }),
       conta({ id: 2, data_emissao: "2026-01-06", valor: "500.00", saldo: "100.00", situacao: "pendente" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 1.000,00");
+    expect(kpi("Total Pago")).toBe("R$ 1.300,00");
+    expect(kpi("Total em Aberto")).toBe("R$ 100,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.400,00");
   });
 
   it("o mês da média vem da EMISSÃO, não do vencimento", async () => {
@@ -748,7 +758,7 @@ describe("Contas a Pagar — KPIs", () => {
       conta({ id: 2, data_emissao: "2026-01-06", vencimento: "2026-09-06", valor: "100.00", saldo: "100.00" }),
     ]);
 
-    expect(kpi("Média Mensal")).toBe("R$ 200,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 200,00");
   });
 
   it("os KPIs seguem os filtros, mas ignoram a busca da tabela", async () => {
@@ -757,12 +767,13 @@ describe("Contas a Pagar — KPIs", () => {
     buscar("Alfa");
     expect(idsNaTela()).toEqual(["101", "104"]);
     expect(kpi("Total em Aberto")).toBe("R$ 3.900,50");
-    expect(kpi("Total Pago")).toBe("R$ 500,00");
+    expect(kpi("Total Pago")).toBe("R$ 1.000,00");
 
     buscar("");
     selecionar("Fornecedor", "Alfa Papelaria");
     expect(kpi("Total em Aberto")).toBe("R$ 2.500,00");
-    expect(kpi("Total Pago")).toBe("R$ 0,00");
+    // Nenhuma das duas está paga, mas a 104 já teve 500 pagos (2000 − 1500).
+    expect(kpi("Total Pago")).toBe("R$ 500,00");
     expect(kpi("Contas Vencidas")).toBe("1");
   });
 });
@@ -1511,11 +1522,12 @@ describe("Contas a Pagar — gráfico de evolução", () => {
     expect(evolucao()[0].label).toBe("Jan");
     expect(evolucao()[11].label).toBe("Dez");
     expect(mesesComValor()).toEqual([
-      // Jan: 102 paga (valor 500) e 101 em aberto (saldo 1000).
+      // Jan: 102 quitada (500 saíram) e 101 intocada (saldo 1000).
       { label: "Jan", pago: 500, aberto: 1000 },
-      // Fev: 103 (300) + 104 (1500), pelo SALDO.
-      { label: "Fev", pago: 0, aberto: 1800 },
-      // Mar: 105 (700) + 106 (400,50).
+      // Fev: 103 (300 em aberto) + 104, que está em aberto mas já teve 500
+      // pagos e 1500 por pagar — ela entra nas duas barras.
+      { label: "Fev", pago: 500, aberto: 1800 },
+      // Mar: 105 (700) + 106 (400,50), nenhuma com pagamento parcial.
       { label: "Mar", pago: 0, aberto: 1100.5 },
     ]);
   });
@@ -1540,17 +1552,24 @@ describe("Contas a Pagar — gráfico de evolução", () => {
 
     expect(tituloDaEvolucao()).toBe("Evolução Anual");
     expect(evolucao()).toEqual([
-      // 2025: a 202 é paga (valor 200) e a 201 em aberto (saldo 100).
-      { label: "2025", pago: 200, aberto: 100 },
+      // 2025: a 202 está paga mas com saldo 150 sobrando, então só os 50 que
+      // de fato saíram entram; a 201 continua inteira em aberto (saldo 100).
+      { label: "2025", pago: 50, aberto: 100 },
       { label: "2026", pago: 0, aberto: 400 },
     ]);
   });
 
-  it("o gráfico anual usa VALOR nas pagas e SALDO nas em aberto, igual ao KPI", async () => {
+  it("o gráfico anual soma a MESMA base dos KPIs, e fecha com eles", async () => {
+    // A conta 202 tem valor 200 e saldo 150: entrava como 200 no "pago"
+    // porque estava marcada como paga, e os 150 sobrando não apareciam em
+    // lugar nenhum (defeito 1.1). Agora ela entra pelos 50 que saíram.
     await montar(CONTAS_DOIS_ANOS);
 
-    // A conta 202 tem valor 200 e saldo 150: entra como 200 porque é paga.
-    expect(evolucao()[0]).toEqual({ label: "2025", pago: 200, aberto: 100 });
+    expect(evolucao()[0]).toEqual({ label: "2025", pago: 50, aberto: 100 });
+    expect(kpi("Total Pago")).toBe("R$ 50,00");
+    expect(kpi("Total em Aberto")).toBe("R$ 500,00");
+    const somaDoGrafico = evolucao().reduce((t, p) => t + p.pago + p.aberto, 0);
+    expect(somaDoGrafico).toBe(550);
   });
 
   it("clicar numa barra do modo mensal filtra o mês inteiro daquele ano", async () => {
@@ -1625,14 +1644,37 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
     ]);
   });
 
-  it("a pizza soma o VALOR mesmo quando o saldo já foi baixado", async () => {
-    // Suspeita: os gráficos somam `valor_numero` e o KPI "Total em Aberto"
-    // soma `saldo_numero`. Uma conta de 1000 já quase paga aparece como
-    // 1000 na pizza e como 1 no KPI.
+  it("a pizza soma o valor cheio de uma conta em aberto quase paga", async () => {
+    // Ela vale 1000 e falta 1: os 999 já pagos mais o 1 que falta dão os
+    // 1000 da fatia — a mesma soma dos dois KPIs do topo.
     await montar([conta({ id: 1, categoria: "Material", valor: "1000.00", saldo: "1.00", situacao: "pendente" })]);
 
     expect(categorias()).toEqual([{ name: "Material", value: 1000 }]);
     expect(kpi("Total em Aberto")).toBe("R$ 1,00");
+    expect(kpi("Total Pago")).toBe("R$ 999,00");
+  });
+
+  it("a pizza e o top de fornecedores FECHAM com o painel de KPIs", async () => {
+    // Os gráficos somavam sempre `valor_numero` e o painel somava outra
+    // coisa: o topo da tela e o gráfico logo abaixo não batiam, e nada
+    // avisava (defeito 1.1). Uma conta marcada como paga com saldo sobrando
+    // é o caso em que os dois discordavam.
+    await montar([
+      conta({ id: 1, categoria: "Material", cliente_nome: "Alfa", valor: "1000.00", saldo: "300.00", situacao: "pago" }),
+      conta({ id: 2, categoria: "Frete", cliente_nome: "Beta", valor: "500.00", saldo: "500.00", situacao: "pendente" }),
+    ]);
+
+    expect(categorias()).toEqual([
+      { name: "Material", value: 700 },
+      { name: "Frete", value: 500 },
+    ]);
+    expect(fornecedores()).toEqual([
+      { nome: "Alfa", valor: 700 },
+      { nome: "Beta", valor: 500 },
+    ]);
+    expect(kpi("Total Pago")).toBe("R$ 700,00");
+    expect(kpi("Total em Aberto")).toBe("R$ 500,00");
+    expect(kpi("Média Mensal Faturada")).toBe("R$ 1.200,00");
   });
 
   it("categoria nula vira 'Sem categoria'; a vazia continua vazia", async () => {

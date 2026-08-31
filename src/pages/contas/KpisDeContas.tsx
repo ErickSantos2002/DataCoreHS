@@ -19,6 +19,10 @@ export interface KpisDeContasProps {
  * resolvido em sucesso, o vencido em perigo, o que está para vencer em
  * alerta, e a média sem juízo nenhum.
  *
+ * "Total em Aberto" e "Total Recebido/Pago" não somam a mesma nota duas
+ * vezes: o primeiro é o SALDO das não quitadas, o segundo é `valor − saldo`
+ * de todas. Somados dão o faturado da base, que é o que a média divide.
+ *
  * Os cinco descrevem a base FILTRADA, e não o recorte da busca da tabela.
  */
 export function KpisDeContas({ kpis, rotuloDoAberto, rotuloDoQuitado }: KpisDeContasProps) {
@@ -32,7 +36,13 @@ export function KpisDeContas({ kpis, rotuloDoAberto, rotuloDoQuitado }: KpisDeCo
       />
       <KpiCard label="Contas Vencidas" value={kpis.contasVencidas} tone="perigo" />
       <KpiCard label="A Vencer (30 dias)" value={kpis.aVencer30} tone="alerta" />
-      <KpiCard label="Média Mensal" value={formatarMoeda(kpis.mediaMensal)} />
+      {/*
+        "Média Mensal Faturada", e não "Média Mensal": o número é
+        (aberto + quitado) / meses distintos de EMISSÃO, ou seja, quanto a
+        empresa fatura por mês. O rótulo curto não dizia de que grandeza nem
+        de que mês estava falando (defeito 1.2).
+      */}
+      <KpiCard label="Média Mensal Faturada" value={formatarMoeda(kpis.mediaMensal)} />
     </div>
   );
 }

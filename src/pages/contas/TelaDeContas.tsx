@@ -142,8 +142,11 @@ export function TelaDeContas<C extends ContaBase>({
     () => montarEvolucao(filtradas, dialeto, new Date()),
     [filtradas, dialeto],
   );
-  const categorias = useMemo(() => montarCategorias(filtradas), [filtradas]);
-  const contrapartes = useMemo(() => montarContrapartes(filtradas), [filtradas]);
+  const categorias = useMemo(() => montarCategorias(filtradas, dialeto), [filtradas, dialeto]);
+  const contrapartes = useMemo(
+    () => montarContrapartes(filtradas, dialeto),
+    [filtradas, dialeto],
+  );
 
   const daTabela = useMemo(
     () => ordenarContas(buscarNasContas(filtradas, pesquisa), ordenacao),

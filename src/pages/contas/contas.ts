@@ -190,6 +190,44 @@ export function estaEmAberto(situacao: string | null): boolean {
   return s === "pendente" || s === "aberto";
 }
 
+// ── As duas grandezas de uma conta ─────────────────────────────────────────
+//
+// O painel somava GRANDEZAS DIFERENTES no mesmo lugar: conta quitada entrava
+// pelo valor cheio e conta em aberto pelo saldo. Uma nota de R$ 1.000 com
+// R$ 900 já recebidos aparecia como R$ 100 em "aberto", e os R$ 900 que de
+// fato entraram não apareciam em lugar nenhum (defeito 1.1).
+//
+// As três funções abaixo são a decisão do Erick em 31/08/2026, e valem para
+// os KPIs e para os TRÊS gráficos de uma vez — é o que faz o topo da tela e o
+// gráfico logo abaixo fecharem entre si.
+
+/**
+ * O que já entrou (ou saiu) por uma conta: o valor menos o que ainda falta.
+ *
+ * De TODAS as contas, quitadas ou não — o recebimento parcial de uma conta em
+ * aberto é dinheiro que entrou do mesmo jeito.
+ */
+export function quitadoDe<C extends ContaBase>(conta: C): number {
+  return conta.valor_numero - conta.saldo_numero;
+}
+
+/** O que ainda falta receber (ou pagar) por uma conta; zero se já quitou. */
+export function abertoDe<C extends ContaBase>(conta: C, dialeto: DialetoDeContas<C>): number {
+  return estaQuitada(conta.situacao, dialeto) ? 0 : conta.saldo_numero;
+}
+
+/**
+ * O faturado de uma conta — o que entrou mais o que ainda falta.
+ *
+ * É a base dos três gráficos, e é ela que faz o gráfico fechar com o painel:
+ * a soma dos gráficos é, por construção, `totalQuitado + totalAberto`. Numa
+ * conta em aberto dá o valor cheio; numa quitada dá o que de fato entrou (que
+ * é o valor cheio sempre que o saldo foi zerado, como o Tiny faz).
+ */
+export function faturadoDe<C extends ContaBase>(conta: C, dialeto: DialetoDeContas<C>): number {
+  return quitadoDe(conta) + abertoDe(conta, dialeto);
+}
+
 // ── Opções dos filtros ─────────────────────────────────────────────────────
 
 /**
@@ -332,13 +370,15 @@ export function filtrarContas<C extends ContaBase>(
 /**
  * Os cinco números do topo.
  *
- * DEFEITO CONHECIDO (1.1): conta quitada entra pelo VALOR CHEIO e conta em
- * aberto entra pelo SALDO — grandezas diferentes somadas no mesmo painel. Uma
- * nota de R$ 1.000 com R$ 900 já recebidos aparece como R$ 100 em "aberto", e
- * os R$ 900 que entraram não aparecem em lugar nenhum.
+ * `totalAberto` é a soma dos SALDOS das contas não quitadas — o que ainda
+ * falta. `totalQuitado` é a soma de `valor − saldo` de TODAS as contas — o
+ * que de fato entrou (ou saiu), inclusive o recebimento parcial de uma conta
+ * que ainda está em aberto (defeito 1.1).
  *
- * DEFEITO CONHECIDO (1.2): a média mensal soma as duas grandezas e divide
- * pelos meses distintos de EMISSÃO — nem de vencimento, nem de competência.
+ * Com isso `totalAberto + totalQuitado` é o FATURADO da base, e a média
+ * mensal — que sempre foi a soma dos dois dividida pelos meses distintos de
+ * EMISSÃO — vira uma grandeza real: a média mensal faturada, coerente com o
+ * divisor ser mês de emissão (defeito 1.2). O rótulo na tela diz isso.
  */
 export function calcularKpis<C extends ContaBase>(
   contas: C[],
@@ -357,8 +397,8 @@ export function calcularKpis<C extends ContaBase>(
 
   for (const conta of contas) {
     const quitada = estaQuitada(conta.situacao, dialeto);
-    if (quitada) totalQuitado += conta.valor_numero;
-    else totalAberto += conta.saldo_numero;
+    totalQuitado += quitadoDe(conta);
+    totalAberto += abertoDe(conta, dialeto);
 
     if (conta.vencida) contasVencidas += 1;
 
@@ -395,8 +435,8 @@ export function montarEvolucao<C extends ContaBase>(
     for (const conta of contas) {
       if (!porAno.has(conta.ano)) porAno.set(conta.ano, { quitado: 0, aberto: 0 });
       const entrada = porAno.get(conta.ano)!;
-      if (estaQuitada(conta.situacao, dialeto)) entrada.quitado += conta.valor_numero;
-      else entrada.aberto += conta.saldo_numero;
+      entrada.quitado += quitadoDe(conta);
+      entrada.aberto += abertoDe(conta, dialeto);
     }
     const dados = Array.from(porAno.entries())
       .sort((a, b) => a[0] - b[0])
@@ -413,11 +453,8 @@ export function montarEvolucao<C extends ContaBase>(
   for (const conta of contas) {
     const indice = Number(emissaoDe(conta, dialeto).split("-")[1]) - 1;
     const ponto = meses[indice];
-    if (estaQuitada(conta.situacao, dialeto)) {
-      ponto[chave] = (ponto[chave] as number) + conta.valor_numero;
-    } else {
-      ponto.aberto = (ponto.aberto as number) + conta.saldo_numero;
-    }
+    ponto[chave] = (ponto[chave] as number) + quitadoDe(conta);
+    ponto.aberto = (ponto.aberto as number) + abertoDe(conta, dialeto);
   }
   return { dados: meses, titulo: `Evolução Mensal — ${ano}`, modo: "mensal", ano };
 }
@@ -433,14 +470,18 @@ export function montarEvolucao<C extends ContaBase>(
  * dentro dos dados, o percentual volta a ser sobre o total de verdade sem
  * precisar de conta nenhuma no desenho.
  *
- * DEFEITO CONHECIDO (1.1): soma grandeza diferente da que o painel de KPIs
- * soma, então o topo da tela e o gráfico logo abaixo não fecham entre si.
+ * Soma a MESMA base dos KPIs (`faturadoDe`), e não `valor_numero` cru: assim
+ * a soma das fatias é exatamente "Total em Aberto + Total Recebido", e o topo
+ * da tela fecha com o gráfico logo abaixo (defeito 1.1).
  */
-export function montarCategorias<C extends ContaBase>(contas: C[]): PontoDeCategoria[] {
+export function montarCategorias<C extends ContaBase>(
+  contas: C[],
+  dialeto: DialetoDeContas<C>,
+): PontoDeCategoria[] {
   const porCategoria = new Map<string, number>();
   for (const conta of contas) {
     const categoria = conta.categoria ?? "Sem categoria";
-    porCategoria.set(categoria, (porCategoria.get(categoria) ?? 0) + conta.valor_numero);
+    porCategoria.set(categoria, (porCategoria.get(categoria) ?? 0) + faturadoDe(conta, dialeto));
   }
   const ordenadas = Array.from(porCategoria.entries()).sort((a, b) => b[1] - a[1]);
   const emPonto = ([name, value]: [string, number]): PontoDeCategoria => ({ name, value });
@@ -454,11 +495,17 @@ export function montarCategorias<C extends ContaBase>(contas: C[]): PontoDeCateg
   return [...nomeadas.map(emPonto), { name: FATIA_DE_OUTROS, value: resto }];
 }
 
-/** O ranking de cliente/fornecedor, também pelo valor cheio, no máximo dez. */
-export function montarContrapartes<C extends ContaBase>(contas: C[]): PontoDeContraparte[] {
+/** O ranking de cliente/fornecedor, na mesma base dos KPIs, no máximo dez. */
+export function montarContrapartes<C extends ContaBase>(
+  contas: C[],
+  dialeto: DialetoDeContas<C>,
+): PontoDeContraparte[] {
   const porNome = new Map<string, number>();
   for (const conta of contas) {
-    porNome.set(conta.cliente_nome, (porNome.get(conta.cliente_nome) ?? 0) + conta.valor_numero);
+    porNome.set(
+      conta.cliente_nome,
+      (porNome.get(conta.cliente_nome) ?? 0) + faturadoDe(conta, dialeto),
+    );
   }
   return Array.from(porNome.entries())
     .sort((a, b) => b[1] - a[1])
