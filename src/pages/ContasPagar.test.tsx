@@ -1110,9 +1110,9 @@ describe("Contas a Pagar — presets de período", () => {
 
 describe("Contas a Pagar — presets e o fuso horário", () => {
   /**
-   * O preset mistura duas noções de "hoje": o INÍCIO sai de `getFullYear` e
-   * `getMonth`, que são locais, e o FIM sai de `toISOString`, que é UTC. No
-   * meio do dia as duas concordam; na virada da meia-noite, não.
+   * As duas pontas do preset saem do DIA LOCAL. No meio do dia isso não muda
+   * nada; na virada da meia-noite, o preset acompanha o relógio de quem olha
+   * a tela — e não o de Greenwich.
    */
   const ATRASADO_EM_RELACAO_A_UTC = new Date().getTimezoneOffset() > 0;
 
@@ -1129,12 +1129,12 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     expect(campoData("Data Fim")).toHaveValue("2026-12-31");
   });
 
-  it("na virada do ano, 'Mês atual' e 'Ano atual' saem de anos diferentes em cada fuso", async () => {
+  it("na virada do ano, o mês e o ano são os do calendário LOCAL, nas duas pontas", async () => {
     // 01/01/2026 às 02:00Z ainda é 31/12/2025 às 23:00 em Brasília.
-    // Em UTC:      mês atual = 01/01/2026 a 01/01/2026.
-    // Em Brasília: mês atual = 01/12/2025 a 01/01/2026 — o começo é o mês
-    // local (dezembro) e o fim é o dia em UTC (1º de janeiro). O intervalo
-    // atravessa a virada e o rótulo "mês atual" mente.
+    // Em UTC:      mês atual = 01/01/2026 a 01/01/2026, ano = 2026 inteiro.
+    // Em Brasília: mês atual = 01/12/2025 a 31/12/2025, ano = 2025 inteiro.
+    // Antes o começo era o mês local (dezembro) e o fim era o dia em UTC (1º
+    // de janeiro): o intervalo atravessava a virada e o rótulo mentia.
     vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
     await montar([]);
 
@@ -1142,7 +1142,9 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     expect(campoData("Data Início")).toHaveValue(
       ATRASADO_EM_RELACAO_A_UTC ? "2025-12-01" : "2026-01-01",
     );
-    expect(campoData("Data Fim")).toHaveValue("2026-01-01");
+    expect(campoData("Data Fim")).toHaveValue(
+      ATRASADO_EM_RELACAO_A_UTC ? "2025-12-31" : "2026-01-01",
+    );
 
     escolherPreset("anoAtual");
     expect(campoData("Data Início")).toHaveValue(
@@ -1153,15 +1155,19 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     );
   });
 
-  it("'Últimos 30 dias' cai no mesmo intervalo nos dois fusos, mesmo na virada", async () => {
-    // Aqui as duas pontas saem de `toISOString`, então o deslocamento é o
-    // mesmo nos dois lados e o intervalo não se move.
+  it("'Últimos 30 dias' na virada termina no dia LOCAL, e não no dia em Greenwich", async () => {
+    // Em UTC os 30 dias terminam em 01/01/2026; em Brasília, em 31/12/2025.
+    // As duas pontas andam juntas dentro de cada fuso.
     vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
     await montar([]);
 
     escolherPreset("30dias");
-    expect(campoData("Data Início")).toHaveValue("2025-12-02");
-    expect(campoData("Data Fim")).toHaveValue("2026-01-01");
+    expect(campoData("Data Início")).toHaveValue(
+      ATRASADO_EM_RELACAO_A_UTC ? "2025-12-01" : "2025-12-02",
+    );
+    expect(campoData("Data Fim")).toHaveValue(
+      ATRASADO_EM_RELACAO_A_UTC ? "2025-12-31" : "2026-01-01",
+    );
   });
 
   it("vencida e a janela de 30 dias seguem o dia LOCAL de quem olha a tela", async () => {

@@ -1002,31 +1002,52 @@ describe("Contas a Receber — fuso horário", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[1]).toBe("01/03/2026");
   });
 
-  it("na virada do mês, o Mês atual mistura o mês LOCAL com o dia em UTC", async () => {
-    // Suspeita: o início do período vem de `getFullYear`/`getMonth` (hora
-    // local) e o fim vem de `toISOString` (UTC). À meia-noite e pouco de
-    // Greenwich os dois discordam, e em Brasília o "mês atual" vira
-    // 01/08 a 01/09 — um período que atravessa a virada.
+  it("na virada do mês, as duas pontas do Mês atual saem do dia LOCAL", async () => {
+    // 01/09 às 02h em Greenwich ainda é 31/08 às 23h em Brasília. Antes o
+    // início vinha de `getFullYear`/`getMonth` (local) e o fim de
+    // `toISOString` (UTC), e em Brasília o "mês atual" virava 01/08 a 01/09 —
+    // um período que atravessava a virada. Agora o mês é o do relógio local.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
     escolherPreset("mesAtual");
 
-    expect(campoDeData("Data Fim").value).toBe("2026-09-01");
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-09-01",
     );
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-01");
   });
 
   it("na virada do mês, o Últimos 30 dias conta os 30 dias a partir do dia LOCAL", async () => {
-    // Em UTC são 30 dias antes de 01/09; em Brasília, 30 dias antes de 31/08.
-    // As duas contas caem na mesma string por coincidência do offset de -3h,
-    // mas o fim continua vindo do UTC.
+    // Em UTC são os 30 dias que terminam em 01/09; em Brasília, os 30 que
+    // terminam em 31/08. As duas pontas andam juntas em cada fuso.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
     escolherPreset("30dias");
 
-    expect(campoDeData("Data Início").value).toBe("2026-08-02");
-    expect(campoDeData("Data Fim").value).toBe("2026-09-01");
+    expect(campoDeData("Data Início").value).toBe(
+      foraDoUtc() ? "2026-08-01" : "2026-08-02",
+    );
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-01");
+  });
+
+  it("na virada do ANO, o Ano atual é o ano local nas duas pontas", async () => {
+    // 01/01/2026 às 02h em Greenwich ainda é 31/12/2025 em Brasília: lá o
+    // "ano atual" é 2025 inteiro, aqui é 2026 inteiro. O que não pode é uma
+    // ponta em 2025 e a outra em 2026, que era o que acontecia.
+    vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
+    await montar();
+    escolherPreset("anoAtual");
+
+    expect(campoDeData("Data Início").value).toBe(
+      foraDoUtc() ? "2025-01-01" : "2026-01-01",
+    );
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-12-31");
+
+    escolherPreset("mesAtual");
+    expect(campoDeData("Data Início").value).toBe(
+      foraDoUtc() ? "2025-12-01" : "2026-01-01",
+    );
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-01-01");
   });
 
   it("o que é vencido usa o dia LOCAL, e não o dia em UTC", async () => {

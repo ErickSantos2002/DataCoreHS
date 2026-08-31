@@ -215,34 +215,46 @@ export interface Periodo {
 }
 
 /**
+ * `AAAA-MM-DD` do dia LOCAL de um instante.
+ *
+ * `toISOString` daria o dia em UTC, e a oeste de Greenwich o dia em UTC vira
+ * o de amanhã depois das 21h. Todo "hoje" desta tela é o dia local — é o dia
+ * que a pessoa vê no relógio dela, e é o mesmo dia que `calcularKpis` usa
+ * para decidir o que está vencido.
+ */
+export function diaLocal(instante: Date): string {
+  const ano = instante.getFullYear();
+  const mes = String(instante.getMonth() + 1).padStart(2, "0");
+  const dia = String(instante.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+/**
  * O intervalo que cada preset de período impõe às duas datas.
  *
  * `null` para "custom": o preset personalizado não mexe nas datas que a
  * pessoa digitou.
  *
- * DEFEITO CONHECIDO (1.3): o INÍCIO sai de `getFullYear`/`getMonth` (fuso
- * local) e o FIM sai de `toISOString` (UTC). Perto da meia-noite os dois
- * discordam — em Brasília, às 23h de 31/08, "Mês atual" vira 01/08 a 01/09.
- * Preservado tal e qual, e travado pelos testes de fuso das duas telas.
+ * As duas pontas saem do DIA LOCAL. Antes o início vinha de
+ * `getFullYear`/`getMonth` (local) e o fim de `toISOString` (UTC), e perto da
+ * meia-noite os dois discordavam: em Brasília, às 23h de 31/08, "Mês atual"
+ * virava 01/08 a 01/09, e na virada do ano "Ano atual" virava o ano passado
+ * inteiro (defeito 1.3).
  */
 export function periodoDoPreset(preset: string, agora: Date): Periodo | null {
   if (preset === "custom") return null;
 
   const hoje = new Date(agora);
-  // O fim vem de `toISOString`, que é UTC; os inícios abaixo vêm de
-  // `getFullYear`/`getMonth`/`getDate`, que são locais. É exatamente aí que
-  // mora o defeito 1.3 — preservado de propósito.
-  const hojeEmUtc = hoje.toISOString().split("T")[0];
 
   switch (preset) {
     case "30dias": {
       const trintaDiasAtras = new Date(hoje);
       trintaDiasAtras.setDate(hoje.getDate() - 30);
-      return { inicio: trintaDiasAtras.toISOString().split("T")[0], fim: hojeEmUtc };
+      return { inicio: diaLocal(trintaDiasAtras), fim: diaLocal(hoje) };
     }
     case "mesAtual": {
       const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-      return { inicio: `${hoje.getFullYear()}-${mes}-01`, fim: hojeEmUtc };
+      return { inicio: `${hoje.getFullYear()}-${mes}-01`, fim: diaLocal(hoje) };
     }
     case "anoAtual":
       return { inicio: `${hoje.getFullYear()}-01-01`, fim: `${hoje.getFullYear()}-12-31` };
