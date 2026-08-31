@@ -225,13 +225,17 @@ describe("opções dos filtros", () => {
     ]);
   });
 
-  it("DEFEITO PRESERVADO: sem `localeCompare`, o acento vai parar no fim", () => {
-    // `.sort()` cru ordena por código UTF-16: "Água" cai depois de "Zinco".
+  it("o acento entra na ordem do alfabeto, e não no fim da lista", () => {
+    // `.sort()` cru ordenava por código UTF-16 e jogava "Água" depois de
+    // "Zinco"; `localeCompare` com pt-BR põe cada palavra no lugar dela.
     expect(opcoesDistintas(["Zinco", "Água", "Boletos"], { removerVazio: true })).toEqual([
+      "Água",
       "Boletos",
       "Zinco",
-      "Água",
     ]);
+    expect(
+      opcoesDistintas(["Óleo", "Nafta", "Ácido", "Zinco"], { removerVazio: true }),
+    ).toEqual(["Ácido", "Nafta", "Óleo", "Zinco"]);
   });
 });
 

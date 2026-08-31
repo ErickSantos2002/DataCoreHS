@@ -755,9 +755,9 @@ describe("Contas a Receber — opções dos filtros", () => {
     expect(idsNaTela()).toEqual(["3"]);
   });
 
-  it("as categorias são as distintas, ordenadas — e o acento vai parar no fim", async () => {
-    // Suspeita: `.sort()` sem `localeCompare` ordena por código UTF-16, então
-    // "Água" cai depois de "Zinco" na lista que a pessoa lê.
+  it("as categorias são as distintas, na ordem do alfabeto brasileiro", async () => {
+    // `.sort()` sem `localeCompare` ordenava por código UTF-16 e jogava
+    // "Água" depois de "Zinco" na lista que a pessoa lê.
     await montar([
       conta({ id: 1, categoria: "Zinco" }),
       conta({ id: 2, categoria: "Água" }),
@@ -766,7 +766,7 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 5, categoria: null }),
     ]);
 
-    expect(opcoesDoFiltro("Categoria")).toEqual(["Boletos", "Zinco", "Água"]);
+    expect(opcoesDoFiltro("Categoria")).toEqual(["Água", "Boletos", "Zinco"]);
   });
 
   it("os clientes são os distintos, e o nome vazio vira a opção (vazio)", async () => {

@@ -193,18 +193,20 @@ export function estaEmAberto(situacao: string | null): boolean {
 // ── Opções dos filtros ─────────────────────────────────────────────────────
 
 /**
- * Os valores distintos de um campo, ordenados.
+ * Os valores distintos de um campo, na ordem do alfabeto brasileiro.
  *
- * DEFEITO CONHECIDO (1.11): `.sort()` cru, sem `localeCompare`, ordena por
- * código UTF-16 — `["Boletos", "Zinco", "Água"]` em vez de
- * `["Água", "Boletos", "Zinco"]`.
+ * `localeCompare` com `pt-BR`, e não `.sort()` cru: o `sort` sem comparador
+ * ordena por código UTF-16, e aí "Água" cai depois de "Zinco" na lista que a
+ * pessoa lê (defeito 1.11).
  */
 export function opcoesDistintas(
   valores: (string | null)[],
   { removerVazio }: { removerVazio: boolean },
 ): string[] {
   const distintos = Array.from(new Set(valores.map((valor) => valor ?? "")));
-  return (removerVazio ? distintos.filter(Boolean) : distintos).sort();
+  return (removerVazio ? distintos.filter(Boolean) : distintos).sort((a, b) =>
+    a.localeCompare(b, "pt-BR"),
+  );
 }
 
 // ── Período ────────────────────────────────────────────────────────────────
