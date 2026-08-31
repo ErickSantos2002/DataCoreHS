@@ -29,7 +29,9 @@ const PONTO_DE_MILHAR = /^-?\d{1,3}(\.\d{3})+$/;
  * O que não é número — `null`, `""`, `"sem valor"` — vale zero, para a tela
  * mostrar R$ 0,00 em vez de `NaN`.
  */
-export function converterParaNumero(valor: string | number | undefined | null): number {
+export function converterParaNumero(
+  valor: string | number | undefined | null,
+): number {
   if (typeof valor === "number") return valor;
   if (!valor) return 0;
 
