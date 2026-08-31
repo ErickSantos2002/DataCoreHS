@@ -603,6 +603,20 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
 
+  it("sem conta nenhuma a paginação some inteira, em vez de dobrar a frase de vazio", async () => {
+    // A tela mostrava "Nenhuma conta encontrada." (tabela) e logo abaixo
+    // "Nenhum resultado encontrado." (`Pagination`), com Anterior/Próxima
+    // desabilitados e um botão "1" que não levava a lugar nenhum.
+    await montar([]);
+
+    expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum resultado encontrado.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Anterior" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Próxima" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "1" })).not.toBeInTheDocument();
+  });
+
   it("sem conta nenhuma, os gráficos sem dado dizem isso em vez de virar moldura vazia", async () => {
     // A pizza de categoria não desenhava nada e o Top 10 desenhava um eixo
     // em branco: moldura vazia dentro de cartão com título lê como tela

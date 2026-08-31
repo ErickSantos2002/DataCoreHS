@@ -497,6 +497,20 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     ]);
   });
 
+  it("sem conta nenhuma a paginação some inteira, em vez de dobrar a frase de vazio", async () => {
+    // Empilhavam-se duas mensagens: "Nenhuma conta encontrada." da tabela e
+    // "Nenhum resultado encontrado." do `Pagination`, mais Anterior/Próxima
+    // desabilitados e um botão de página "1" que levava à mesma página vazia.
+    await montar([]);
+
+    expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum resultado encontrado.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Anterior" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Próxima" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "1" })).not.toBeInTheDocument();
+  });
+
   it("sem conta nenhuma, os gráficos sem dado dizem isso em vez de virar moldura vazia", async () => {
     // O de categoria e o de Top 10 não desenhavam nada e um eixo em branco,
     // respectivamente: moldura vazia dentro de cartão com título lê como
