@@ -933,7 +933,7 @@ describe("Contas a Receber — presets de período", () => {
     expect(idsNaTela()).toEqual(["104", "105", "106"]);
   });
 
-  it("Mês atual vai do dia 1 até hoje — 01/08 a 31/08 de 2026", async () => {
+  it("Mês atual vai do dia 1 ao último dia do mês — 01/08 a 31/08 de 2026", async () => {
     await montar();
     escolherPreset("mesAtual");
 
@@ -942,16 +942,20 @@ describe("Contas a Receber — presets de período", () => {
     expect(idsNaTela()).toEqual(["104", "105", "106"]);
   });
 
-  it("Mês atual termina HOJE, e não no último dia do mês", async () => {
-    // Uma conta emitida depois de hoje, dentro do mesmo mês, fica de fora.
-    // (Aqui hoje é 31/08, então o teste força o caso com o dia seguinte.)
+  it("Mês atual mostra o mês inteiro, inclusive o que foi emitido depois de hoje", async () => {
+    // Com o relógio no dia 15, a conta emitida dia 20 continua no "mês
+    // atual": o preset é o mês do calendário, não o pedaço já vivido dele.
+    vi.setSystemTime(new Date("2026-03-15T12:00:00Z"));
     await montar([
-      conta({ id: 1, data: "2026-08-15" }),
-      conta({ id: 2, data: "2026-09-01" }),
+      conta({ id: 1, data: "2026-03-10" }),
+      conta({ id: 2, data: "2026-03-20" }),
+      conta({ id: 3, data: "2026-04-01" }),
     ]);
     escolherPreset("mesAtual");
 
-    expect(idsNaTela()).toEqual(["1"]);
+    expect(campoDeData("Data Início").value).toBe("2026-03-01");
+    expect(campoDeData("Data Fim").value).toBe("2026-03-31");
+    expect(idsNaTela()).toEqual(["1", "2"]);
   });
 
   it("Ano atual vai de 01/01 a 31/12 — o único preset que olha para a frente", async () => {
@@ -1014,7 +1018,7 @@ describe("Contas a Receber — fuso horário", () => {
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-09-01",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-01");
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-30");
   });
 
   it("na virada do mês, o Últimos 30 dias conta os 30 dias a partir do dia LOCAL", async () => {
@@ -1047,7 +1051,7 @@ describe("Contas a Receber — fuso horário", () => {
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2025-12-01" : "2026-01-01",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-01-01");
+    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-01-31");
   });
 
   it("o que é vencido usa o dia LOCAL, e não o dia em UTC", async () => {

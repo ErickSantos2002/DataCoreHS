@@ -252,10 +252,12 @@ export function periodoDoPreset(preset: string, agora: Date): Periodo | null {
       trintaDiasAtras.setDate(hoje.getDate() - 30);
       return { inicio: diaLocal(trintaDiasAtras), fim: diaLocal(hoje) };
     }
-    case "mesAtual": {
-      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-      return { inicio: `${hoje.getFullYear()}-${mes}-01`, fim: diaLocal(hoje) };
-    }
+    // O mês INTEIRO, do dia 1 ao último. Terminava HOJE, e então uma conta
+    // emitida dia 20 sumia do "mês atual" enquanto hoje fosse dia 15 — sem
+    // que o rótulo dissesse que o preset não olha para a frente. "Ano atual"
+    // sempre foi o ano inteiro; agora os dois combinam.
+    case "mesAtual":
+      return periodoDoMes(hoje.getFullYear(), hoje.getMonth());
     case "anoAtual":
       return { inicio: `${hoje.getFullYear()}-01-01`, fim: `${hoje.getFullYear()}-12-31` };
     case "todos":

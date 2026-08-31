@@ -251,7 +251,18 @@ describe("presets de período", () => {
     });
   });
 
-  it("Mês atual termina HOJE, e não no último dia do mês", () => {
+  it("Mês atual é o mês INTEIRO, do dia 1 ao último — e não até hoje", () => {
+    // No meio do mês o fim é o último dia, não o dia de hoje: o preset diz
+    // "mês atual", e uma conta emitida dia 20 tem de aparecer no dia 15.
+    expect(periodoDoPreset("mesAtual", new Date("2026-03-15T12:00:00Z"))).toEqual({
+      inicio: "2026-03-01",
+      fim: "2026-03-31",
+    });
+    // O último dia é calculado, não chutado em 30: fevereiro de 2026 tem 28.
+    expect(periodoDoPreset("mesAtual", new Date("2026-02-10T12:00:00Z"))).toEqual({
+      inicio: "2026-02-01",
+      fim: "2026-02-28",
+    });
     expect(periodoDoPreset("mesAtual", AGORA)).toEqual({
       inicio: "2026-08-01",
       fim: "2026-08-31",
@@ -277,7 +288,7 @@ describe("presets de período", () => {
     expect(periodoDoPreset("mesAtual", viradaDoMes)).toEqual(
       foraDoUtc
         ? { inicio: "2026-08-01", fim: "2026-08-31" }
-        : { inicio: "2026-09-01", fim: "2026-09-01" },
+        : { inicio: "2026-09-01", fim: "2026-09-30" },
     );
     expect(periodoDoPreset("30dias", viradaDoMes)).toEqual(
       foraDoUtc
@@ -301,7 +312,7 @@ describe("presets de período", () => {
     expect(periodoDoPreset("mesAtual", viradaDoAno)).toEqual(
       foraDoUtc
         ? { inicio: "2025-12-01", fim: "2025-12-31" }
-        : { inicio: "2026-01-01", fim: "2026-01-01" },
+        : { inicio: "2026-01-01", fim: "2026-01-31" },
     );
   });
 });

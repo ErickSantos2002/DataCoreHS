@@ -1068,15 +1068,18 @@ describe("Contas a Pagar — presets de período", () => {
     expect(idsNaTela()).toEqual(["106", "104", "105"]);
   });
 
-  it("'Mês atual' vai do dia 1º até HOJE — não até o fim do mês", async () => {
-    // Suspeita: o fim do "mês atual" é hoje, não 31/03. Uma conta emitida
-    // dia 20/03 não aparece no "mês atual" enquanto hoje for 15/03.
-    await montar();
+  it("'Mês atual' vai do dia 1º ao ÚLTIMO dia do mês, e não até hoje", async () => {
+    // Hoje é 15/03. Antes o fim era 15/03 e a conta emitida em 20/03 sumia
+    // do "mês atual"; agora o preset é o mês do calendário inteiro.
+    await montar([
+      ...CONTAS,
+      conta({ id: 7, id_tiny: 107, data_emissao: "2026-03-20", vencimento: "2026-05-20" }),
+    ]);
     escolherPreset("mesAtual");
 
     expect(campoData("Data Início")).toHaveValue("2026-03-01");
-    expect(campoData("Data Fim")).toHaveValue("2026-03-15");
-    expect(idsNaTela()).toEqual(["106", "105"]);
+    expect(campoData("Data Fim")).toHaveValue("2026-03-31");
+    expect(idsNaTela()).toEqual(["106", "105", "107"]);
   });
 
   it("'Ano atual' pega o ano inteiro, do 1º de janeiro ao 31 de dezembro", async () => {
@@ -1122,7 +1125,7 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
 
     escolherPreset("mesAtual");
     expect(campoData("Data Início")).toHaveValue("2026-03-01");
-    expect(campoData("Data Fim")).toHaveValue("2026-03-15");
+    expect(campoData("Data Fim")).toHaveValue("2026-03-31");
 
     escolherPreset("anoAtual");
     expect(campoData("Data Início")).toHaveValue("2026-01-01");
@@ -1143,7 +1146,7 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
       ATRASADO_EM_RELACAO_A_UTC ? "2025-12-01" : "2026-01-01",
     );
     expect(campoData("Data Fim")).toHaveValue(
-      ATRASADO_EM_RELACAO_A_UTC ? "2025-12-31" : "2026-01-01",
+      ATRASADO_EM_RELACAO_A_UTC ? "2025-12-31" : "2026-01-31",
     );
 
     escolherPreset("anoAtual");
