@@ -136,9 +136,6 @@ export const MESES_ABREV = [
 
 export const ITENS_POR_PAGINA = 15;
 
-/** Quantos números de página a barra mostra de uma vez. */
-export const TAMANHO_DA_JANELA = 5;
-
 export const ORDENACAO_INICIAL: Ordenacao = { campo: "vencimento", direcao: "asc" };
 
 /** No máximo oito fatias na pizza de categoria. */
@@ -525,29 +522,16 @@ export function proximaOrdenacao(atual: Ordenacao, campo: string): Ordenacao {
   };
 }
 
-export function totalDePaginas(quantidade: number): number {
-  return Math.ceil(quantidade / ITENS_POR_PAGINA);
-}
-
+/**
+ * A fatia de 15 que a tabela desenha.
+ *
+ * A contagem em frase e a janela de números moravam aqui; agora são do
+ * `Pagination` do design system, que a tabela monta direto. O que sobrou é o
+ * recorte, que continua sendo da tela porque é dele que sai também a
+ * planilha.
+ */
 export function fatiaDaPagina<C>(lista: C[], pagina: number): C[] {
   return lista.slice((pagina - 1) * ITENS_POR_PAGINA, pagina * ITENS_POR_PAGINA);
-}
-
-/** Os até cinco números que a barra de paginação mostra, em janela deslizante. */
-export function janelaDePaginas(pagina: number, total: number): number[] {
-  return Array.from({ length: Math.min(TAMANHO_DA_JANELA, total) }, (_, i) => {
-    if (total <= TAMANHO_DA_JANELA) return i + 1;
-    if (pagina <= 3) return i + 1;
-    if (pagina >= total - 2) return total - 4 + i;
-    return pagina - 2 + i;
-  });
-}
-
-/** "Mostrando 1 a 15 de 20 registros" — a contagem é frase, não fração. */
-export function contagemDaPagina(pagina: number, total: number): string {
-  const de = (pagina - 1) * ITENS_POR_PAGINA + 1;
-  const ate = Math.min(pagina * ITENS_POR_PAGINA, total);
-  return `Mostrando ${de} a ${ate} de ${total} registros`;
 }
 
 // ── Planilha ───────────────────────────────────────────────────────────────

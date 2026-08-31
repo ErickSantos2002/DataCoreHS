@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   buscarNasContas,
   calcularKpis,
-  contagemDaPagina,
   estaEmAberto,
   estaQuitada,
   fatiaDaPagina,
@@ -11,7 +10,6 @@ import {
   formatarData,
   formatarMoeda,
   formatarValorAbreviado,
-  janelaDePaginas,
   linhasDaPlanilha,
   montarCategorias,
   montarContrapartes,
@@ -24,7 +22,6 @@ import {
   periodoDoMes,
   periodoDoPreset,
   proximaOrdenacao,
-  totalDePaginas,
   type ContaBase,
   type DialetoDeContas,
   type FiltrosDeContas,
@@ -586,23 +583,9 @@ describe("ordenação", () => {
 describe("paginação", () => {
   it("a página tem quinze linhas", () => {
     const contas = Array.from({ length: 20 }, (_, i) => conta({ id: i + 1 }));
-    expect(totalDePaginas(20)).toBe(2);
     expect(fatiaDaPagina(contas, 1)).toHaveLength(15);
+    expect(fatiaDaPagina(contas, 1).map((c) => c.id)[0]).toBe(1);
     expect(fatiaDaPagina(contas, 2).map((c) => c.id)).toEqual([16, 17, 18, 19, 20]);
-  });
-
-  it("a janela mostra no máximo cinco números e desliza com a página", () => {
-    expect(janelaDePaginas(1, 3)).toEqual([1, 2, 3]);
-    expect(janelaDePaginas(1, 6)).toEqual([1, 2, 3, 4, 5]);
-    expect(janelaDePaginas(5, 6)).toEqual([2, 3, 4, 5, 6]);
-    expect(janelaDePaginas(4, 10)).toEqual([2, 3, 4, 5, 6]);
-    expect(janelaDePaginas(5, 10)).toEqual([3, 4, 5, 6, 7]);
-    expect(janelaDePaginas(9, 10)).toEqual([6, 7, 8, 9, 10]);
-  });
-
-  it("a contagem é frase, e não fração", () => {
-    expect(contagemDaPagina(1, 20)).toBe("Mostrando 1 a 15 de 20 registros");
-    expect(contagemDaPagina(2, 20)).toBe("Mostrando 16 a 20 de 20 registros");
   });
 });
 

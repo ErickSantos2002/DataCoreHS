@@ -1418,31 +1418,31 @@ describe("Contas a Pagar — paginação", () => {
     expect(linhasDaTabela()).toHaveLength(15);
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(linhasDaTabela()).toHaveLength(2);
     expect(screen.getByText("Mostrando 16 a 17 de 17 registros")).toBeInTheDocument();
   });
 
-  it("com uma página só, some a paginação inteira — e some também a contagem", async () => {
-    // Suspeita: a frase "Mostrando X a Y de N registros" está DENTRO do
-    // bloco que só existe com mais de uma página, então quem tem 15 contas
-    // ou menos não vê quantidade nenhuma na tela.
-    await montar(DEZESSETE.slice(0, 15));
+  it("com uma página só, a contagem continua na tela e os botões travam", async () => {
+    // A frase "Mostrando..." morava dentro do bloco que só existe com duas
+    // páginas ou mais: com 15 contas ou menos ninguém lia contagem nenhuma
+    // (defeito 1.7). O `Pagination` do design system mostra sempre.
+    await montar(CONTAS);
 
-    expect(linhasDaTabela()).toHaveLength(15);
-    expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Próximo" })).not.toBeInTheDocument();
+    expect(screen.getByText("Mostrando 1 a 6 de 6 registros")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
   });
 
-  it("Anterior e Próximo ficam desabilitados nas pontas", async () => {
+  it("Anterior e Próxima ficam desabilitados nas pontas", async () => {
     await montar(DEZESSETE);
 
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Próximo" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Próximo" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
   });
 
   it("dá para pular direto pelo número da página", async () => {
@@ -1454,7 +1454,7 @@ describe("Contas a Pagar — paginação", () => {
 
   it("filtrar estando na página 2 volta para a página 1, sem deixar a tabela órfã", async () => {
     await montar(DEZESSETE);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(linhasDaTabela()).toHaveLength(2);
 
     selecionar("Situação", "pendente");
@@ -1464,19 +1464,21 @@ describe("Contas a Pagar — paginação", () => {
 
   it("buscar estando na página 2 também volta para a página 1", async () => {
     await montar(DEZESSETE);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     buscar("Fornecedor 1");
     // "Fornecedor 10".."Fornecedor 17" = 8 linhas, cabem na página 1.
     expect(linhasDaTabela()).toHaveLength(8);
-    expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent(
+      'Mostrando 1 a 8 de 8 registros',
+    );
   });
 
   it("ordenar estando na página 2 volta para a página 1", async () => {
     // A ordenação era o único handler que não chamava `setPagina(1)`: quem
     // estava na página 2 continuava na 2, agora de uma lista reordenada.
     await montar(DEZESSETE);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(idsNaTela()[0]).toBe("916");
 
     ordenarPor("ID Tiny");
@@ -1486,7 +1488,7 @@ describe("Contas a Pagar — paginação", () => {
 
   it("mexer no período também volta para a página 1", async () => {
     await montar(DEZESSETE);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     escolherPreset("anoAtual");
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
@@ -1594,7 +1596,7 @@ describe("Contas a Pagar — gráfico de evolução", () => {
 
   it("clicar na barra estando na página 2 volta para a página 1", async () => {
     await montar(DEZESSETE);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     clicarNaBarra("Mar");
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();

@@ -7,6 +7,7 @@ import {
   Card,
   CardTitle,
   Input,
+  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -15,8 +16,8 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../design-system/ui";
-import { PaginacaoDeContas } from "./PaginacaoDeContas";
 import {
+  ITENS_POR_PAGINA,
   emissaoDe,
   estaEmAberto,
   estaQuitada,
@@ -287,7 +288,23 @@ export function TabelaDeContas<C extends ContaBase>({
         </TableBody>
       </Table>
 
-      <PaginacaoDeContas pagina={pagina} total={total} onPagina={onPagina} />
+      {/*
+        O `Pagination` do design system, e não uma paginação própria. A que
+        estava aqui existia para preservar o defeito 1.7: ela escondia a
+        frase "Mostrando X a Y de N registros" dentro do bloco que só aparece
+        com duas páginas ou mais, e quem tinha 15 contas ou menos não lia
+        contagem nenhuma. O primitivo mostra a frase SEMPRE, e o rótulo do
+        botão passa a ser o dele — "Próxima".
+      */}
+      <div className="px-4 pb-4">
+        <Pagination
+          page={pagina}
+          pageSize={ITENS_POR_PAGINA}
+          total={total}
+          itemLabel="registros"
+          onPageChange={onPagina}
+        />
+      </div>
     </Card>
   );
 }
