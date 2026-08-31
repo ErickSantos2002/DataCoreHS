@@ -13,13 +13,16 @@
  *  - **qual campo de data manda no filtro de período**: Receber usa `data`,
  *    Pagar usa `data_emissao`.
  *
- * Nada aqui corrige defeito. A migração de design system preservou o
- * comportamento linha a linha — inclusive o que o levantamento de 31/08/2026
- * marcou como errado (a mistura de saldo com valor cheio nos KPIs, o preset
- * de período que mistura fuso local com UTC, a busca que não tira acento).
- * Cada um desses pontos está marcado com `DEFEITO CONHECIDO` no lugar onde
- * mora, para que a correção da Fase 2 seja uma edição só, nos dois lados de
- * uma vez.
+ * A Fase 1 trouxe o comportamento linha a linha, defeitos inclusive; a Fase 2
+ * fechou os 18 do levantamento de 31/08/2026 aqui dentro, numa edição só para
+ * as duas telas — que é exatamente o que este arquivo existe para permitir.
+ * Onde o comportamento mudou de propósito, o comentário no lugar diz o que
+ * era antes e por que deixou de ser.
+ *
+ * O que o levantamento registrou e NÃO foi mexido continua marcado como
+ * comportamento preservado no teste: categoria vazia como fatia à parte,
+ * contraparte agrupada pelo nome cru (caixa e espaço sobrando contam como
+ * cadastros diferentes) e conta sem situação que não dá para filtrar.
  */
 
 import { dataDeCalendario } from "../../lib/datas";
