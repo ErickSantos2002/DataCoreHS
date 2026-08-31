@@ -603,6 +603,32 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
 
+  it("sem conta nenhuma, os gráficos sem dado dizem isso em vez de virar moldura vazia", async () => {
+    // A pizza de categoria não desenhava nada e o Top 10 desenhava um eixo
+    // em branco: moldura vazia dentro de cartão com título lê como tela
+    // quebrada. A evolução segue desenhando — tem os 12 meses zerados.
+    await montar([]);
+
+    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(evolucao()).toHaveLength(12);
+  });
+
+  it("na falha de carregamento o gráfico usa a MESMA frase — a causa está no Alert", async () => {
+    // Não há frase de erro dentro do gráfico: a distinção entre "a API caiu"
+    // e "não há conta" já mora no `Alert` vermelho no topo da página, e
+    // repeti-la em cada cartão diria a mesma coisa mais duas vezes.
+    const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
+    buscarContas.mockRejectedValue(new Error("500"));
+    render(<ContasPagar />, { wrapper: Molde });
+    await screen.findByRole("table");
+
+    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as contas a pagar.",
+    );
+    erroNoConsole.mockRestore();
+  });
+
   it("sem nenhuma conta, o gráfico cai no modo mensal do ano corrente, com 12 meses zerados", async () => {
     // Sem ano nenhum na base, o `?? new Date().getFullYear()` assume — e o
     // título anuncia 2026 mesmo não havendo dado nenhum de 2026.

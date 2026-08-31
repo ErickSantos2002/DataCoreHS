@@ -497,6 +497,33 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     ]);
   });
 
+  it("sem conta nenhuma, os gráficos sem dado dizem isso em vez de virar moldura vazia", async () => {
+    // O de categoria e o de Top 10 não desenhavam nada e um eixo em branco,
+    // respectivamente: moldura vazia dentro de cartão com título lê como
+    // tela quebrada. A evolução continua desenhando — ela tem os 12 meses
+    // zerados, então tem dado.
+    await montar([]);
+
+    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(itensDoGrafico(/Evolução/)).toHaveLength(12);
+  });
+
+  it("na falha de carregamento o gráfico usa a MESMA frase — a causa está no Alert", async () => {
+    // Não há frase de erro dentro do gráfico: repetir "não foi possível
+    // carregar" em cada cartão diria a mesma coisa mais duas vezes, e a
+    // distinção já mora no `Alert` vermelho no topo da página.
+    const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
+    buscarContas.mockRejectedValue(new Error("500"));
+    render(<ContasReceber />, { wrapper: Molde });
+    await screen.findByRole("table");
+
+    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as contas a receber.",
+    );
+    console_error.mockRestore();
+  });
+
   it("sem nenhuma conta, os cinco KPIs ficam zerados — inclusive a média", async () => {
     // `mesesComDados` é 0 e a média cai no ramo do zero em vez de virar NaN.
     await montar([]);
