@@ -1647,7 +1647,9 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
     ]);
   });
 
-  it("a pizza mostra no máximo 8 categorias, as 8 maiores", async () => {
+  it("a pizza mostra 8 fatias: as 7 maiores e uma de Outros com o resto", async () => {
+    // Antes cortava na oitava e o resto sumia do gráfico, com o percentual
+    // das oito calculado sobre um total que não era o total.
     await montar(
       Array.from({ length: 10 }, (_, i) =>
         conta({ id: i + 1, categoria: `Cat ${i}`, valor: String((i + 1) * 10) }),
@@ -1656,7 +1658,11 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
 
     expect(categorias()).toHaveLength(8);
     expect(categorias()[0]).toEqual({ name: "Cat 9", value: 100 });
-    expect(categorias()[7]).toEqual({ name: "Cat 2", value: 30 });
+    expect(categorias()[6]).toEqual({ name: "Cat 3", value: 40 });
+    // Cat 2 + Cat 1 + Cat 0 = 30 + 20 + 10.
+    expect(categorias()[7]).toEqual({ name: "Outros", value: 60 });
+    const soma = categorias().reduce((total, fatia) => total + fatia.value, 0);
+    expect(soma).toBe(550);
   });
 
   it("o top de fornecedores agrupa pelo VALOR e ordena do maior para o menor", async () => {

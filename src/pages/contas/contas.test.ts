@@ -449,7 +449,7 @@ describe("gráfico de evolução", () => {
 });
 
 describe("gráficos de categoria e de contraparte", () => {
-  it("categoria soma o valor cheio, ordena do maior e corta em oito", () => {
+  it("categoria soma o valor cheio, ordena do maior e para em oito fatias", () => {
     const contas = Array.from({ length: 10 }, (_, i) =>
       conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
@@ -457,16 +457,39 @@ describe("gráficos de categoria e de contraparte", () => {
 
     expect(fatias).toHaveLength(8);
     expect(fatias[0]).toEqual({ name: "Cat 10", value: 100 });
-    expect(fatias[7]).toEqual({ name: "Cat 3", value: 30 });
+    // As SETE maiores levam o nome delas; a oitava é a de "Outros".
+    expect(fatias[6]).toEqual({ name: "Cat 4", value: 40 });
   });
 
-  it("DEFEITO PRESERVADO: não há fatia Outros — a nona categoria some", () => {
+  it("o que não cabe nas sete maiores vira a fatia Outros, e nada se perde", () => {
+    // Antes a nona categoria em diante sumia do gráfico, e o percentual que
+    // o recharts escreve em cada fatia era calculado sobre a soma das oito.
     const contas = Array.from({ length: 10 }, (_, i) =>
       conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
     );
-    const soma = montarCategorias(contas).reduce((total, fatia) => total + fatia.value, 0);
-    expect(soma).toBe(520);
+    const fatias = montarCategorias(contas);
+
+    // Cat 3 + Cat 2 + Cat 1 = 30 + 20 + 10.
+    expect(fatias[7]).toEqual({ name: "Outros", value: 60 });
+    const soma = fatias.reduce((total, fatia) => total + fatia.value, 0);
+    expect(soma).toBe(550);
     expect(contas.reduce((total, c) => total + c.valor_numero, 0)).toBe(550);
+  });
+
+  it("com oito categorias ou menos não há fatia Outros nenhuma", () => {
+    const contas = Array.from({ length: 8 }, (_, i) =>
+      conta({ id: i + 1, categoria: `Cat ${i + 1}`, valor_numero: (i + 1) * 10 }),
+    );
+    expect(montarCategorias(contas).map((f) => f.name)).toEqual([
+      "Cat 8",
+      "Cat 7",
+      "Cat 6",
+      "Cat 5",
+      "Cat 4",
+      "Cat 3",
+      "Cat 2",
+      "Cat 1",
+    ]);
   });
 
   it("categoria nula vira Sem categoria, e vazia é uma fatia à parte", () => {

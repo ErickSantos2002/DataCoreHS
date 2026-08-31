@@ -138,8 +138,11 @@ export const ITENS_POR_PAGINA = 15;
 
 export const ORDENACAO_INICIAL: Ordenacao = { campo: "vencimento", direcao: "asc" };
 
-/** No máximo oito fatias na pizza de categoria. */
+/** No máximo oito fatias na pizza de categoria, contando a de "Outros". */
 export const FATIAS_DE_CATEGORIA = 8;
+
+/** O nome da fatia que junta tudo o que não coube nas sete maiores. */
+export const FATIA_DE_OUTROS = "Outros";
 
 /** No máximo dez barras no ranking de cliente/fornecedor. */
 export const BARRAS_DE_CONTRAPARTE = 10;
@@ -422,10 +425,16 @@ export function montarEvolucao<C extends ContaBase>(
 /**
  * A pizza de categorias, somando sempre o VALOR CHEIO — quitada ou não.
  *
- * DEFEITO CONHECIDO (1.1 e 1.12): soma grandeza diferente da que o painel de
- * KPIs soma, então o topo da tela e o gráfico logo abaixo não fecham entre
- * si; e corta em oito sem fatia "Outros", com o percentual das oito calculado
- * sobre um total que não é o total.
+ * Passando de oito categorias, as SETE maiores ficam com o nome delas e o
+ * resto vira uma fatia "Outros". Antes a pizza simplesmente cortava na oitava
+ * e o que sobrava sumia do gráfico — e, pior, o percentual que o recharts
+ * escreve em cada fatia era calculado sobre a soma das oito, então as fatias
+ * somavam 100% de um total que não era o total (defeito 1.12). Com "Outros"
+ * dentro dos dados, o percentual volta a ser sobre o total de verdade sem
+ * precisar de conta nenhuma no desenho.
+ *
+ * DEFEITO CONHECIDO (1.1): soma grandeza diferente da que o painel de KPIs
+ * soma, então o topo da tela e o gráfico logo abaixo não fecham entre si.
  */
 export function montarCategorias<C extends ContaBase>(contas: C[]): PontoDeCategoria[] {
   const porCategoria = new Map<string, number>();
@@ -433,10 +442,16 @@ export function montarCategorias<C extends ContaBase>(contas: C[]): PontoDeCateg
     const categoria = conta.categoria ?? "Sem categoria";
     porCategoria.set(categoria, (porCategoria.get(categoria) ?? 0) + conta.valor_numero);
   }
-  return Array.from(porCategoria.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, FATIAS_DE_CATEGORIA)
-    .map(([name, value]) => ({ name, value }));
+  const ordenadas = Array.from(porCategoria.entries()).sort((a, b) => b[1] - a[1]);
+  const emPonto = ([name, value]: [string, number]): PontoDeCategoria => ({ name, value });
+
+  if (ordenadas.length <= FATIAS_DE_CATEGORIA) return ordenadas.map(emPonto);
+
+  const nomeadas = ordenadas.slice(0, FATIAS_DE_CATEGORIA - 1);
+  const resto = ordenadas
+    .slice(FATIAS_DE_CATEGORIA - 1)
+    .reduce((total, [, valor]) => total + valor, 0);
+  return [...nomeadas.map(emPonto), { name: FATIA_DE_OUTROS, value: resto }];
 }
 
 /** O ranking de cliente/fornecedor, também pelo valor cheio, no máximo dez. */

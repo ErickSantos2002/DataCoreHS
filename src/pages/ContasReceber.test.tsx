@@ -1571,9 +1571,10 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     ]);
   });
 
-  it("categoria mostra no máximo 8 fatias, e o resto simplesmente some", async () => {
-    // Suspeita: não há fatia "Outros" — a nona categoria em diante desaparece
-    // do gráfico e o percentual das oito é calculado sem ela.
+  it("categoria mostra 8 fatias, e a última junta tudo o que não coube", async () => {
+    // Antes a nona categoria em diante sumia do gráfico, e o percentual das
+    // oito era calculado sobre a soma delas — as fatias somavam 100% de um
+    // total que não era o total.
     await montar(
       Array.from({ length: 10 }, (_, i) =>
         conta({
@@ -1588,7 +1589,9 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     const fatias = itensDoGrafico("Distribuição por Categoria");
     expect(fatias).toHaveLength(8);
     expect(fatias[0]).toBe("name=Cat 10 value=100");
-    expect(fatias[7]).toBe("name=Cat 03 value=30");
+    expect(fatias[6]).toBe("name=Cat 04 value=40");
+    // Cat 03 + Cat 02 + Cat 01 = 60, a soma inteira do que ficou de fora.
+    expect(fatias[7]).toBe("name=Outros value=60");
   });
 
   it("categoria nula vira a fatia Sem categoria, e vazia é uma fatia separada", async () => {
