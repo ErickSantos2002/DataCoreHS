@@ -676,12 +676,15 @@ describe("planilha", () => {
     expect(linhasDaPlanilha([vencida], RECEBER, FORMATO_RECEBER)[0].Situação).toBe("Vencida");
   });
 
-  it("DEFEITO PRESERVADO: o nome do arquivo usa a data em UTC", () => {
-    // Às 23h de Brasília em 31/08 já é 01/09 em Greenwich, e o arquivo sai
-    // com a data de amanhã.
+  it("o nome do arquivo usa a data LOCAL, e não a de Greenwich", () => {
+    // Às 23h de 31/08 em Brasília já é 01/09 em Greenwich: o arquivo saía
+    // com a data de amanhã e quem exportava à noite arquivava errado.
+    const viradaDoMes = new Date("2026-09-01T02:00:00Z");
+    const foraDoUtc = viradaDoMes.getTimezoneOffset() !== 0;
+
     expect(nomeDoArquivo("contas_a_receber", AGORA)).toBe("contas_a_receber_2026-08-31.xlsx");
-    expect(nomeDoArquivo("contas_a_receber", new Date("2026-09-01T02:00:00Z"))).toBe(
-      "contas_a_receber_2026-09-01.xlsx",
+    expect(nomeDoArquivo("contas_a_receber", viradaDoMes)).toBe(
+      foraDoUtc ? "contas_a_receber_2026-08-31.xlsx" : "contas_a_receber_2026-09-01.xlsx",
     );
   });
 });

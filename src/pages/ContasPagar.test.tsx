@@ -1797,10 +1797,23 @@ describe("Contas a Pagar — exportação para Excel", () => {
     expect(planilha.aba).toBe("Contas a Pagar");
   });
 
-  it("o arquivo se chama contas_a_pagar_ mais a data de hoje em UTC", async () => {
+  it("o arquivo se chama contas_a_pagar_ mais a data LOCAL de hoje", async () => {
     await montar();
     exportar();
 
     expect(planilha.arquivo).toBe("contas_a_pagar_2026-03-15.xlsx");
+  });
+
+  it("na virada do dia o nome leva a data de quem exporta, e não a de Greenwich", async () => {
+    // 15/03 às 02h em Greenwich ainda é 14/03 às 23h em Brasília.
+    vi.setSystemTime(new Date("2026-03-15T02:00:00Z"));
+    await montar();
+    exportar();
+
+    expect(planilha.arquivo).toBe(
+      new Date().getTimezoneOffset() > 0
+        ? "contas_a_pagar_2026-03-14.xlsx"
+        : "contas_a_pagar_2026-03-15.xlsx",
+    );
   });
 });

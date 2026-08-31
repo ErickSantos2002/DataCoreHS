@@ -421,6 +421,11 @@ function exportar() {
   fireEvent.click(screen.getByRole("button", { name: /exportar excel/i }));
 }
 
+/** Verdadeiro quando a suíte roda fora do UTC (TZ=America/Sao_Paulo). */
+function foraDoUtcAgora(): boolean {
+  return new Date().getTimezoneOffset() !== 0;
+}
+
 beforeEach(() => {
   // Só o `Date` é falsificado: os timers de verdade continuam correndo,
   // senão o `findBy...` do testing-library nunca resolve.
@@ -1838,13 +1843,15 @@ describe("Contas a Receber — exportação para Excel", () => {
     expect(planilha.arquivo).toBe("contas_a_receber_2026-08-31.xlsx");
   });
 
-  it("o nome do arquivo usa a data em UTC, que na madrugada já é a de amanhã", async () => {
-    // Suspeita: `new Date().toISOString()` é UTC. Às 21h de Brasília o
-    // arquivo já sai com a data do dia seguinte.
+  it("o nome do arquivo usa a data LOCAL, e não a de Greenwich", async () => {
+    // 01/09 às 02h em Greenwich ainda é 31/08 às 23h em Brasília: quem
+    // exporta à noite tem de arquivar com a data do dia dele.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
     exportar();
 
-    expect(planilha.arquivo).toBe("contas_a_receber_2026-09-01.xlsx");
+    expect(planilha.arquivo).toBe(
+      foraDoUtcAgora() ? "contas_a_receber_2026-08-31.xlsx" : "contas_a_receber_2026-09-01.xlsx",
+    );
   });
 });

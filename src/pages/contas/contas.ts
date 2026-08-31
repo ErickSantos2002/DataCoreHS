@@ -585,9 +585,9 @@ export function linhasDaPlanilha<C extends ContaBase>(
 /**
  * `contas_a_receber_2026-08-31.xlsx`.
  *
- * DEFEITO CONHECIDO (1.4): a data sai de `toISOString`, que é UTC — às 21h de
- * Brasília o arquivo já leva a data do dia seguinte.
+ * A data é o DIA LOCAL. Saía de `toISOString` (UTC), e a partir das 21h de
+ * Brasília o arquivo já ia arquivado com a data do dia seguinte (defeito 1.4).
  */
 export function nomeDoArquivo(prefixo: string, agora: Date): string {
-  return `${prefixo}_${agora.toISOString().split("T")[0]}.xlsx`;
+  return `${prefixo}_${diaLocal(agora)}.xlsx`;
 }
