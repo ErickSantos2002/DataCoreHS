@@ -582,12 +582,12 @@ disso.
 
 ## Estado em 31/08/2026 — fim do domingo
 
-**Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 3 das 12 telas.**
-80 commits à frente do `origin/main`. **Nada empurrado.**
+**Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 5 das 12 telas.**
+112 commits à frente do `origin/main`. **Nada empurrado.**
 
-Suíte **753 testes / 63 arquivos** (verdes também com `TZ=UTC` e
-`TZ=America/Sao_Paulo`), lint **156** (baseline original 192), `tsc` limpo,
-build em 41 chunks com entrada de 305 kB.
+Suíte **1073 testes / 68 arquivos** (verdes também com `TZ=UTC` e
+`TZ=America/Sao_Paulo`), lint **143** (baseline original 192), `tsc` limpo,
+build em 6,4 s.
 
 ### Telas da Fase 3
 
@@ -595,127 +595,193 @@ build em 41 chunks com entrada de 305 kB.
 |---|---|---|
 | 1 | Dashboard (Meta do trimestre) | **feita** — 330 → 110 linhas |
 | 2 | Locação | **feita** — 386 → 108 linhas |
-| 3 | Usuários | **feita** — 457 → 167 linhas; firmou o padrão de modal |
-| 4–5 | ContasReceber · ContasPagar | próximas, gêmeas, migram em par |
-| 6 | Financeiro + CentroCustoTab + MetaTab | única com abas |
+| 3 | Usuários | **feita** — 457 → 167; firmou o padrão de modal |
+| 4–5 | ContasReceber · ContasPagar | **feitas** — 802 → 73 e 839 → 65; unificadas |
+| 6 | Financeiro + CentroCustoTab + MetaTab | próxima; única com abas |
 | 7–10 | Produtos · Serviços · Vendedores · Estoque | mesma anatomia |
 | 11 | Clientes | idem, com dado enriquecido |
 | 12 | Vendas | maior e mais crítica, por último |
 
-### A receita, agora provada em três telas
+### A receita, provada em cinco telas
 
 1. **Teste de caracterização antes de mover uma linha**, observando a tela
-   renderizada — nunca exportando função só para testar. Foi o que fez os
-   testes das três telas sobreviverem inteiros à quebra em componentes.
-2. **Provar que o teste enxerga**: plantar a quebra na forma mais óbvia, ver
-   falhar, reverter. Sem essa prova a task não está entregue. Em Usuários
-   foram 55 plantações, e nenhum dos 50 testes ficou cego.
-3. Quebrar em componentes por responsabilidade, com a conta pura num arquivo
-   próprio (`metaTrimestral.ts`, `notasDeLocacao.ts`, `usuarios/usuarios.ts`).
+   renderizada — nunca exportando função só para testar.
+2. **Provar que o teste enxerga**: plantar a quebra, ver falhar, reverter. Sem
+   essa prova a task não está entregue.
+3. Quebrar em componentes por responsabilidade, com a conta pura em arquivo
+   próprio.
 4. Zerar `dark:` e paleta crua; tirar a tela de `PENDENTES_FASE_3`.
 5. Checklist de 10 itens respondido **um a um**, nunca em bloco.
-6. Verificar no navegador nos dois temas, incluindo vazio e carregando.
+6. Verificar no navegador nos dois temas, incluindo vazio, carregando e erro.
+7. **Novo, a partir das gêmeas:** tirar a tela do `.prettierignore` e formatar,
+   no seu próprio commit. Ver "Dívida do prettier" abaixo.
 
-### O padrão de modal que a tela 3 firmou
+### O que as gêmeas acrescentaram à receita: separar unificar de corrigir
 
-Sete telas dependem dele. São três decisões, todas no primitivo, nenhuma
-copiada por tela:
+ContasReceber e ContasPagar tinham **83% das linhas idênticas** (277 divergentes
+em 1641). Foram em duas fases, e a separação é o que deu a garantia:
 
-1. **Um estado só de diálogo**, união discriminada
-   (`{tipo:"criar"} | {tipo:"editar";usuario} | …`). Dois modais abertos ao
-   mesmo tempo deixaram de ser **escrevíveis** — não é disciplina, é o tipo.
-2. **`Modal` ganhou a prop `erro`**, que desenha um `Alert` no topo do corpo.
-   O aviso pertence ao diálogo, não à página. Era um `erroModal` único que
-   fazia a mesma frase ser pintada dentro do modal errado.
-3. **A regra "monte o diálogo só quando ele estiver aberto"** está documentada
-   no primitivo, com teste. É ela que faz o rascunho do cadastro e a senha
-   digitada morrerem no fechamento **sem uma linha de limpeza**.
+- **Fase 1 — unificar sem mudar comportamento.** Critério de sucesso: os **231
+  testes de caracterização passam sem UMA edição**. Passaram. É a prova de que a
+  unificação não mexeu em nada — controle que as três telas anteriores não
+  tiveram, porque nelas teste e refatoração vinham no mesmo fôlego.
+- **Fase 1b — as 5 divergências acidentais**, cada uma com asserção mudada de
+  propósito e autorizada uma a uma.
+- **Fase 2 — os 18 defeitos**, cada um com plantação provando o comportamento
+  novo.
 
-Prisão de foco, `Escape` e `aria-modal` já estavam resolvidos no `Modal` e não
-precisaram de nada. Não há pilha global de modais de propósito: a união
-discriminada já torna dois abertos impossíveis.
+Corrigir junto com unificar teria tornado impossível saber qual dos dois quebrou.
 
-`src/lib/datas.ts` nasceu aqui: a solução de data da Locação virou módulo
-compartilhado em vez de ser reescrita. Uma implementação, duas telas, e o lugar
-das próximas. Os testes de fuso da Locação eram **condicionais**
-(`atrasado ? "14/01" : "15/01"`) e agora são incondicionais.
+### O que ficou compartilhado
 
-### Defeitos encontrados nas três telas
+Cada tela virou uma casca de ~70 linhas sobre `src/pages/contas/`. As **duas
+divergências de domínio viraram um `DialetoDeContas`** de três campos, em vez de
+um `if` repetido em seis lugares:
 
-Nenhum deles era conhecido antes. Todos apareceram porque o teste veio primeiro.
+| | Contas a Receber | Contas a Pagar |
+|---|---|---|
+| `situacoesQuitadas` | `["recebido", "pago"]` | `["pago"]` |
+| `campoDaEmissao` | `"data"` | `"data_emissao"` |
+| `chaveQuitado` | `"recebido"` | `"pago"` |
+
+`campoDaEmissao` guarda o **nome** do campo, não um acessador: a tabela precisa
+do nome para ordenar, e antes o nome vivia na lista de colunas e o acessador no
+dialeto — dava para filtrar por um campo e ordenar por outro sem ninguém ver.
+
+Nasceram também `src/lib/datas.ts` (data de calendário, já usado por Locação e
+Usuários), `src/lib/dinheiro.ts` e dois primitivos.
+
+### Primitivos que as sete telas restantes herdam
+
+- **`Modal` com prop `erro`** e a regra "monte o diálogo só quando aberto"
+  (da tela 3).
+- **`Pagination` retorna `null` com zero resultados** — paginar o nada não
+  significa nada, e a tabela já diz que está vazia. **Pressupõe `TableEmpty` no
+  consumidor**, e está no docblock: as seis listagens antigas têm paginação
+  própria e precisam ganhar o estado vazio ao migrar.
+- **`ChartEmpty`**, irmão do `TableEmpty`, com `height` obrigatório — um padrão
+  acertaria num gráfico e erraria nos outros, e o cartão pularia de tamanho.
+  **Não distingue lista vazia de falha de carregamento**, de propósito: o
+  componente vê uma série vazia e não sabe a causa; quem sabe é a página, que já
+  tem o `Alert` dizendo.
+- **Padrão de erro de rede, decidido nas gêmeas e válido para as restantes:**
+  `Alert variant="danger"` no fluxo da página, texto vindo do contexto — **não
+  Toast**. Falha de carga é estado permanente até recarregar, e toast some em 4 s
+  deixando a pessoa diante de uma tela vazia sem explicação. Toast fica para
+  confirmação de ação que a pessoa acabou de tomar.
+
+### Defeitos encontrados nas cinco telas
+
+Nenhum era conhecido antes. Todos apareceram porque o teste veio primeiro. Os
+das gêmeas estão detalhados em `docs/superpowers/2026-08-31-contas-achados.md`
+(14 compartilhados, 4 de tela única, 5 divergências acidentais).
 
 **Dashboard e Locação:**
 
 - **Projeção da meta superestimava 12%** — extrapolação linear por dia ignorando
-  que setembro vale 55% de julho. Era a diferença entre projetar 74% e 66% da
-  meta, num painel que decide bonificação.
-- **Datas da planilha de locação saíam um dia antes** — `new Date()` sobre data
-  pura. Toda planilha já emitida está errada.
-- **Comparador de ordenação nunca devolvia 0** — empate saía na ordem inversa da
-  API, e com empate total a seta não movia nada.
-- **Nota cancelada aparecia em selo verde.**
-- **`setInterval` do confete nunca era limpo.**
-- **Lista vazia renderizava `<ul>` mudo.**
+  que setembro vale 55% de julho. Diferença entre projetar 74% e 66% da meta,
+  num painel que decide bonificação.
+- **Datas da planilha de locação saíam um dia antes.** Toda planilha já emitida
+  está errada.
+- **Comparador de ordenação nunca devolvia 0**; **nota cancelada em selo verde**;
+  **`setInterval` do confete nunca limpo**; **lista vazia com `<ul>` mudo**.
 
-**Usuários — doze suspeitas levantadas, dez corrigidas por decisão do Erick:**
+**Usuários:**
 
-- **O `<select>` de perfil mostrava um papel e o POST gravava outro.** O valor
-  inicial era a string literal `"comum"`; quando `/roles` não a trazia, o
-  navegador desenhava o primeiro papel da lista e o payload ia com `"comum"`.
-  Quem cadastrava lia uma coisa e gravava outra. Agora `papelInicial()` só
-  devolve papel que existe na lista, e é o mesmo valor que vai no payload.
-- **`handleTrocarSenha` não tinha `try/catch`** — a promessa rejeitada virava
-  *unhandled rejection* e **derrubava a suíte inteira**; era por isso que o
-  caminho de falha não tinha teste. Agora o diálogo mostra o motivo e só fecha
-  no sucesso.
-- **`ModalTrocarSenha` não desmontava** (`if (!isOpen) return null`): a senha
-  digitada para um usuário continuava no campo ao reabrir para outro, e um
-  Confirmar distraído mandava a senha do A para o id do B.
-- **A troca de senha não tinha mínimo de caracteres** enquanto a criação exigia
-  6 — dava para gravar senha vazia num usuário existente.
-- `Invalid Date` cru na célula; tabela vazia sem frase; rascunho do cadastro
-  sobrevivendo ao Cancelar; nenhum `<label htmlFor>` na tela; e o `erroModal`
-  compartilhado desenhando a mesma frase em dois diálogos.
-- **`formatarData` com `new Date()` sobre string crua** — inofensivo hoje, mas
-  o mesmo padrão do bug da Locação. Blindado por `src/lib/datas.ts`.
+- **O `<select>` de perfil mostrava um papel e o POST gravava outro.**
+- **`handleTrocarSenha` sem `try/catch`** — a promessa rejeitada derrubava a
+  suíte inteira; era por isso que o caminho de falha não tinha teste.
+- **`ModalTrocarSenha` não desmontava**: a senha de um usuário reaparecia no
+  formulário de outro.
+- **A troca de senha não tinha mínimo de caracteres** — dava para gravar senha
+  vazia num usuário existente.
+
+**Gêmeas — os quatro que mais importam:**
+
+- **`"1.234"` virava R$ 1,23** no `converterParaNumero` de Contas a Receber —
+  ponto de milhar lido como decimal. Agora em `src/lib/dinheiro.ts`.
+- **Os presets misturavam mês local com dia em UTC.** Às 23h de 31/08, "Mês
+  atual" virava 01/08 a 01/09; na virada do ano, "Ano atual" virava o ano
+  anterior inteiro.
+- **O nome do arquivo exportado saía em UTC** — quem exporta à noite arquiva com
+  a data do dia seguinte.
+- **"Vencida" apagava a situação real**, na tela e na planilha.
+
+### Os KPIs de dinheiro: o que mudou e o que a conferência mostrou
+
+`Total em Aberto` somava **saldo** e `Total Recebido/Pago` somava **valor
+cheio** só das quitadas, então o que entrou numa conta parcial não aparecia em
+lugar nenhum. Agora:
+
+- `Total em Aberto` = saldo das não quitadas
+- `Total Recebido/Pago` = `valor − saldo` de **todas**
+- `aberto + quitado = faturado`, e a **Média Mensal Faturada** passou a ser uma
+  grandeza real (o rótulo mudou junto)
+- os três gráficos usam a mesma base, então o topo da tela fecha com o gráfico
+
+**Conferido contra o banco de produção em 31/08/2026 (leitura):** nenhuma conta
+quitada tem saldo sobrando (928 em contas_receber, 8.337 em contas_pagar, todas
+zero), e **não existe pagamento parcial** (0 de 467 abertas e 0 de 226). Ou seja:
+a correção está certa e blinda o caso, mas **hoje não muda nenhum número que
+alguém esteja vendo errado**. A base também só tem `pago` e `aberto` — a palavra
+`recebido` **nunca aparece**, então a divergência de domínio nº 1 é inerte na
+prática.
+
+**A suposição sobre `contas_receber.data` saiu do limbo:** 1.392 de 1.395 linhas
+têm `data <= vencimento`, o que é comportamento de data de emissão. **Ficam 3
+linhas com `data > vencimento`** — vale um olhar: ou é lançamento retroativo
+normal, ou é sujeira.
 
 ### Conferência no navegador (31/08)
 
-Feita com mock local em `127.0.0.1:8787` — **a produção não foi tocada**. Sem
-`VITE_API_URL`, o app aponta para `https://authapi.healthsafetytech.com`, e
-dirigir modal de exclusão contra usuário real não é opção.
+Feita com mock local servindo **dados reais** puxados do banco — a produção não
+foi tocada. Sem `VITE_API_URL`/`VITE_NOTAS_URL` o app aponta para
+`authapi`/`tinyapi` de produção, e dirigir modal de exclusão contra dado real não
+é opção.
 
-Confirmado nos dois temas: badges por papel conforme o desenho; `2026-03-21T14:57:00Z`
-e `2026-01-15` renderizando o dia certo em Brasília; `—` para data inválida e
-perfil ausente; estado vazio com frase e ação; carregando dentro da casca. As
-quatro correções graves foram exercitadas ao vivo, não só em teste.
+Os **dez KPIs das duas telas foram recalculados por fora, dos dados crus, e
+batem à vírgula**. A coerência nova se confirma na tela: em Contas a Receber,
+299.245,45 + 45.425,00 = 344.670,45, dividido por 4 meses de emissão = 86.167,61,
+exatamente o que a tela mostra.
+
+### Dívida do prettier
+
+`.prettierignore` ignora `src/pages`, `src/components`, `src/context`,
+`src/services` e `src/hooks` desde a Fase 0, para não destruir o `git blame` das
+telas não migradas — e o próprio comentário do arquivo diz que **cada entrada sai
+quando a tela correspondente migrar**. As cinco telas já migradas passaram batido,
+e hoje estreitar `src/pages` reformataria **48 arquivos** de uma vez, incluindo os
+de caracterização.
+
+O prettier **não** está quebrado: tudo que nunca foi ignorado passa no `--check`,
+e o `printWidth: 80` é real. A trava mecânica (`src/test/prettierignore.test.ts`)
+protege só `src/design-system`, que é cópia sincronizada e não deve mesmo ser
+formatada.
+
+**A partir da tela 6, tirar do `.prettierignore` e formatar entra na receita**, em
+commit próprio, para a dívida parar de crescer. As 48 já acumuladas são item à
+parte.
 
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
-   aceita troca de senha sem `Authorization`? O cliente agora manda o token
-   sempre, mas se o endpoint for aberto isso não protege ninguém.
-2. **`getUsers` e `getRoles` no mesmo `Promise.all`** (Usuários): `/roles` fora
-   do ar esvazia a tabela mesmo com `/users` respondendo 200. Fora de escopo
-   por decisão do Erick — a resposta vale para as 10 telas restantes.
-3. **`catch` silencioso do `carregar`** (Usuários): falha de rede vira
-   "0 usuários cadastrados", indistinguível de base vazia. Corrigir significa
-   decidir o padrão de erro de rede, e isso também vale para as 10 telas.
-4. **O cadeado de "trocar senha" está em laranja de alerta**, entre o azul de
-   editar e o vermelho de excluir. Trocar senha não é alerta; a cor veio do
-   `text-yellow-500` antigo e virou token sem ninguém questionar o significado.
-5. **"Password field is not contained in a form"** — o Chrome avisa nos modais
-   de senha. Não quebra nada, mas é o que faz gerenciador de senha não oferecer
-   para salvar. Decidir uma vez, porque o padrão vai para sete telas.
-6. **Chave de ordenação por data da Locação** ainda passa por `new Date()`.
-   Inofensivo enquanto a API mandar só date-only.
-7. **Empate total na ordenação** continua sem inverter — é consequência de
-   comparador correto e estável, não resíduo de bug.
+   aceita troca de senha sem `Authorization`? O cliente manda o token sempre, mas
+   se o endpoint for aberto isso não protege ninguém.
+2. **As 3 linhas de `contas_receber` com `data > vencimento`.**
+3. **Dívida do prettier: 48 arquivos**, mais a regra nova na receita.
+4. **`ordenarContas` usa `localeCompare` sem locale** — a correção 1.11 foi sobre
+   a lista de opções; a ordenação da tabela ficou de fora do pedido.
+5. **`converterParaNumero` duplicado** em `src/pages/Servicos.tsx` e
+   `src/context/ServicosContext.tsx`, com o mesmo bug do `1.234`.
+   `src/lib/dinheiro.ts` está pronto para elas.
+6. **`MultiSelect` ainda não é primitivo** — a cópia está em 8 telas. Promover
+   agora seria decidir a API vendo 2 dos 8 usos; quando as seis migrarem, é um
+   `git mv`.
+7. **`ModalObservacoes`** (`src/components/`) ainda é modal cru, usado por Vendas,
+   Serviços e Vendedores. O padrão de modal já está pronto para quando chegarem.
 8. **Contraste da caixa de erro do Login** em ~3,6:1, abaixo de AA para corpo.
 9. **Confete não respeita `prefers-reduced-motion`** (é `<canvas>`).
-10. **`react-hooks/set-state-in-effect`** no `useEffect` que chama `carregar()`
-    — único lint que sobra em Usuários, e já existia antes. Consertar é mudar
-    como a tela busca dados; vale para as dez telas.
-11. **Checkpoint humano de permissões da Fase 2** nunca foi feito — o Erick
-    optou por fundir sem ele.
+10. **`react-hooks/set-state-in-effect`** no `useEffect` que busca dados — vale
+    para as telas restantes.
+11. **Checkpoint humano de permissões da Fase 2** nunca foi feito.
 12. **`docs/DataCoreHS.html`** segue fora do versionamento, sem decisão.
