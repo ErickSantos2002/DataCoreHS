@@ -1358,17 +1358,18 @@ describe("Contas a Receber — paginação", () => {
     expect(linhasDaTabela()).toHaveLength(9);
   });
 
-  it("ordenar estando na página 2 NÃO volta para a página 1", async () => {
-    // Suspeita: todo filtro chama `setPaginaAtual(1)`, menos a ordenação.
-    // Quem estava na página 2 continua na 2, agora com outras linhas.
+  it("ordenar estando na página 2 volta para a página 1", async () => {
+    // Todo filtro chamava `setPagina(1)`, menos a ordenação: quem estava na
+    // página 2 continuava na 2, agora de uma lista que já não é a mesma.
     await montar(paginado(20));
     fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
     ordenarPor("ID Tiny");
 
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 16 a 20 de 20 registros",
+      "Mostrando 1 a 15 de 20 registros",
     );
-    expect(idsNaTela()).toEqual(["5", "4", "3", "2", "1"]);
+    expect(idsNaTela()[0]).toBe("20");
+    expect(idsNaTela()[14]).toBe("6");
   });
 
   it("mostra no máximo cinco números de página, em janela deslizante", async () => {

@@ -256,7 +256,13 @@ export function TelaDeContas<C extends ContaBase>({
             setPagina(1);
           }}
           ordenacao={ordenacao}
-          onOrdenar={(campo) => setOrdenacao((atual) => proximaOrdenacao(atual, campo))}
+          onOrdenar={(campo) => {
+            setOrdenacao((atual) => proximaOrdenacao(atual, campo));
+            // Como todo handler que muda a lista: reordenar na página 2
+            // deixava a pessoa na página 2 de uma lista que já não é a mesma
+            // (defeito 1.13). A ordenação era o único que não voltava.
+            setPagina(1);
+          }}
           onExportar={exportar}
         />
       </div>

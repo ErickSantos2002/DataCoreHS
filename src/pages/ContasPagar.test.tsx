@@ -1472,6 +1472,18 @@ describe("Contas a Pagar — paginação", () => {
     expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
   });
 
+  it("ordenar estando na página 2 volta para a página 1", async () => {
+    // A ordenação era o único handler que não chamava `setPagina(1)`: quem
+    // estava na página 2 continuava na 2, agora de uma lista reordenada.
+    await montar(DEZESSETE);
+    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    expect(idsNaTela()[0]).toBe("916");
+
+    ordenarPor("ID Tiny");
+    expect(idsNaTela()[0]).toBe("917");
+    expect(linhasDaTabela()).toHaveLength(15);
+  });
+
   it("mexer no período também volta para a página 1", async () => {
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
