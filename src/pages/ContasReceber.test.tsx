@@ -710,16 +710,20 @@ describe("Contas a Receber — situação", () => {
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
   });
 
-  it("conta vencida mostra Vencida na badge e ESCONDE a situação de verdade", async () => {
-    // Suspeita: a badge de vencida vem antes da de pendente, então "pendente"
-    // e "aberto" viram a mesma coisa na tela depois do vencimento.
+  it("conta vencida mostra Vencida SEM apagar a situação de verdade", async () => {
+    // A badge de vencida vinha antes da de pendente e escrevia só "Vencida":
+    // depois do vencimento "pendente" e "aberto" viravam a mesma palavra na
+    // tela. Agora "Vencida" é acréscimo, e não substituto.
     await montar([
       conta({ id: 1, vencimento: "2026-08-30", situacao: "pendente" }),
       conta({ id: 2, vencimento: "2026-08-30", situacao: "aberto" }),
+      conta({ id: 3, vencimento: "2026-08-30", situacao: null }),
     ]);
 
-    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("Vencida");
-    expect(celulasDaLinha(linhasDaTabela()[1])[7]).toBe("Vencida");
+    expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("pendente · Vencida");
+    expect(celulasDaLinha(linhasDaTabela()[1])[7]).toBe("aberto · Vencida");
+    // Sem situação nenhuma vinda da API, sobra só o estado calculado.
+    expect(celulasDaLinha(linhasDaTabela()[2])[7]).toBe("Vencida");
   });
 
   it("pendente e aberto ainda no prazo mostram o próprio texto", async () => {
@@ -1715,7 +1719,7 @@ describe("Contas a Receber — dinheiro", () => {
 });
 
 describe("Contas a Receber — exportação para Excel", () => {
-  it("exporta dezesseis colunas, nesta ordem, na aba Contas a Receber", async () => {
+  it("exporta dezessete colunas, nesta ordem, na aba Contas a Receber", async () => {
     await montar();
     exportar();
 
@@ -1733,6 +1737,7 @@ describe("Contas a Receber — exportação para Excel", () => {
       "Vencimento",
       "Liquidação",
       "Situação",
+      "Vencida",
       "Forma Pagamento",
       "Portador",
       "Cidade",
@@ -1760,6 +1765,7 @@ describe("Contas a Receber — exportação para Excel", () => {
         Vencimento: "20/01/2026",
         Liquidação: "18/01/2026",
         Situação: "recebido",
+        Vencida: "Não",
         "Forma Pagamento": "Boleto",
         Portador: "Banco Um",
         Cidade: "Recife",
@@ -1788,6 +1794,7 @@ describe("Contas a Receber — exportação para Excel", () => {
         Vencimento: "01/12/2026",
         Liquidação: "-",
         Situação: "",
+        Vencida: "Não",
         "Forma Pagamento": "",
         Portador: "",
         Cidade: "",
@@ -1796,16 +1803,22 @@ describe("Contas a Receber — exportação para Excel", () => {
     ]);
   });
 
-  it("a coluna Situação troca a situação de verdade por Vencida", async () => {
-    // Suspeita: na planilha não dá para saber se a conta vencida estava
-    // "pendente" ou "aberto" — a informação se perde na exportação.
+  it("a coluna Situação guarda a situação real, e Vencida é coluna à parte", async () => {
+    // Antes a planilha trocava a `Situação` da vencida pelo literal
+    // "Vencida" e ninguém mais sabia se ela estava "pendente" ou "aberto".
     await montar([
       conta({ id: 1, vencimento: "2026-08-30", situacao: "pendente" }),
-      conta({ id: 2, vencimento: "2026-12-01", situacao: "pendente" }),
+      conta({ id: 2, vencimento: "2026-08-30", situacao: "aberto" }),
+      conta({ id: 3, vencimento: "2026-12-01", situacao: "pendente" }),
     ]);
     exportar();
 
-    expect(planilha.linhas.map((l) => l["Situação"])).toEqual(["Vencida", "pendente"]);
+    expect(planilha.linhas.map((l) => l["Situação"])).toEqual([
+      "pendente",
+      "aberto",
+      "pendente",
+    ]);
+    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual(["Sim", "Sim", "Não"]);
   });
 
   it("data com hora sai quebrada também na planilha", async () => {

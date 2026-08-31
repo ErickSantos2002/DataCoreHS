@@ -574,9 +574,12 @@ export interface FormatoDaPlanilha<C extends ContaBase> {
  * Dinheiro sai como NÚMERO (para o Excel somar) e data sai como texto
  * `dd/mm/aaaa`.
  *
- * DEFEITO CONHECIDO (1.5): a coluna `Situação` troca a situação de verdade
- * por "Vencida", então quem abre a planilha não distingue mais "pendente" de
- * "aberto" depois do vencimento.
+ * `Situação` é sempre a que o Tiny mandou, e o vencimento vira uma coluna
+ * PRÓPRIA (`Vencida`, com Sim/Não). Antes a `Situação` era trocada por
+ * "Vencida" e quem abria a planilha não distinguia mais "pendente" de
+ * "aberto" depois do vencimento (defeito 1.5). Coluna à parte, e não sufixo
+ * dentro da `Situação`, porque no Excel é ela que se filtra e se agrupa:
+ * "pendente · Vencida" viraria uma categoria nova em toda tabela dinâmica.
  */
 export function linhasDaPlanilha<C extends ContaBase>(
   contas: C[],
@@ -595,7 +598,8 @@ export function linhasDaPlanilha<C extends ContaBase>(
     Emissão: formatarData(emissaoDe(conta, dialeto)),
     Vencimento: formatarData(conta.vencimento),
     Liquidação: formatarData(conta.liquidacao),
-    Situação: conta.vencida ? "Vencida" : (conta.situacao ?? ""),
+    Situação: conta.situacao ?? "",
+    Vencida: conta.vencida ? "Sim" : "Não",
     ...formato.colunasProprias(conta),
     Cidade: conta.cliente_cidade ?? "",
     UF: conta.cliente_uf ?? "",

@@ -647,6 +647,7 @@ describe("planilha", () => {
       "Vencimento",
       "Liquidação",
       "Situação",
+      "Vencida",
       "Forma Pagamento",
       "Portador",
       "Cidade",
@@ -666,6 +667,7 @@ describe("planilha", () => {
       "Vencimento",
       "Liquidação",
       "Situação",
+      "Vencida",
       "Ocorrência",
       "Cidade",
       "UF",
@@ -679,9 +681,17 @@ describe("planilha", () => {
     expect(linha.Liquidação).toBe("-");
   });
 
-  it("DEFEITO PRESERVADO: a coluna Situação troca a situação real por Vencida", () => {
+  it("a coluna Situação guarda a situação real, e o vencimento vira coluna própria", () => {
+    // Antes a `Situação` da vencida era trocada pelo literal "Vencida", e
+    // quem abria a planilha não distinguia mais "pendente" de "aberto".
     const vencida = conta({ id: 2, situacao: "pendente", vencida: true });
-    expect(linhasDaPlanilha([vencida], RECEBER, FORMATO_RECEBER)[0].Situação).toBe("Vencida");
+    const noPrazo = conta({ id: 3, situacao: "aberto", vencida: false });
+
+    const linhas = linhasDaPlanilha([vencida, noPrazo], RECEBER, FORMATO_RECEBER);
+    expect(linhas[0].Situação).toBe("pendente");
+    expect(linhas[0].Vencida).toBe("Sim");
+    expect(linhas[1].Situação).toBe("aberto");
+    expect(linhas[1].Vencida).toBe("Não");
   });
 
   it("o nome do arquivo usa a data LOCAL, e não a de Greenwich", () => {

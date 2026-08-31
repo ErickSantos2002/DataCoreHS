@@ -114,9 +114,16 @@ function SeloDeSituacao<C extends ContaBase>({
   if (estaQuitada(conta.situacao, dialeto)) {
     return <Badge variant="success">{conta.situacao}</Badge>;
   }
-  // A ordem importa e é a de hoje: "Vencida" vem ANTES de "pendente"/"aberto",
-  // e por isso apaga a situação de verdade depois do vencimento (defeito 1.5).
-  if (conta.vencida) return <Badge variant="danger">Vencida</Badge>;
+  // "Vencida" é estado CALCULADO, e não a situação que o Tiny mandou: entra
+  // como acréscimo, não como substituto. Antes o selo escrevia só "Vencida" e
+  // depois do vencimento "pendente" e "aberto" viravam a mesma palavra na
+  // tela (defeito 1.5).
+  if (conta.vencida) {
+    const situacao = conta.situacao?.trim();
+    return (
+      <Badge variant="danger">{situacao ? `${situacao} · Vencida` : "Vencida"}</Badge>
+    );
+  }
   if (estaEmAberto(conta.situacao)) return <Badge variant="warning">{conta.situacao}</Badge>;
   // `?? "-"` cobria só o `null`: a string vazia passava e desenhava uma
   // pílula colorida sem texto nenhum dentro (defeito 1.6). `||` cobre as duas.

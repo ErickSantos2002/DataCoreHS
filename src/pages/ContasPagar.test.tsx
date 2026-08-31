@@ -768,16 +768,16 @@ describe("Contas a Pagar — KPIs", () => {
 });
 
 describe("Contas a Pagar — situação na tabela", () => {
-  it("cada situação vira uma etiqueta, e a vencida engole a situação real", async () => {
+  it("cada situação vira uma etiqueta, e a vencida ACRESCENTA sem engolir", async () => {
     await montar();
 
-    // 102 está paga; 101 e 106 venceram e mostram "Vencida" no lugar de
-    // "pendente"; 103 continua "aberto"; 104 e 105 continuam "pendente".
+    // 102 está paga; 101 e 106 venceram e mostram "pendente · Vencida";
+    // 103 continua "aberto"; 104 e 105 continuam "pendente".
     const porId = new Map(linhasDaTabela().map((l) => [celulasDaLinha(l)[0], celulasDaLinha(l)[7]]));
     // O selo mostra o texto cru que a API mandou, e não o literal "Pago".
     expect(porId.get("102")).toBe("pago");
-    expect(porId.get("101")).toBe("Vencida");
-    expect(porId.get("106")).toBe("Vencida");
+    expect(porId.get("101")).toBe("pendente · Vencida");
+    expect(porId.get("106")).toBe("pendente · Vencida");
     expect(porId.get("103")).toBe("aberto");
     expect(porId.get("104")).toBe("pendente");
     expect(porId.get("105")).toBe("pendente");
@@ -834,7 +834,7 @@ describe("Contas a Pagar — situação na tabela", () => {
       "Material",
       "R$ 1.000,00",
       "R$ 1.000,00",
-      "Vencida",
+      "pendente · Vencida",
     ]);
   });
 });
@@ -1683,7 +1683,7 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
 });
 
 describe("Contas a Pagar — exportação para Excel", () => {
-  it("exporta quinze colunas, com estes rótulos e nesta ordem, na aba Contas a Pagar", async () => {
+  it("exporta dezesseis colunas, com estes rótulos e nesta ordem, na aba Contas a Pagar", async () => {
     await montar();
     exportar();
 
@@ -1700,6 +1700,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
       "Vencimento",
       "Liquidação",
       "Situação",
+      "Vencida",
       "Ocorrência",
       "Cidade",
       "UF",
@@ -1725,6 +1726,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
         Vencimento: "25/01/2026",
         "Liquidação": "24/01/2026",
         "Situação": "pago",
+        Vencida: "Não",
         "Ocorrência": "U",
         Cidade: "Olinda",
         UF: "PE",
@@ -1760,18 +1762,28 @@ describe("Contas a Pagar — exportação para Excel", () => {
       "Histórico": "",
       "Liquidação": "-",
       "Situação": "",
+      Vencida: "Não",
       Cidade: "",
       UF: "",
     });
   });
 
-  it("na planilha a conta vencida perde a situação real e vira 'Vencida'", async () => {
-    // Suspeita: quem abre a planilha não consegue mais distinguir uma
-    // "pendente" vencida de uma "aberto" vencida — as duas saem "Vencida".
-    await montar([CONTAS[0], CONTAS[5]]);
+  it("na planilha a Situação é a real, e o vencimento vira a coluna Vencida", async () => {
+    // Antes as duas vencidas saíam com "Vencida" na `Situação` e ninguém
+    // mais distinguia uma "pendente" vencida de uma "aberto" vencida.
+    await montar([
+      CONTAS[0], // pendente, vencida
+      conta({ id: 9, id_tiny: 109, vencimento: "2026-01-05", situacao: "aberto" }), // vencida
+      CONTAS[2], // aberto, vence hoje -> não vencida
+    ]);
     exportar();
 
-    expect(planilha.linhas.map((l) => l["Situação"])).toEqual(["Vencida", "Vencida"]);
+    expect(planilha.linhas.map((l) => l["Situação"])).toEqual([
+      "aberto",
+      "pendente",
+      "aberto",
+    ]);
+    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual(["Sim", "Sim", "Não"]);
   });
 
   it("exporta o que está filtrado, buscado e na ordem escolhida", async () => {
