@@ -580,13 +580,14 @@ disso.
 
 ---
 
-## Estado em 28/08/2026 — fim da sexta
+## Estado em 31/08/2026 — fim do domingo
 
-**Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 2 das 12 telas.**
-73 commits à frente do `origin/main`. **Nada empurrado.**
+**Fases 0, 1 e 2 fundidas na `main` local. Fase 3 com 3 das 12 telas.**
+82 commits à frente do `origin/main`. **Nada empurrado.**
 
-Suíte **649 testes / 60 arquivos** (verdes também com `TZ=UTC`), lint **159**
-(baseline original 192), `tsc` limpo, build em 41 chunks com entrada de 305 kB.
+Suíte **753 testes / 63 arquivos** (verdes também com `TZ=UTC` e
+`TZ=America/Sao_Paulo`), lint **156** (baseline original 192), `tsc` limpo,
+build em 41 chunks com entrada de 305 kB.
 
 ### Telas da Fase 3
 
@@ -594,29 +595,56 @@ Suíte **649 testes / 60 arquivos** (verdes também com `TZ=UTC`), lint **159**
 |---|---|---|
 | 1 | Dashboard (Meta do trimestre) | **feita** — 330 → 110 linhas |
 | 2 | Locação | **feita** — 386 → 108 linhas |
-| 3 | Usuários | próxima — firma o padrão de modal |
-| 4–5 | ContasReceber · ContasPagar | gêmeas, migram em par |
+| 3 | Usuários | **feita** — 457 → 167 linhas; firmou o padrão de modal |
+| 4–5 | ContasReceber · ContasPagar | próximas, gêmeas, migram em par |
 | 6 | Financeiro + CentroCustoTab + MetaTab | única com abas |
 | 7–10 | Produtos · Serviços · Vendedores · Estoque | mesma anatomia |
 | 11 | Clientes | idem, com dado enriquecido |
 | 12 | Vendas | maior e mais crítica, por último |
 
-### A receita que se firmou nas duas primeiras
+### A receita, agora provada em três telas
 
 1. **Teste de caracterização antes de mover uma linha**, observando a tela
-   renderizada — nunca exportando função só para testar. Foi o que fez os testes
-   das duas telas sobreviverem inteiros à quebra em componentes.
+   renderizada — nunca exportando função só para testar. Foi o que fez os
+   testes das três telas sobreviverem inteiros à quebra em componentes.
 2. **Provar que o teste enxerga**: plantar a quebra na forma mais óbvia, ver
-   falhar, reverter. Sem essa prova a task não está entregue.
+   falhar, reverter. Sem essa prova a task não está entregue. Em Usuários
+   foram 55 plantações, e nenhum dos 50 testes ficou cego.
 3. Quebrar em componentes por responsabilidade, com a conta pura num arquivo
-   próprio (`metaTrimestral.ts`, `notasDeLocacao.ts`).
+   próprio (`metaTrimestral.ts`, `notasDeLocacao.ts`, `usuarios/usuarios.ts`).
 4. Zerar `dark:` e paleta crua; tirar a tela de `PENDENTES_FASE_3`.
 5. Checklist de 10 itens respondido **um a um**, nunca em bloco.
 6. Verificar no navegador nos dois temas, incluindo vazio e carregando.
 
-### Defeitos encontrados nas duas telas
+### O padrão de modal que a tela 3 firmou
+
+Sete telas dependem dele. São três decisões, todas no primitivo, nenhuma
+copiada por tela:
+
+1. **Um estado só de diálogo**, união discriminada
+   (`{tipo:"criar"} | {tipo:"editar";usuario} | …`). Dois modais abertos ao
+   mesmo tempo deixaram de ser **escrevíveis** — não é disciplina, é o tipo.
+2. **`Modal` ganhou a prop `erro`**, que desenha um `Alert` no topo do corpo.
+   O aviso pertence ao diálogo, não à página. Era um `erroModal` único que
+   fazia a mesma frase ser pintada dentro do modal errado.
+3. **A regra "monte o diálogo só quando ele estiver aberto"** está documentada
+   no primitivo, com teste. É ela que faz o rascunho do cadastro e a senha
+   digitada morrerem no fechamento **sem uma linha de limpeza**.
+
+Prisão de foco, `Escape` e `aria-modal` já estavam resolvidos no `Modal` e não
+precisaram de nada. Não há pilha global de modais de propósito: a união
+discriminada já torna dois abertos impossíveis.
+
+`src/lib/datas.ts` nasceu aqui: a solução de data da Locação virou módulo
+compartilhado em vez de ser reescrita. Uma implementação, duas telas, e o lugar
+das próximas. Os testes de fuso da Locação eram **condicionais**
+(`atrasado ? "14/01" : "15/01"`) e agora são incondicionais.
+
+### Defeitos encontrados nas três telas
 
 Nenhum deles era conhecido antes. Todos apareceram porque o teste veio primeiro.
+
+**Dashboard e Locação:**
 
 - **Projeção da meta superestimava 12%** — extrapolação linear por dia ignorando
   que setembro vale 55% de julho. Era a diferença entre projetar 74% e 66% da
@@ -629,18 +657,65 @@ Nenhum deles era conhecido antes. Todos apareceram porque o teste veio primeiro.
 - **`setInterval` do confete nunca era limpo.**
 - **Lista vazia renderizava `<ul>` mudo.**
 
+**Usuários — doze suspeitas levantadas, dez corrigidas por decisão do Erick:**
+
+- **O `<select>` de perfil mostrava um papel e o POST gravava outro.** O valor
+  inicial era a string literal `"comum"`; quando `/roles` não a trazia, o
+  navegador desenhava o primeiro papel da lista e o payload ia com `"comum"`.
+  Quem cadastrava lia uma coisa e gravava outra. Agora `papelInicial()` só
+  devolve papel que existe na lista, e é o mesmo valor que vai no payload.
+- **`handleTrocarSenha` não tinha `try/catch`** — a promessa rejeitada virava
+  *unhandled rejection* e **derrubava a suíte inteira**; era por isso que o
+  caminho de falha não tinha teste. Agora o diálogo mostra o motivo e só fecha
+  no sucesso.
+- **`ModalTrocarSenha` não desmontava** (`if (!isOpen) return null`): a senha
+  digitada para um usuário continuava no campo ao reabrir para outro, e um
+  Confirmar distraído mandava a senha do A para o id do B.
+- **A troca de senha não tinha mínimo de caracteres** enquanto a criação exigia
+  6 — dava para gravar senha vazia num usuário existente.
+- `Invalid Date` cru na célula; tabela vazia sem frase; rascunho do cadastro
+  sobrevivendo ao Cancelar; nenhum `<label htmlFor>` na tela; e o `erroModal`
+  compartilhado desenhando a mesma frase em dois diálogos.
+- **`formatarData` com `new Date()` sobre string crua** — inofensivo hoje, mas
+  o mesmo padrão do bug da Locação. Blindado por `src/lib/datas.ts`.
+
+### Conferência no navegador (31/08)
+
+Feita com mock local em `127.0.0.1:8787` — **a produção não foi tocada**. Sem
+`VITE_API_URL`, o app aponta para `https://authapi.healthsafetytech.com`, e
+dirigir modal de exclusão contra usuário real não é opção.
+
+Confirmado nos dois temas: badges por papel conforme o desenho; `2026-03-21T14:57:00Z`
+e `2026-01-15` renderizando o dia certo em Brasília; `—` para data inválida e
+perfil ausente; estado vazio com frase e ação; carregando dentro da casca. As
+quatro correções graves foram exercitadas ao vivo, não só em teste.
+
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
    aceita troca de senha sem `Authorization`? O cliente agora manda o token
    sempre, mas se o endpoint for aberto isso não protege ninguém.
-2. **Chave de ordenação por data da Locação** ainda passa por `new Date()`.
+2. **`getUsers` e `getRoles` no mesmo `Promise.all`** (Usuários): `/roles` fora
+   do ar esvazia a tabela mesmo com `/users` respondendo 200. Fora de escopo
+   por decisão do Erick — a resposta vale para as 10 telas restantes.
+3. **`catch` silencioso do `carregar`** (Usuários): falha de rede vira
+   "0 usuários cadastrados", indistinguível de base vazia. Corrigir significa
+   decidir o padrão de erro de rede, e isso também vale para as 10 telas.
+4. **O cadeado de "trocar senha" está em laranja de alerta**, entre o azul de
+   editar e o vermelho de excluir. Trocar senha não é alerta; a cor veio do
+   `text-yellow-500` antigo e virou token sem ninguém questionar o significado.
+5. **"Password field is not contained in a form"** — o Chrome avisa nos modais
+   de senha. Não quebra nada, mas é o que faz gerenciador de senha não oferecer
+   para salvar. Decidir uma vez, porque o padrão vai para sete telas.
+6. **Chave de ordenação por data da Locação** ainda passa por `new Date()`.
    Inofensivo enquanto a API mandar só date-only.
-3. **Empate total na ordenação** continua sem inverter — é consequência de
-   comparador correto e estável, não resíduo de bug. Mudar exige critério de
-   desempate, e aí a ordem deixa de vir da API.
-4. **Contraste da caixa de erro do Login** em ~3,6:1, abaixo de AA para corpo.
-5. **Confete não respeita `prefers-reduced-motion`** (é `<canvas>`).
-6. **Checkpoint humano de permissões da Fase 2** nunca foi feito — o Erick optou
-   por fundir sem ele.
-7. **`docs/DataCoreHS.html`** segue fora do versionamento, sem decisão.
+7. **Empate total na ordenação** continua sem inverter — é consequência de
+   comparador correto e estável, não resíduo de bug.
+8. **Contraste da caixa de erro do Login** em ~3,6:1, abaixo de AA para corpo.
+9. **Confete não respeita `prefers-reduced-motion`** (é `<canvas>`).
+10. **`react-hooks/set-state-in-effect`** no `useEffect` que chama `carregar()`
+    — único lint que sobra em Usuários, e já existia antes. Consertar é mudar
+    como a tela busca dados; vale para as dez telas.
+11. **Checkpoint humano de permissões da Fase 2** nunca foi feito — o Erick
+    optou por fundir sem ele.
+12. **`docs/DataCoreHS.html`** segue fora do versionamento, sem decisão.
