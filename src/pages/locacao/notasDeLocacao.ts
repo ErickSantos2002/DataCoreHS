@@ -1,3 +1,4 @@
+import { dataDeCalendario } from "../../lib/datas";
 import type { NotaLocacao } from "../../services/notasapi";
 
 /**
@@ -46,14 +47,13 @@ export function emReais(valor: number): string {
 /**
  * "2026-07-10" e "2026-07-10T14:57:00" viram "10/07/2026".
  *
- * A conversão é feita na string, sem passar por `Date`: a API manda a data
- * sem fuso, e `new Date("2026-07-10")` seria lido como meia-noite em UTC —
- * no Brasil, o dia anterior.
+ * A regra em si mora em `src/lib/datas.ts` desde que a tela de Usuários
+ * passou a precisar dela para o `created_at`: é a mesma conversão feita na
+ * string, sem passar por `Date`, porque `new Date("2026-07-10")` é lido como
+ * meia-noite em UTC — no Brasil, o dia anterior. Aqui fica só o nome que a
+ * Locação usa, para não haver duas cópias da regra em telas diferentes.
  */
-export function dataDaNota(data: string | null | undefined): string {
-  if (!data) return "—";
-  return data.split("T")[0].split("-").reverse().join("/");
-}
+export const dataDaNota = dataDeCalendario;
 
 export interface ResumoDeLocacao {
   /** Soma do valor de todas as notas. */

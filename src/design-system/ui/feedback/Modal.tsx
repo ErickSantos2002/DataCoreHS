@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from "react";
 import type { HTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { Icon } from "../core/Icon";
+import { Alert } from "./Alert";
 
 export interface ModalProps {
   open: boolean;
@@ -8,6 +9,14 @@ export interface ModalProps {
   /** Presente, desenha o cabeçalho com o × de fechar. */
   title?: string;
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  /**
+   * Mensagem de erro DESTE diálogo — desenhada como `Alert` no topo do
+   * corpo. Existe como prop, e não como um `<Alert>` que cada tela põe à
+   * mão, porque o erro precisa pertencer a um modal e não à página: quando
+   * a página guarda um `erroModal` só, a mesma frase acaba pintada dentro
+   * do diálogo que não tem nada com ela.
+   */
+  erro?: string | null;
   children?: ReactNode;
 }
 
@@ -32,7 +41,15 @@ function focaveisDentro(container: HTMLElement): HTMLElement[] {
  *
  * O foco fica preso dentro dele enquanto está aberto (`Tab`/`Shift+Tab`
  * ciclam só entre os elementos do painel) e volta para quem abriu o modal
- * quando ele fecha — acréscimos do port, ver comentários abaixo.
+ * quando ele fecha — acréscimos do port, ver comentários abaixo. Enquanto
+ * está aberto, o fundo também não rola.
+ *
+ * MONTE O DIÁLOGO SÓ QUANDO ELE ESTIVER ABERTO — `{aberto && <MeuModal/>}`,
+ * e não um `<MeuModal aberto={...}/>` que fica montado o tempo todo. Um
+ * componente que sobrevive ao fechamento leva junto o que foi digitado
+ * nele: o rascunho reaparece na próxima abertura, e a senha que era de um
+ * usuário volta preenchida no formulário de outro. Montar só quando aberto
+ * faz o estado morrer no fechamento sem uma linha de limpeza.
  *
  * ```tsx
  * <Modal open={aberto} onClose={fechar} title="Trocar senha">
@@ -44,7 +61,7 @@ function focaveisDentro(container: HTMLElement): HTMLElement[] {
  * </Modal>
  * ```
  */
-export function Modal({ open, onClose, title, size = "md", children }: ModalProps) {
+export function Modal({ open, onClose, title, size = "md", erro, children }: ModalProps) {
   const idGerado = useId();
   const tituloId = `${idGerado}-titulo`;
 
@@ -62,6 +79,18 @@ export function Modal({ open, onClose, title, size = "md", children }: ModalProp
     painelRef.current?.focus();
     return () => {
       focoAnteriorRef.current?.focus();
+    };
+  }, [open]);
+
+  // Acréscimo 5: travar a rolagem do fundo. Sem isto a roda do mouse rola a
+  // página atrás do diálogo — a cortina esconde, mas não segura —, e ao
+  // fechar a pessoa volta para um lugar da tela que não é o que ela deixou.
+  useEffect(() => {
+    if (!open) return;
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = anterior;
     };
   }, [open]);
 
@@ -150,7 +179,14 @@ export function Modal({ open, onClose, title, size = "md", children }: ModalProp
             </button>
           </div>
         ) : null}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          {erro ? (
+            <Alert variant="danger" className="mb-4">
+              {erro}
+            </Alert>
+          ) : null}
+          {children}
+        </div>
       </div>
     </div>
   );
