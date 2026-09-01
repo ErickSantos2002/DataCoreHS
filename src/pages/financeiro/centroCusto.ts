@@ -1,3 +1,4 @@
+import { formatarDinheiro, mascaraDeDinheiro } from "../../lib/dinheiro";
 import type { ConfigCentroCusto } from "../../services/notasapi";
 
 /**
@@ -100,26 +101,16 @@ export function mascaraDeData(valor: string): string {
 }
 
 /** `1234567` → `1.234.567`. Preserva o que vier depois da vírgula. */
-export function mascaraDeDinheiro(valor: string): string {
-  const limpo = valor.replace(/[^\d,]/g, "");
-  const [inteiro = "", decimal] = limpo.split(",");
-  const agrupado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return decimal !== undefined ? `${agrupado},${decimal}` : agrupado;
-}
+export { mascaraDeDinheiro };
 
 /**
- * Dinheiro da aba Centro de Custo.
+ * Dinheiro da aba Centro de Custo — o do `src/lib/dinheiro.ts`.
  *
  * ⚠️ NÃO é o `formatarMoeda` da tela, que devolve travessão para zero: aqui
  * zero é custo apurado, e travessão no lugar de "R$ 0,00" esconderia o
  * resultado de uma conta que de fato deu zero.
  */
-export function formatarDinheiro(valor: number): string {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+export { formatarDinheiro };
 
 /** Travessão para o que ainda não dá para calcular. */
 export function formatarDinheiroOuTraco(valor: number | null): string {

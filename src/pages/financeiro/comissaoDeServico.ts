@@ -1,3 +1,5 @@
+import { formatarDinheiro } from "../../lib/dinheiro";
+
 /**
  * A comissão da equipe de serviço, sem React.
  *
@@ -55,6 +57,25 @@ function alcanca(faturamento: number, degrau: Degrau): boolean {
 /** A fração do faturamento de serviços que entra nos degraus com percentual. */
 export const PERCENTUAL_DE_SERVICO = 0.01;
 
+/** O degrau em que um faturamento cai, ou `undefined` abaixo do primeiro. */
+function degrauDe(faturamentoDeServicos: number): Degrau | undefined {
+  return DEGRAUS.find((candidato) => alcanca(faturamentoDeServicos, candidato));
+}
+
+/**
+ * O degrau em palavras, para a tela dizer POR QUE o valor é aquele.
+ *
+ * Sem isso, quem confere o fechamento vê um número e não tem como saber se a
+ * meta batida foi a de 150 mil ou a de 200 mil — que diferem em R$ 500.
+ */
+export function descricaoDoDegrau(faturamentoDeServicos: number): string {
+  const degrau = degrauDe(faturamentoDeServicos);
+  if (!degrau) return "nenhum — abaixo da primeira meta";
+  if (!degrau.comPercentual) return `${formatarDinheiro(degrau.premio)} fixo`;
+  if (degrau.premio === 0) return "1% do faturamento";
+  return `1% + ${formatarDinheiro(degrau.premio)}`;
+}
+
 /**
  * O valor de referência do mês, a partir do faturamento de serviços.
  *
@@ -64,9 +85,7 @@ export const PERCENTUAL_DE_SERVICO = 0.01;
  * exato escapava dos dois. Aqui cada degrau abre no próprio valor.
  */
 export function comissaoBaseDeServico(faturamentoDeServicos: number): number {
-  const degrau = DEGRAUS.find((candidato) =>
-    alcanca(faturamentoDeServicos, candidato),
-  );
+  const degrau = degrauDe(faturamentoDeServicos);
   if (!degrau) return 0;
   return (
     degrau.premio +
@@ -100,6 +119,8 @@ export interface LinhaDeServico extends PessoaDeServico {
 export interface FechamentoDeServico {
   /** O valor de referência da escada. NÃO é o que sai do caixa. */
   base: number;
+  /** O degrau em palavras — "1% + R$ 1.000,00". */
+  descricaoDoDegrau: string;
   linhas: LinhaDeServico[];
   totalAPagar: number;
 }
@@ -123,6 +144,7 @@ export function calcularComissaoDeServico(
   }));
   return {
     base,
+    descricaoDoDegrau: descricaoDoDegrau(faturamentoDeServicos),
     linhas,
     totalAPagar: linhas.reduce((soma, linha) => soma + linha.valor, 0),
   };

@@ -24,18 +24,13 @@ export function multiplicador(bonus: number): number {
 }
 
 /**
- * Dinheiro da aba Meta.
+ * Dinheiro da aba Meta — o do `src/lib/dinheiro.ts`.
  *
  * ⚠️ NÃO é o `formatarMoeda` da tela, que devolve travessão para zero. Aqui
  * zero é valor apurado — trimestre que ainda não faturou nada tem alvo e
  * falta em reais —, e travessão no lugar de "R$ 0,00" apagaria a informação.
  */
-export function formatarDinheiro(valor: number): string {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+export { formatarDinheiro } from "../../lib/dinheiro";
 
 /**
  * Lê o valor cru da chave META da tabela de configurações.

@@ -48,3 +48,36 @@ export function converterParaNumero(
   // Sobra o formato americano, em que o ponto é mesmo o decimal.
   return parseFloat(texto) || 0;
 }
+
+/**
+ * Dinheiro escrito em real, sempre com os dois decimais.
+ *
+ * Zero sai como `R$ 0,00`, e não como travessão: aqui zero é valor apurado —
+ * uma comissão zerada, um custo que deu zero — e trocá-lo por travessão
+ * apagaria a informação. A tela de Financeiro tem o seu próprio
+ * `formatarMoeda`, que faz o contrário, porque lá zero quase sempre é mês que
+ * ainda não aconteceu.
+ */
+export function formatarDinheiro(valor: number): string {
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+/**
+ * A máscara de um campo de dinheiro, aplicada a cada tecla.
+ *
+ * Agrupa o milhar com ponto e preserva o que vier depois da vírgula. Mora
+ * aqui, junto do `converterParaNumero`, porque as duas funções precisam
+ * concordar sobre o que é ponto de milhar: quando a máscara escreve
+ * `1.234.567` e o parse lê `1,234`, o valor entra na conta dividido por mil —
+ * que é exatamente o defeito que o Centro de Custo tem hoje, por usarem
+ * leituras diferentes.
+ */
+export function mascaraDeDinheiro(valor: string): string {
+  const limpo = valor.replace(/[^\d,]/g, "");
+  const [inteiro = "", decimal] = limpo.split(",");
+  const agrupado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return decimal !== undefined ? `${agrupado},${decimal}` : agrupado;
+}

@@ -67,6 +67,10 @@ vi.mock("./financeiro/AbaCentroCusto", () => ({
   ),
 }));
 
+vi.mock("./financeiro/AbaComissao", () => ({
+  default: () => <p>calculadora de comissão</p>,
+}));
+
 vi.mock("./financeiro/AbaMeta", () => ({
   default: ({
     faturamentoAnoAnterior,
@@ -344,6 +348,10 @@ describe("Financeiro — as quatro abas", () => {
     abrirAba("Meta");
     expect(screen.getByText(/^meta ·/)).toBeInTheDocument();
     expect(screen.queryByText(/centro de custo/)).not.toBeInTheDocument();
+
+    abrirAba("Calculadora de Comissão");
+    expect(screen.getByText(/calculadora de comissão/)).toBeInTheDocument();
+    expect(screen.queryByText(/^meta ·/)).not.toBeInTheDocument();
 
     abrirAba("Visão Geral");
     expect(screen.getByText("Comparativo Mensal")).toBeInTheDocument();

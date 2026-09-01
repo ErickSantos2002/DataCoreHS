@@ -69,9 +69,7 @@ describe("comissão de serviço — repartição por papel", () => {
   });
 
   it("a equipe padrão é Papel 1, Papel 2 e Papel 3, com 100%, 75% e 50%", () => {
-    expect(
-      EQUIPE_PADRAO.map((p) => [p.nome, p.percentual]),
-    ).toEqual([
+    expect(EQUIPE_PADRAO.map((p) => [p.nome, p.percentual])).toEqual([
       ["Papel 1", 1],
       ["Papel 2", 0.75],
       ["Papel 3", 0.5],

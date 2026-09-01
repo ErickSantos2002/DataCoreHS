@@ -11,6 +11,8 @@
  * Financeiro já fez na planilha.
  */
 
+import { converterParaNumero } from "../../lib/dinheiro";
+
 /** Os três canais de venda, cada um com a sua regra de alíquota. */
 export type CanalDeVenda = "inbound" | "recompra" | "outbound";
 
@@ -200,5 +202,51 @@ export function calcularComissoes(
     linhas,
     rateio,
     totalAPagar: linhas.reduce((soma, linha) => soma + linha.recebe, 0),
+  };
+}
+
+/**
+ * O vendedor como a tela o guarda: tudo texto, do jeito que foi digitado.
+ *
+ * A máscara de dinheiro escreve ponto de milhar enquanto se digita, e é por
+ * isso que a leitura precisa ser a do `src/lib/dinheiro.ts` — um parse que
+ * trate `1.234.567` como decimal entrega a conta dividida por mil, que é o
+ * defeito que o Centro de Custo carrega até hoje.
+ */
+export interface VendedorDigitado {
+  id: string;
+  nome: string;
+  inbound: string;
+  recompra: string;
+  outbound: string;
+  inboundPlus: string;
+  recomprasAtivas: string;
+}
+
+export function vendedorDigitadoVazio(id: string): VendedorDigitado {
+  return {
+    id,
+    nome: "",
+    inbound: "",
+    recompra: "",
+    outbound: "",
+    inboundPlus: "",
+    recomprasAtivas: "",
+  };
+}
+
+/** Do que foi digitado para o que a conta usa. */
+export function lerVendedorDigitado(
+  digitado: VendedorDigitado,
+): FaturamentoDoVendedor {
+  return {
+    id: digitado.id,
+    nome: digitado.nome,
+    inbound: converterParaNumero(digitado.inbound),
+    recompra: converterParaNumero(digitado.recompra),
+    outbound: converterParaNumero(digitado.outbound),
+    inboundPlus: converterParaNumero(digitado.inboundPlus),
+    // Contagem, não dinheiro: cinco recompras ativadas são 5, e nunca 5,00.
+    recomprasAtivas: parseInt(digitado.recomprasAtivas, 10) || 0,
   };
 }

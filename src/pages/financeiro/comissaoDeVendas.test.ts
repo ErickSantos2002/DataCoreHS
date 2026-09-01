@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   ALIQUOTA_OUTBOUND,
+  lerVendedorDigitado,
+  vendedorDigitadoVazio,
   aliquotaDeRecompra,
   aliquotaDeInbound,
   bonusPorDesempenho,
@@ -19,7 +21,9 @@ import {
  */
 
 /** Um vendedor com só um dos três canais preenchido. */
-function vendedor(campos: Partial<FaturamentoDoVendedor>): FaturamentoDoVendedor {
+function vendedor(
+  campos: Partial<FaturamentoDoVendedor>,
+): FaturamentoDoVendedor {
   return { ...vendedorVazio("v1"), nome: "Fulano", ...campos };
 }
 
@@ -184,10 +188,7 @@ describe("comissão de vendas — o que o vendedor recebe", () => {
       1_000_000,
     );
 
-    expect(totalAPagar).toBeCloseTo(
-      linhas[0].recebe + linhas[1].recebe,
-      2,
-    );
+    expect(totalAPagar).toBeCloseTo(linhas[0].recebe + linhas[1].recebe, 2);
   });
 });
 
@@ -248,7 +249,12 @@ describe("comissão de vendas — fechamento de julho/2026", () => {
    * "a planilha do fechamento".
    */
   const JULHO: FaturamentoDoVendedor[] = [
-    { ...vendedorVazio("1"), nome: "Vendedor A", inbound: 150_000, outbound: 70_000 },
+    {
+      ...vendedorVazio("1"),
+      nome: "Vendedor A",
+      inbound: 150_000,
+      outbound: 70_000,
+    },
     { ...vendedorVazio("2"), nome: "Vendedor B", inbound: 280_000 },
     { ...vendedorVazio("3"), nome: "Vendedor C", inbound: 250_000 },
     { ...vendedorVazio("4"), nome: "Vendedor D", inbound: 85_000 },
@@ -287,5 +293,44 @@ describe("comissão de vendas — fechamento de julho/2026", () => {
     const { totalAPagar } = calcularComissoes(JULHO, FATURAMENTO_TOTAL);
 
     expect(totalAPagar).toBeCloseTo(10_900, 2);
+  });
+});
+
+describe("comissão de vendas — o que a tela digita", () => {
+  it("lê o valor mascarado sem dividir por mil", () => {
+    // A máscara escreve "1.234.567"; o parse tem de devolver um milhão e
+    // duzentos, não mil e duzentos. É o defeito que o Centro de Custo tem por
+    // usar um parse próprio, e que aqui não se repete porque a leitura é a do
+    // `src/lib/dinheiro.ts`.
+    const digitado = {
+      ...vendedorDigitadoVazio("1"),
+      nome: "Ana",
+      inbound: "1.234.567",
+      recompra: "1.234,56",
+      outbound: "700.000",
+    };
+
+    const lido = lerVendedorDigitado(digitado);
+
+    expect(lido.inbound).toBe(1_234_567);
+    expect(lido.recompra).toBe(1_234.56);
+    expect(lido.outbound).toBe(700_000);
+    expect(lido.nome).toBe("Ana");
+  });
+
+  it("campo em branco vale zero, não NaN", () => {
+    const lido = lerVendedorDigitado(vendedorDigitadoVazio("1"));
+
+    expect(lido.inbound).toBe(0);
+    expect(lido.recomprasAtivas).toBe(0);
+  });
+
+  it("a contagem de recompras ativas é inteiro, não dinheiro", () => {
+    const lido = lerVendedorDigitado({
+      ...vendedorDigitadoVazio("1"),
+      recomprasAtivas: "3",
+    });
+
+    expect(lido.recomprasAtivas).toBe(3);
   });
 });

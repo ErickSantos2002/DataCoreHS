@@ -13,6 +13,7 @@ import { useContasReceber } from "../context/ContasReceberContext";
 import { useServicos } from "../context/ServicosContext";
 import { useVendas } from "../context/VendasContext";
 import AbaCentroCusto from "./financeiro/AbaCentroCusto";
+import AbaComissao from "./financeiro/AbaComissao";
 import AbaMeta from "./financeiro/AbaMeta";
 import { AbaBalancete } from "./financeiro/AbaBalancete";
 import { AbaVisaoGeral } from "./financeiro/AbaVisaoGeral";
@@ -38,6 +39,7 @@ const ABAS = [
   { valor: "balancete", rotulo: "Balancete" },
   { valor: "centroCusto", rotulo: "Centro de Custo" },
   { valor: "meta", rotulo: "Meta" },
+  { valor: "comissao", rotulo: "Calculadora de Comissão" },
 ] as const;
 
 /**
@@ -184,6 +186,10 @@ const GerenciamentoFinanceiro: React.FC = () => {
             faturamentoAnoAnterior={faturamentoAnoAnterior}
             anoAnterior={anoAnterior}
           />
+        </TabsContent>
+
+        <TabsContent value="comissao">
+          <AbaComissao />
         </TabsContent>
       </Tabs>
     </div>
