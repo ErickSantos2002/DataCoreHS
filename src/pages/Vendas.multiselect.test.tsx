@@ -1,0 +1,239 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import Vendas from "./Vendas";
+
+/**
+ * Caracterização do MultiSelect COMO ELE VIVE em Vendas.
+ *
+ * Mesmo molde de `Vendedores.multiselect.test.tsx` (Task 3): dublês de
+ * `useAuth` e `useData` em vez dos providers de verdade, porque o alvo é o
+ * MultiSelect, não a integração com o backend. Vendas tem três filtros
+ * ("Todas as empresas", "Todos os vendedores", "Todos os produtos") e dois
+ * campos com o placeholder "Pesquisar..." — o do dropdown de empresas e o da
+ * tabela —, então o teste escopa a busca pelo container do filtro
+ * (`containerDoFiltro`/`campoDeBusca`) em vez de pegar "o primeiro da
+ * página": isso funciona hoje só por acidente de layout, e se a extração
+ * para primitivo montar o painel num portal o teste passaria a ler o campo
+ * errado seguindo verde.
+ *
+ * O filtro de empresas (`empresasUnicas`, ~linha 167) carrega
+ * `"Alfa Mineração (11.222.333/0001-44)"`, e o MultiSelect daqui extrai o
+ * CNPJ **de dentro dos parênteses** (`option.match(/\((.*?)\)/)`), igual a
+ * Vendedores — não da opção inteira como em Servicos/Produtos. E a
+ * normalização do termo digitado só roda quando ele é **todo dígito**
+ * (`/^\d+$/.test(searchTerm)`) — por isso "a11" não vira busca numérica.
+ */
+vi.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
+}));
+
+const NOTAS_VENDAS = [
+  {
+    id: 1,
+    data_emissao: "2026-01-10",
+    valor_nota: 1000,
+    cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
+    nome_vendedor: "Vendedor A",
+    itens: [
+      { descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
+    ],
+    observacoes: null,
+  },
+  {
+    id: 2,
+    data_emissao: "2026-02-10",
+    valor_nota: 500,
+    cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
+    nome_vendedor: "Vendedor A",
+    itens: [
+      { descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
+    ],
+    observacoes: null,
+  },
+];
+
+vi.mock("../context/DataContext", () => ({
+  useData: () => ({
+    notas: NOTAS_VENDAS,
+    carregando: false,
+  }),
+}));
+
+/**
+ * Dublê do recharts.
+ *
+ * Em jsdom o `ResponsiveContainer` mede 0x0 e o recharts de verdade não
+ * desenha nada — os gráficos de Vendas ficariam invisíveis ao teste sem
+ * quebrar (recharts engole a falta de tamanho em silêncio). Como este teste
+ * não olha para gráfico nenhum, o dublê só precisa devolver algo renderizável
+ * para cada peça importada, sem reproduzir o comportamento real delas.
+ */
+vi.mock("recharts", () => {
+  const semDesenho = () => null;
+  return {
+    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    Bar: semDesenho,
+    Line: semDesenho,
+    Pie: semDesenho,
+    Cell: semDesenho,
+    XAxis: semDesenho,
+    YAxis: semDesenho,
+    Tooltip: semDesenho,
+    CartesianGrid: semDesenho,
+    Legend: semDesenho,
+  };
+});
+
+/** Abre o dropdown de um filtro pelo texto do botão fechado. */
+function abrir(placeholder: string) {
+  fireEvent.click(screen.getByRole("button", { name: placeholder }));
+}
+
+/**
+ * O container `<div className="relative" ref={ref}>` de um filtro — o botão
+ * fechado e o painel do dropdown são irmãos dentro dele.
+ */
+function containerDoFiltro(nomeDoBotao: string): HTMLElement {
+  const botao = screen.getByRole("button", { name: nomeDoBotao });
+  const container = botao.parentElement;
+  if (!container) {
+    throw new Error(`container do filtro "${nomeDoBotao}" nao encontrado`);
+  }
+  return container as HTMLElement;
+}
+
+/**
+ * O campo de busca DAQUELE dropdown.
+ *
+ * Escopado pelo container do filtro, e não pela ordem na página: Vendas tem
+ * dois campos com o placeholder "Pesquisar..." — este e o da tabela de
+ * notas —, e pegar "o primeiro" depende de a seção de filtros vir antes da
+ * tabela no JSX. Se a extração para primitivo montar o painel num portal, "o
+ * primeiro" passa a ser o campo da tabela e o teste seguiria verde testando
+ * a coisa errada.
+ */
+function campoDeBusca(nomeDoBotao: string): HTMLElement {
+  return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
+}
+
+describe("MultiSelect em Vendas", () => {
+  it("o botão fechado mostra o placeholder e, depois, quantos foram escolhidos", () => {
+    render(<Vendas />);
+
+    abrir("Todas as empresas");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
+
+    expect(
+      screen.getByRole("button", { name: "1 selecionado(s)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("a busca filtra a lista por texto", () => {
+    render(<Vendas />);
+    abrir("Todas as empresas");
+
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
+      target: { value: "beta" },
+    });
+
+    expect(screen.getByRole("checkbox", { name: /Beta Logística/ })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Alfa/ })).not.toBeInTheDocument();
+  });
+
+  it("sem resultado, diz que não achou", () => {
+    render(<Vendas />);
+    abrir("Todas as empresas");
+
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
+      target: { value: "gama" },
+    });
+
+    expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+  });
+
+  // ── COMPORTAMENTO IDÊNTICO A VENDEDORES ──────────────────────────────────
+  // Em Servicos o MultiSelect normaliza a OPÇÃO INTEIRA tirando os
+  // não-dígitos; em Produtos a busca por CNPJ sem pontuação não acha nada.
+  // Vendas faz o mesmo que Vendedores: extrai só o trecho entre parênteses
+  // (`option.match(/\((.*?)\)/)`) como CNPJ e normaliza SÓ ele — por isso
+  // acha a empresa pelo CNPJ digitado sem pontuação.
+  it("acha pelo CNPJ que está entre parênteses, digitado sem pontuação", () => {
+    render(<Vendas />);
+    abrir("Todas as empresas");
+
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
+      target: { value: "11222333" },
+    });
+
+    expect(
+      screen.getByRole("checkbox", { name: /Alfa Mineração/ }),
+    ).toBeInTheDocument();
+  });
+
+  // A normalização do termo digitado só acontece quando ele é todo dígito
+  // (`/^\d+$/.test(searchTerm)`): "a11" procura o texto "a11" mesmo, e não o
+  // número 11 — não vira busca numérica por ter um dígito dentro.
+  it("termo com letra não vira busca numérica", () => {
+    render(<Vendas />);
+    abrir("Todas as empresas");
+
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
+      target: { value: "a11" },
+    });
+
+    expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+  });
+
+  // `MultiSelect` é declarado DENTRO do corpo de `Vendas` (não é um
+  // componente à parte) — cada clique que muda `filtroEmpresa` re-renderiza
+  // `Vendas` e recria a função `MultiSelect`, então React vê um componente
+  // novo e o remonta do zero. Isso reseta o estado local `isOpen` para
+  // `false`, e por isso o dropdown aparece fechado depois de QUALQUER
+  // seleção — é preciso reabri-lo (`abrir(...)`) antes do próximo clique
+  // dentro do painel, sempre.
+  it("marcar de novo desmarca, e 'Limpar seleção' zera tudo", () => {
+    render(<Vendas />);
+
+    abrir("Todas as empresas");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
+    expect(
+      screen.getByRole("button", { name: "1 selecionado(s)" }),
+    ).toBeInTheDocument();
+
+    // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
+    abrir("1 selecionado(s)");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
+    expect(
+      screen.getByRole("button", { name: "Todas as empresas" }),
+    ).toBeInTheDocument();
+
+    // Seleciona de novo para testar "Limpar seleção" isoladamente.
+    abrir("Todas as empresas");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
+    abrir("1 selecionado(s)");
+    fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
+
+    expect(
+      screen.getByRole("button", { name: "Todas as empresas" }),
+    ).toBeInTheDocument();
+  });
+
+  it("clicar fora fecha o dropdown", () => {
+    render(<Vendas />);
+    abrir("Todas as empresas");
+    const container = containerDoFiltro("Todas as empresas");
+    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+
+    // O container do filtro continua no DOM (o botão vive nele); o que some
+    // ao fechar é só o painel do dropdown, filho dele.
+    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+  });
+});
