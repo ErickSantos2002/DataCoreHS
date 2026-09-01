@@ -29,6 +29,13 @@ interface ServicosContextType {
   servicos: Servico[];
   servicosEnriquecidos: ServicoEnriquecido[];
   carregando: boolean;
+  /**
+   * A mensagem de falha da última busca, ou `null` quando deu certo.
+   *
+   * Mesmo motivo do `VendasContext`: sem isto a tela de Financeiro abre
+   * zerada com a API caída e não avisa ninguém.
+   */
+  erro: string | null;
   atualizarServicos: () => Promise<void>;
 }
 
@@ -38,6 +45,7 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { user } = useAuth();
   const [servicos, setServicos] = useState<Servico[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   // Função para converter valor string para número
   const converterParaNumero = (valor: string | number | undefined): number => {
@@ -76,8 +84,11 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
 
       setServicos(servicosNormalizados);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar serviços:", error);
+      setServicos([]);
+      setErro("Não foi possível carregar as notas de serviço.");
     } finally {
       setCarregando(false);
     }
@@ -109,6 +120,7 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         servicos,
         servicosEnriquecidos,
         carregando,
+        erro,
         atualizarServicos,
       }}
     >

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 import {
+  Alert,
   Card,
   Spinner,
   Tabs,
@@ -55,13 +56,39 @@ const ABAS = [
  * Balancete e voltar não pode devolver a aba de custo ao ano padrão.
  */
 const GerenciamentoFinanceiro: React.FC = () => {
-  const { notas, carregando: carregandoVendas } = useVendas();
-  const { servicosEnriquecidos, carregando: carregandoServicos } =
-    useServicos();
-  const { contas: contasPagar, carregando: carregandoPagar } = useContasPagar();
-  // Chamado pelo efeito colateral: o provider busca as contas a receber ao
-  // montar, e outras telas contam com elas já em memória. A tela não lê nada.
-  useContasReceber();
+  const {
+    notas,
+    carregando: carregandoVendas,
+    erro: erroDeVendas,
+  } = useVendas();
+  const {
+    servicosEnriquecidos,
+    carregando: carregandoServicos,
+    erro: erroDeServicos,
+  } = useServicos();
+  const {
+    contas: contasPagar,
+    carregando: carregandoPagar,
+    erro: erroDePagar,
+  } = useContasPagar();
+  // Só a falha interessa aqui: o provider busca as contas a receber ao montar
+  // porque outras telas contam com elas em memória, e esta tela não lê os
+  // dados — mas se a busca cair, quem está olhando merece saber.
+  const { erro: erroDeReceber } = useContasReceber();
+
+  /**
+   * O que não carregou.
+   *
+   * Num aviso só, e não um por fonte: quando a API cai, cai para as quatro, e
+   * quatro tarjas vermelhas empilhadas empurrariam a tela inteira para baixo
+   * dizendo a mesma coisa quatro vezes.
+   */
+  const falhas = [
+    erroDeVendas,
+    erroDeServicos,
+    erroDePagar,
+    erroDeReceber,
+  ].filter((falha): falha is string => Boolean(falha));
 
   const [abaAtiva, setAbaAtiva] = useState<string>("visaoGeral");
   const [anosAtivos, setAnosAtivos] = useState<Set<Ano>>(new Set(ANOS));
@@ -152,6 +179,20 @@ const GerenciamentoFinanceiro: React.FC = () => {
             ))}
           </TabsList>
         </Card>
+
+        {falhas.length > 0 && (
+          <Alert variant="danger" title="Parte dos dados não carregou">
+            {falhas.length === 1 ? (
+              falhas[0]
+            ) : (
+              <ul className="ml-4 list-disc">
+                {falhas.map((falha) => (
+                  <li key={falha}>{falha}</li>
+                ))}
+              </ul>
+            )}
+          </Alert>
+        )}
 
         <TabsContent value="visaoGeral">
           <AbaVisaoGeral

@@ -26,6 +26,15 @@ interface Nota {
 interface VendasContextType {
   notas: Nota[];
   carregando: boolean;
+  /**
+   * A mensagem de falha da última busca, ou `null` quando deu certo.
+   *
+   * O `catch` só escrevia no console: a tela de Financeiro abria com "Sem
+   * dados" nos cinco anos e quem olhava não distinguia "a API caiu" de "a
+   * empresa não faturou". Quem desenha o aviso é a tela, com o `Alert` do
+   * design system — mesmo conserto que as telas de Contas já receberam.
+   */
+  erro: string | null;
   atualizarNotas: () => Promise<void>; // Para forçar refresh se precisar
 }
 
@@ -34,15 +43,19 @@ const VendasContext = createContext<VendasContextType | undefined>(undefined);
 export const VendasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notas, setNotas] = useState<Nota[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   // Função para buscar e atualizar as notas
   const atualizarNotas = async () => {
     try {
       setCarregando(true);
       const data = await fetchVendas();
-      setNotas(data);
+      setNotas(Array.isArray(data) ? data : []);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar notas:", error);
+      setNotas([]);
+      setErro("Não foi possível carregar as notas de venda.");
     } finally {
       setCarregando(false);
     }
@@ -54,7 +67,7 @@ export const VendasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   return (
-    <VendasContext.Provider value={{ notas, carregando, atualizarNotas }}>
+    <VendasContext.Provider value={{ notas, carregando, erro, atualizarNotas }}>
       {children}
     </VendasContext.Provider>
   );

@@ -23,6 +23,7 @@ import GerenciamentoFinanceiro from "./GerenciamentoFinanceiro";
 const estadoVendas = vi.hoisted(() => ({
   notas: [] as Record<string, unknown>[],
   carregando: false,
+  erro: null as string | null,
 }));
 vi.mock("../context/VendasContext", () => ({
   useVendas: () => estadoVendas,
@@ -31,6 +32,7 @@ vi.mock("../context/VendasContext", () => ({
 const estadoServicos = vi.hoisted(() => ({
   servicosEnriquecidos: [] as Record<string, unknown>[],
   carregando: false,
+  erro: null as string | null,
 }));
 vi.mock("../context/ServicosContext", () => ({
   useServicos: () => estadoServicos,
@@ -39,6 +41,7 @@ vi.mock("../context/ServicosContext", () => ({
 const estadoPagar = vi.hoisted(() => ({
   contas: [] as Record<string, unknown>[],
   carregando: false,
+  erro: null as string | null,
 }));
 vi.mock("../context/ContasPagarContext", () => ({
   useContasPagar: () => estadoPagar,
@@ -46,8 +49,13 @@ vi.mock("../context/ContasPagarContext", () => ({
 
 // A tela chama `useContasReceber()` e descarta o retorno — o provider existe
 // só para a busca acontecer. Sem o dublê o hook estoura por falta de provider.
+const estadoReceber = vi.hoisted(() => ({
+  contas: [] as Record<string, unknown>[],
+  carregando: false,
+  erro: null as string | null,
+}));
 vi.mock("../context/ContasReceberContext", () => ({
-  useContasReceber: () => ({ contas: [], carregando: false }),
+  useContasReceber: () => estadoReceber,
 }));
 
 vi.mock("./financeiro/AbaCentroCusto", () => ({
@@ -302,6 +310,10 @@ beforeEach(() => {
   estadoServicos.carregando = false;
   estadoPagar.contas = [];
   estadoPagar.carregando = false;
+  estadoVendas.erro = null;
+  estadoServicos.erro = null;
+  estadoPagar.erro = null;
+  estadoReceber.erro = null;
 });
 
 afterEach(() => {
@@ -321,6 +333,61 @@ describe("Financeiro — carregando", () => {
       screen.getByText(/Carregando dados financeiros/),
     ).toBeInTheDocument();
     expect(screen.queryByText("Balancete")).not.toBeInTheDocument();
+  });
+});
+
+describe("Financeiro — falha de carga", () => {
+  it("avisa qual busca falhou, em vez de abrir zerada em silêncio", () => {
+    // Sem o aviso, a API caída dá uma tela igualzinha à de um mês sem
+    // faturamento: cinco anos com "Sem dados" e nenhuma pista de que o
+    // número não existe porque a rede caiu.
+    baseFechada();
+    estadoVendas.erro = "Não foi possível carregar as notas de venda.";
+    render(<GerenciamentoFinanceiro />);
+
+    expect(
+      screen.getByText("Não foi possível carregar as notas de venda."),
+    ).toBeInTheDocument();
+  });
+
+  it("lista as quatro quando tudo cai de uma vez", () => {
+    estadoVendas.erro = "Não foi possível carregar as notas de venda.";
+    estadoServicos.erro = "Não foi possível carregar as notas de serviço.";
+    estadoPagar.erro = "Não foi possível carregar as contas a pagar.";
+    estadoReceber.erro = "Não foi possível carregar as contas a receber.";
+    render(<GerenciamentoFinanceiro />);
+
+    for (const frase of [
+      "Não foi possível carregar as notas de venda.",
+      "Não foi possível carregar as notas de serviço.",
+      "Não foi possível carregar as contas a pagar.",
+      "Não foi possível carregar as contas a receber.",
+    ]) {
+      expect(screen.getByText(frase)).toBeInTheDocument();
+    }
+  });
+
+  it("o aviso acompanha a pessoa para qualquer aba", () => {
+    // O dado que faltou alimenta mais de uma aba; o aviso preso à Visão Geral
+    // sumiria justamente para quem foi olhar o Balancete.
+    baseFechada();
+    estadoPagar.erro = "Não foi possível carregar as contas a pagar.";
+    render(<GerenciamentoFinanceiro />);
+
+    abrirAba("Balancete");
+
+    expect(
+      screen.getByText("Não foi possível carregar as contas a pagar."),
+    ).toBeInTheDocument();
+  });
+
+  it("sem falha nenhuma, nenhum aviso", () => {
+    baseFechada();
+    render(<GerenciamentoFinanceiro />);
+
+    expect(
+      screen.queryByText(/Não foi possível carregar/),
+    ).not.toBeInTheDocument();
   });
 });
 
