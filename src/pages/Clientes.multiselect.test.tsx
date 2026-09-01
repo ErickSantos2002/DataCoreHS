@@ -202,38 +202,58 @@ describe("MultiSelect em Clientes", () => {
   });
 
   // ── COMPORTAMENTO QUE DISTINGUE CLIENTES DAS TELAS ANTERIORES ───────────
-  // A busca (~linha 592) casa três coisas, nesta ordem de fallback:
+  // A busca (~linha 592) tem três condições, nesta ordem de fallback:
   //   1. `label.includes(termo)`             — texto exibido, com pontuação;
   //   2. `value.includes(termo)`             — o value CRU;
   //   3. dígitos do value ⊇ dígitos do termo — só quando o termo tem dígito.
   //
-  // A pegadinha de Clientes: `value` aqui já sai pré-normalizado (só
-  // dígitos, sem pontuação — ao contrário de Estoque, onde o `value` era o
-  // código formatado "1.163"). Isso muda o que cada termo realmente exercita:
+  // FIX ROUND 1 — achado Crítico da revisão: a condição 2 é RAMO MORTO em
+  // Clientes, e não dá pra escrever um termo que a isole (ao contrário do
+  // que a v1 deste teste alegava com "23330001"). O motivo é matemático, não
+  // de dado de teste: `clientesUnicos` (~linha 133) já entrega `value`
+  // pré-normalizado (`c.cpf_cnpj.replace(/\D/g, "")` — só dígitos, sem
+  // pontuação nenhuma). Logo `valueLower === valueNormalizado` sempre.
+  //   - Se o termo digitado é só dígito, `searchLower === searchNormalizado`
+  //     também — as condições 2 e 3 viram a MESMA expressão booleana, então
+  //     nenhum termo numérico consegue provar a 2 isoladamente (o que quer
+  //     que a 2 aceite, a 3 também aceita).
+  //   - Se o termo tem qualquer caractere não-dígito, a condição 2 nunca
+  //     bate, porque `value` não tem pontuação nenhuma pra casar contra.
+  // Ou seja: pra QUALQUER termo, a condição 2 nunca decide sozinha o
+  // resultado — apagá-la hoje não muda nenhum comportamento observável.
+  // Verifiquei isso na prática (não só no papel): apaguei
+  // `valueLower.includes(searchLower)` de `Clientes.tsx:601` e rodei este
+  // arquivo — os 7 testes continuaram passando, confirmando que a condição
+  // é inalcançável com os dados que a própria tela monta. Revertido em
+  // seguida (`git checkout -- src/pages/Clientes.tsx`). Detalhe completo em
+  // `task-5-report.md`, seção "Fix round 1".
   //
-  // - "alfa" só bate na condição 1 (não existe em `value`, que é numérico).
-  // - "23330001" é um recorte contíguo dos dígitos do CNPJ da Alfa
-  //   ("11.222.333/0001-44" → "11222333000144"), mas no LABEL esse mesmo
-  //   trecho vem cortado por pontuação ("...222.333/0001..." — não é
-  //   contíguo como texto). Ele só bate por já ser `value` cru (condição 2);
-  //   como o termo digitado já é só dígito, a normalização (condição 3) é um
-  //   no-op aqui e não prova nada sozinha — quem prova a condição 3 é o
-  //   próximo caso.
+  // Isso é diferente de Estoque, onde `value` é o código formatado ("1.163",
+  // com ponto) — lá a condição 2 (value cru, com pontuação) e a 3 (dígitos
+  // normalizados) SÃO observáveis em separado. Fixado aqui, sem tocar em
+  // `Clientes.tsx`, pra fase de unificação decidir se a condição 2 sai (ela
+  // não faz nada hoje) ou se `clientesUnicos` passa a guardar o `value` com
+  // pontuação como as outras telas.
+  //
+  // Os dois casos abaixo são os que de fato isolam algo:
+  // - "alfa" só bate na condição 1 (label) — não existe em `value`, que é
+  //   só dígito.
   // - "11-222-333" usa hífen em vez do ponto do CNPJ real: não bate no label
-  //   (pontuação diferente) nem no `value` cru (que não tem hífen nenhum).
-  //   Só bate depois de tirar os não-dígitos dos dois lados — prova a
-  //   condição 3 isoladamente. É o caso que a plantação do Passo 3 derruba.
+  //   (pontuação diferente) nem na condição 2 (o `value` não tem hífen
+  //   nenhum pra casar, e mesmo que tivesse, a condição 2 é ramo morto como
+  //   explicado acima). Só bate depois de tirar os não-dígitos dos dois
+  //   lados — prova a condição 3 isoladamente. É o caso que a plantação do
+  //   Passo 3 (apagar a condição 3) derruba.
   // - "beta" é o nome do OUTRO cliente do fixture, não um termo aleatório:
   //   prova que a busca por "Alfa Mineração" filtra de verdade — se a busca
   //   estivesse quebrada (ex.: ignorando o termo e devolvendo tudo), este
   //   caso pegaria o erro; um termo inventado sem relação com o fixture não
   //   pegaria.
-  it("acha pelo rótulo, pelo valor cru e pelo número do valor", () => {
+  it("acha pelo rótulo e pelos dígitos do value (a condição do value cru é inalcançável)", () => {
     render(<Clientes />);
 
     for (const [termo, achado] of [
       ["alfa", true],
-      ["23330001", true],
       ["11-222-333", true],
       ["beta", false],
     ] as const) {
