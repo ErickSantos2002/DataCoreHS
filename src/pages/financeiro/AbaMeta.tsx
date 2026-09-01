@@ -159,7 +159,11 @@ const AbaMeta: React.FC<AbaMetaProps> = ({
         />
         <KpiCard
           label="Próxima Faixa"
-          value={proximaFaixa ? `${proximaFaixa.bonus}%` : "100% ✅"}
+          // Sem o ✅ do original: o checklist da tela migrada proíbe emoji
+          // fazendo papel de ícone, e o `KpiCard` só aceita texto no valor.
+          // A informação não se perde — a nota abaixo diz "Todas as metas
+          // batidas!", que é mais claro do que o visto verde era.
+          value={proximaFaixa ? `${proximaFaixa.bonus}%` : "100%"}
           note={
             proximaFaixa
               ? `Faltam ${formatarDinheiro(proximaFaixa.falta)}`

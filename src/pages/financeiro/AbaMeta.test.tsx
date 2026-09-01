@@ -299,7 +299,11 @@ describe("Aba Meta — o PL apurado", () => {
   it("com todas as faixas batidas a próxima vira o troféu de 100%", () => {
     montar({ meta: META_4M, total: 1_500_000 });
 
-    expect(cartao("Próxima Faixa")).toContain("100% ✅");
+    // Mudança deliberada na migração: o original escrevia "100% ✅", e o
+    // checklist da tela migrada proíbe emoji no papel de ícone. Quem conta
+    // que todas foram batidas é a nota, logo abaixo.
+    expect(cartao("Próxima Faixa")).toContain("100%");
+    expect(cartao("Próxima Faixa")).not.toContain("✅");
     expect(cartao("Próxima Faixa")).toContain("Todas as metas batidas!");
     // E o destaque para de oferecer "faltam X para".
     expect(

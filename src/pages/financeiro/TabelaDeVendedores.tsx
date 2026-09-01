@@ -16,11 +16,26 @@ import {
 import { formatarDinheiro, mascaraDeDinheiro } from "../../lib/dinheiro";
 import type { ComissaoDoVendedor, VendedorDigitado } from "./comissaoDeVendas";
 
-/** Vendedor + três canais + dois inativos + cinco resultados + ações. */
-const COLUNAS = 12;
+/** Vendedor + três canais + dois inativos + cinco resultados. */
+const COLUNAS = 11;
 
 /** Célula compacta: são doze colunas, o padding do primitivo não cabe. */
 const CELULA = "px-2 py-2 text-right font-mono tabular-nums";
+
+/**
+ * A coluna do que o vendedor recebe fica presa à direita.
+ *
+ * São onze colunas e a tabela rola na horizontal em tela de 1080p — sem o
+ * `sticky`, a única coluna que a pessoa veio ver é justamente a que sai de
+ * vista ao rolar para conferir os canais. O fundo opaco é obrigatório: sem
+ * ele o texto das colunas que passam por baixo aparece através, e a borda à
+ * esquerda é o que conta para a pessoa que aquela coluna está flutuando.
+ *
+ * É a ÚLTIMA coluna de propósito: o botão de remover foi para junto do nome,
+ * porque uma coluna de ação depois da coluna presa ficaria escondida atrás
+ * dela — e porque é olhando o nome que se decide tirar alguém da lista.
+ */
+const COLUNA_PRESA = "sticky right-0 z-10 border-l border-borda";
 
 export interface TabelaDeVendedoresProps {
   vendedores: VendedorDigitado[];
@@ -114,19 +129,19 @@ export function TabelaDeVendedores({
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell className="px-2 py-2 text-left">
+            <TableHeaderCell className="min-w-[190px] px-2 py-2 text-left">
               Vendedor
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right">
+            <TableHeaderCell className="min-w-[130px] px-2 py-2 text-right">
               Inbound
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right">
+            <TableHeaderCell className="min-w-[130px] px-2 py-2 text-right">
               Recompra
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right">
+            <TableHeaderCell className="min-w-[130px] px-2 py-2 text-right">
               Outbound
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right text-conteudo-faint">
+            <TableHeaderCell className="min-w-[120px] px-2 py-2 text-right text-conteudo-faint">
               Inbound Plus
             </TableHeaderCell>
             <TableHeaderCell className="px-2 py-2 text-right text-conteudo-faint">
@@ -135,7 +150,7 @@ export function TabelaDeVendedores({
             <TableHeaderCell className="px-2 py-2 text-right">
               Total
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right">
+            <TableHeaderCell className="whitespace-nowrap px-2 py-2 text-right">
               Alíquotas
             </TableHeaderCell>
             <TableHeaderCell className="px-2 py-2 text-right">
@@ -144,10 +159,11 @@ export function TabelaDeVendedores({
             <TableHeaderCell className="px-2 py-2 text-right">
               Bônus
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2 text-right">
+            <TableHeaderCell
+              className={`${COLUNA_PRESA} bg-surface px-2 py-2 text-right`}
+            >
               Recebe
             </TableHeaderCell>
-            <TableHeaderCell className="px-2 py-2" />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -163,15 +179,25 @@ export function TabelaDeVendedores({
               return (
                 <TableRow key={vendedor.id}>
                   <TableCell className="px-2 py-2">
-                    <CampoDaLinha
-                      rotulo={`Nome do vendedor ${numero}`}
-                      className="input-cc"
-                      placeholder="Nome"
-                      value={vendedor.nome}
-                      onChange={(e) =>
-                        onMudar(vendedor.id, { nome: e.target.value })
-                      }
-                    />
+                    <div className="flex items-center gap-2">
+                      <CampoDaLinha
+                        rotulo={`Nome do vendedor ${numero}`}
+                        className="input-cc"
+                        placeholder="Nome"
+                        value={vendedor.nome}
+                        onChange={(e) =>
+                          onMudar(vendedor.id, { nome: e.target.value })
+                        }
+                      />
+                      <button
+                        type="button"
+                        aria-label={`Remover o vendedor ${numero}`}
+                        onClick={() => onRemover(vendedor.id)}
+                        className="shrink-0 rounded text-conteudo-faint transition-colors hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                      >
+                        <Trash2 size={14} aria-hidden="true" />
+                      </button>
+                    </div>
                   </TableCell>
                   <TableCell className="px-2 py-2">
                     <CampoDaLinha
@@ -222,10 +248,10 @@ export function TabelaDeVendedores({
                   <TableCell className={CELULA}>
                     {formatarDinheiro(linha.total)}
                   </TableCell>
-                  <TableCell className={`${CELULA} text-conteudo-muted`}>
-                    {percentual(linha.aliquotas.inbound)} ·{" "}
-                    {percentual(linha.aliquotas.recompra)} ·{" "}
-                    {percentual(linha.aliquotas.outbound)}
+                  <TableCell
+                    className={`${CELULA} whitespace-nowrap text-conteudo-muted`}
+                  >
+                    {`${percentual(linha.aliquotas.inbound)} · ${percentual(linha.aliquotas.recompra)} · ${percentual(linha.aliquotas.outbound)}`}
                   </TableCell>
                   <TableCell className={CELULA}>
                     {formatarDinheiro(linha.comissao)}
@@ -234,7 +260,7 @@ export function TabelaDeVendedores({
                     {formatarDinheiro(linha.bonus)}
                   </TableCell>
                   <TableCell
-                    className={`${CELULA} font-bold text-conteudo-heading`}
+                    className={`${CELULA} ${COLUNA_PRESA} bg-surface font-bold text-conteudo-heading`}
                   >
                     {formatarDinheiro(linha.recebe)}
                     {linha.peloRateio && (
@@ -243,16 +269,6 @@ export function TabelaDeVendedores({
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="px-2 py-2">
-                    <button
-                      type="button"
-                      aria-label={`Remover o vendedor ${numero}`}
-                      onClick={() => onRemover(vendedor.id)}
-                      className="rounded text-conteudo-faint transition-colors hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                    >
-                      <Trash2 size={14} aria-hidden="true" />
-                    </button>
-                  </TableCell>
                 </TableRow>
               );
             })
@@ -260,13 +276,14 @@ export function TabelaDeVendedores({
 
           {vendedores.length > 0 && (
             <TableRow className="border-t-2 border-borda-strong bg-surface-elevated font-bold">
-              <TableCell className="px-2 py-3" colSpan={COLUNAS - 2}>
+              <TableCell className="px-2 py-3" colSpan={COLUNAS - 1}>
                 Total a pagar
               </TableCell>
-              <TableCell className={`${CELULA} py-3 text-conteudo-heading`}>
+              <TableCell
+                className={`${CELULA} ${COLUNA_PRESA} bg-surface-elevated py-3 text-conteudo-heading`}
+              >
                 {formatarDinheiro(totalAPagar)}
               </TableCell>
-              <TableCell className="px-2 py-3" />
             </TableRow>
           )}
         </TableBody>

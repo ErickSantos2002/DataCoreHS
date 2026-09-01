@@ -101,10 +101,10 @@ export function ComissaoDeServico({
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell className="px-3 py-2 text-left">
+            <TableHeaderCell className="w-[280px] px-3 py-2 text-left">
               Pessoa
             </TableHeaderCell>
-            <TableHeaderCell className="px-3 py-2 text-right">
+            <TableHeaderCell className="w-[140px] px-3 py-2 text-right">
               % do papel
             </TableHeaderCell>
             <TableHeaderCell className="px-3 py-2 text-right">
