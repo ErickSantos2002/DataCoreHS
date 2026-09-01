@@ -201,8 +201,22 @@ function kpiBalancete(rotulo: string): string {
   return texto(within(cartaoAno).getByText(rotulo).parentElement);
 }
 
+/**
+ * Um controle clicável pelo nome, seja ele `button` ou `tab`.
+ *
+ * O seletor é tolerante de propósito: a migração troca os botões de aba
+ * feitos à mão pelo primitivo `Tabs`, que renderiza `role="tab"`. O que o
+ * teste afirma é que existe um controle com aquele nome e que clicá-lo troca
+ * o conteúdo — não com que papel ARIA ele nasceu.
+ */
+function controle(nome: string | RegExp): HTMLElement {
+  const botoes = screen.queryAllByRole("button", { name: nome });
+  if (botoes.length > 0) return botoes[0];
+  return screen.getByRole("tab", { name: nome });
+}
+
 function abrirAba(nome: string) {
-  fireEvent.click(screen.getByRole("button", { name: nome }));
+  fireEvent.click(controle(nome));
 }
 
 /**
@@ -292,9 +306,7 @@ describe("Financeiro — carregando", () => {
     render(<GerenciamentoFinanceiro />);
 
     expect(screen.getByText(/Carregando dados financeiros/)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Balancete" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Balancete")).not.toBeInTheDocument();
   });
 });
 
@@ -392,15 +404,15 @@ describe("Financeiro — KPIs por ano", () => {
     baseFechada();
     render(<GerenciamentoFinanceiro />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Vendas" }));
+    fireEvent.click(controle("Vendas"));
     expect(kpi(2025)).toContain("R$ 350.000,00");
     expect(kpi(2025)).toContain("3 transações");
 
-    fireEvent.click(screen.getByRole("button", { name: "Serviços" }));
+    fireEvent.click(controle("Serviços"));
     expect(kpi(2025)).toContain("R$ 50.000,00");
     expect(kpi(2025)).toContain("1 transações");
 
-    fireEvent.click(screen.getByRole("button", { name: "Combinado" }));
+    fireEvent.click(controle("Combinado"));
     expect(kpi(2025)).toContain("R$ 400.000,00");
   });
 });
@@ -534,7 +546,7 @@ describe("Financeiro — tabela mensal comparativa", () => {
     baseFechada();
     render(<GerenciamentoFinanceiro />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Serviços" }));
+    fireEvent.click(controle("Serviços"));
 
     expect(linha("Tabela Mensal Comparativa", "Jan")[4]).toBe("R$ 50.000,00");
     expect(linha("Tabela Mensal Comparativa", "Mar")[5]).toBe("R$ 20.000,00");
@@ -731,7 +743,7 @@ describe("Financeiro — o que a página entrega para a aba Meta", () => {
     // bônus da empresa mudaria conforme o botão que alguém deixou clicado.
     baseFechada();
     render(<GerenciamentoFinanceiro />);
-    fireEvent.click(screen.getByRole("button", { name: "Vendas" }));
+    fireEvent.click(controle("Vendas"));
 
     abrirAba("Meta");
 

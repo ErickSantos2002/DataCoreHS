@@ -106,6 +106,20 @@ function campo(rotulo: RegExp | string): HTMLInputElement {
   return input as HTMLInputElement;
 }
 
+/**
+ * Um controle clicável pelo nome, seja ele `button` ou `tab`.
+ *
+ * O seletor é tolerante de propósito: a migração troca os botões de aba
+ * feitos à mão pelo primitivo `Tabs`, que renderiza `role="tab"`. O que o
+ * teste afirma é que existe um controle com aquele nome e que clicá-lo troca
+ * o conteúdo — não com que papel ARIA ele nasceu.
+ */
+function controle(nome: string | RegExp): HTMLElement {
+  const botoes = screen.queryAllByRole("button", { name: nome });
+  if (botoes.length > 0) return botoes[0];
+  return screen.getByRole("tab", { name: nome });
+}
+
 /** Linha do resumo lateral: "Overhead" → "OverheadR$ 240,00". */
 function linhaResumo(rotulo: string): string {
   return texto(screen.getByText(rotulo).parentElement);
@@ -277,7 +291,7 @@ describe("CentroCustoTab — configuração gravada", () => {
     });
     expect(campo(/Unidades importadas/)).toHaveValue("300");
 
-    fireEvent.click(screen.getByRole("button", { name: "iBlow 10 PRO" }));
+    fireEvent.click(controle("iBlow 10 PRO"));
 
     expect(campo(/Unidades importadas/)).toHaveValue("40");
   });
@@ -286,10 +300,10 @@ describe("CentroCustoTab — configuração gravada", () => {
     await montar();
 
     digitar(/Unidades importadas/, "300");
-    fireEvent.click(screen.getByRole("button", { name: "iBlow 10 PRO" }));
+    fireEvent.click(controle("iBlow 10 PRO"));
     expect(campo(/Unidades importadas/)).toHaveValue("");
 
-    fireEvent.click(screen.getByRole("button", { name: "Phoebus" }));
+    fireEvent.click(controle("Phoebus"));
     expect(campo(/Unidades importadas/)).toHaveValue("300");
   });
 });
@@ -648,7 +662,7 @@ describe("CentroCustoTab — gravação", () => {
 
   it("grava o produto da aba aberta, não o primeiro da lista", async () => {
     await montar();
-    fireEvent.click(screen.getByRole("button", { name: "iBlow 10 PRO" }));
+    fireEvent.click(controle("iBlow 10 PRO"));
 
     fireEvent.click(
       screen.getByRole("button", { name: /Salvar configuração/ }),
