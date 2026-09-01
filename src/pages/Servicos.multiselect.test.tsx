@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import Servicos from "./Servicos";
@@ -97,17 +97,30 @@ function abrir(placeholder: string) {
 }
 
 /**
- * Acha o campo de busca do MultiSelect aberto.
- *
- * Diferente de Produtos, a tabela de Serviços tem seu próprio campo de busca
- * com o mesmo placeholder "Pesquisar..." — sempre renderizado, não só quando
- * um dropdown está aberto (Produtos escapa disso porque a busca da tabela lá
- * é "Pesquisar produto...", texto diferente). Como só um MultiSelect fica
- * aberto por vez e o dele vem antes da tabela no DOM, o primeiro elemento
- * devolvido é sempre o do dropdown.
+ * O container `<div className="relative" ref={ref}>` de um filtro — o botão
+ * fechado e o painel do dropdown são irmãos dentro dele.
  */
-function campoDeBusca() {
-  return screen.getAllByPlaceholderText("Pesquisar...")[0];
+function containerDoFiltro(nomeDoBotao: string): HTMLElement {
+  const botao = screen.getByRole("button", { name: nomeDoBotao });
+  const container = botao.parentElement;
+  if (!container) {
+    throw new Error(`container do filtro "${nomeDoBotao}" nao encontrado`);
+  }
+  return container as HTMLElement;
+}
+
+/**
+ * O campo de busca DAQUELE dropdown.
+ *
+ * Escopado pelo container do filtro, e não pela ordem na página: a tela tem
+ * dois campos com o placeholder "Pesquisar..." — este e o da tabela —, e
+ * pegar "o primeiro" depende de a seção de filtros vir antes da tabela no
+ * JSX. Se a extração para primitivo montar o painel num portal, "o primeiro"
+ * passa a ser o campo da tabela e o teste seguiria verde testando a coisa
+ * errada.
+ */
+function campoDeBusca(nomeDoBotao: string): HTMLElement {
+  return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
 }
 
 describe("MultiSelect em Serviços", () => {
@@ -126,7 +139,7 @@ describe("MultiSelect em Serviços", () => {
     render(<Servicos />);
     abrir("Todos os clientes");
 
-    fireEvent.change(campoDeBusca(), {
+    fireEvent.change(campoDeBusca("Todos os clientes"), {
       target: { value: "beta" },
     });
 
@@ -138,7 +151,7 @@ describe("MultiSelect em Serviços", () => {
     render(<Servicos />);
     abrir("Todos os clientes");
 
-    fireEvent.change(campoDeBusca(), {
+    fireEvent.change(campoDeBusca("Todos os clientes"), {
       target: { value: "gama" },
     });
 
@@ -156,7 +169,7 @@ describe("MultiSelect em Serviços", () => {
     render(<Servicos />);
     abrir("Todos os clientes");
 
-    fireEvent.change(campoDeBusca(), {
+    fireEvent.change(campoDeBusca("Todos os clientes"), {
       target: { value: "11222333" },
     });
 
@@ -181,12 +194,13 @@ describe("MultiSelect em Serviços", () => {
   it("clicar fora fecha o dropdown", () => {
     render(<Servicos />);
     abrir("Todos os clientes");
-    // 2 = a busca do dropdown aberto + a busca fixa da tabela.
-    expect(screen.getAllByPlaceholderText("Pesquisar...")).toHaveLength(2);
+    const container = containerDoFiltro("Todos os clientes");
+    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
-    // 1 = só a busca da tabela sobrou; a do dropdown sumiu.
-    expect(screen.getAllByPlaceholderText("Pesquisar...")).toHaveLength(1);
+    // O container do filtro continua no DOM (o botão vive nele); o que some
+    // ao fechar é só o painel do dropdown, filho dele.
+    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
   });
 });
