@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import MetaTab from "./MetaTab";
+import AbaMeta from "./AbaMeta";
 
 /**
  * Teste de caracterização da aba Meta do Gerenciamento Financeiro.
@@ -30,7 +30,7 @@ const estadoDashboard = vi.hoisted(() => ({
     carregando: false,
   },
 }));
-vi.mock("../context/DashboardContext", () => ({
+vi.mock("../../context/DashboardContext", () => ({
   useDashboard: () => estadoDashboard.atual,
 }));
 
@@ -38,7 +38,7 @@ const editarConfiguracao = vi.hoisted(() => vi.fn());
 const estadoConfiguracoes = vi.hoisted(() => ({
   atual: [] as { id: number; chave: string; valor: string }[],
 }));
-vi.mock("../context/ConfiguracoesContext", () => ({
+vi.mock("../../context/ConfiguracoesContext", () => ({
   useConfiguracoes: () => ({
     configuracoes: estadoConfiguracoes.atual,
     carregando: false,
@@ -75,7 +75,7 @@ function montar(cenario: Cenario = {}) {
       : [{ id: 1, chave: "META", valor: cenario.meta }];
 
   return render(
-    <MetaTab
+    <AbaMeta
       faturamentoAnoAnterior={cenario.faturamentoAnoAnterior}
       anoAnterior={cenario.anoAnterior}
     />,
@@ -122,7 +122,7 @@ beforeEach(() => {
   editarConfiguracao.mockResolvedValue(undefined);
 });
 
-describe("MetaTab — leitura da META e a base trimestral", () => {
+describe("Aba Meta — leitura da META e a base trimestral", () => {
   it("divide a META anual por 4 para chegar na base do trimestre", () => {
     montar({ meta: META_4M });
 
@@ -179,7 +179,7 @@ describe("MetaTab — leitura da META e a base trimestral", () => {
   });
 });
 
-describe("MetaTab — as dez faixas e o multiplicador", () => {
+describe("Aba Meta — as dez faixas e o multiplicador", () => {
   it("renderiza as dez faixas, de 55% a 100%, de 5 em 5", () => {
     montar({ meta: META_4M });
 
@@ -240,7 +240,7 @@ describe("MetaTab — as dez faixas e o multiplicador", () => {
   });
 });
 
-describe("MetaTab — o PL apurado", () => {
+describe("Aba Meta — o PL apurado", () => {
   it("faturamento exatamente no alvo já conta como faixa batida", () => {
     // `>=`, não `>`: bater a meta na régua não pode virar meta não batida.
     montar({ meta: META_4M, total: 900_000 });
@@ -298,7 +298,7 @@ describe("MetaTab — o PL apurado", () => {
   });
 });
 
-describe("MetaTab — barra de progresso", () => {
+describe("Aba Meta — barra de progresso", () => {
   it("o progresso é a fração do alvo, com uma casa", () => {
     montar({ meta: META_4M, total: 1_100_000 });
 
@@ -323,7 +323,7 @@ describe("MetaTab — barra de progresso", () => {
   });
 });
 
-describe("MetaTab — projeção anual e crescimento vs ano passado", () => {
+describe("Aba Meta — projeção anual e crescimento vs ano passado", () => {
   it("a projeção anual é a META ANUAL vezes o multiplicador, não a trimestral", () => {
     montar({ meta: META_4M, faturamentoAnoAnterior: 4_000_000 });
 
@@ -373,7 +373,7 @@ describe("MetaTab — projeção anual e crescimento vs ano passado", () => {
   });
 });
 
-describe("MetaTab — edição da META no lugar", () => {
+describe("Aba Meta — edição da META no lugar", () => {
   /** Abre o editor da META e devolve o campo de texto. */
   function abrirEditor(): HTMLElement {
     fireEvent.click(screen.getByTitle("Editar"));
@@ -448,7 +448,7 @@ describe("MetaTab — edição da META no lugar", () => {
   });
 });
 
-describe("MetaTab — carregando e composição do trimestre", () => {
+describe("Aba Meta — carregando e composição do trimestre", () => {
   it("enquanto carrega não mostra faixa nenhuma", () => {
     montar({ meta: META_4M, carregando: true });
 

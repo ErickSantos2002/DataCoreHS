@@ -67,7 +67,7 @@ vi.mock("../components/CentroCustoTab", () => ({
   ),
 }));
 
-vi.mock("../components/MetaTab", () => ({
+vi.mock("./financeiro/AbaMeta", () => ({
   default: ({
     faturamentoAnoAnterior,
     anoAnterior,

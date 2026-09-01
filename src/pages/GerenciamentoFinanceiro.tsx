@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 
 import CentroCustoTab from "../components/CentroCustoTab";
-import MetaTab from "../components/MetaTab";
 import {
   Card,
   Spinner,
@@ -14,6 +13,7 @@ import { useContasPagar } from "../context/ContasPagarContext";
 import { useContasReceber } from "../context/ContasReceberContext";
 import { useServicos } from "../context/ServicosContext";
 import { useVendas } from "../context/VendasContext";
+import AbaMeta from "./financeiro/AbaMeta";
 import { AbaBalancete } from "./financeiro/AbaBalancete";
 import { AbaVisaoGeral } from "./financeiro/AbaVisaoGeral";
 import {
@@ -179,7 +179,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="meta">
-          <MetaTab
+          <AbaMeta
             faturamentoAnoAnterior={faturamentoAnoAnterior}
             anoAnterior={anoAnterior}
           />

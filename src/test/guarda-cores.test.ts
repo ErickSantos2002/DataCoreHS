@@ -106,7 +106,6 @@ describe("guarda de cor", () => {
 // (`.input-cc`, consumida so pelo CentroCustoTab) ja migrou para token.
 const PENDENTES_FASE_3: string[] = [
   "src/components/CentroCustoTab.tsx",
-  "src/components/MetaTab.tsx",
   "src/pages/Clientes.tsx",
   "src/pages/Estoque.tsx",
   "src/pages/Produtos.tsx",
