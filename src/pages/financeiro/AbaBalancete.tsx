@@ -20,8 +20,8 @@ import {
   TableRow,
 } from "../../design-system/ui";
 import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import { SeletorDeAno } from "./SeletorDeAno";
 import {
-  ANOS,
   GRUPOS_DE_CATEGORIA,
   MESES,
   ROTULO_DE_ENTRADA,
@@ -71,26 +71,7 @@ export function AbaBalancete({ ano, onAno, balancete }: AbaBalanceteProps) {
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center gap-4">
-        <span className="text-sm font-semibold text-conteudo-muted">Ano:</span>
-        <div className="flex gap-2">
-          {ANOS.map((opcao) => (
-            <button
-              key={opcao}
-              type="button"
-              aria-pressed={ano === opcao}
-              onClick={() => onAno(opcao)}
-              className={[
-                "rounded-lg border px-4 py-2 text-sm font-semibold transition-colors",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                ano === opcao
-                  ? "border-action bg-action text-on-primary"
-                  : "border-borda text-conteudo-muted hover:bg-surface-elevated",
-              ].join(" ")}
-            >
-              {opcao}
-            </button>
-          ))}
-        </div>
+        <SeletorDeAno ano={ano} onAno={onAno} />
 
         <div className="ml-auto flex flex-wrap gap-6">
           <div className="text-center">

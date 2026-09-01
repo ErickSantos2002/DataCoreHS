@@ -50,7 +50,7 @@ vi.mock("../context/ContasReceberContext", () => ({
   useContasReceber: () => ({ contas: [], carregando: false }),
 }));
 
-vi.mock("../components/CentroCustoTab", () => ({
+vi.mock("./financeiro/AbaCentroCusto", () => ({
   default: ({
     anoCentro,
     setAnoCentro,

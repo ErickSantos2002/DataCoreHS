@@ -105,7 +105,6 @@ describe("guarda de cor", () => {
 // `src/styles/index.css` nao esta na lista: a unica classe custom dele
 // (`.input-cc`, consumida so pelo CentroCustoTab) ja migrou para token.
 const PENDENTES_FASE_3: string[] = [
-  "src/components/CentroCustoTab.tsx",
   "src/pages/Clientes.tsx",
   "src/pages/Estoque.tsx",
   "src/pages/Produtos.tsx",

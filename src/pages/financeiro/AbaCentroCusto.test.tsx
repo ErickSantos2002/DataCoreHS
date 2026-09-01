@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import CentroCustoTab from "./CentroCustoTab";
+import AbaCentroCusto from "./AbaCentroCusto";
 
 /**
  * Teste de caracterização da aba Centro de Custo.
@@ -30,7 +30,7 @@ import CentroCustoTab from "./CentroCustoTab";
 const fetchResumoProduto = vi.hoisted(() => vi.fn());
 const fetchCentroCustoConfig = vi.hoisted(() => vi.fn());
 const salvarCentroCustoConfig = vi.hoisted(() => vi.fn());
-vi.mock("../services/notasapi", () => ({
+vi.mock("../../services/notasapi", () => ({
   fetchResumoProduto,
   fetchCentroCustoConfig,
   salvarCentroCustoConfig,
@@ -63,7 +63,7 @@ async function montar(cenario: Cenario = {}) {
   );
 
   const util = render(
-    <CentroCustoTab
+    <AbaCentroCusto
       anoCentro={cenario.ano ?? 2025}
       setAnoCentro={cenario.setAnoCentro ?? vi.fn()}
     />,
@@ -77,7 +77,7 @@ async function montar(cenario: Cenario = {}) {
 /** Aba com o ano em estado, como a página de Financeiro a monta. */
 function Pai({ inicial = 2025 }: { inicial?: number }) {
   const [ano, setAno] = useState(inicial);
-  return <CentroCustoTab anoCentro={ano} setAnoCentro={setAno} />;
+  return <AbaCentroCusto anoCentro={ano} setAnoCentro={setAno} />;
 }
 
 /**
@@ -191,7 +191,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("CentroCustoTab — carga", () => {
+describe("Aba Centro de Custo — carga", () => {
   it("busca resumo e configuração dos três produtos no ano recebido", async () => {
     await montar({ ano: 2024 });
 
@@ -206,7 +206,7 @@ describe("CentroCustoTab — carga", () => {
     fetchResumoProduto.mockReturnValue(new Promise(() => {}));
     fetchCentroCustoConfig.mockReturnValue(new Promise(() => {}));
 
-    render(<CentroCustoTab anoCentro={2025} setAnoCentro={vi.fn()} />);
+    render(<AbaCentroCusto anoCentro={2025} setAnoCentro={vi.fn()} />);
 
     expect(
       screen.queryByText("1. Serviços Aduaneiros"),
@@ -242,7 +242,7 @@ describe("CentroCustoTab — carga", () => {
   });
 });
 
-describe("CentroCustoTab — configuração gravada", () => {
+describe("Aba Centro de Custo — configuração gravada", () => {
   it("valor de dinheiro do banco volta para o campo em formato brasileiro", async () => {
     await montar({
       config: {
@@ -308,7 +308,7 @@ describe("CentroCustoTab — configuração gravada", () => {
   });
 });
 
-describe("CentroCustoTab — rateio das NFs de importação", () => {
+describe("Aba Centro de Custo — rateio das NFs de importação", () => {
   it("rateia o total das NFs pela participação e pelas unidades importadas", async () => {
     await montar();
 
@@ -356,7 +356,7 @@ describe("CentroCustoTab — rateio das NFs de importação", () => {
   });
 });
 
-describe("CentroCustoTab — rateio do overhead", () => {
+describe("Aba Centro de Custo — rateio do overhead", () => {
   it("com quantidade a vender no ano, rateia o custo fixo ANUAL", async () => {
     await montar();
 
@@ -406,7 +406,7 @@ describe("CentroCustoTab — rateio do overhead", () => {
   });
 });
 
-describe("CentroCustoTab — custo, margem e projeção", () => {
+describe("Aba Centro de Custo — custo, margem e projeção", () => {
   it("o custo total soma aduaneiro, direto e overhead", async () => {
     await montar();
     preencherCenarioFechado();
@@ -516,7 +516,7 @@ describe("CentroCustoTab — custo, margem e projeção", () => {
   });
 });
 
-describe("CentroCustoTab — leitura de número digitado", () => {
+describe("Aba Centro de Custo — leitura de número digitado", () => {
   it("vírgula é decimal e o ponto é milhar", async () => {
     await montar();
 
@@ -593,7 +593,7 @@ describe("CentroCustoTab — leitura de número digitado", () => {
   });
 });
 
-describe("CentroCustoTab — máscaras de digitação", () => {
+describe("Aba Centro de Custo — máscaras de digitação", () => {
   it("a data da NF ganha a barra sozinha e para em seis dígitos", async () => {
     await montar();
     fireEvent.click(screen.getByRole("button", { name: /Adicionar NF/ }));
@@ -627,7 +627,7 @@ describe("CentroCustoTab — máscaras de digitação", () => {
   });
 });
 
-describe("CentroCustoTab — gravação", () => {
+describe("Aba Centro de Custo — gravação", () => {
   it("grava o produto e o ano da aba, com os números convertidos", async () => {
     await montar({ ano: 2024 });
     preencherCenarioFechado();
