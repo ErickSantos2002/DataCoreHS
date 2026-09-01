@@ -1,8 +1,13 @@
 const { Client } = require('./node_modules/pg');
 const XLSX = require('./node_modules/xlsx');
 
+if (!process.env.DATABASE_URL) {
+  console.error('Defina DATABASE_URL antes de rodar. Ex.: DATABASE_URL=postgres://usuario:senha@host:porta/banco node gerar_planilha_2025.js');
+  process.exit(1);
+}
+
 const client = new Client({
-  connectionString: 'postgres://administrador:administrador@62.72.11.28:5555/datacore-banco?sslmode=disable'
+  connectionString: process.env.DATABASE_URL
 });
 
 async function main() {
