@@ -205,7 +205,8 @@ export function configuracaoDoFormulario(
     estimativa_custos_variaveis_anual: lerNumero(
       form.estimativa_custos_variaveis_anual,
     ),
-    participacao_overhead_pct: lerNumero(form.participacao_overhead_pct) || null,
+    participacao_overhead_pct:
+      lerNumero(form.participacao_overhead_pct) || null,
     unidades_lote_mes: lerNumero(form.unidades_lote_mes) || null,
     quantidade_planejada: lerNumero(form.quantidade_planejada) || null,
     preco_unitario_planejado: lerNumero(form.preco_unitario_planejado) || null,
@@ -313,7 +314,9 @@ export function calcularCusto(
       ? ticketMedio - custoTotalPorUn
       : null;
   const margemPct =
-    margemPorUn !== null && ticketMedio ? (margemPorUn / ticketMedio) * 100 : null;
+    margemPorUn !== null && ticketMedio
+      ? (margemPorUn / ticketMedio) * 100
+      : null;
 
   const qtdEfetiva = usandoQtdManual ? qtdPlanejada : (resumo?.quantidade ?? 0);
 

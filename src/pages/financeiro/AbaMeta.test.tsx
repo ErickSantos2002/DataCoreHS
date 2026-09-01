@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AbaMeta from "./AbaMeta";
@@ -126,9 +132,9 @@ describe("Aba Meta — leitura da META e a base trimestral", () => {
   it("divide a META anual por 4 para chegar na base do trimestre", () => {
     montar({ meta: META_4M });
 
-    expect(
-      texto(screen.getByText(/O valor da META é/)),
-    ).toContain("META ÷ 4 = R$ 1.000.000,00");
+    expect(texto(screen.getByText(/O valor da META é/))).toContain(
+      "META ÷ 4 = R$ 1.000.000,00",
+    );
   });
 
   it("o cartão de meta máxima do trimestre é a base vezes 1,4", () => {
@@ -261,7 +267,9 @@ describe("Aba Meta — o PL apurado", () => {
     montar({ meta: META_4M, total: 1_100_000 });
 
     expect(
-      texto(screen.getByText(/PL que os funcionários vão receber/).parentElement),
+      texto(
+        screen.getByText(/PL que os funcionários vão receber/).parentElement,
+      ),
     ).toContain("75%");
     expect(cartao("Bônus Atual")).toContain("75%");
   });
@@ -281,7 +289,9 @@ describe("Aba Meta — o PL apurado", () => {
     montar({ meta: META_4M, total: 0 });
 
     expect(
-      texto(screen.getByText(/PL que os funcionários vão receber/).parentElement),
+      texto(
+        screen.getByText(/PL que os funcionários vão receber/).parentElement,
+      ),
     ).toContain("nenhuma faixa atingida ainda");
     expect(cartao("Próxima Faixa")).toContain("55%");
   });

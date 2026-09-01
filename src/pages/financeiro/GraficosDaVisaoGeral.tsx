@@ -86,7 +86,10 @@ export function GraficosDaVisaoGeral({
         <CardTitle className="mb-4">Comparativo Mensal</CardTitle>
         <ResponsiveContainer width="100%" height={ALTURA_DO_COMPARATIVO}>
           <BarChart data={comparativo} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             {eixoX()}
             <YAxis
               tickFormatter={formatarValorAbreviado}
@@ -111,7 +114,10 @@ export function GraficosDaVisaoGeral({
         <CardTitle className="mb-4">Acumulado no Ano (YTD)</CardTitle>
         <ResponsiveContainer width="100%" height={ALTURA_DO_ACUMULADO}>
           <LineChart data={acumulado}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             {eixoX()}
             <YAxis
               tickFormatter={formatarValorAbreviado}

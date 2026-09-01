@@ -9,7 +9,14 @@ src/design-system
 # nenhuma tela. Cada entrada sai daqui quando a Fase 3 migrar a tela
 # correspondente; docs/ e index.html saem quando deixarem de documentar o
 # estado pré-migração.
-src/pages
+# A partir da tela 6 (Financeiro), cada tela migrada sai daqui e passa a ser
+# formatada — a regra entrou na receita para a divida parar de crescer. O
+# padrao precisa ser `src/pages/*`, e nao `src/pages`: pela regra do
+# .gitignore, arquivo dentro de diretorio excluido nao volta por negacao.
+src/pages/*
+!src/pages/financeiro
+!src/pages/GerenciamentoFinanceiro.tsx
+!src/pages/GerenciamentoFinanceiro.test.tsx
 src/components
 src/context
 src/services

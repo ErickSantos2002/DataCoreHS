@@ -104,8 +104,14 @@ export function AbaBalancete({ ano, onAno, balancete }: AbaBalanceteProps) {
         <CardTitle className="mb-4">Entradas vs Saídas — {ano}</CardTitle>
         <ResponsiveContainer width="100%" height={ALTURA_DO_GRAFICO}>
           <BarChart data={balancete.pontosDoGrafico} barCategoryGap="25%">
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-            <XAxis dataKey="mes" tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
+            <XAxis
+              dataKey="mes"
+              tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }}
+            />
             <YAxis
               tickFormatter={formatarValorAbreviado}
               tick={{ fill: chartTheme.axis.stroke, fontSize: 11 }}

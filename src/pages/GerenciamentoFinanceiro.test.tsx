@@ -161,9 +161,7 @@ function pontos(titulo: string | RegExp): string[] {
 /** As células de uma linha de tabela achada pelo rótulo da primeira coluna. */
 function linha(titulo: string | RegExp, rotulo: string): string[] {
   const linhas = within(cartao(titulo)).getAllByRole("row");
-  const achada = linhas.find(
-    (l) => texto(l.firstElementChild) === rotulo,
-  );
+  const achada = linhas.find((l) => texto(l.firstElementChild) === rotulo);
   if (!achada) throw new Error(`linha "${rotulo}" não encontrada`);
   return within(achada)
     .getAllByRole("cell")
@@ -237,8 +235,18 @@ function baseFechada() {
     { id: 5, data_emissao: "2021-01-10", valor_nota: 999_999 },
   ];
   estadoServicos.servicosEnriquecidos = [
-    { id: 1, ano: 2025, data_emissao: "2025-01-05", valor_servico_numero: 50_000 },
-    { id: 2, ano: 2026, data_emissao: "2026-03-01", valor_servico_numero: 20_000 },
+    {
+      id: 1,
+      ano: 2025,
+      data_emissao: "2025-01-05",
+      valor_servico_numero: 50_000,
+    },
+    {
+      id: 2,
+      ano: 2026,
+      data_emissao: "2026-03-01",
+      valor_servico_numero: 20_000,
+    },
   ];
 }
 
@@ -305,7 +313,9 @@ describe("Financeiro — carregando", () => {
     ligar();
     render(<GerenciamentoFinanceiro />);
 
-    expect(screen.getByText(/Carregando dados financeiros/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Carregando dados financeiros/),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Balancete")).not.toBeInTheDocument();
   });
 });
@@ -518,7 +528,16 @@ describe("Financeiro — tabela mensal comparativa", () => {
     render(<GerenciamentoFinanceiro />);
 
     expect(linha("Tabela Mensal Comparativa", "Abr")).toEqual([
-      "Abr", "—", "—", "—", "—", "—", "—", "—", "—", "—",
+      "Abr",
+      "—",
+      "—",
+      "—",
+      "—",
+      "—",
+      "—",
+      "—",
+      "—",
+      "—",
     ]);
   });
 
@@ -759,8 +778,6 @@ describe("Financeiro — o que a página entrega para a aba Meta", () => {
     render(<GerenciamentoFinanceiro />);
     abrirAba("Meta");
 
-    expect(screen.getByText(/^meta ·/).textContent).toContain(
-      "faturamento 0",
-    );
+    expect(screen.getByText(/^meta ·/).textContent).toContain("faturamento 0");
   });
 });

@@ -53,13 +53,11 @@ interface Cenario {
 
 /** Monta a aba e espera a carga inicial dos três produtos terminar. */
 async function montar(cenario: Cenario = {}) {
-  fetchResumoProduto.mockImplementation(async (produto: string) =>
-    cenario.resumo?.[produto] ?? [],
+  fetchResumoProduto.mockImplementation(
+    async (produto: string) => cenario.resumo?.[produto] ?? [],
   );
   fetchCentroCustoConfig.mockImplementation(async (produto: string) =>
-    cenario.config?.[produto]
-      ? { config_json: cenario.config[produto] }
-      : null,
+    cenario.config?.[produto] ? { config_json: cenario.config[produto] } : null,
   );
 
   const util = render(
@@ -276,9 +274,7 @@ describe("Aba Centro de Custo — configuração gravada", () => {
   it("produto sem configuração abre com o formulário vazio", async () => {
     await montar({ config: {} });
 
-    expect(
-      screen.getByText(/Nenhuma NF adicionada/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Nenhuma NF adicionada/)).toBeInTheDocument();
     expect(screen.getByText(/Nenhum custo adicionado/)).toBeInTheDocument();
   });
 
@@ -501,9 +497,7 @@ describe("Aba Centro de Custo — custo, margem e projeção", () => {
     adicionarCustoDireto("Produto", "250,00");
 
     // 100 unidades vendidas × ticket 10.000,00 = 1.000.000,00.
-    expect(texto(screen.getByText(/Projeção —/))).toContain(
-      "100 un (sistema)",
-    );
+    expect(texto(screen.getByText(/Projeção —/))).toContain("100 un (sistema)");
     expect(linhaResumo("Receita Projetada")).toContain("R$ 1.000.000,00");
   });
 

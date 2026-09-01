@@ -52,7 +52,10 @@ const AbaMeta: React.FC<AbaMetaProps> = ({
 
   if (carregando) {
     return (
-      <Card padding="lg" className="flex flex-col items-center gap-4 text-conteudo-muted">
+      <Card
+        padding="lg"
+        className="flex flex-col items-center gap-4 text-conteudo-muted"
+      >
         <Spinner size="lg" />
         <p>Carregando dados de meta...</p>
       </Card>
@@ -173,7 +176,9 @@ const AbaMeta: React.FC<AbaMetaProps> = ({
 
       {dados.length > 0 && (
         <Card padding="lg">
-          <CardTitle className="mb-2 text-sm">Composição do trimestre</CardTitle>
+          <CardTitle className="mb-2 text-sm">
+            Composição do trimestre
+          </CardTitle>
           <div className="flex flex-wrap gap-2">
             {dados.map((mes) => (
               <span

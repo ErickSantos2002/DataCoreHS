@@ -53,7 +53,9 @@ export function TabelaComparativa({ total, variacao }: TabelaComparativaProps) {
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell className="px-3 py-2 text-left">Mês</TableHeaderCell>
+            <TableHeaderCell className="px-3 py-2 text-left">
+              Mês
+            </TableHeaderCell>
             {ANOS.map((ano) => (
               <TableHeaderCell
                 key={ano}
@@ -64,7 +66,10 @@ export function TabelaComparativa({ total, variacao }: TabelaComparativaProps) {
               </TableHeaderCell>
             ))}
             {PARES_YOY.map(([base, comp]) => (
-              <TableHeaderCell key={`${comp}${base}`} className="px-3 py-2 text-right">
+              <TableHeaderCell
+                key={`${comp}${base}`}
+                className="px-3 py-2 text-right"
+              >
                 {String(base).slice(2)}/{comp}
               </TableHeaderCell>
             ))}

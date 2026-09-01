@@ -35,11 +35,15 @@ function Linha({
   return (
     <div className="flex items-center justify-between">
       <span
-        className={destaque ? "font-bold text-conteudo-heading" : "text-conteudo-muted"}
+        className={
+          destaque ? "font-bold text-conteudo-heading" : "text-conteudo-muted"
+        }
       >
         {rotulo}
       </span>
-      <span className={`font-mono tabular-nums ${className ?? "text-conteudo"}`}>
+      <span
+        className={`font-mono tabular-nums ${className ?? "text-conteudo"}`}
+      >
         {valor}
       </span>
     </div>
@@ -126,7 +130,9 @@ export function ResumoDoCusto({ resumo, calculo }: ResumoDoCustoProps) {
           <Linha
             rotulo="Custos Diretos"
             valor={
-              calculo.totalDireto > 0 ? formatarDinheiro(calculo.totalDireto) : "—"
+              calculo.totalDireto > 0
+                ? formatarDinheiro(calculo.totalDireto)
+                : "—"
             }
           />
           <Linha
@@ -158,7 +164,9 @@ export function ResumoDoCusto({ resumo, calculo }: ResumoDoCustoProps) {
                 )}
               </>
             }
-            valor={calculo.ticketMedio ? formatarDinheiro(calculo.ticketMedio) : "—"}
+            valor={
+              calculo.ticketMedio ? formatarDinheiro(calculo.ticketMedio) : "—"
+            }
           />
 
           <div className="mt-2 border-t border-borda pt-2">
@@ -208,16 +216,16 @@ export function ResumoDoCusto({ resumo, calculo }: ResumoDoCustoProps) {
         </p>
         <div className="flex flex-col gap-1.5 text-xs text-conteudo-muted">
           <p>
-            <span className="font-medium text-action">Aduaneiro/un</span> = Σ NFs
-            × % NF ÷ unid. importadas
+            <span className="font-medium text-action">Aduaneiro/un</span> = Σ
+            NFs × % NF ÷ unid. importadas
           </p>
           <p>
             <span className="font-medium text-conteudo">Direto/un</span> = Σ
             custos por unidade
           </p>
           <p>
-            <span className="font-medium text-action">Overhead/un</span> = Anual ×
-            % estoque ÷ qtd planejada
+            <span className="font-medium text-action">Overhead/un</span> = Anual
+            × % estoque ÷ qtd planejada
           </p>
           <p className="border-t border-borda pt-1">
             <span className="font-bold text-conteudo-heading">Margem/un</span> =

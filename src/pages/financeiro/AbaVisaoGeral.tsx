@@ -1,4 +1,10 @@
-import { Card, Tabs, TabsContent, TabsList, TabsTrigger } from "../../design-system/ui";
+import {
+  Card,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../design-system/ui";
 import {
   type Ano,
   type KpiDeAno,

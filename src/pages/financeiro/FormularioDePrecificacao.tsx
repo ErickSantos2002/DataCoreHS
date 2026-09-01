@@ -31,7 +31,13 @@ function CampoDaLinha({
 }
 
 /** Botão de remover uma linha — só ícone, com nome acessível. */
-function BotaoRemover({ rotulo, onClick }: { rotulo: string; onClick: () => void }) {
+function BotaoRemover({
+  rotulo,
+  onClick,
+}: {
+  rotulo: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -193,7 +199,9 @@ export function FormularioDePrecificacao({
       <Card padding="lg">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <CardTitle className="text-sm">2. Custos Diretos por Unidade</CardTitle>
+            <CardTitle className="text-sm">
+              2. Custos Diretos por Unidade
+            </CardTitle>
             <p className="mt-0.5 text-xs text-conteudo-faint">
               Produto, embalagem, insumos, frete, etc.
             </p>
@@ -204,7 +212,10 @@ export function FormularioDePrecificacao({
             icon={<Plus size={13} aria-hidden="true" />}
             onClick={() =>
               onMudar({
-                custos_diretos: [...form.custos_diretos, { descricao: "", valor: "" }],
+                custos_diretos: [
+                  ...form.custos_diretos,
+                  { descricao: "", valor: "" },
+                ],
               })
             }
           >
@@ -278,7 +289,9 @@ export function FormularioDePrecificacao({
 
       <Card padding="lg">
         <div className="mb-4">
-          <CardTitle className="text-sm">3. Custos Variáveis (Overhead)</CardTitle>
+          <CardTitle className="text-sm">
+            3. Custos Variáveis (Overhead)
+          </CardTitle>
           <p className="mt-0.5 text-xs text-conteudo-faint">
             Despesas fixas da empresa alocadas proporcionalmente ao produto
           </p>
@@ -341,7 +354,9 @@ export function FormularioDePrecificacao({
           }
           value={form.preco_unitario_planejado}
           onChange={(e) =>
-            onMudar({ preco_unitario_planejado: mascaraDeDinheiro(e.target.value) })
+            onMudar({
+              preco_unitario_planejado: mascaraDeDinheiro(e.target.value),
+            })
           }
         />
       </Card>

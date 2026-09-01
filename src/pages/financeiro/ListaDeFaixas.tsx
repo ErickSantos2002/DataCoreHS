@@ -16,7 +16,8 @@ function tomDaLinha(
   proxima: FaixaDeBonificacao | null,
 ): string {
   if (faixa.batida) return "border-success bg-tint-success";
-  if (proxima && faixa.bonus === proxima.bonus) return "border-info bg-tint-info";
+  if (proxima && faixa.bonus === proxima.bonus)
+    return "border-info bg-tint-info";
   return "border-borda bg-surface-elevated";
 }
 
@@ -71,7 +72,8 @@ export function ListaDeFaixas({
                   </p>
                   <p className="mt-1 text-xs leading-snug text-conteudo">
                     Se bater todo trim.:{" "}
-                    <strong>{formatarDinheiro(faixa.anualProjetado)}</strong>/ano
+                    <strong>{formatarDinheiro(faixa.anualProjetado)}</strong>
+                    /ano
                   </p>
                   {faixa.crescimentoAnual !== null && (
                     <p

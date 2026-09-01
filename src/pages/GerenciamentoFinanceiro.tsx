@@ -54,7 +54,8 @@ const ABAS = [
  */
 const GerenciamentoFinanceiro: React.FC = () => {
   const { notas, carregando: carregandoVendas } = useVendas();
-  const { servicosEnriquecidos, carregando: carregandoServicos } = useServicos();
+  const { servicosEnriquecidos, carregando: carregandoServicos } =
+    useServicos();
   const { contas: contasPagar, carregando: carregandoPagar } = useContasPagar();
   // Chamado pelo efeito colateral: o provider busca as contas a receber ao
   // montar, e outras telas contam com elas já em memória. A tela não lê nada.

@@ -117,7 +117,9 @@ export function lerValorDaConta(valor: string | number | undefined): number {
 }
 
 /** O número que abre a categoria, ou `outros` quando não há número. */
-export function prefixoDaCategoria(categoria: string | null | undefined): string {
+export function prefixoDaCategoria(
+  categoria: string | null | undefined,
+): string {
   if (!categoria) return "outros";
   const achado = categoria.match(/^(\d+)/);
   return achado ? achado[1] : "outros";
@@ -244,7 +246,8 @@ export function kpisPorAno(
     const totalAnterior = indice > 0 ? somaDoAno(total, ANOS[indice - 1]) : 0;
     const deVendas =
       tipo !== "servicos"
-        ? notas.filter((n) => Number(n.data_emissao.split("-")[0]) === ano).length
+        ? notas.filter((n) => Number(n.data_emissao.split("-")[0]) === ano)
+            .length
         : 0;
     const deServicos =
       tipo !== "vendas" ? servicos.filter((s) => s.ano === ano).length : 0;
@@ -254,7 +257,8 @@ export function kpisPorAno(
       quantidade: deVendas + deServicos,
       // Ano sem faturamento não exibe crescimento: dizer "−100% vs 2025" num
       // ano que ainda nem começou seria ler o futuro como queda.
-      crescimento: totalDoAno > 0 ? crescimento(totalAnterior, totalDoAno) : null,
+      crescimento:
+        totalDoAno > 0 ? crescimento(totalAnterior, totalDoAno) : null,
     };
   });
 }
@@ -383,7 +387,9 @@ export function montarBalancete(
 
   const totalEntradasMes = porMes(entradas);
   const totalSaidasMes = porMes(saidas);
-  const saldoMes = totalEntradasMes.map((entrada, mes) => entrada - totalSaidasMes[mes]);
+  const saldoMes = totalEntradasMes.map(
+    (entrada, mes) => entrada - totalSaidasMes[mes],
+  );
 
   const totalEntradasAno = totalEntradasMes.reduce((a, b) => a + b, 0);
   const totalSaidasAno = totalSaidasMes.reduce((a, b) => a + b, 0);
@@ -394,7 +400,9 @@ export function montarBalancete(
     totalEntradasMes,
     totalSaidasMes,
     saldoMes,
-    linhasDeEntrada: ["vendas", "servicos"].filter((chave) => chave in entradas),
+    linhasDeEntrada: ["vendas", "servicos"].filter(
+      (chave) => chave in entradas,
+    ),
     // Ordem numérica, não alfabética: como texto, "10" viria antes de "2".
     linhasDeSaida: Object.keys(saidas)
       .filter((grupo) => grupo !== "outros")
