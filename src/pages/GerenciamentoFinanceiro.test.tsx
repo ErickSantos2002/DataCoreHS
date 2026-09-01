@@ -677,6 +677,27 @@ describe("Financeiro — balancete", () => {
     expect(dados[2]).toBe("mes=Mar Entradas=20000 Saídas=20000");
   });
 
+  // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
+  // O `toNum` da tela só trata o ponto como milhar quando há vírgula no
+  // texto; sem vírgula ele faz `parseFloat("1.234")` e para no primeiro
+  // ponto. É o mesmo defeito que `src/lib/dinheiro.ts` já fechou para as
+  // telas de Contas — e a troca por `converterParaNumero` é conserto, não
+  // migração, então fica para a fase seguinte com o número fixado aqui.
+  it("valor sem centavos é lido dividido por mil (defeito preservado)", () => {
+    estadoPagar.contas = [
+      {
+        id: 1,
+        data_emissao: "2026-01-05",
+        categoria: "1 - EQUIPE",
+        valor: "1.234",
+      },
+    ];
+    render(<GerenciamentoFinanceiro />);
+    abrirAba("Balancete");
+
+    expect(kpiBalancete("Total Saídas")).toContain("R$ 1,23");
+  });
+
   it.each([
     ["texto brasileiro com símbolo", "R$ 1.234,56"],
     ["texto brasileiro sem símbolo", "1.234,56"],
