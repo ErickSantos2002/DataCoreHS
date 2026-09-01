@@ -109,7 +109,6 @@ const PENDENTES_FASE_3: string[] = [
   "src/components/MetaTab.tsx",
   "src/pages/Clientes.tsx",
   "src/pages/Estoque.tsx",
-  "src/pages/GerenciamentoFinanceiro.tsx",
   "src/pages/Produtos.tsx",
   "src/pages/Servicos.tsx",
   "src/pages/Vendas.tsx",
