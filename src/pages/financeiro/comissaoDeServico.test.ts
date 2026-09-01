@@ -41,7 +41,7 @@ describe("comissão de serviço — a escada de metas", () => {
 });
 
 describe("comissão de serviço — repartição por papel", () => {
-  it("cada pessoa recebe a base multiplicada pelo percentual do papel", () => {
+  it("cada papel recebe a base multiplicada pelo próprio percentual", () => {
     const { base, linhas } = calcularComissaoDeServico(200_000, EQUIPE_PADRAO);
 
     expect(base).toBeCloseTo(3_000, 4);
@@ -68,36 +68,39 @@ describe("comissão de serviço — repartição por papel", () => {
     expect(totalAPagar).toBe(0);
   });
 
-  it("a equipe padrão é Papel 1, Papel 2 e Papel 3, com 100%, 75% e 50%", () => {
-    expect(EQUIPE_PADRAO.map((p) => [p.nome, p.percentual])).toEqual([
-      ["Papel 1", 1],
-      ["Papel 2", 0.75],
-      ["Papel 3", 0.5],
+  it("os três papéis vêm com o percentual preenchido e o nome em branco", () => {
+    // O percentual é regra e vem no código; o nome é pessoa e se digita no
+    // mês. Guardar nome de funcionário aqui seria versionar quanto cada um
+    // recebe.
+    expect(
+      EQUIPE_PADRAO.map((papel) => [papel.nome, papel.percentual]),
+    ).toEqual([
+      ["", 1],
+      ["", 0.75],
+      ["", 0.5],
     ]);
   });
 });
 
-describe("comissão de serviço — fechamento de julho/2026", () => {
-  /**
-   * O mês que o Financeiro já fechou na planilha, usado como aceitação:
-   * faturamento de serviços de 300_000 gerando 4_000 de base.
-   */
+describe("comissão de serviço — um fechamento de ponta a ponta", () => {
+  /** Faturamento no último degrau da escada, com número redondo. */
   const FATURAMENTO = 300_000;
 
-  it("reproduz a base da planilha", () => {
-    // 300_000 × 1% + 1.000.
+  it("a base é 1% do faturamento mais o prêmio do degrau", () => {
+    // 300.000 × 1% + 1.000.
     expect(comissaoBaseDeServico(FATURAMENTO)).toBeCloseTo(4_000, 4);
   });
 
-  it("reproduz o valor das três pessoas", () => {
+  it("os três papéis saem da mesma base, e o total é maior que ela", () => {
     const { linhas, totalAPagar } = calcularComissaoDeServico(
       FATURAMENTO,
       EQUIPE_PADRAO,
     );
 
-    expect(linhas[0].valor).toBeCloseTo(4_000, 3); // Papel 1, 100%
-    expect(linhas[1].valor).toBeCloseTo(3_000, 3); // Papel 2, 75%
-    expect(linhas[2].valor).toBeCloseTo(2_000, 3); // Papel 3, 50%
+    expect(linhas[0].valor).toBeCloseTo(4_000, 3); // 100%
+    expect(linhas[1].valor).toBeCloseTo(3_000, 3); // 75%
+    expect(linhas[2].valor).toBeCloseTo(2_000, 3); // 50%
+    // 225% da base: é o que sai do caixa, e não os 4.000.
     expect(totalAPagar).toBeCloseTo(9_000, 3);
   });
 });

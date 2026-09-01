@@ -84,17 +84,21 @@ function adicionarVendedor(
     digitar(`Outbound do vendedor ${numero}`, campos.outbound);
 }
 
-/** Os quatro do fechamento de julho, com o total da empresa daquele mês. */
-function fecharJulho() {
-  digitar("Faturamento total da empresa (base do rateio)", "1_000_000");
+/**
+ * Um fechamento de cinco vendedores, com os números sintéticos e redondos do
+ * `comissaoDeVendas.test.ts`: um vendendo nos dois canais, dois acima do
+ * piso, um abaixo e um que não vendeu.
+ */
+function preencherFechamento() {
+  digitar("Faturamento total da empresa (base do rateio)", "1.000.000");
   adicionarVendedor(1, {
     nome: "Vendedor A",
-    inbound: "150_000",
-    outbound: "70_000",
+    inbound: "150.000",
+    outbound: "70.000",
   });
-  adicionarVendedor(2, { nome: "Vendedor B", inbound: "280_000" });
-  adicionarVendedor(3, { nome: "Vendedor C", inbound: "250_000" });
-  adicionarVendedor(4, { nome: "Vendedor D", inbound: "85_000" });
+  adicionarVendedor(2, { nome: "Vendedor B", inbound: "280.000" });
+  adicionarVendedor(3, { nome: "Vendedor C", inbound: "250.000" });
+  adicionarVendedor(4, { nome: "Vendedor D", inbound: "85.000" });
   adicionarVendedor(5, { nome: "Vendedor E" });
 }
 
@@ -246,21 +250,22 @@ describe("Calculadora de Comissão — comissão de serviço", () => {
   it("o faturamento de serviços vira a base e o valor de cada pessoa", () => {
     render(<AbaComissao />);
 
-    digitar("Faturamento de serviços", "300_000");
+    digitar("Faturamento de serviços", "300.000");
 
-    // 300_000 × 1% + 1.000 = 4_000 de base.
+    // 300.000 × 1% + 1.000 = 4.000 de base.
     expect(
       texto(screen.getByText(/Valor de referência/).parentElement),
-    ).toContain("R$ 4_000");
-    expect(screen.getByLabelText("Nome da pessoa 1")).toHaveValue("Papel 1");
-    expect(texto(linhaDaPessoa(1))).toContain("R$ 4_000");
-    expect(texto(linhaDaPessoa(2))).toContain("R$ 3_000");
+    ).toContain("R$ 4.000,00");
+    // O papel vem sem nome: quem o ocupou no mês se digita aqui.
+    expect(screen.getByLabelText("Nome da pessoa 1")).toHaveValue("");
+    expect(texto(linhaDaPessoa(1))).toContain("R$ 4.000,00"); // 100%
+    expect(texto(linhaDaPessoa(2))).toContain("R$ 3.000,00"); // 75%
   });
 
   it("diz o degrau em que o faturamento caiu", () => {
     render(<AbaComissao />);
 
-    digitar("Faturamento de serviços", "300_000");
+    digitar("Faturamento de serviços", "300.000");
 
     expect(screen.getByText(/1% \+ R\$ 1\.000,00/)).toBeInTheDocument();
   });
@@ -271,7 +276,7 @@ describe("Calculadora de Comissão — comissão de serviço", () => {
 
     digitar("Percentual da pessoa 2", "60");
 
-    // Base 3.000: Papel 1 segue com 100%, Papel 2 passa a 60%.
+    // Base 3.000: o primeiro papel segue com 100%, o segundo passa a 60%.
     expect(texto(linhaDaPessoa(1))).toContain("R$ 3.000,00");
     expect(texto(linhaDaPessoa(2))).toContain("R$ 1.800,00");
   });
@@ -288,19 +293,19 @@ describe("Calculadora de Comissão — comissão de serviço", () => {
   });
 });
 
-describe("Calculadora de Comissão — fechamento de julho/2026", () => {
-  it("reproduz o mês que o Financeiro já pagou", () => {
+describe("Calculadora de Comissão — um fechamento inteiro", () => {
+  it("leva o que se digita até o total a pagar do mês", () => {
     render(<AbaComissao />);
 
-    fecharJulho();
+    preencherFechamento();
 
-    expect(texto(linhaDoVendedor(1))).toContain("R$ 2_425"); // Vendedor A
-    expect(texto(linhaDoVendedor(2))).toContain("R$ 2_350"); // Vendedor B
-    expect(texto(linhaDoVendedor(3))).toContain("R$ 2_125"); // Vendedor C
-    expect(texto(linhaDoVendedor(4))).toContain("R$ 2_000"); // Vendedor D, piso
-    expect(texto(linhaDoVendedor(5))).toContain("R$ 2_000"); // Beto, piso
+    expect(texto(linhaDoVendedor(1))).toContain("R$ 2.425,00"); // dois canais
+    expect(texto(linhaDoVendedor(2))).toContain("R$ 2.350,00");
+    expect(texto(linhaDoVendedor(3))).toContain("R$ 2.125,00");
+    expect(texto(linhaDoVendedor(4))).toContain("R$ 2.000,00"); // piso
+    expect(texto(linhaDoVendedor(5))).toContain("R$ 2.000,00"); // piso, sem venda
     expect(texto(screen.getByText(/Total a pagar/).parentElement)).toContain(
-      "R$ 10_900",
+      "R$ 10.900,00",
     );
   });
 });
@@ -308,8 +313,8 @@ describe("Calculadora de Comissão — fechamento de julho/2026", () => {
 describe("Calculadora de Comissão — exportação", () => {
   it("leva as duas tabelas para a planilha", () => {
     render(<AbaComissao />);
-    fecharJulho();
-    digitar("Faturamento de serviços", "300_000");
+    preencherFechamento();
+    digitar("Faturamento de serviços", "300.000");
 
     fireEvent.click(screen.getByRole("button", { name: /Exportar/ }));
 
@@ -317,14 +322,14 @@ describe("Calculadora de Comissão — exportação", () => {
     expect(planilha.abas[0].linhas).toHaveLength(5);
     expect(planilha.abas[0].linhas[0]).toMatchObject({
       Vendedor: "Vendedor A",
-      Recebe: 2470.663,
+      Recebe: 2425,
     });
-    expect(planilha.abas[1].linhas[0]).toMatchObject({ Pessoa: "Papel 1" });
+    expect(planilha.abas[1].linhas[0]).toMatchObject({ "% do papel": 1 });
     expect(planilha.arquivo).toMatch(/^comissao-\d{4}-\d{2}-\d{2}\.xlsx$/);
   });
 
   it("exporta o número, não o texto formatado", () => {
-    // Planilha com "R$ 2_425" em texto não soma no Excel — e a primeira
+    // Planilha com "R$ 7.750,00" em texto não soma no Excel — e a primeira
     // coisa que alguém faz com o arquivo é somar a coluna.
     render(<AbaComissao />);
     adicionarVendedor(1, { nome: "Ana", inbound: "700.000" });

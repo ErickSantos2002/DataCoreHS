@@ -120,9 +120,9 @@ describe("comissão de vendas — rateio de 1%", () => {
   });
 
   it("divide entre TODOS da lista, inclusive quem não vendeu", () => {
-    // A Beto aparece no fechamento com zero em tudo. Tirá-la da conta daria
-    // um rateio maior aos outros quatro e nenhum a ela — o oposto do que o
-    // mínimo garantido existe para fazer.
+    // Quem não vendeu no mês aparece no fechamento com zero em tudo. Tirar
+    // essa pessoa da conta daria um rateio maior aos outros e nenhum a ela —
+    // o oposto do que o mínimo garantido existe para fazer.
     const { rateio } = calcularComissoes(
       [vendedor({ id: "a", inbound: 100_000 }), vendedor({ id: "b" })],
       1_000_000,
@@ -241,14 +241,17 @@ describe("comissão de vendas — incentivos ainda inativos", () => {
   });
 });
 
-describe("comissão de vendas — fechamento de julho/2026", () => {
+describe("comissão de vendas — um fechamento de ponta a ponta", () => {
   /**
-   * O fechamento real que o Financeiro fez na planilha, usado como teste de
-   * aceitação: se a calculadora não reproduz o mês que já foi pago, ela não
-   * serve. Os cinco vendedores e o total de 1_000_000 saem do arquivo
-   * "a planilha do fechamento".
+   * Cinco vendedores num mês, escolhidos para exercitar as quatro situações
+   * que o fechamento tem: quem vende nos dois canais, quem fica confortável
+   * acima do piso, quem fica abaixo dele e quem não vendeu nada.
+   *
+   * Os números são sintéticos e redondos de propósito — dá para conferir de
+   * cabeça, e fechamento de verdade tem nome e remuneração de gente, que não
+   * se versiona.
    */
-  const JULHO: FaturamentoDoVendedor[] = [
+  const FECHAMENTO: FaturamentoDoVendedor[] = [
     {
       ...vendedorVazio("1"),
       nome: "Vendedor A",
@@ -262,37 +265,48 @@ describe("comissão de vendas — fechamento de julho/2026", () => {
   ];
   const FATURAMENTO_TOTAL = 1_000_000;
 
-  it("reproduz o valor de cada vendedor", () => {
-    const { linhas, rateio } = calcularComissoes(JULHO, FATURAMENTO_TOTAL);
-    const [vendedorA, vendedorB, vendedorC, vendedorD, vendedorE] = linhas;
+  it("dá a cada vendedor o que a regra manda", () => {
+    const { linhas, rateio } = calcularComissoes(FECHAMENTO, FATURAMENTO_TOTAL);
+    const [a, b, c, d, e] = linhas;
 
-    // 1_000_000 × 1% ÷ 5 vendedores.
-    expect(rateio).toBeCloseTo(2_000, 2);
+    // 1.000.000 × 1% ÷ 5 vendedores.
+    expect(rateio).toBe(2_000);
 
-    // Vendedor A: 150_000 × 0,75% + 70_000 × 1,5% + bônus 250.
-    expect(vendedorA.total).toBeCloseTo(220_000, 2);
-    expect(vendedorA.recebe).toBeCloseTo(2_425, 2);
+    // A vende nos dois canais: 150.000 × 0,75% + 70.000 × 1,5% + bônus 250.
+    expect(a.total).toBe(220_000);
+    expect(a.recebe).toBeCloseTo(2_425, 2);
 
-    // Vendedor B: 280_000 × 0,75% + 250 = 2_350 — cai EXATAMENTE em meio
-    // centavo. O módulo devolve o número cheio de propósito; arredondar aqui
-    // esconderia a decisão de quem paga, que é onde ela tem de estar.
-    expect(vendedorB.recebe).toBe(2_350);
+    // B e C ficam acima do piso pela própria venda.
+    expect(b.recebe).toBeCloseTo(2_350, 2); // 280.000 × 0,75% + 250
+    expect(c.recebe).toBeCloseTo(2_125, 2); // 250.000 × 0,75% + 250
 
-    // Vendedor C: 250_000 × 0,75% + 250.
-    expect(vendedorC.recebe).toBeCloseTo(2_125, 2);
+    // D vendeu, mas 637,50 de comissão perde para o piso de 2.000.
+    expect(d.comissao).toBeCloseTo(637.5, 2);
+    expect(d.recebe).toBe(2_000);
+    expect(d.peloRateio).toBe(true);
 
-    // Vendedor D: 85_000 × 0,75% = 642,85, abaixo do rateio — leva o rateio.
-    expect(vendedorD.recebe).toBeCloseTo(2_000, 2);
-    expect(vendedorD.peloRateio).toBe(true);
-
-    // Beto não vendeu no mês e mesmo assim leva o mínimo garantido.
-    expect(vendedorE.recebe).toBeCloseTo(2_000, 2);
+    // E não vendeu no mês e mesmo assim leva o mínimo garantido.
+    expect(e.total).toBe(0);
+    expect(e.recebe).toBe(2_000);
   });
 
   it("fecha a folha de comissão do mês", () => {
-    const { totalAPagar } = calcularComissoes(JULHO, FATURAMENTO_TOTAL);
+    const { totalAPagar } = calcularComissoes(FECHAMENTO, FATURAMENTO_TOTAL);
 
+    // 2.425 + 2.350 + 2.125 + 2.000 + 2.000.
     expect(totalAPagar).toBeCloseTo(10_900, 2);
+  });
+
+  it("comissão que cai em meio centavo sai inteira, sem arredondar", () => {
+    // 100.070 × 0,75% = 750,525. O módulo devolve o número cheio: arredondar
+    // aqui esconderia a decisão de quem paga, que é onde ela tem de estar —
+    // e `toFixed(2)` e `toLocaleString` discordam justamente nesse caso.
+    const { linhas } = calcularComissoes(
+      [{ ...vendedorVazio("1"), nome: "Vendedor A", inbound: 100_070 }],
+      0,
+    );
+
+    expect(linhas[0].comissao).toBe(750.525);
   });
 });
 

@@ -101,15 +101,17 @@ export interface PessoaDeServico {
 }
 
 /**
- * A equipe de serviço e o percentual de cada papel, como está na planilha.
+ * Os três papéis da equipe de serviço, com o percentual de cada um.
  *
- * É ponto de partida editável na tela, não regra travada: quem ocupa o papel
- * muda, e o fechamento não pode depender de alguém mexer no código.
+ * O percentual é a REGRA e vem preenchido; o nome é a PESSOA e fica em
+ * branco, para o Financeiro escrever quem ocupou o papel no mês. Guardar
+ * nome de funcionário no código seria dado de remuneração versionado — e
+ * quem ocupa o papel muda sem que ninguém queira mexer em código para isso.
  */
 export const EQUIPE_PADRAO: PessoaDeServico[] = [
-  { id: "papel-1", nome: "Papel 1", percentual: 1 },
-  { id: "papel-2", nome: "Papel 2", percentual: 0.75 },
-  { id: "papel-3", nome: "Papel 3", percentual: 0.5 },
+  { id: "papel-1", nome: "", percentual: 1 },
+  { id: "papel-2", nome: "", percentual: 0.75 },
+  { id: "papel-3", nome: "", percentual: 0.5 },
 ];
 
 export interface LinhaDeServico extends PessoaDeServico {

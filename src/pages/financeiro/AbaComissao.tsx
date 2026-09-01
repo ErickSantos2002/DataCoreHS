@@ -93,7 +93,7 @@ const AbaComissao: React.FC = () => {
   /**
    * A planilha do fechamento, com número de verdade nas células de valor.
    *
-   * Exportar "R$ 2_425" como texto daria uma coluna que o Excel não soma —
+   * Exportar "R$ 7.750,00" como texto daria uma coluna que o Excel não soma —
    * e somar a coluna é a primeira coisa que alguém faz com o arquivo.
    */
   function exportar() {
