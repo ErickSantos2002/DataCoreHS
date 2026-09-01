@@ -163,15 +163,22 @@ describe("MultiSelect em Estoque", () => {
   // em `filtroProduto`/`selected` — é o `value`: o código do produto.
   // Confundir os dois faria a tela filtrar pelo texto errado (o rótulo
   // inteiro) em vez do código de fato.
-  it("o checkbox mostra o rótulo, e o que é guardado é o código", () => {
+  //
+  // Marcar o checkbox e olhar só o botão ("1 selecionado(s)") não prova
+  // isso — essa contagem é a mesma independentemente de `selected` guardar
+  // `value` ou `label`. Quem de fato consome `selected` como código é o
+  // filtro da TABELA (`produtoOk = filtroProduto.includes(p.codigo)`,
+  // ~linha 178): é lá que a confusão aparece. Por isso a asserção observa a
+  // tabela, não o botão.
+  it("o checkbox mostra o rótulo, e o que filtra a tabela é o código", () => {
     render(<Estoque />);
     abrir("Todos os produtos");
 
     fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
 
-    expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
-    ).toBeInTheDocument();
+    const tabela = screen.getByRole("table");
+    expect(within(tabela).getByText("Bafômetro Phoebus")).toBeInTheDocument();
+    expect(within(tabela).queryByText("Tubo descartável")).not.toBeInTheDocument();
   });
 
   // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
@@ -196,11 +203,32 @@ describe("MultiSelect em Estoque", () => {
     expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
   });
 
+  // `MultiSelect` é declarado DENTRO do corpo de `Estoque` (não é um
+  // componente à parte) — cada clique que muda `filtroProduto` re-renderiza
+  // `Estoque` e recria a função `MultiSelect`, então React vê um componente
+  // novo e o remonta do zero. Isso reseta o estado local `isOpen` para
+  // `false`, e por isso o dropdown aparece fechado depois de QUALQUER
+  // seleção — é preciso reabri-lo (`abrir(...)`) antes do próximo clique
+  // dentro do painel, sempre.
   it("marcar de novo desmarca, e 'Limpar seleção' zera tudo", () => {
     render(<Estoque />);
+
     abrir("Todos os produtos");
     fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    expect(
+      screen.getByRole("button", { name: "1 selecionado(s)" }),
+    ).toBeInTheDocument();
 
+    // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
+    abrir("1 selecionado(s)");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    expect(
+      screen.getByRole("button", { name: "Todos os produtos" }),
+    ).toBeInTheDocument();
+
+    // Seleciona de novo para testar "Limpar seleção" isoladamente.
+    abrir("Todos os produtos");
+    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
     abrir("1 selecionado(s)");
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
