@@ -1,4 +1,20 @@
-import { formatarDinheiro, mascaraDeDinheiro } from "../../lib/dinheiro";
+/**
+ * A leitura e a máscara vêm as duas do módulo de dinheiro, e isso é o
+ * conserto de um defeito: a tela tinha parse próprio que discordava da
+ * máscara sobre o que é um ponto. A máscara ESCREVE ponto de milhar
+ * ("1234567" → "1.234.567") e o parse o tratava como decimal quando não havia
+ * vírgula, então quem digitava um valor inteiro via "1.234.567" no campo e
+ * entrava com R$ 1,23 na conta. Juntas no mesmo módulo, não podem divergir.
+ *
+ * O mesmo parse continua servindo ao campo de percentual, que não tem máscara
+ * e volta do banco como "13.9": sem agrupamento de três dígitos, o ponto é
+ * decimal, e é isso que ele faz.
+ */
+import {
+  converterParaNumero,
+  formatarDinheiro,
+  mascaraDeDinheiro,
+} from "../../lib/dinheiro";
 import type { ConfigCentroCusto } from "../../services/notasapi";
 
 /**
@@ -59,27 +75,6 @@ export function formularioVazio(): FormularioDeCusto {
     quantidade_planejada: "",
     preco_unitario_planejado: "",
   };
-}
-
-/**
- * Lê um número digitado no formulário.
- *
- * ⚠️ NÃO é o `converterParaNumero` de `src/lib/dinheiro.ts`, e a diferença é
- * um defeito: sem vírgula no texto o ponto é lido como decimal. Como a
- * máscara de dinheiro ESCREVE ponto de milhar, quem digita `1234567` sem
- * centavos vê "1.234.567" no campo e entra com R$ 1,23 na conta. O
- * comportamento está preservado de propósito — o conserto é a fase seguinte,
- * e está fixado em teste para ser deliberado.
- *
- * Quem exercita o ramo do ponto decimal de verdade é o campo de percentual,
- * que não tem máscara e volta do banco como "13.9".
- */
-export function lerNumero(texto: string): number {
-  if (!texto) return 0;
-  if (texto.includes(",")) {
-    return parseFloat(texto.replace(/\./g, "").replace(",", ".")) || 0;
-  }
-  return parseFloat(texto) || 0;
 }
 
 /** Número gravado no banco → texto em pt-BR para o campo de dinheiro. */
@@ -184,23 +179,25 @@ export function configuracaoDoFormulario(
   return {
     servicos_aduaneiros: form.servicos_aduaneiros.map((servico) => ({
       mes_ano: servico.mes_ano,
-      valor: lerNumero(servico.valor),
+      valor: converterParaNumero(servico.valor),
       nf: servico.nf,
     })),
-    participacao_pct: lerNumero(form.participacao_pct),
-    unidades_importadas: lerNumero(form.unidades_importadas),
+    participacao_pct: converterParaNumero(form.participacao_pct),
+    unidades_importadas: converterParaNumero(form.unidades_importadas),
     custos_diretos: form.custos_diretos.map((custo) => ({
       descricao: custo.descricao,
-      valor: lerNumero(custo.valor),
+      valor: converterParaNumero(custo.valor),
     })),
-    estimativa_custos_variaveis_anual: lerNumero(
+    estimativa_custos_variaveis_anual: converterParaNumero(
       form.estimativa_custos_variaveis_anual,
     ),
     participacao_overhead_pct:
-      lerNumero(form.participacao_overhead_pct) || null,
-    unidades_lote_mes: lerNumero(form.unidades_lote_mes) || null,
-    quantidade_planejada: lerNumero(form.quantidade_planejada) || null,
-    preco_unitario_planejado: lerNumero(form.preco_unitario_planejado) || null,
+      converterParaNumero(form.participacao_overhead_pct) || null,
+    unidades_lote_mes: converterParaNumero(form.unidades_lote_mes) || null,
+    quantidade_planejada:
+      converterParaNumero(form.quantidade_planejada) || null,
+    preco_unitario_planejado:
+      converterParaNumero(form.preco_unitario_planejado) || null,
   };
 }
 
@@ -261,25 +258,27 @@ export function calcularCusto(
   resumo: ResumoDoSistema | null,
 ): CalculoDeCusto {
   const totalAduaneiro = form.servicos_aduaneiros.reduce(
-    (soma, servico) => soma + lerNumero(servico.valor),
+    (soma, servico) => soma + converterParaNumero(servico.valor),
     0,
   );
-  const pctAduaneiro = lerNumero(form.participacao_pct) / 100;
-  const unidadesImportadas = lerNumero(form.unidades_importadas);
+  const pctAduaneiro = converterParaNumero(form.participacao_pct) / 100;
+  const unidadesImportadas = converterParaNumero(form.unidades_importadas);
   const custoAduaneiroPorUn =
     pctAduaneiro > 0 && unidadesImportadas > 0
       ? (totalAduaneiro * pctAduaneiro) / unidadesImportadas
       : null;
 
   const totalDireto = form.custos_diretos.reduce(
-    (soma, custo) => soma + lerNumero(custo.valor),
+    (soma, custo) => soma + converterParaNumero(custo.valor),
     0,
   );
 
-  const estimativaAnual = lerNumero(form.estimativa_custos_variaveis_anual);
-  const pctOverhead = lerNumero(form.participacao_overhead_pct) / 100;
-  const qtdPlanejada = lerNumero(form.quantidade_planejada);
-  const precoPlanejado = lerNumero(form.preco_unitario_planejado);
+  const estimativaAnual = converterParaNumero(
+    form.estimativa_custos_variaveis_anual,
+  );
+  const pctOverhead = converterParaNumero(form.participacao_overhead_pct) / 100;
+  const qtdPlanejada = converterParaNumero(form.quantidade_planejada);
+  const precoPlanejado = converterParaNumero(form.preco_unitario_planejado);
   const usandoQtdManual = qtdPlanejada > 0;
   const usandoPrecoManual = precoPlanejado > 0;
 
@@ -288,7 +287,7 @@ export function calcularCusto(
     pctOverhead,
     usandoQtdManual,
     qtdPlanejada,
-    lerNumero(form.unidades_lote_mes),
+    converterParaNumero(form.unidades_lote_mes),
   );
 
   const custoTotalPorUn =
