@@ -539,34 +539,32 @@ describe("Aba Centro de Custo — leitura de número digitado", () => {
     expect(linhaResumo("Serviços Aduaneiros")).toContain("R$ 69,50");
   });
 
-  // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
-  // A máscara e o parse discordam sobre o que é um ponto. `applyMoneyMask`
-  // ESCREVE ponto como separador de milhar ("1234567" → "1.234.567"), e `n()`
-  // só trata ponto como milhar quando há vírgula no texto — sem vírgula ele
-  // faz `parseFloat("1.234.567")`, que para no primeiro ponto e devolve 1,234.
-  //
-  // Consequência: todo valor inteiro digitado sem centavos entra no cálculo
-  // dividido por mil. É o mesmo defeito que `src/lib/dinheiro.ts` já resolve
-  // no resto do sistema, e a correção é trocar por ele — mas isso é a fase de
-  // conserto, DEPOIS de migrar. Aqui o comportamento fica fixado como está,
-  // para que a migração não o mude sem querer e o conserto seja deliberado.
-  it("valor inteiro sem centavos é lido dividido por mil (defeito preservado)", async () => {
+  // Era o defeito 3 da tela: a máscara e o parse discordavam sobre o que é um
+  // ponto. A máscara ESCREVE ponto de milhar ("1234567" → "1.234.567") e o
+  // `n()` só o tratava como milhar quando havia vírgula, então
+  // `parseFloat("1.234.567")` parava no primeiro ponto e todo valor inteiro
+  // digitado sem centavos entrava na conta dividido por mil. Agora as duas
+  // pontas são do `src/lib/dinheiro.ts` e concordam por construção.
+  it("o valor que o campo mostra é o valor que entra na conta", async () => {
     await montar();
 
     adicionarCustoDireto("Produto", "1234567");
 
-    // Na tela o campo mostra "1.234.567"; na conta valem R$ 1,23.
     expect(screen.getAllByPlaceholderText("0,00")[0]).toHaveValue("1.234.567");
-    expect(linhaResumo("Custos Diretos")).toContain("R$ 1,23");
+    expect(linhaResumo("Custos Diretos")).toContain("R$ 1.234.567,00");
   });
 
-  it("digitar ponto como decimal também se perde (defeito preservado)", async () => {
+  it("ponto digitado é milhar, e a conta segue o que ficou no campo", async () => {
+    // A máscara descarta o ponto e agrupa o milhar: quem digita "825.55" fica
+    // com "82.555" no campo, e é isso que entra na conta — oitenta e dois mil
+    // e quinhentos e cinquenta e cinco. O separador decimal aqui é a vírgula.
+    // Antes o campo dizia uma coisa ("82.555") e a conta usava outra (82,56).
     await montar();
 
     adicionarCustoDireto("Produto", "825.55");
 
-    // A máscara vira "82.555" e o parse lê 82,555 → R$ 82,56.
-    expect(linhaResumo("Custos Diretos")).toContain("R$ 82,56");
+    expect(screen.getAllByPlaceholderText("0,00")[0]).toHaveValue("82.555");
+    expect(linhaResumo("Custos Diretos")).toContain("R$ 82.555,00");
   });
 
   it("com centavos digitados a leitura fecha certa", async () => {

@@ -23,6 +23,8 @@ import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
 import { SeletorDeAno } from "./SeletorDeAno";
 import {
   GRUPOS_DE_CATEGORIA,
+  GRUPO_SEM_CATEGORIA,
+  ROTULO_SEM_CATEGORIA,
   MESES,
   ROTULO_DE_ENTRADA,
   formatarMoeda,
@@ -51,6 +53,7 @@ export interface AbaBalanceteProps {
 
 /** O rótulo de uma linha, venha ela das entradas ou do plano de contas. */
 function rotuloDaLinha(chave: string): string {
+  if (chave === GRUPO_SEM_CATEGORIA) return ROTULO_SEM_CATEGORIA;
   return (
     ROTULO_DE_ENTRADA[chave] ??
     GRUPOS_DE_CATEGORIA[chave] ??
@@ -62,10 +65,9 @@ function rotuloDaLinha(chave: string): string {
  * O balancete do ano: entradas de venda e serviço contra as contas a pagar,
  * agrupadas pelo número que abre a categoria no plano de contas do Tiny.
  *
- * ⚠️ O total de saídas inclui as contas do grupo `outros`, que não viram
- * linha — ver o aviso em `montarBalancete`. É por isso que a soma das linhas
- * visíveis pode não fechar com o total; o defeito está preservado de
- * propósito e fixado em teste.
+ * As contas que não seguem o plano de contas aparecem numa linha própria, no
+ * fim, sob "SEM CATEGORIA" — antes elas somavam no total sem virar linha, e o
+ * balancete fechava com um valor que nada explicava.
  */
 export function AbaBalancete({ ano, onAno, balancete }: AbaBalanceteProps) {
   return (

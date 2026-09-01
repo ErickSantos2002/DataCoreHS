@@ -693,25 +693,50 @@ describe("Financeiro — balancete", () => {
     ]);
   });
 
-  // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
-  // Conta cuja categoria não começa por número cai no grupo "outros", que é
-  // filtrado da listagem — mas continua somando no total de saídas. O
-  // balancete fecha com um valor que nenhuma linha visível explica: aqui as
-  // linhas somam 3.000,00 e o total diz 3.500,00.
-  //
-  // Fica fixado como está para que a migração não o mude sem querer; o
-  // conserto é a fase seguinte, e a decisão de qual dos dois lados está certo
-  // (mostrar a linha "outros" ou tirá-la do total) é do Erick.
-  it("conta sem categoria numérica soma no total mas não tem linha", () => {
+  // Era o defeito 2 da tela: conta cuja categoria não começa por número caía
+  // num grupo `outros` filtrado da listagem, mas continuava somando no total
+  // — o balancete fechava com um valor que nenhuma linha visível explicava.
+  // Tirá-las do total não era opção: são saída de dinheiro de verdade, e
+  // escondê-las tornaria o SALDO errado, que é o número que a diretoria lê.
+  // Então a linha passou a existir, com rótulo que diz por que ela é exceção.
+  it("conta sem categoria numérica vira linha, e o total fecha com as linhas", () => {
     render(<GerenciamentoFinanceiro />);
     abrirAba("Balancete");
 
-    expect(screen.queryByText(/outros - Outros/i)).not.toBeInTheDocument();
-    // Fevereiro: nenhuma linha visível, e mesmo assim 500,00 no total.
-    expect(linha("Balancete — 2026", "Total de saídas")[2]).toBe("R$ 500,00");
+    const semCategoria = linha("Balancete — 2026", "SEM CATEGORIA");
+    expect(semCategoria[2]).toBe("R$ 500,00"); // fevereiro
+    expect(total(semCategoria)).toBe("R$ 500,00");
+
+    // A soma das linhas visíveis agora bate com o total.
+    const visiveis = [
+      "1 - CUSTOS E DESPESAS FIXAS - EQUIPE",
+      "2 - CUSTOS E DESPESAS FIXAS - SEDE",
+      "10 - OUTROS CUSTOS",
+      "SEM CATEGORIA",
+    ].map((rotulo) => total(linha("Balancete — 2026", rotulo)));
+    expect(visiveis).toEqual([
+      "R$ 1.000,00",
+      "R$ 20.000,00",
+      "R$ 2.000,00",
+      "R$ 500,00",
+    ]);
     expect(total(linha("Balancete — 2026", "Total de saídas"))).toBe(
       "R$ 23.500,00",
     );
+  });
+
+  it("a linha sem categoria fica por último, depois dos grupos numerados", () => {
+    // Ela não tem número, então não tem lugar na ordem do plano de contas —
+    // e é a exceção, não uma categoria entre as outras.
+    render(<GerenciamentoFinanceiro />);
+    abrirAba("Balancete");
+
+    const rotulos = within(cartao("Balancete — 2026"))
+      .getAllByRole("row")
+      .map((l) => texto(l.firstElementChild))
+      .filter((r) => /^\d+ - |^SEM CATEGORIA$/.test(r));
+
+    expect(rotulos[rotulos.length - 1]).toBe("SEM CATEGORIA");
   });
 
   it("conta de outro ano ou sem data de emissão não entra", () => {
@@ -783,13 +808,12 @@ describe("Financeiro — balancete", () => {
     expect(dados[2]).toBe("mes=Mar Entradas=20000 Saídas=20000");
   });
 
-  // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
-  // O `toNum` da tela só trata o ponto como milhar quando há vírgula no
-  // texto; sem vírgula ele faz `parseFloat("1.234")` e para no primeiro
-  // ponto. É o mesmo defeito que `src/lib/dinheiro.ts` já fechou para as
-  // telas de Contas — e a troca por `converterParaNumero` é conserto, não
-  // migração, então fica para a fase seguinte com o número fixado aqui.
-  it("valor sem centavos é lido dividido por mil (defeito preservado)", () => {
+  // Era o defeito 1 da tela: o `toNum` só tratava o ponto como milhar quando
+  // havia vírgula no texto, então `parseFloat("1.234")` parava no primeiro
+  // ponto e uma conta de mil duzentos e trinta e quatro reais entrava no
+  // balancete como R$ 1,23. Agora a leitura é a do `src/lib/dinheiro.ts`,
+  // que distingue milhar de decimal pelo agrupamento de três dígitos.
+  it("valor sem centavos vale o que está escrito", () => {
     estadoPagar.contas = [
       {
         id: 1,
@@ -801,7 +825,7 @@ describe("Financeiro — balancete", () => {
     render(<GerenciamentoFinanceiro />);
     abrirAba("Balancete");
 
-    expect(kpiBalancete("Total Saídas")).toContain("R$ 1,23");
+    expect(kpiBalancete("Total Saídas")).toContain("R$ 1.234,00");
   });
 
   it.each([

@@ -1,3 +1,5 @@
+import { converterParaNumero } from "../../lib/dinheiro";
+
 /**
  * As contas do Gerenciamento Financeiro, sem React.
  *
@@ -69,6 +71,16 @@ export const ROTULO_DE_ENTRADA: Record<string, string> = {
 };
 
 /**
+ * O rótulo do grupo sem categoria.
+ *
+ * "SEM CATEGORIA", e não "Outros": diz POR QUE a linha existe — são contas
+ * que não foram classificadas no plano de contas do Tiny — em vez de parecer
+ * mais uma categoria entre as outras. Quem lê o balancete e vê o valor sabe
+ * onde ir consertar.
+ */
+export const ROTULO_SEM_CATEGORIA = "SEM CATEGORIA";
+
+/**
  * Dinheiro na tela. Zero vira travessão de propósito: nesta tela zero quase
  * sempre é mês que ainda não aconteceu, não valor apurado. É a regra do
  * design — "zero como dado ainda não existente mostra —".
@@ -98,31 +110,21 @@ export function chaveDaVariacao(base: Ano, comp: Ano): string {
 }
 
 /**
- * O valor de uma conta a pagar, que o Tiny manda ora número, ora texto.
+ * A chave do grupo de contas cuja categoria não segue o plano de contas.
  *
- * ⚠️ NÃO é o `converterParaNumero` de `src/lib/dinheiro.ts`, e a diferença é
- * um defeito: aqui, sem vírgula no texto, o ponto é lido como decimal, então
- * `"1.234"` vale 1,234 e não mil duzentos e trinta e quatro. O comportamento
- * está preservado de propósito — trocá-lo muda número de balancete e é
- * conserto, não migração. Fixado em `GerenciamentoFinanceiro.test.tsx`.
+ * Existe como constante porque três lugares precisam concordar sobre ela: o
+ * agrupamento, a ordenação (ela não tem número, então vai por último) e o
+ * rótulo da linha.
  */
-export function lerValorDaConta(valor: string | number | undefined): number {
-  if (typeof valor === "number") return valor;
-  if (!valor) return 0;
-  const texto = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
-  if (texto.includes(",")) {
-    return parseFloat(texto.replace(/\./g, "").replace(",", ".")) || 0;
-  }
-  return parseFloat(texto) || 0;
-}
+export const GRUPO_SEM_CATEGORIA = "outros";
 
 /** O número que abre a categoria, ou `outros` quando não há número. */
 export function prefixoDaCategoria(
   categoria: string | null | undefined,
 ): string {
-  if (!categoria) return "outros";
+  if (!categoria) return GRUPO_SEM_CATEGORIA;
   const achado = categoria.match(/^(\d+)/);
-  return achado ? achado[1] : "outros";
+  return achado ? achado[1] : GRUPO_SEM_CATEGORIA;
 }
 
 /** Só o que a tela lê de uma nota de venda. */
@@ -350,11 +352,11 @@ export interface Balancete {
  * O balancete de um ano: entradas de venda e serviço contra as contas a pagar
  * agrupadas pelo plano de contas.
  *
- * ⚠️ Conta cuja categoria não começa por número cai no grupo `outros`, que
- * **não entra em `linhasDeSaida`** e portanto não vira linha na tela — mas
- * continua somando em `totalSaidasMes`. O balancete fecha com um valor que
- * nenhuma linha visível explica. Defeito preservado de propósito: qual dos
- * dois lados corrigir é decisão de negócio. Fixado no teste da tela.
+ * Conta cuja categoria não começa por número cai no grupo `outros`, e ele
+ * **entra em `linhasDeSaida`**, por último. Antes era filtrado da listagem e
+ * continuava somando no total, e o balancete fechava com um valor que nenhuma
+ * linha visível explicava. Escondê-lo do total não era alternativa: são saídas
+ * de dinheiro de verdade, e tirá-las tornaria o saldo do período errado.
  */
 export function montarBalancete(
   vendas: SeriePorAnoMes,
@@ -375,7 +377,12 @@ export function montarBalancete(
     const mes = Number(partes[1]) - 1;
     const grupo = prefixoDaCategoria(conta.categoria);
     if (!saidas[grupo]) saidas[grupo] = Array(12).fill(0);
-    saidas[grupo][mes] += lerValorDaConta(conta.valor);
+    // O valor vem do Tiny ora número, ora texto, nos dois formatos. A tela
+    // tinha a própria leitura, que sem vírgula tratava o ponto como decimal:
+    // uma conta de "1.234" entrava no balancete como R$ 1,23. O módulo de
+    // dinheiro distingue milhar de decimal pelo agrupamento de três dígitos,
+    // que é a única pista que existe.
+    saidas[grupo][mes] += converterParaNumero(conta.valor);
   }
 
   const porMes = (linhas: Record<string, number[]>) =>
@@ -403,10 +410,14 @@ export function montarBalancete(
     linhasDeEntrada: ["vendas", "servicos"].filter(
       (chave) => chave in entradas,
     ),
-    // Ordem numérica, não alfabética: como texto, "10" viria antes de "2".
-    linhasDeSaida: Object.keys(saidas)
-      .filter((grupo) => grupo !== "outros")
-      .sort((a, b) => Number(a) - Number(b)),
+    // Ordem numérica, não alfabética: como texto, "10" viria antes de "2". O
+    // grupo sem categoria não tem número e por isso vai depois de todos.
+    linhasDeSaida: [
+      ...Object.keys(saidas)
+        .filter((grupo) => grupo !== GRUPO_SEM_CATEGORIA)
+        .sort((a, b) => Number(a) - Number(b)),
+      ...(GRUPO_SEM_CATEGORIA in saidas ? [GRUPO_SEM_CATEGORIA] : []),
+    ],
     pontosDoGrafico: MESES.map((mes, indice) => ({
       mes,
       Entradas: totalEntradasMes[indice],
