@@ -1,7 +1,6 @@
 import { Filter } from "lucide-react";
 
-import { FilterBar, Input, Select } from "../../design-system/ui";
-import { MultiSelectDeContas } from "./MultiSelectDeContas";
+import { FilterBar, Input, MultiSelect, Select, deTextos } from "../../design-system/ui";
 import type { FiltrosDeContas as ValoresDosFiltros } from "./contas";
 
 /** Os cinco presets do "Período Rápido", na ordem em que aparecem. */
@@ -59,26 +58,26 @@ export function FiltrosDeContas({
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <MultiSelectDeContas
+        <MultiSelect
           rotulo="Situação"
-          opcoes={opcoes.situacao}
-          selecionadas={valores.situacao}
+          opcoes={deTextos(opcoes.situacao)}
+          selecionados={valores.situacao}
           onChange={onSituacao}
           placeholder="Todas"
         />
 
-        <MultiSelectDeContas
+        <MultiSelect
           rotulo="Categoria"
-          opcoes={opcoes.categoria}
-          selecionadas={valores.categoria}
+          opcoes={deTextos(opcoes.categoria)}
+          selecionados={valores.categoria}
           onChange={onCategoria}
           placeholder="Todas"
         />
 
-        <MultiSelectDeContas
+        <MultiSelect
           rotulo={rotuloDaContraparte}
-          opcoes={opcoes.contraparte}
-          selecionadas={valores.contraparte}
+          opcoes={deTextos(opcoes.contraparte)}
+          selecionados={valores.contraparte}
           onChange={onContraparte}
           placeholder="Todos"
         />

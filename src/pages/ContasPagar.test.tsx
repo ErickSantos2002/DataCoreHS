@@ -659,7 +659,7 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     await montar([]);
 
     alternarLista("Situação");
-    expect(within(filtro("Situação")).getByText("Nenhum resultado")).toBeInTheDocument();
+    expect(within(filtro("Situação")).getByText("Nenhum resultado encontrado")).toBeInTheDocument();
     alternarLista("Situação");
   });
 });

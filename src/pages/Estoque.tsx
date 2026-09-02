@@ -446,10 +446,8 @@ const Estoque: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Produtos */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Produtos
-                </label>
                 <MultiSelect
+                  rotulo="Produtos"
                   opcoes={produtosUnicos.map((o) => ({ valor: o.value, rotulo: o.label }))}
                   selecionados={filtroProduto}
                   onChange={setFiltroProduto}

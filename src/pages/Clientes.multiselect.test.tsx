@@ -134,16 +134,21 @@ vi.mock("recharts", () => {
   };
 });
 
-/** Abre o dropdown de um filtro pelo texto do botão fechado. */
-function abrir(placeholder: string) {
-  fireEvent.click(screen.getByRole("button", { name: placeholder }));
+/** Abre o dropdown de um filtro pelo rótulo e pelo texto do botão fechado. */
+function abrir(rotulo: string, valor: string) {
+  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${valor}` }));
 }
 
 /**
- * O container `<div className="relative" ref={ref}>` de um filtro — o botão
- * fechado e o painel do dropdown são irmãos dentro dele.
+ * O container `<div className="relative flex flex-col gap-1.5" ref={ref}>` de
+ * um filtro — o rótulo, o botão fechado e o painel do dropdown são irmãos
+ * dentro dele.
+ *
+ * O nome acessível do gatilho é `aria-labelledby` do rótulo mais o valor, por
+ * isso a busca compõe os dois: o texto do botão sozinho não casa mais.
  */
-function containerDoFiltro(nomeDoBotao: string): HTMLElement {
+function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
+  const nomeDoBotao = `${rotulo} ${valor}`;
   const botao = screen.getByRole("button", { name: nomeDoBotao });
   const container = botao.parentElement;
   if (!container) {
@@ -162,27 +167,27 @@ function containerDoFiltro(nomeDoBotao: string): HTMLElement {
  * "o primeiro" passa a ser o campo da tabela e o teste seguiria verde
  * testando a coisa errada.
  */
-function campoDeBusca(nomeDoBotao: string): HTMLElement {
-  return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
+function campoDeBusca(rotulo: string, valor: string): HTMLElement {
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
 }
 
 describe("MultiSelect em Clientes", () => {
   it("o botão fechado mostra o placeholder e, depois, quantos foram escolhidos", () => {
     render(<Clientes />);
 
-    abrir("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
 
     expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
+      screen.getByRole("button", { name: "Cliente 1 selecionado(s)" }),
     ).toBeInTheDocument();
   });
 
   it("a busca filtra a lista por texto", () => {
     render(<Clientes />);
-    abrir("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
 
-    fireEvent.change(campoDeBusca("Todos os clientes"), {
+    fireEvent.change(campoDeBusca("Cliente", "Todos os clientes"), {
       target: { value: "beta" },
     });
 
@@ -192,9 +197,9 @@ describe("MultiSelect em Clientes", () => {
 
   it("sem resultado, diz que não achou", () => {
     render(<Clientes />);
-    abrir("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
 
-    fireEvent.change(campoDeBusca("Todos os clientes"), {
+    fireEvent.change(campoDeBusca("Cliente", "Todos os clientes"), {
       target: { value: "gama" },
     });
 
@@ -257,8 +262,8 @@ describe("MultiSelect em Clientes", () => {
       ["11-222-333", true],
       ["beta", false],
     ] as const) {
-      abrir("Todos os clientes");
-      fireEvent.change(campoDeBusca("Todos os clientes"), {
+      abrir("Cliente", "Todos os clientes");
+      fireEvent.change(campoDeBusca("Cliente", "Todos os clientes"), {
         target: { value: termo },
       });
       const achou = screen.queryByRole("checkbox", { name: /Alfa Mineração/ });
@@ -278,7 +283,7 @@ describe("MultiSelect em Clientes", () => {
   // para a tabela ter algo visível para diferenciar.
   it("o checkbox mostra o rótulo, e o que filtra a tabela é o CNPJ", () => {
     render(<Clientes />);
-    abrir("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
 
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
 
@@ -299,16 +304,16 @@ describe("MultiSelect em Clientes", () => {
   it("marcar de novo desmarca, e 'Limpar seleção' zera tudo", () => {
     render(<Clientes />);
 
-    abrir("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
     expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
+      screen.getByRole("button", { name: "Cliente 1 selecionado(s)" }),
     ).toBeInTheDocument();
 
     // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
     expect(
-      screen.getByRole("button", { name: "Todos os clientes" }),
+      screen.getByRole("button", { name: "Cliente Todos os clientes" }),
     ).toBeInTheDocument();
 
     // Seleciona de novo para testar "Limpar seleção" isoladamente.
@@ -316,14 +321,14 @@ describe("MultiSelect em Clientes", () => {
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
-      screen.getByRole("button", { name: "Todos os clientes" }),
+      screen.getByRole("button", { name: "Cliente Todos os clientes" }),
     ).toBeInTheDocument();
   });
 
   it("clicar fora fecha o dropdown", () => {
     render(<Clientes />);
-    abrir("Todos os clientes");
-    const container = containerDoFiltro("Todos os clientes");
+    abrir("Cliente", "Todos os clientes");
+    const container = containerDoFiltro("Cliente", "Todos os clientes");
     expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);

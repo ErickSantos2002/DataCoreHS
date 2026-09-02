@@ -496,10 +496,8 @@ const Vendedores: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Empresas (Clientes) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Empresas
-              </label>
               <MultiSelect
+                rotulo="Empresas"
                 opcoes={deTextos(clientesUnicos)}
                 selecionados={filtroCliente}
                 onChange={setFiltroCliente}
@@ -510,10 +508,8 @@ const Vendedores: React.FC = () => {
 
             {/* Produtos */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Produtos
-              </label>
               <MultiSelect
+                rotulo="Produtos"
                 opcoes={deTextos(produtosUnicos.map(p => p.label))} // exibição
                 selecionados={filtroProduto}
                 onChange={setFiltroProduto}
