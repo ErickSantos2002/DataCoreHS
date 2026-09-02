@@ -14,8 +14,11 @@ dos dois quebrou. A prova de que a unificação não mudou comportamento é que 
 testes de caracterização passaram sem edição, com uma exceção por tela, prevista
 e autorizada (o painel deixou de fechar ao marcar — ver o fecho).
 
-O que sobrou é este documento. Cada divergência abaixo está hoje **fixada em
-teste**, com o comportamento atual, esperando decisão. Nada aqui está decidido.
+O que sobrou é este documento. Os itens 1 a 4 são divergências de
+comportamento, e cada uma está hoje **fixada em teste** com o comportamento
+atual, esperando decisão. Os itens 5 a 7 não são comportamento e não há teste
+que os trave: são a forma do código (5), uma dívida nos próprios testes (6) e
+uma regressão de acessibilidade (7). Nada aqui está decidido.
 
 ## 1. As quatro buscas
 
@@ -120,28 +123,46 @@ Vendedores (filtro de produtos), em Clientes (produto e vendedor) e em Vendas
 (vendedores e produtos). Só o filtro que a caracterização exercita morde. Um
 estreitamento futuro nesses filtros passaria despercebido.
 
-A decisão: vale acrescentar, em cada tela, um teste que exercite um **segundo**
-filtro? O custo é baixo — um `it` por tela, seis ao todo, reaproveitando os
-helpers `abrir` e `campoDeBusca` que já existem em cada arquivo, e o fixture já
-tem o dado numérico necessário nas telas onde a busca é numérica. A alternativa
-é deixar só a nota: custo zero agora, e o buraco continua aberto para quem
-mexer nesses filtros sem ler este documento. A diferença entre as duas é quem
-paga — a suíte hoje, ou a próxima pessoa que estreitar um filtro sem perceber.
+A decisão: vale acrescentar um teste que exercite um **segundo** filtro? Vale
+para **três telas**, não seis — o resto da lista já está fora por motivo
+próprio. Serviços já tem o seu: `Servicos.multiselect.test.tsx:226`, "no filtro
+de tipos, acha pelo número digitado sem pontuação", que entrou justamente no
+commit `1393609a` citado acima. Estoque tem **um só** `MultiSelect`
+(`Estoque.tsx:452`) — não existe segundo filtro para exercitar. E nem Produtos
+nem Estoque passam `buscarPor` em uso nenhum, então não há estratégia a perder:
+a mutação que este item descreve é inócua nas duas.
+
+Sobram **Vendedores, Clientes e Vendas**, que são exatamente as três onde a
+mutação foi provada. Três `it`, um por tela, reaproveitando o `abrir` e o
+`campoDeBusca` que os três arquivos já têm, e o fixture já traz o dado numérico
+necessário. A alternativa é deixar só a nota: custo zero agora, e o buraco
+continua aberto para quem mexer nesses filtros sem ler este documento. A
+diferença entre as duas é quem paga — a suíte hoje, ou a próxima pessoa que
+estreitar um filtro sem perceber.
 
 ## 5. Não existe `dePares`
 
-Quatro telas passam `string[]` e usam o helper `deTextos`, que monta o par com
-`valor === rotulo`. As outras duas já tinham listas de pares `{value,label}` e
-precisaram de um `.map` inline de renomeação, repetido no uso:
+A divisão é por filtro, não por tela. Dos 15 usos do primitivo, **13 passam por
+`deTextos`**, que monta o par com `valor === rotulo` a partir de `string[]`. Os
+outros **dois** vieram de listas `{value,label}` que já existiam e precisaram de
+um `.map` inline de renomeação:
 
 ```tsx
 opcoes={produtosUnicos.map((o) => ({ valor: o.value, rotulo: o.label }))}
 ```
 
-Está assim em `Estoque.tsx:453` e `Clientes.tsx:603`. Vendedores é um terceiro
-caso, ainda diferente: tem lista de pares e **descarta o valor**, achatando para
-os rótulos com `deTextos(produtosUnicos.map(p => p.label))` (`Vendedores.tsx:517`)
-— é o que a cópia fazia, preservado sem discussão.
+Está em `Estoque.tsx:453` e `Clientes.tsx:603`. Clientes é o caso que mostra que
+a divisão não é por tela: o filtro de clientes usa o `.map`, e os de vendedor e
+produto da mesma tela usam `deTextos` (`:617`, `:631`).
+
+Vendedores é um terceiro formato, e vale explicar por que ele **não** conta como
+problema: `produtosUnicos` (`Vendedores.tsx:136`) guarda pares, e o uso descarta
+o valor com `deTextos(produtosUnicos.map(p => p.label))` (`:517`). Nada se perde
+— o rótulo já carrega o código (`descricao (codigo)`, montado em `:142`) e o
+filtro da tabela casa exatamente essa string (`:158`), então o rótulo *é* a
+identidade. O par ali só serve de chave de deduplicação, e Produtos e Vendas
+fazem a mesma deduplicação já produzindo `string`. É redundância, não defeito —
+quem decidir sobre `dePares` precisa saber que este caso não é cliente dele.
 
 Nenhum helper foi criado, de propósito, para não estourar o escopo das trocas.
 Há dois pontos para quem decidir: se um `dePares` deve existir, e se ele deve
@@ -156,12 +177,20 @@ em que alguém memoiza o primitivo e não entende por que não adiantou.
 Pequenas, reais, e baratas de quitar agora.
 
 O teste chamado **"marcar de novo desmarca, e 'Limpar seleção' zera tudo"**
-existe nas seis telas e **nunca reclica o checkbox** — o corpo marca uma opção e
-clica em "Limpar seleção", só. O nome promete duas coisas e o teste faz uma. O
-ramo de desmarcar tem cobertura própria no primitivo desde o commit `785a1b09`
-(`MultiSelect.test.tsx:25`), então o buraco é de nome, não de cobertura real.
-Com o painel agora permanecendo aberto depois de marcar, quitar ficou barato: um
-clique a mais e uma asserção, sem reabrir nada.
+existe nas seis telas, e em **três** ele nunca reclica o checkbox — o corpo marca
+uma opção e clica em "Limpar seleção", só. O nome promete duas coisas e o teste
+faz uma. São `Produtos.multiselect.test.tsx:134`,
+`Servicos.multiselect.test.tsx:184` e `Vendedores.multiselect.test.tsx:211`.
+
+As outras três já foram quitadas durante a fase e servem de modelo: Clientes
+(`:299`), Estoque (`:216`) e Vendas (`:203`) reclicam o mesmo checkbox e asserem
+a volta ao placeholder antes de testar o "Limpar seleção" isoladamente — ver
+`Clientes.multiselect.test.tsx:308-312` e os equivalentes. Quitar as três que
+faltam é copiar esse bloco: quatro linhas por tela.
+
+O ramo de desmarcar já tem cobertura própria no primitivo desde o commit
+`785a1b09` (`MultiSelect.test.tsx:25`), então o buraco é de nome, não de
+cobertura real.
 
 O comportamento novo — **o painel não fecha ao marcar** — está provado só
 implicitamente nas seis telas, como efeito colateral do teste acima. Ele tem
@@ -169,11 +198,14 @@ implicitamente nas seis telas, como efeito colateral do teste acima. Ele tem
 suposição que o teste depende mas não afirma. Um `it` por tela transformaria a
 mudança autorizada numa afirmação.
 
-Em `src/pages/Clientes.multiselect.test.tsx` os comentários das linhas 205, 225,
-228 e 234 ainda apontam para a busca "em `Clientes.tsx`" (inclusive
-`Clientes.tsx:601`, número que não vale mais). A busca mora hoje em
-`buscaDeMultiSelect.ts`. Ponteiro obsoleto; as outras cinco telas não têm
-equivalente.
+Em `src/pages/Clientes.multiselect.test.tsx` há ponteiros obsoletos, e são três.
+A linha **205** diz "A busca (~linha 592)" e a **225** diz `Clientes.tsx:601` —
+a busca não mora mais em `Clientes.tsx` em linha nenhuma, e sim em
+`buscaDeMultiSelect.ts`. O terceiro é mais brando e aparece duas vezes, nas
+linhas **22** e **213**: "`clientesUnicos` (~linha 133)", que hoje é a 134. As
+linhas 228 e 234 do mesmo arquivo *parecem* ponteiros mas não são — narram o que
+a Task 5 fez com `Clientes.tsx` na época, e continuam verdadeiras. As outras
+cinco telas não têm equivalente.
 
 ## 7. A sétima cópia, e o que ela tem que o primitivo não tem
 
@@ -212,9 +244,13 @@ fazendo certo, e a decisão sensata é levá-la junto quando as duas se fundirem
 Nenhuma das seis cópias sobrou: `grep -rn "const MultiSelect" src/pages/`
 devolve zero (a sétima peça, `MultiSelectDeContas`, é o item 7 acima e sempre
 esteve fora deste escopo). Nos seis `.tsx` de tela, **783 linhas removidas e
-51 acrescentadas** — líquido −732, contra as ~737 que o spec previa. O branch inteiro contra a `main` são 21
-commits e 20 arquivos, 3222 inserções contra 783 remoções; a maior parte das
-inserções são os testes de caracterização, que antes não existiam.
+51 acrescentadas** — líquido −732, contra as ~737 que o spec previa.
+
+O branch inteiro contra a `main`, **medido antes deste documento entrar** (no
+commit `54abc751`), são 21 commits e 20 arquivos, 3222 inserções contra 783
+remoções; a maior parte das inserções são os testes de caracterização, que antes
+não existiam. Contando esta página, um `git diff --stat main..HEAD` devolve 22
+commits, 21 arquivos e 3477 inserções — mesma medida, com o documento dentro.
 
 Suíte em **1357 testes / 84 arquivos**, `tsc --noEmit` limpo, e o lint em **120
 problemas** — eram 135 quando a fase começou. Caiu 15 sem ninguém ter ido atrás
@@ -247,7 +283,7 @@ código mente para quem lê. Extrair primeiro, renomear a chave depois.
 Estoque e Clientes.
 
 **Clique fora.** As seis cópias das telas morreram com o `MultiSelect` e
-viraram um `useEffect` só, no primitivo (`MultiSelect.tsx:60`). Não zerou o
+viraram um `useEffect` só, no primitivo (`MultiSelect.tsx:59`). Não zerou o
 item: restam `MultiSelectDeContas.tsx:63`, `SearchSelect.tsx:82` e, em
 `Estoque.tsx:122`, uma variante que não é a mesma — fecha dois popovers de
 gráfico e escuta `mousedown` **e** `touchstart`. Um hook que sirva às três
