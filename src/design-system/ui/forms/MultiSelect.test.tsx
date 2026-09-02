@@ -135,24 +135,7 @@ describe("MultiSelect", () => {
     expect(document.activeElement).toBe(gatilho);
   });
 
-  it("o nome acessivel do gatilho soma o rotulo e o estado", () => {
-    render(
-      <MultiSelect
-        rotulo="Produto"
-        opcoes={OPCOES}
-        selecionados={[]}
-        onChange={() => {}}
-        placeholder="Todos"
-      />,
-    );
-    // O rotulo sozinho SUBSTITUIRIA o estado se fosse `htmlFor`; `aria-labelledby`
-    // com os dois ids soma as duas coisas, que e o que interessa a quem usa
-    // leitor de tela: "Produto, Todos".
-    expect(screen.getByRole("button", { name: "Produto Todos" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Todos" })).toBeNull();
-  });
-
-  it("o painel e um grupo rotulado, e nao um listbox", () => {
+  it("Escape a partir do campo de busca fecha o painel e devolve o foco ao gatilho", () => {
     render(
       <MultiSelect
         rotulo="Produto"
@@ -165,15 +148,70 @@ describe("MultiSelect", () => {
     const gatilho = screen.getByRole("button", { name: "Produto Todos" });
     fireEvent.click(gatilho);
 
-    // Um botao que abre um painel de checkboxes e disclosure, nao listbox.
-    // A peca de Contas prometia `aria-haspopup="listbox"` e entregava um <div>
-    // com checkboxes dentro; a promessa nao e portada.
+    fireEvent.keyDown(screen.getByPlaceholderText("Pesquisar..."), { key: "Escape" });
+
+    expect(screen.queryByPlaceholderText("Pesquisar...")).toBeNull();
+    expect(document.activeElement).toBe(gatilho);
+  });
+
+  it("Escape a partir de um checkbox fecha o painel e devolve o foco ao gatilho", () => {
+    render(
+      <MultiSelect
+        rotulo="Produto"
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={() => {}}
+        placeholder="Todos"
+      />,
+    );
+    const gatilho = screen.getByRole("button", { name: "Produto Todos" });
+    fireEvent.click(gatilho);
+
+    fireEvent.keyDown(screen.getByRole("checkbox", { name: /Alfa/ }), { key: "Escape" });
+
+    expect(screen.queryByPlaceholderText("Pesquisar...")).toBeNull();
+    expect(document.activeElement).toBe(gatilho);
+  });
+
+  it("o nome acessível do gatilho soma o rótulo e o estado", () => {
+    render(
+      <MultiSelect
+        rotulo="Produto"
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={() => {}}
+        placeholder="Todos"
+      />,
+    );
+    // O rótulo sozinho SUBSTITUIRIA o estado se fosse `htmlFor`; `aria-labelledby`
+    // com os dois ids soma as duas coisas, que é o que interessa a quem usa
+    // leitor de tela: "Produto, Todos".
+    expect(screen.getByRole("button", { name: "Produto Todos" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Todos" })).toBeNull();
+  });
+
+  it("o painel é um grupo rotulado, e não um listbox", () => {
+    render(
+      <MultiSelect
+        rotulo="Produto"
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={() => {}}
+        placeholder="Todos"
+      />,
+    );
+    const gatilho = screen.getByRole("button", { name: "Produto Todos" });
+    fireEvent.click(gatilho);
+
+    // Um botão que abre um painel de checkboxes é disclosure, não listbox.
+    // A peça de Contas prometia `aria-haspopup="listbox"` e entregava um <div>
+    // com checkboxes dentro; a promessa não é portada.
     expect(gatilho).not.toHaveAttribute("aria-haspopup");
     expect(screen.getByRole("group", { name: "Produto" })).toBeInTheDocument();
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
-  it("o campo de busca diz em que campo se esta buscando", () => {
+  it("o campo de busca diz em que campo se está buscando", () => {
     render(
       <MultiSelect
         rotulo="Produto"

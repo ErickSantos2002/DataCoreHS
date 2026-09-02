@@ -69,24 +69,24 @@ function painel(rotulo: string, valor: string) {
 }
 
 describe("MultiSelect na barra de filtros de Contas", () => {
-  it("o gatilho anuncia o rotulo junto com o estado", () => {
+  it("o gatilho anuncia o rótulo junto com o estado", () => {
     montar();
     expect(gatilho("Situação", "Todas")).toBeInTheDocument();
     expect(gatilho("Categoria", "Todas")).toBeInTheDocument();
     expect(gatilho("Cliente", "Todos")).toBeInTheDocument();
   });
 
-  it("com selecao, o gatilho troca o placeholder pela contagem", () => {
+  it("com seleção, o gatilho troca o placeholder pela contagem", () => {
     montar({ valores: { ...VALORES_VAZIOS, situacao: ["Em aberto"] } });
     expect(gatilho("Situação", "1 selecionado(s)")).toBeInTheDocument();
   });
 
-  it("o rotulo da contraparte muda com a tela", () => {
+  it("o rótulo da contraparte muda com a tela", () => {
     montar({ rotuloDaContraparte: "Fornecedor" });
     expect(gatilho("Fornecedor", "Todos")).toBeInTheDocument();
   });
 
-  it("abrir mostra as opcoes daquele filtro, e so daquele", () => {
+  it("abrir mostra as opções daquele filtro, e só daquele", () => {
     montar();
     // Os dois painéis ficam abertos ao mesmo tempo — `fireEvent.click` não
     // dispara o `mousedown` que fecha por clique fora — para que a asserção
@@ -113,7 +113,7 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     expect(dentro.queryByRole("checkbox", { name: "Servicos prestados" })).toBeNull();
   });
 
-  it("sem resultado, diz que nao achou", () => {
+  it("sem resultado, diz que não achou", () => {
     montar();
     abrir("Categoria", "Todas");
     const dentro = within(painel("Categoria", "Todas"));
@@ -132,7 +132,7 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     expect(props.onSituacao).toHaveBeenCalledWith(["Quitado"]);
   });
 
-  it("marcar de novo o que ja estava avisa o pai com o valor removido", () => {
+  it("marcar de novo o que já estava avisa o pai com o valor removido", () => {
     const props = montar({
       valores: { ...VALORES_VAZIOS, situacao: ["Quitado"] },
     });
@@ -148,7 +148,7 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     expect(props.onSituacao).toHaveBeenCalledWith([]);
   });
 
-  it("'Limpar selecao' zera aquele filtro", () => {
+  it("'Limpar seleção' zera aquele filtro", () => {
     const props = montar({
       valores: { ...VALORES_VAZIOS, categoria: ["Materiais"] },
     });
