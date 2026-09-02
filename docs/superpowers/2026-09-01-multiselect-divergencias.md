@@ -133,12 +133,39 @@ nem Estoque passam `buscarPor` em uso nenhum, então não há estratégia a perd
 a mutação que este item descreve é inócua nas duas.
 
 Sobram **Vendedores, Clientes e Vendas**, que são exatamente as três onde a
-mutação foi provada. Três `it`, um por tela, reaproveitando o `abrir` e o
-`campoDeBusca` que os três arquivos já têm, e o fixture já traz o dado numérico
-necessário. A alternativa é deixar só a nota: custo zero agora, e o buraco
-continua aberto para quem mexer nesses filtros sem ler este documento. A
-diferença entre as duas é quem paga — a suíte hoje, ou a próxima pessoa que
-estreitar um filtro sem perceber.
+mutação foi provada. Mas o custo não é "três `it` e pronto": para o teste morder,
+o termo precisa ser aceito pela estratégia injetada e recusado pela
+`buscaPorTexto` padrão, e **em duas das três o fixture de hoje não permite
+escrever esse termo**.
+
+**Clientes** é a única que já dá, e só no filtro de produto: os rótulos são
+`"Bafômetro Phoebus (P1)"` e `"Tubo descartável (P2)"`, e o termo `"x1"` casa a
+condição dos dígitos de `buscaPorRotuloValorOuNumero` (dígitos do termo = `"1"`,
+dígitos do rótulo = `"1"`) sem casar o texto. Um `it`, nada mais. O filtro de
+vendedor da mesma tela não serviria — o rótulo não tem dígito nenhum.
+
+**Vendedores**, no filtro de produto, não dá: `buscaPorCnpjEntreParenteses` exige
+termo todo dígito, e o único dígito entre parênteses (`"1"`, `"2"`) já é
+substring literal do rótulo — a condição de texto vence antes. Varri todos os
+termos todo-dígito de 0 a 9999 contra os dois rótulos do fixture: nenhum separa
+a estratégia do padrão.
+
+**Vendas** não dá em filtro nenhum. Os itens do fixture não têm `codigo`
+(`Vendas.multiselect.test.tsx:39` e `:50`) e `Vendas.tsx:190` monta
+`` `${descricao} (${codigo})` ``, então o rótulo sai com `"(undefined)"` — zero
+dígito entre parênteses. O filtro de vendedores também não, porque nome de
+vendedor não tem parênteses para a regex achar.
+
+O custo real, então, são **três `it` mais o plantio de dado no fixture em duas
+telas** — exatamente o que Serviços teve de fazer, e diz por escrito que fez:
+"Este teste planta a opção 'Manutenção preventiva 1.234' no fixture"
+(`Servicos.multiselect.test.tsx:223`). Os três arquivos já têm o `abrir` e o
+`campoDeBusca` de que o teste precisa; o que falta é o dado.
+
+A alternativa é deixar só a nota: custo zero agora, e o buraco continua aberto
+para quem mexer nesses filtros sem ler este documento. A diferença entre as duas
+é quem paga — a suíte hoje, ou a próxima pessoa que estreitar um filtro sem
+perceber.
 
 ## 5. Não existe `dePares`
 
@@ -160,9 +187,12 @@ problema: `produtosUnicos` (`Vendedores.tsx:136`) guarda pares, e o uso descarta
 o valor com `deTextos(produtosUnicos.map(p => p.label))` (`:517`). Nada se perde
 — o rótulo já carrega o código (`descricao (codigo)`, montado em `:142`) e o
 filtro da tabela casa exatamente essa string (`:158`), então o rótulo *é* a
-identidade. O par ali só serve de chave de deduplicação, e Produtos e Vendas
-fazem a mesma deduplicação já produzindo `string`. É redundância, não defeito —
-quem decidir sobre `dePares` precisa saber que este caso não é cliente dele.
+identidade. E o par não tem função nenhuma: a chave de deduplicação do `Map` é
+`i.codigo` (`Vendedores.tsx:141`), e o par é só o **valor** — exatamente como em
+`Produtos.tsx:179` e `Vendas.tsx:189`, que deduplicam pela mesma chave e guardam
+`string` no valor. Ou seja, o campo `value` de Vendedores nunca é lido, e removê-lo
+não ameaça deduplicação nenhuma. É redundância, não defeito — quem decidir sobre
+`dePares` precisa saber que este caso não é cliente dele.
 
 Nenhum helper foi criado, de propósito, para não estourar o escopo das trocas.
 Há dois pontos para quem decidir: se um `dePares` deve existir, e se ele deve
@@ -185,8 +215,10 @@ faz uma. São `Produtos.multiselect.test.tsx:134`,
 As outras três já foram quitadas durante a fase e servem de modelo: Clientes
 (`:299`), Estoque (`:216`) e Vendas (`:203`) reclicam o mesmo checkbox e asserem
 a volta ao placeholder antes de testar o "Limpar seleção" isoladamente — ver
-`Clientes.multiselect.test.tsx:308-312` e os equivalentes. Quitar as três que
-faltam é copiar esse bloco: quatro linhas por tela.
+`Clientes.multiselect.test.tsx:308-315` e os equivalentes. Quitar as três que
+faltam é copiar esse bloco: cinco linhas por tela — o reclique, as três da
+asserção do placeholder e a remarcação antes do "Limpar seleção", sem a qual o
+resto do teste fica sem seleção para limpar.
 
 O ramo de desmarcar já tem cobertura própria no primitivo desde o commit
 `785a1b09` (`MultiSelect.test.tsx:25`), então o buraco é de nome, não de
@@ -198,14 +230,26 @@ implicitamente nas seis telas, como efeito colateral do teste acima. Ele tem
 suposição que o teste depende mas não afirma. Um `it` por tela transformaria a
 mudança autorizada numa afirmação.
 
-Em `src/pages/Clientes.multiselect.test.tsx` há ponteiros obsoletos, e são três.
-A linha **205** diz "A busca (~linha 592)" e a **225** diz `Clientes.tsx:601` —
-a busca não mora mais em `Clientes.tsx` em linha nenhuma, e sim em
-`buscaDeMultiSelect.ts`. O terceiro é mais brando e aparece duas vezes, nas
-linhas **22** e **213**: "`clientesUnicos` (~linha 133)", que hoje é a 134. As
-linhas 228 e 234 do mesmo arquivo *parecem* ponteiros mas não são — narram o que
-a Task 5 fez com `Clientes.tsx` na época, e continuam verdadeiras. As outras
-cinco telas não têm equivalente.
+Sobre ponteiros de comentário, o critério importa mais que a contagem, então
+vale declará-lo: **conta como dívida o ponteiro que aponta para código que não
+existe mais naquele arquivo**; não conta o que erra a linha por uma ou duas,
+porque esses são inevitáveis e inofensivos — o leitor acha o alvo olhando em
+volta.
+
+Pelo critério, a dívida são **dois**, os dois em
+`src/pages/Clientes.multiselect.test.tsx`: a linha **205** diz "A busca (~linha
+592)" e a **225** diz `Clientes.tsx:601`. A busca não mora mais em
+`Clientes.tsx` em linha nenhuma — mora em `buscaDeMultiSelect.ts`, e quem seguir
+o ponteiro cai no cabeçalho do bloco de filtros. As linhas 228 e 234 do mesmo
+arquivo *parecem* ponteiros mas não são: narram o que a Task 5 fez com
+`Clientes.tsx` na época, e continuam verdadeiras.
+
+Deriva de linha existe, e não é só de Clientes: `~linha 133` para
+`clientesUnicos`, hoje a 134 (`Clientes.multiselect.test.tsx:22` e `:213`);
+`~linha 167` para `empresasUnicas`, hoje a 168 (`Vendas.multiselect.test.tsx:20`);
+`~linha 259` para o filtro da tabela, hoje a 261
+(`Clientes.multiselect.test.tsx:275`). Todos trazem o `~` que já avisa que são
+aproximados. Ficam como estão.
 
 ## 7. A sétima cópia, e o que ela tem que o primitivo não tem
 
@@ -249,8 +293,7 @@ esteve fora deste escopo). Nos seis `.tsx` de tela, **783 linhas removidas e
 O branch inteiro contra a `main`, **medido antes deste documento entrar** (no
 commit `54abc751`), são 21 commits e 20 arquivos, 3222 inserções contra 783
 remoções; a maior parte das inserções são os testes de caracterização, que antes
-não existiam. Contando esta página, um `git diff --stat main..HEAD` devolve 22
-commits, 21 arquivos e 3477 inserções — mesma medida, com o documento dentro.
+não existiam.
 
 Suíte em **1357 testes / 84 arquivos**, `tsc --noEmit` limpo, e o lint em **120
 problemas** — eram 135 quando a fase começou. Caiu 15 sem ninguém ter ido atrás
