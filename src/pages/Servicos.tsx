@@ -483,10 +483,8 @@ const Servicos: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               {/* Cliente (Tomador) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Cliente (Tomador)
-                </label>
                 <MultiSelect
+                  rotulo="Cliente (Tomador)"
                   opcoes={deTextos(clientesUnicos)}
                   selecionados={filtroCliente}
                   onChange={setFiltroCliente}
@@ -497,10 +495,8 @@ const Servicos: React.FC = () => {
 
               {/* Cidade do Serviço */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Cidade do Serviço
-                </label>
                 <MultiSelect
+                  rotulo="Cidade do Serviço"
                   opcoes={deTextos(cidadesUnicas)}
                   selecionados={filtroCidade}
                   onChange={setFiltroCidade}
@@ -511,10 +507,8 @@ const Servicos: React.FC = () => {
 
               {/* Tipo de Serviço */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Tipo de Serviço
-                </label>
                 <MultiSelect
+                  rotulo="Tipo de Serviço"
                   opcoes={deTextos(tiposServicoUnicos)}
                   selecionados={filtroTipoServico}
                   onChange={setFiltroTipoServico}

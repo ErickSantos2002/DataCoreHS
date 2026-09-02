@@ -90,16 +90,21 @@ vi.mock("recharts", () => {
   };
 });
 
-/** Abre o dropdown de um filtro pelo texto do botão fechado. */
-function abrir(placeholder: string) {
-  fireEvent.click(screen.getByRole("button", { name: placeholder }));
+/** Abre o dropdown de um filtro pelo rótulo e pelo texto do botão fechado. */
+function abrir(rotulo: string, valor: string) {
+  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${valor}` }));
 }
 
 /**
- * O container `<div className="relative" ref={ref}>` de um filtro — o botão
- * fechado e o painel do dropdown são irmãos dentro dele.
+ * O container `<div className="relative flex flex-col gap-1.5" ref={ref}>` de
+ * um filtro — o rótulo, o botão fechado e o painel do dropdown são irmãos
+ * dentro dele.
+ *
+ * O nome acessível do gatilho é `aria-labelledby` do rótulo mais o valor, por
+ * isso a busca compõe os dois: o texto do botão sozinho não casa mais.
  */
-function containerDoFiltro(nomeDoBotao: string): HTMLElement {
+function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
+  const nomeDoBotao = `${rotulo} ${valor}`;
   const botao = screen.getByRole("button", { name: nomeDoBotao });
   const container = botao.parentElement;
   if (!container) {
@@ -118,27 +123,27 @@ function containerDoFiltro(nomeDoBotao: string): HTMLElement {
  * primeiro" passa a ser o campo da tabela e o teste seguiria verde testando
  * a coisa errada.
  */
-function campoDeBusca(nomeDoBotao: string): HTMLElement {
-  return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
+function campoDeBusca(rotulo: string, valor: string): HTMLElement {
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
 }
 
 describe("MultiSelect em Vendas", () => {
   it("o botão fechado mostra o placeholder e, depois, quantos foram escolhidos", () => {
     render(<Vendas />);
 
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
 
     expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
+      screen.getByRole("button", { name: "Empresas 1 selecionado(s)" }),
     ).toBeInTheDocument();
   });
 
   it("a busca filtra a lista por texto", () => {
     render(<Vendas />);
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
 
-    fireEvent.change(campoDeBusca("Todas as empresas"), {
+    fireEvent.change(campoDeBusca("Empresas", "Todas as empresas"), {
       target: { value: "beta" },
     });
 
@@ -148,9 +153,9 @@ describe("MultiSelect em Vendas", () => {
 
   it("sem resultado, diz que não achou", () => {
     render(<Vendas />);
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
 
-    fireEvent.change(campoDeBusca("Todas as empresas"), {
+    fireEvent.change(campoDeBusca("Empresas", "Todas as empresas"), {
       target: { value: "gama" },
     });
 
@@ -165,9 +170,9 @@ describe("MultiSelect em Vendas", () => {
   // acha a empresa pelo CNPJ digitado sem pontuação.
   it("acha pelo CNPJ que está entre parênteses, digitado sem pontuação", () => {
     render(<Vendas />);
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
 
-    fireEvent.change(campoDeBusca("Todas as empresas"), {
+    fireEvent.change(campoDeBusca("Empresas", "Todas as empresas"), {
       target: { value: "11222333" },
     });
 
@@ -181,9 +186,9 @@ describe("MultiSelect em Vendas", () => {
   // número 11 — não vira busca numérica por ter um dígito dentro.
   it("termo com letra não vira busca numérica", () => {
     render(<Vendas />);
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
 
-    fireEvent.change(campoDeBusca("Todas as empresas"), {
+    fireEvent.change(campoDeBusca("Empresas", "Todas as empresas"), {
       target: { value: "a11" },
     });
 
@@ -203,16 +208,16 @@ describe("MultiSelect em Vendas", () => {
   it("marcar de novo desmarca, e 'Limpar seleção' zera tudo", () => {
     render(<Vendas />);
 
-    abrir("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
     expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
+      screen.getByRole("button", { name: "Empresas 1 selecionado(s)" }),
     ).toBeInTheDocument();
 
     // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
     expect(
-      screen.getByRole("button", { name: "Todas as empresas" }),
+      screen.getByRole("button", { name: "Empresas Todas as empresas" }),
     ).toBeInTheDocument();
 
     // Seleciona de novo para testar "Limpar seleção" isoladamente.
@@ -220,14 +225,14 @@ describe("MultiSelect em Vendas", () => {
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
-      screen.getByRole("button", { name: "Todas as empresas" }),
+      screen.getByRole("button", { name: "Empresas Todas as empresas" }),
     ).toBeInTheDocument();
   });
 
   it("clicar fora fecha o dropdown", () => {
     render(<Vendas />);
-    abrir("Todas as empresas");
-    const container = containerDoFiltro("Todas as empresas");
+    abrir("Empresas", "Todas as empresas");
+    const container = containerDoFiltro("Empresas", "Todas as empresas");
     expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
