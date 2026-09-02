@@ -95,12 +95,12 @@ function containerDoFiltro(nomeDoBotao: string): HTMLElement {
 /**
  * O campo de busca DAQUELE dropdown.
  *
- * Escopado pelo container do filtro, e não pela ordem na página: a tela tem
- * dois campos com o placeholder "Pesquisar...", este e o da tabela — e
- * pegar "o primeiro" depende de a seção de filtros vir antes da tabela no
- * JSX. Se a extração para primitivo montar o painel num portal, "o primeiro"
- * passa a ser o campo da tabela e o teste seguiria verde testando a coisa
- * errada.
+ * Escopado pelo container do filtro, e não por busca global: a tela tem três
+ * MultiSelect, e a query global só achava um porque a busca da tabela daqui
+ * se chama "Pesquisar produto..." — as outras cinco telas usam "Pesquisar..."
+ * nas duas. Ou seja, o teste dependia do placeholder de OUTRO componente:
+ * normalizar aquele texto passaria a casar dois campos e quebraria os cinco
+ * casos de uma vez.
  */
 function campoDeBusca(nomeDoBotao: string): HTMLElement {
   return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
