@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
 import { Phone, Mail } from "lucide-react";
@@ -35,6 +35,7 @@ import {
 import * as XLSX from "xlsx";
 import ModalObservacoes from "../components/ModalObservacoes";
 import { useToast } from "../components/ToastProvider";
+import { MultiSelect, deTextos, buscaPorCnpjEntreParenteses } from "../design-system/ui";
 
 // Cores para gráficos
 const CORES = {
@@ -452,137 +453,6 @@ const Vendedores: React.FC = () => {
     XLSX.writeFile(wb, `vendas_${vendedorLogado}_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [notasTabela, vendedorLogado]);
 
-  // MultiSelect customizado
-  const MultiSelect = ({ 
-      options, 
-      selected, 
-      onChange, 
-      placeholder 
-    }: {
-      options: string[];
-      selected: string[];
-      onChange: (val: string[]) => void;
-      placeholder: string;
-    }) => {
-      const [isOpen, setIsOpen] = useState(false);
-      const [searchTerm, setSearchTerm] = useState("");
-      const ref = useRef<HTMLDivElement>(null);
-  
-      // Fecha ao clicar fora
-      useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-          if (ref.current && !ref.current.contains(event.target as Node)) {
-            setIsOpen(false);
-          }
-        };
-  
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-        };
-      }, []);
-  
-      const toggleOption = (option: string) => {
-        if (selected.includes(option)) {
-          onChange(selected.filter(s => s !== option));
-        } else {
-          onChange([...selected, option]);
-        }
-      };
-
-    const filteredOptions = options.filter((option) => {
-      const optionLower = option.toLowerCase();
-      const searchLower = searchTerm.toLowerCase();
-
-      // Extrair CNPJ do texto
-      const cnpjMatch = option.match(/\((.*?)\)/);
-      const cnpj = cnpjMatch ? cnpjMatch[1] : "";
-      const cnpjNormalizado = normalizarCNPJ(cnpj);
-
-      // Se usuário digitou apenas números → normaliza
-      const searchNormalizado = /^\d+$/.test(searchTerm) ? normalizarCNPJ(searchTerm) : "";
-
-      return (
-        optionLower.includes(searchLower) || // busca pelo nome
-        cnpj.toLowerCase().includes(searchLower) || // busca CNPJ formatado
-        (searchNormalizado && cnpjNormalizado.includes(searchNormalizado)) // busca CNPJ sem pontuação
-      );
-    });
-
-    return (
-      <div className="relative" ref={ref}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-surface 
-                    hover:bg-gray-50 dark:hover:bg-gray-700 
-                    border-gray-300 dark:border-gray-600 
-                    focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            {selected.length > 0 ? `${selected.length} selecionado(s)` : placeholder}
-          </span>
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-surface 
-                          border border-gray-200 dark:border-gray-600 
-                          rounded-lg shadow-lg 
-                          max-h-60 overflow-auto">
-            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1 border rounded 
-                          border-gray-300 dark:border-gray-600 
-                          bg-white dark:bg-gray-800 
-                          text-gray-700 dark:text-gray-200 
-                          placeholder-gray-400 dark:placeholder-gray-500"
-              />
-            </div>
-
-            <div className="p-2">
-              <button
-                onClick={() => onChange([])}
-                className="w-full text-left px-2 py-1 text-sm 
-                          text-gray-600 dark:text-gray-300 
-                          hover:bg-gray-100 dark:hover:bg-gray-700 
-                          rounded"
-              >
-                Limpar seleção
-              </button>
-            </div>
-
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <label
-                  key={option}
-                  className="flex items-center px-4 py-2 cursor-pointer 
-                            hover:bg-blue-100 dark:hover:bg-gray-700"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option)}
-                    onChange={() => toggleOption(option)}
-                    className="mr-2"
-                  />
-                  <span className="text-gray-700 dark:text-gray-200">{option}</span>
-                </label>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-gray-500 dark:text-gray-400">
-                Nenhum resultado encontrado
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (carregando) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base transition-colors">
@@ -630,10 +500,11 @@ const Vendedores: React.FC = () => {
                 Empresas
               </label>
               <MultiSelect
-                options={clientesUnicos}
-                selected={filtroCliente}
+                opcoes={deTextos(clientesUnicos)}
+                selecionados={filtroCliente}
                 onChange={setFiltroCliente}
                 placeholder="Todas as empresas"
+                buscarPor={buscaPorCnpjEntreParenteses}
               />
             </div>
 
@@ -643,10 +514,11 @@ const Vendedores: React.FC = () => {
                 Produtos
               </label>
               <MultiSelect
-                options={produtosUnicos.map(p => p.label)} // exibição
-                selected={filtroProduto}
+                opcoes={deTextos(produtosUnicos.map(p => p.label))} // exibição
+                selecionados={filtroProduto}
                 onChange={setFiltroProduto}
                 placeholder="Todos os produtos"
+                buscarPor={buscaPorCnpjEntreParenteses}
               />
             </div>
 
