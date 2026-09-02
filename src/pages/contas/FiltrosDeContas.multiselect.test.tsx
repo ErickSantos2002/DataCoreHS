@@ -83,11 +83,18 @@ describe("MultiSelect na barra de filtros de Contas", () => {
 
   it("abrir mostra as opcoes daquele filtro, e so daquele", () => {
     montar();
+    // Os dois painéis ficam abertos ao mesmo tempo — `fireEvent.click` não
+    // dispara o `mousedown` que fecha por clique fora — para que a asserção
+    // de ausência prove isolamento entre painéis, e não apenas que o outro
+    // painel está fechado.
     abrir("Situação", "Todas");
-    const dentro = within(painel("Situação", "Todas"));
-    expect(dentro.getByRole("checkbox", { name: "Em aberto" })).toBeInTheDocument();
-    expect(dentro.getByRole("checkbox", { name: "Quitado" })).toBeInTheDocument();
-    expect(dentro.queryByRole("checkbox", { name: "Materiais" })).toBeNull();
+    abrir("Categoria", "Todas");
+    const situacao = within(painel("Situação", "Todas"));
+    const categoria = within(painel("Categoria", "Todas"));
+    expect(situacao.getByRole("checkbox", { name: "Em aberto" })).toBeInTheDocument();
+    expect(situacao.getByRole("checkbox", { name: "Quitado" })).toBeInTheDocument();
+    expect(situacao.queryByRole("checkbox", { name: "Materiais" })).toBeNull();
+    expect(categoria.getByRole("checkbox", { name: "Materiais" })).toBeInTheDocument();
   });
 
   it("a busca filtra a lista daquele filtro", () => {
@@ -125,11 +132,14 @@ describe("MultiSelect na barra de filtros de Contas", () => {
       valores: { ...VALORES_VAZIOS, situacao: ["Quitado"] },
     });
     abrir("Situação", "1 selecionado(s)");
-    fireEvent.click(
-      within(painel("Situação", "1 selecionado(s)")).getByRole("checkbox", {
-        name: "Quitado",
-      }),
-    );
+    const dentro = within(painel("Situação", "1 selecionado(s)"));
+    // O checkbox que já veio selecionado tem que aparecer marcado, e só ele —
+    // senão a fusão pode trocar o casamento entre `selecionadas` e `opcoes`
+    // (ex.: comparar por objeto em vez de string) e desmarcar a lista inteira
+    // sem que o callback abaixo denuncie nada.
+    expect(dentro.getByRole("checkbox", { name: "Quitado" })).toBeChecked();
+    expect(dentro.getByRole("checkbox", { name: "Em aberto" })).not.toBeChecked();
+    fireEvent.click(dentro.getByRole("checkbox", { name: "Quitado" }));
     expect(props.onSituacao).toHaveBeenCalledWith([]);
   });
 
@@ -148,11 +158,20 @@ describe("MultiSelect na barra de filtros de Contas", () => {
 
   it("clicar fora fecha o dropdown", () => {
     montar();
+    // `aria-expanded` é o que anuncia aberto/fechado a quem usa leitor de
+    // tela; sem afirmar o valor nos três estados, apagar o atributo não
+    // derruba teste nenhum. (Não afirmamos `aria-haspopup`: a peça velha
+    // promete um listbox que não entrega — não há `role="listbox"` nem
+    // `role="option"` nela — e essa promessa mentirosa não é portada na
+    // fusão. Exigir o atributo aqui obrigaria a mantê-la.)
+    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "false");
     abrir("Situação", "Todas");
+    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "true");
     expect(
       within(painel("Situação", "Todas")).getByPlaceholderText("Pesquisar..."),
     ).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
+    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "false");
     expect(
       within(painel("Situação", "Todas")).queryByPlaceholderText("Pesquisar..."),
     ).toBeNull();
