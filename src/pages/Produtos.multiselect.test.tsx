@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import Produtos from "./Produtos";
@@ -79,6 +79,33 @@ function abrir(placeholder: string) {
   fireEvent.click(screen.getByRole("button", { name: placeholder }));
 }
 
+/**
+ * O container `<div className="relative" ref={ref}>` de um filtro — o botão
+ * fechado e o painel do dropdown são irmãos dentro dele.
+ */
+function containerDoFiltro(nomeDoBotao: string): HTMLElement {
+  const botao = screen.getByRole("button", { name: nomeDoBotao });
+  const container = botao.parentElement;
+  if (!container) {
+    throw new Error(`container do filtro "${nomeDoBotao}" nao encontrado`);
+  }
+  return container as HTMLElement;
+}
+
+/**
+ * O campo de busca DAQUELE dropdown.
+ *
+ * Escopado pelo container do filtro, e não pela ordem na página: a tela tem
+ * dois campos com o placeholder "Pesquisar...", este e o da tabela — e
+ * pegar "o primeiro" depende de a seção de filtros vir antes da tabela no
+ * JSX. Se a extração para primitivo montar o painel num portal, "o primeiro"
+ * passa a ser o campo da tabela e o teste seguiria verde testando a coisa
+ * errada.
+ */
+function campoDeBusca(nomeDoBotao: string): HTMLElement {
+  return within(containerDoFiltro(nomeDoBotao)).getByPlaceholderText("Pesquisar...");
+}
+
 describe("MultiSelect em Produtos", () => {
   it("o botão fechado mostra o placeholder e, depois, quantos foram escolhidos", () => {
     render(<Produtos />);
@@ -95,7 +122,7 @@ describe("MultiSelect em Produtos", () => {
     render(<Produtos />);
     abrir("Todas as empresas");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
       target: { value: "beta" },
     });
 
@@ -107,7 +134,7 @@ describe("MultiSelect em Produtos", () => {
     render(<Produtos />);
     abrir("Todas as empresas");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
       target: { value: "gama" },
     });
 
@@ -124,7 +151,7 @@ describe("MultiSelect em Produtos", () => {
     render(<Produtos />);
     abrir("Todas as empresas");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    fireEvent.change(campoDeBusca("Todas as empresas"), {
       target: { value: "11222333" },
     });
 
@@ -153,10 +180,13 @@ describe("MultiSelect em Produtos", () => {
   it("clicar fora fecha o dropdown", () => {
     render(<Produtos />);
     abrir("Todas as empresas");
-    expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+    const container = containerDoFiltro("Todas as empresas");
+    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
-    expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    // O container do filtro continua no DOM (o botão vive nele); o que some
+    // ao fechar é só o painel do dropdown, filho dele.
+    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
   });
 });

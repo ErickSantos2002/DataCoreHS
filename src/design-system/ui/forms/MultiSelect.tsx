@@ -132,7 +132,7 @@ export function MultiSelect({
                   type="checkbox"
                   checked={selecionados.includes(opcao.valor)}
                   onChange={() => alternar(opcao.valor)}
-                  className="mr-2"
+                  className="mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 />
                 <span className="text-conteudo">{opcao.rotulo}</span>
               </label>

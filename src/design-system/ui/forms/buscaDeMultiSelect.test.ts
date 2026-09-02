@@ -122,7 +122,7 @@ describe("buscaPorRotuloValorOuNumero", () => {
   // "11.222" pareceria provar a condição do valor cru (é substring do valor
   // pontuado), mas NÃO isola nada: soDigitos("11.222") = "11222", e "11222"
   // TAMBÉM é substring de soDigitos(valor) = "11222333000144" — a condição
-  // dos dígitos already acharia sozinha. Apagar só a condição do valor cru
+  // dos dígitos já acharia sozinha. Apagar só a condição do valor cru
   // não derrubaria um teste escrito assim, e é exatamente o tipo de teste
   // que passa por acidente que a Task 7 pediu para evitar.
   //
