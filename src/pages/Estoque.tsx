@@ -29,6 +29,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import SolicitacaoComprasModal from "../components/SolicitacaoComprasModal";
+import { MultiSelect } from "../design-system/ui";
 
 // Tipagem do Produto do Estoque
 interface ProdutoEstoque {
@@ -401,118 +402,6 @@ const Estoque: React.FC = () => {
     fecharModal();
   };
 
-  // Componente de MultiSelect customizado
-  const MultiSelect = ({ 
-    options, 
-    selected, 
-    onChange, 
-    placeholder 
-  }: {
-    options: { value: string; label: string }[];
-    selected: string[]; // só os códigos (values)
-    onChange: (val: string[]) => void;
-    placeholder: string;
-  }) => {
-        const [isOpen, setIsOpen] = useState(false);
-        const [searchTerm, setSearchTerm] = useState("");
-        const ref = useRef<HTMLDivElement>(null);
-    
-        // Fecha ao clicar fora
-        useEffect(() => {
-          const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-              setIsOpen(false);
-            }
-          };
-    
-          document.addEventListener("mousedown", handleClickOutside);
-          return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-          };
-        }, []);
-    
-        const toggleOption = (option: string) => {
-          if (selected.includes(option)) {
-            onChange(selected.filter(s => s !== option));
-          } else {
-            onChange([...selected, option]);
-          }
-        };
-
-    const filteredOptions = options.filter((option) => {
-      const optionLower = option.label.toLowerCase();
-      const searchLower = searchTerm.toLowerCase();
-      return optionLower.includes(searchLower);
-    });
-
-    return (
-      <div className="relative" ref={ref}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-surface 
-                    hover:bg-gray-50 dark:hover:bg-surface 
-                    text-gray-700 dark:text-gray-200
-                    border-gray-300 dark:border-gray-600
-                    focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <span className="text-sm">
-            {selected.length > 0
-              ? `${selected.length} selecionado(s)`
-              : placeholder}
-          </span>
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-surface 
-                          border dark:border-gray-600 
-                          rounded-lg shadow-lg 
-                          max-h-60 overflow-auto">
-            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1 border rounded 
-                          bg-white dark:bg-surface 
-                          text-gray-800 dark:text-gray-200
-                          border-gray-300 dark:border-gray-600"
-              />
-            </div>
-            <div className="p-2">
-              <button
-                onClick={() => onChange([])}
-                className="w-full text-left px-2 py-1 text-sm 
-                          text-gray-600 dark:text-gray-300
-                          hover:bg-gray-100 dark:hover:bg-blue-700 
-                          rounded"
-              >
-                Limpar seleção
-              </button>
-            </div>
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <label key={option.value} className="flex items-center px-4 py-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option.value)}
-                    onChange={() => toggleOption(option.value)}
-                    className="mr-2"
-                  />
-                  {option.label}
-                </label>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (carregando) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
@@ -561,8 +450,8 @@ const Estoque: React.FC = () => {
                   Produtos
                 </label>
                 <MultiSelect
-                  options={produtosUnicos}
-                  selected={filtroProduto}
+                  opcoes={produtosUnicos.map((o) => ({ valor: o.value, rotulo: o.label }))}
+                  selecionados={filtroProduto}
                   onChange={setFiltroProduto}
                   placeholder="Todos os produtos"
                 />
