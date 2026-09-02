@@ -4,17 +4,22 @@ import { describe, expect, it, vi } from "vitest";
 import { FiltrosDeContas } from "./FiltrosDeContas";
 
 /**
- * Caracterização dos três MultiSelect da barra de filtros de Contas, escrita
- * contra `MultiSelectDeContas` como ela é hoje — antes de ela ser fundida no
- * primitivo do design system.
+ * Caracterização dos três MultiSelect da barra de filtros de Contas. Foi
+ * escrita contra `MultiSelectDeContas`, a peça que as gêmeas tinham só para
+ * si e que nunca teve teste. Ela não existe mais: hoje este arquivo afirma o
+ * primitivo `MultiSelect` do design system, que Contas passou a consumir.
  *
- * A peça velha nunca teve teste, e é ela que faz certo o que o primitivo faz
- * errado: liga o gatilho ao rótulo e ao valor por `aria-labelledby`, então o
- * nome acessível do botão é "Situação Todas", e não só "Todas". É por isso que
- * os helpers daqui compõem rótulo e valor.
+ * A peça velha era quem fazia certo o que o primitivo fazia errado: ligava o
+ * gatilho ao rótulo e ao valor por `aria-labelledby`, então o nome acessível
+ * do botão é "Situação Todas", e não só "Todas". É por isso que os helpers
+ * daqui compõem rótulo e valor — e é esse contrato que o primitivo ganhou
+ * ANTES da fusão, justamente para que esta caracterização seguisse valendo.
  *
- * Este arquivo é o critério de aceitação da fusão: depois que Contas passar a
- * consumir o primitivo, ele tem que passar SEM UMA EDIÇÃO.
+ * Foi o critério de aceitação da fusão, e passou com **uma** edição, prevista
+ * e autorizada: o texto do estado vazio, que na peça velha era "Nenhum
+ * resultado" e no primitivo é "Nenhum resultado encontrado". É a única
+ * divergência aceita entre as duas peças; qualquer outra falha aqui seria
+ * regressão, não diferença de cópia.
  */
 
 const OPCOES = {

@@ -18,10 +18,15 @@ mais o painel, não só a marcação — ver o item 6.
 
 O que sobrou é este documento. Os itens 1 a 4 são divergências de
 comportamento, e cada uma está hoje **fixada em teste** com o comportamento
-atual, esperando decisão. Os itens 5 a 8 não são comportamento e não há teste
-que os trave: são a forma do código (5), uma dívida nos próprios testes (6),
-uma regressão de acessibilidade (7) e uma mudança de aparência para conferir
-no navegador (8). Nada aqui está decidido.
+atual, esperando decisão. Os itens 5, 6, 8 e 9 não são comportamento e não há
+teste que os trave: são a forma do código (5), uma dívida nos próprios testes
+(6), mudanças de aparência para conferir no navegador (8) e o texto do estado
+vazio escrito de duas formas (9).
+
+O item 7 era o único que não pedia escolha entre dois comportamentos
+defensáveis — era regressão de acessibilidade — e **deixou de ser pendência**:
+foi resolvido na fase de 02/09/2026. Ele continua aqui como registro do que
+ficou decidido. Fora ele, nada aqui está decidido.
 
 ## 1. As quatro buscas
 
@@ -311,37 +316,69 @@ Deriva de linha existe, e não é só de Clientes: `~linha 133` para
 (`Clientes.multiselect.test.tsx:275`). Todos trazem o `~` que já avisa que são
 aproximados. Ficam como estão.
 
-## 7. A sétima cópia, e o que ela tem que o primitivo não tem
+A fusão do item 7 criou um ponteiro desses e o quitou no mesmo movimento. O
+cabeçalho de `src/pages/contas/FiltrosDeContas.multiselect.test.tsx` dizia que o
+arquivo fora escrito "contra `MultiSelectDeContas` como ela é hoje" e que
+"depois que Contas passar a consumir o primitivo, ele tem que passar SEM UMA
+EDIÇÃO" — duas frases que a fusão tornou falsas, porque a peça velha não existe
+mais e o arquivo tem uma edição, a autorizada do item 9. O comentário foi
+reescrito para dizer o que é verdade agora: caracterização escrita contra a peça
+velha, hoje afirmando o primitivo, com a divergência de texto do vazio anotada
+como a única aceita. Nenhuma asserção foi tocada.
 
-`grep -rn "const MultiSelect" src/pages/` devolve zero, e é verdade: as seis
-cópias que a fase foi buscar acabaram. Mas existe uma sétima implementação do
-mesmo widget, com outro nome, que a lista da Fase 4 não contava:
-`src/pages/contas/MultiSelectDeContas.tsx` — 156 linhas, compartilhada por
-ContasReceber e ContasPagar desde a unificação das gêmeas.
+## 7. A sétima cópia — fundida em 02/09/2026 (histórico)
 
-Ela não é descuido. O comentário dela explica por que ficou de fora: promover a
-primitivo antes das seis telas migrarem seria decidir a API sem ver os seis
-usos, "e é assim que se ganha uma prop por tela". A própria nota diz que, quando
-as seis migrassem, a promoção seria "um `git mv` com os seis usos na mão". As
-seis migraram. A condição que a nota estabeleceu está satisfeita, e a fusão das
-duas peças é item pendente — não de decisão de produto, mas de trabalho que
-ninguém agendou.
+`src/pages/contas/MultiSelectDeContas.tsx` era a sétima implementação do mesmo
+widget: 156 linhas, compartilhada por ContasReceber e ContasPagar desde a
+unificação das gêmeas, e fora da lista da Fase 4. Ela não era descuido — o
+comentário dela pedia para esperar as seis telas migrarem, porque promover a
+primitivo antes seria decidir a API sem ver os seis usos. As seis migraram, e a
+fase `2026-09-02-multiselect-acessibilidade` fez a fusão.
 
-E a fusão não é simétrica, porque **a peça velha é mais acessível que a nova.**
-`MultiSelectDeContas` recebe um `rotulo` e liga o gatilho ao rótulo e ao valor
-por `aria-labelledby` com dois ids: quem usa leitor de tela ouve "Situação, 2
-selecionado(s)". O primitivo novo não tem nada disso — só `aria-expanded` — e
-nas seis telas o `<label>` que fica acima dele é um `<label>` solto, sem
-`htmlFor` (conferido: nenhuma das seis páginas tem `htmlFor`, `aria-label` ou
-`aria-labelledby` em lugar nenhum). O gatilho anuncia "Todos os produtos" ou "3
-selecionado(s)", e o nome do campo não entra. É exatamente o defeito que a Fase
-1 corrigiu nas gêmeas, reintroduzido no primitivo por herança das seis cópias,
-que também não o tinham.
+**A peça velha não existe mais.** `grep -rn "MultiSelectDeContas" src/` devolve
+só o comentário histórico no cabeçalho da caracterização de Contas — nenhuma
+referência de código. Os três filtros de Contas consomem o primitivo, que hoje
+tem **18 usos**: 15 nas seis telas e 3 em `contas/FiltrosDeContas.tsx`.
 
-Não foi consertado aqui porque esta fase não conserta — mas, diferente das
-outras da lista, esta não é uma escolha entre dois comportamentos defensáveis.
-É regressão de acessibilidade em relação a uma peça que já existe no repositório
-fazendo certo, e a decisão sensata é levá-la junto quando as duas se fundirem.
+O que ficou decidido:
+
+- **O primitivo é dono do rótulo.** `rotulo` virou prop obrigatória, e o gatilho
+  leva `aria-labelledby` apontando para o `<label>` e para o `<span>` do estado:
+  o nome acessível é `"<rótulo> <estado>"` — "Empresas 3 selecionado(s)" —, que
+  soma as duas coisas em vez de uma substituir a outra, como `<label for>` faria
+  num `<button>`. Os 15 `<label>` soltos que as telas escreviam saíram junto, e
+  com eles 15 pares de `text-gray-700 dark:text-gray-300` (de 70 para 55 nos seis
+  arquivos). A regressão de acessibilidade que este item registrava acabou.
+- **Disclosure com `role="group"`, não listbox.** Um botão que abre um painel de
+  checkboxes não é uma lista de opções. As opções continuam sendo
+  `<input type="checkbox">` de verdade, e é assim que os 41 testes de
+  caracterização das seis telas as acham — `getByRole("checkbox")`, 37 consultas
+  ao todo, mais 10 na caracterização de Contas. Ir a `role="listbox"` com
+  `role="option"` trocaria uma incoerência de nome por uma incoerência de fato e
+  derrubaria a rede inteira que a fase anterior existiu para construir.
+- **O `aria-haspopup="listbox"` não foi portado.** A peça velha declarava o papel
+  e entregava um `<div>` comum: acertava o rótulo e errava o papel. Hoje
+  `grep -rn "aria-haspopup" src/ --include=*.tsx` só acha o atributo em
+  `SearchSelect.tsx`, onde existem `role="listbox"` e `role="option"` para
+  sustentá-lo. As outras ocorrências são comentários explicando a ausência.
+
+**A lição que a execução deixou, e que teste de unidade nenhum daria.** A markup
+prescrita pelo plano trocava a raiz do primitivo de `relative` para
+`relative flex flex-col gap-1.5` e não dizia nada sobre o painel — que é
+`absolute` **sem `top`** e dependia da posição estática. Com a raiz em flex, o
+Flexbox posiciona o filho absoluto no topo do content box: medido no Chrome
+headless, o painel saltava de `botão.bottom + 4px` para `container.top + 4px` e
+cobriria o rótulo e o próprio gatilho nas seis telas. jsdom não faz layout, então
+a suíte inteira passaria verde. Foi corrigido acrescentando `top-full` ao painel,
+a mesma âncora que `SearchSelect` e a peça velha já usavam. Fica registrado como
+lição, não como pendência: **geometria não se prova com a suíte** — é o que a
+conferência no navegador (item 8) existe para pegar.
+
+**O que continua aberto:** a **casca compartilhada com o `SearchSelect`**. Ela
+ficou de fora de propósito — o `SearchSelect` é de seleção única, guarda
+`value: string`, fecha ao escolher e tem navegação por seta; mesma casca, modelo
+de seleção diferente. Agora que os dois lados têm o papel ARIA que de fato
+entregam, a pergunta fica bem posta, mas ninguém a decidiu.
 
 ## 8. O tamanho da opção mudou em duas telas — acrescentar à conferência no navegador
 
@@ -352,8 +389,9 @@ no navegador é feita uma vez, no fim das seis... se a mistura estiver feia...
 nenhum trabalho se perde" — essa nota cobre `dark:`/paleta crua, não tamanho
 de fonte).
 
-`MultiSelect.tsx:139` renderiza `<span className="text-conteudo">` para o
-texto de cada opção, sem `text-sm`. Conferido contra as seis cópias antes da
+`MultiSelect.tsx:184` renderiza `<span className="text-conteudo">` para o
+texto de cada opção, sem `text-sm` (era `:139` quando este item foi escrito; o
+rótulo e o `role="group"` do item 7 empurraram a linha). Conferido contra as seis cópias antes da
 extração: **Clientes** (`git show 5f0fe921~1:src/pages/Clientes.tsx:663`) e
 **Servicos** (`git show aab23f77~1:src/pages/Servicos.tsx:550`) tinham
 `text-sm text-gray-700 dark:text-gray-200`; as outras quatro não tinham
@@ -369,6 +407,63 @@ cores. Acrescentar à conferência no navegador que a fase já previu: olhar o
 dropdown aberto de Clientes e Servicos ao lado de uma das outras quatro e
 decidir se o tamanho maior fica ou se `text-sm` volta para a classe do
 `<span>` no primitivo.
+
+### E o que Contas perdeu na fusão do item 7
+
+A fusão foi descrita como "sem mudança de comportamento", e é verdade — mas
+comportamento não inclui aparência, e as duas peças não se pareciam. As três
+telas de Contas herdaram o visual do primitivo, e a diferença **não tem teste
+que a cubra**, porque nada disso é comportamento.
+
+O caso que mais custa é a **borda de "campo aberto"**. A peça velha alternava a
+cor da borda do gatilho — `border-action` quando aberto, `border-borda` quando
+fechado —, e o primitivo é sempre `border-borda`. É afordância visual perdida
+nos três filtros de Contas: nada na borda distingue mais o campo aberto do
+fechado.
+
+O resto é tipografia e acabamento, na mesma direção:
+
+| onde | peça velha | primitivo |
+|---|---|---|
+| `<span>` da opção | `text-sm text-conteudo` | `text-conteudo` |
+| estado vazio | `<p>` com `text-sm text-conteudo-muted` | `<div>` sem `text-sm` |
+| campo de busca | `bg-surface-base`, `rounded-md`, `text-sm`, `placeholder:text-conteudo-faint` | `bg-surface`, `rounded`, sem `text-sm`, sem regra de placeholder |
+| checkbox | `accent-action` | sem `accent-*` |
+| "Limpar seleção" | `rounded-md` com `transition-colors` | `rounded`, sem `transition-colors` |
+
+**É dívida do primitivo, não da fusão.** As seis telas já viviam assim desde a
+extração; foi a fusão que fez Contas passar a sofrer também. Entra na mesma
+conferência no navegador: olhar os três filtros de Contas abertos, decidir se a
+borda de campo aberto volta — no primitivo, valendo para os 18 usos — e se o
+`text-sm` volta junto com o do item acima.
+
+## 9. O texto do estado vazio tem duas formas no design system
+
+Descoberto na fusão do item 7. Eram três formas da mesma cópia:
+
+| peça | texto |
+|---|---|
+| `MultiSelect` (primitivo) | `Nenhum resultado encontrado` |
+| `MultiSelectDeContas` (apagada) | `Nenhum resultado` |
+| `Table` (`MENSAGEM_VAZIO_PADRAO`) e `SearchSelect` | `Nenhum resultado encontrado.` |
+
+Na fusão o texto do primitivo ganhou — 15 usos contra 3, e ele já estava
+publicado —, e a variante curta morreu com a peça velha. Ganhar custou as
+**duas** únicas asserções autorizadas da fase, em
+`FiltrosDeContas.multiselect.test.tsx` e em `ContasPagar.test.tsx`.
+
+Sobraram duas, e a diferença entre elas é um ponto final. A convenção do
+repositório está do lado de `Table` e `SearchSelect` (`CLAUDE.md`: "frase de erro
+completa com ponto final"); o `MultiSelect` é quem destoa. `Pagination` não entra
+na conta: com zero resultados ele devolve `null` e não escreve frase nenhuma — o
+texto só aparece em `Pagination.test.tsx`, afirmando a ausência.
+
+A decisão: pôr o ponto no `MultiSelect` e ficar com uma cópia só, ou aceitar que
+o vazio de um dropdown se escreva diferente do vazio de uma tabela. Custo de
+unificar, contado: **uma linha** de produção (`MultiSelect.tsx:188`) e **13
+asserções** de teste que citam o texto sem ponto — nos seis arquivos de
+caracterização das telas, no de Contas, no de ContasPagar e em
+`MultiSelect.test.tsx`.
 
 ## O que a fase entregou
 
@@ -413,9 +508,11 @@ código mente para quem lê. Extrair primeiro, renomear a chave depois.
 Estoque e Clientes.
 
 **Clique fora.** As seis cópias das telas morreram com o `MultiSelect` e
-viraram um `useEffect` só, no primitivo (`MultiSelect.tsx:59`). Não zerou o
-item: restam `MultiSelectDeContas.tsx:63`, `SearchSelect.tsx:82` e, em
-`Estoque.tsx:122`, uma variante que não é a mesma — fecha dois popovers de
-gráfico e escuta `mousedown` **e** `touchstart`. Um hook que sirva às três
-precisa cobrir o toque e aceitar mais de um envolvente; era o que o spec
-chamava de "provavelmente morre junto com o MultiSelect", e não morreu.
+viraram um `useEffect` só, no primitivo (`MultiSelect.tsx:97`); a fusão do item 7
+levou junto a de `MultiSelectDeContas`, que este parágrafo listava. Ainda assim
+não zerou: restam três implementações — a do primitivo, a de
+`SearchSelect.tsx:82` e, em `Estoque.tsx:122`, uma variante que não é a mesma,
+que fecha dois popovers de gráfico e escuta `mousedown` **e** `touchstart`. Um
+hook que sirva às três precisa cobrir o toque e aceitar mais de um envolvente;
+era o que o spec chamava de "provavelmente morre junto com o MultiSelect", e não
+morreu.
