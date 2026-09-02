@@ -24,13 +24,27 @@ describe("MultiSelect", () => {
 
   it("marcar acrescenta e marcar de novo tira", () => {
     const onChange = vi.fn();
-    render(
+    const { rerender } = render(
       <MultiSelect opcoes={OPCOES} selecionados={[]} onChange={onChange} placeholder="Empresas" />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
 
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa/ }));
     expect(onChange).toHaveBeenCalledWith([OPCOES[0].valor]);
+
+    // O componente é controlado: marcar não muda o próprio estado, só chama
+    // onChange e espera o pai devolver `selecionados` atualizado — por isso
+    // o reclique simula o pai reagindo à chamada acima antes de desmarcar.
+    rerender(
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[OPCOES[0].valor]}
+        onChange={onChange}
+        placeholder="Empresas"
+      />,
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /Alfa/ }));
+    expect(onChange).toHaveBeenCalledWith([]);
   });
 
   it("o dropdown NÃO fecha ao marcar — é o que a cópia fazia e ninguém queria", () => {
