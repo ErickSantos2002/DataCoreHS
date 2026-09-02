@@ -136,7 +136,13 @@ describe("MultiSelect em Produtos", () => {
     abrir("Todas as empresas");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
 
-    abrir("1 selecionado(s)");
+    // A cópia fechava o dropdown ao marcar por acidente: era declarada
+    // dentro do componente da página, então `onChange` a recriava a cada
+    // marcação e ela remontava do zero, resetando `isOpen`. Por isso o
+    // teste original reabria com abrir("1 selecionado(s)") antes de clicar
+    // em "Limpar seleção". O primitivo não tem esse acidente — o painel
+    // continua aberto após marcar — e reabrir aqui fecharia o painel em vez
+    // de abri-lo. "Limpar seleção" já está visível sem precisar reabrir.
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
