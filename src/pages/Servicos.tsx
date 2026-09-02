@@ -505,6 +505,7 @@ const Servicos: React.FC = () => {
                   selecionados={filtroCidade}
                   onChange={setFiltroCidade}
                   placeholder="Todas as cidades"
+                  buscarPor={buscaPorTextoOuNumero}
                 />
               </div>
 
@@ -518,6 +519,7 @@ const Servicos: React.FC = () => {
                   selecionados={filtroTipoServico}
                   onChange={setFiltroTipoServico}
                   placeholder="Todos os tipos"
+                  buscarPor={buscaPorTextoOuNumero}
                 />
               </div>
 

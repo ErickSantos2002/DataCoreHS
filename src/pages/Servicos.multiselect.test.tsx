@@ -44,7 +44,10 @@ const SERVICOS_ENRIQUECIDOS = [
     cpf_cnpj_tomador: "55.666.777/0001-88",
     cidade_tomador: "Olinda",
     uf_tomador: "PE",
-    discriminacao_servico: "Manutenção preventiva",
+    // Número pontuado de propósito: é o que prova a busca numérica no
+    // filtro de tipos (Fix round 1) — "1.234" só bate buscando pelos
+    // dígitos "1234" se a normalização estiver de fato ligada aqui.
+    discriminacao_servico: "Manutenção preventiva 1.234",
     valor_servico_numero: 500,
     mes: "fevereiro",
     ano: 2026,
@@ -208,5 +211,28 @@ describe("MultiSelect em Serviços", () => {
     // O container do filtro continua no DOM (o botão vive nele); o que some
     // ao fechar é só o painel do dropdown, filho dele.
     expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+  });
+
+  // ── FIX ROUND 1 ──────────────────────────────────────────────────────
+  // A troca original passou `buscaPorTextoOuNumero` só no filtro de
+  // clientes, seguindo o brief à risca. Mas a cópia tinha um `filteredOptions`
+  // só, e ele valia para os TRÊS filtros — cidade e tipo de serviço também
+  // achavam pelos dígitos normalizados. Para cidade é inócuo
+  // (`cidadesUnicas` não tem dígito), mas `tiposServicoUnicos` vem de texto
+  // livre (`discriminacao_servico`), onde número pontuado é comum. Este
+  // teste planta a opção "Manutenção preventiva 1.234" no fixture e prova
+  // que buscar "1234" (sem pontuação) acha essa opção no filtro de tipos —
+  // exatamente o ramo que tinha sumido.
+  it("no filtro de tipos, acha pelo número digitado sem pontuação", () => {
+    render(<Servicos />);
+    abrir("Todos os tipos");
+
+    fireEvent.change(campoDeBusca("Todos os tipos"), {
+      target: { value: "1234" },
+    });
+
+    expect(
+      screen.getByRole("checkbox", { name: /Manutenção preventiva 1\.234/ }),
+    ).toBeInTheDocument();
   });
 });
