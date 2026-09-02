@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
+import { MultiSelect, deTextos, buscaPorRotuloValorOuNumero } from "../design-system/ui";
 import {
   BarChart,
   Bar,
@@ -551,127 +552,6 @@ const Clientes: React.FC = () => {
     doc.save(`clientes_${new Date().toISOString().split("T")[0]}.pdf`);
   }, [clientesTabela, user]);
 
-  // Componente de MultiSelect customizado
-  const MultiSelect = ({ 
-    options, 
-    selected, 
-    onChange, 
-    placeholder 
-  }: {
-    options: { value: string; label: string }[];
-    selected: string[];
-    onChange: (val: string[]) => void;
-    placeholder: string;
-  }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const ref = useRef<HTMLDivElement>(null);
-
-    // Fecha ao clicar fora
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (ref.current && !ref.current.contains(event.target as Node)) {
-          setIsOpen(false);
-        }
-      };
-
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, []);
-
-    const toggleOption = (value: string) => {
-      if (selected.includes(value)) {
-        onChange(selected.filter(s => s !== value));
-      } else {
-        onChange([...selected, value]);
-      }
-    };
-
-    const filteredOptions = options.filter((option) => {
-      const searchLower = searchTerm.toLowerCase();
-      const labelLower = option.label.toLowerCase();
-      const valueLower = option.value.toLowerCase(); // mantém texto original
-      const valueNormalizado = option.value.replace(/\D/g, '');
-      const searchNormalizado = searchTerm.replace(/\D/g, '');
-
-      return (
-        labelLower.includes(searchLower) ||     // pesquisa no label (nome/descrição)
-        valueLower.includes(searchLower) ||     // pesquisa no value cru (nome/descrição)
-        (searchNormalizado && valueNormalizado.includes(searchNormalizado)) // pesquisa numérica
-      );
-    });
-
-    return (
-      <div className="relative" ref={ref}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 text-left border rounded-lg 
-                    bg-white dark:bg-surface 
-                    hover:bg-gray-50 dark:hover:bg-surface 
-                    text-gray-700 dark:text-gray-200
-                    border-gray-300 dark:border-gray-600
-                    focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <span className="text-sm">
-            {selected.length > 0
-              ? `${selected.length} selecionado(s)`
-              : placeholder}
-          </span>
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-10 w-full mt-1 
-                          bg-white dark:bg-surface 
-                          border dark:border-gray-600 
-                          rounded-lg shadow-lg 
-                          max-h-60 overflow-auto">
-            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2 py-1 border rounded 
-                          bg-white dark:bg-surface 
-                          text-gray-800 dark:text-gray-200
-                          border-gray-300 dark:border-gray-600"
-              />
-            </div>
-            <div className="p-2">
-              <button
-                onClick={() => onChange([])}
-                className="w-full text-left px-2 py-1 text-sm 
-                          text-gray-600 dark:text-gray-300
-                          hover:bg-gray-100 dark:hover:bg-blue-700 
-                          rounded"
-              >
-                Limpar seleção
-              </button>
-            </div>
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <label key={option.value} className="flex items-center px-4 py-2 cursor-pointer 
-                                                     hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option.value)}
-                    onChange={() => toggleOption(option.value)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-200">{option.label}</span>
-                </label>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-gray-500">Nenhum resultado encontrado</div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (carregando) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
@@ -720,10 +600,11 @@ const Clientes: React.FC = () => {
                   Cliente
                 </label>
                 <MultiSelect
-                  options={clientesUnicos}
-                  selected={filtroCliente}
+                  opcoes={clientesUnicos.map((o) => ({ valor: o.value, rotulo: o.label }))}
+                  selecionados={filtroCliente}
                   onChange={setFiltroCliente}
                   placeholder="Todos os clientes"
+                  buscarPor={buscaPorRotuloValorOuNumero}
                 />
               </div>
 
@@ -733,10 +614,11 @@ const Clientes: React.FC = () => {
                   Vendedor
                 </label>
                 <MultiSelect
-                  options={vendedoresUnicos.map(v => ({ value: v, label: v }))}
-                  selected={filtroVendedor}
+                  opcoes={deTextos(vendedoresUnicos)}
+                  selecionados={filtroVendedor}
                   onChange={setFiltroVendedor}
                   placeholder="Todos os vendedores"
+                  buscarPor={buscaPorRotuloValorOuNumero}
                 />
               </div>
 
@@ -746,10 +628,11 @@ const Clientes: React.FC = () => {
                   Produto
                 </label>
                 <MultiSelect
-                  options={produtosUnicos.map(p => ({ value: p, label: p }))}
-                  selected={filtroProduto}
+                  opcoes={deTextos(produtosUnicos)}
+                  selecionados={filtroProduto}
                   onChange={setFiltroProduto}
                   placeholder="Todos os produtos"
+                  buscarPor={buscaPorRotuloValorOuNumero}
                 />
               </div>
 

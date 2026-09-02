@@ -762,6 +762,14 @@ formatada.
 commit próprio, para a dívida parar de crescer. As 48 já acumuladas são item à
 parte.
 
+### Fase 4 — os blocos que as seis telas repetem
+
+Decidida em 01/09/2026, antes de retomar a Fase 3: as seis telas restantes
+repetem 737 linhas de `MultiSelect`, mais paginação, exportação, preset de
+período e `useIsMobile`. Extrair vira fase própria em vez de acontecer durante
+cada migração, para a decisão de API ser tomada uma vez olhando os seis usos.
+Ver `2026-09-01-fase-4-blocos-comuns-design.md`.
+
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`

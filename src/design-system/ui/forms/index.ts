@@ -12,3 +12,6 @@ export { Select } from "./Select";
 export type { SelectOption, SelectProps } from "./Select";
 export { SearchSelect } from "./SearchSelect";
 export type { SearchSelectOption, SearchSelectProps } from "./SearchSelect";
+export { MultiSelect } from "./MultiSelect";
+export type { MultiSelectProps } from "./MultiSelect";
+export * from "./buscaDeMultiSelect";
