@@ -12,13 +12,16 @@ de propósito — é o método herdado das gêmeas ContasReceber/ContasPagar:
 unificar e corrigir são passos separados, porque juntos não dá para saber qual
 dos dois quebrou. A prova de que a unificação não mudou comportamento é que os
 testes de caracterização passaram sem edição, com uma exceção por tela, prevista
-e autorizada (o painel deixou de fechar ao marcar — ver o fecho).
+e autorizada (o painel deixou de fechar ao marcar). Essa exceção é só a face
+mais visível de uma mudança mais larga: nenhum render do componente pai fecha
+mais o painel, não só a marcação — ver o item 6.
 
 O que sobrou é este documento. Os itens 1 a 4 são divergências de
 comportamento, e cada uma está hoje **fixada em teste** com o comportamento
-atual, esperando decisão. Os itens 5 a 7 não são comportamento e não há teste
-que os trave: são a forma do código (5), uma dívida nos próprios testes (6) e
-uma regressão de acessibilidade (7). Nada aqui está decidido.
+atual, esperando decisão. Os itens 5 a 8 não são comportamento e não há teste
+que os trave: são a forma do código (5), uma dívida nos próprios testes (6),
+uma regressão de acessibilidade (7) e uma mudança de aparência para conferir
+no navegador (8). Nada aqui está decidido.
 
 ## 1. As quatro buscas
 
@@ -117,35 +120,48 @@ Foi consertado em Serviços (Task 10, commit `1393609a`) depois de já ter
 entrado, e prevenido nas demais.
 
 O que torna isso digno de documento é a segunda metade: **a suíte não pega esse
-erro.** Os revisores provaram por mutação, em três telas diferentes, que remover
-o `buscarPor` de um filtro secundário deixa os sete testes verdes — em
-Vendedores (filtro de produtos), em Clientes (produto e vendedor) e em Vendas
-(vendedores e produtos). Só o filtro que a caracterização exercita morde. Um
+erro.** Os revisores provaram por mutação, em quatro telas diferentes, que
+remover o `buscarPor` de um filtro secundário deixa os testes verdes — em
+Vendedores (filtro de produtos), em Clientes (produto e vendedor), em Vendas
+(vendedores e produtos) e em **Serviços (cidade)**: removido o `buscarPor` do
+filtro de cidade, os 7 testes de `Servicos.multiselect.test.tsx` continuam
+passando (conferido de novo agora: removido, roda, verde; recolocado, `git
+status` limpo). Só o filtro que a caracterização exercita morde. Um
 estreitamento futuro nesses filtros passaria despercebido.
 
+Serviços tinha sido excluído do item por engano — o raciocínio original era
+que o teste "no filtro de tipos, acha pelo número digitado sem pontuação"
+(`Servicos.multiselect.test.tsx:226`, commit `1393609a`) já cobria a tela,
+mas esse teste exercita o filtro de **tipos**, não o de **cidade**: são dois
+filtros diferentes, cada um com sua própria instância de `buscarPor`
+(ver o item 4 acima, "um só `filteredOptions`" era o problema da cópia — o
+primitivo tem uma prop por instância). Cobrir tipos não diz nada sobre
+cidade.
+
 A decisão: vale acrescentar um teste que exercite um **segundo** filtro? Vale
-para **três telas**, não seis — o resto da lista já está fora por motivo
-próprio. Serviços já tem o seu: `Servicos.multiselect.test.tsx:226`, "no filtro
-de tipos, acha pelo número digitado sem pontuação", que entrou justamente no
-commit `1393609a` citado acima. Estoque tem **um só** `MultiSelect`
-(`Estoque.tsx:452`) — não existe segundo filtro para exercitar. E nem Produtos
-nem Estoque passam `buscarPor` em uso nenhum, então não há estratégia a perder:
-a mutação que este item descreve é inócua nas duas.
+para **quatro telas**, não seis — o resto da lista já está fora por motivo
+próprio. Estoque tem **um só** `MultiSelect` (`Estoque.tsx:452`) — não existe
+segundo filtro para exercitar. E nem Produtos nem Estoque passam `buscarPor`
+em uso nenhum, então não há estratégia a perder: a mutação que este item
+descreve é inócua nas duas.
 
-Sobram **Vendedores, Clientes e Vendas**, que são exatamente as três onde a
-mutação foi provada. Mas o custo não é "três `it` e pronto": para o teste morder,
+Sobram **Vendedores, Clientes, Vendas e Serviços** — as quatro onde a mutação
+foi provada, com **seis filtros** ao todo (Vendedores/produtos,
+Clientes/vendedor, Clientes/produto, Vendas/vendedores, Vendas/produtos,
+Serviços/cidade). Mas o custo não é "seis `it` e pronto": para o teste morder,
 o termo precisa ser aceito pela estratégia injetada e recusado pela
-`buscaPorTexto` padrão, e **em duas das três o fixture de hoje não permite
-escrever esse termo**.
+`buscaPorTexto` padrão, e em várias delas o fixture de hoje não permite
+escrever esse termo.
 
-**Clientes** é a única que já dá, e só no filtro de produto: os rótulos são
-`"Bafômetro Phoebus (P1)"` e `"Tubo descartável (P2)"`, e o termo `"x1"` casa a
-condição dos dígitos de `buscaPorRotuloValorOuNumero` (dígitos do termo = `"1"`,
-dígitos do rótulo = `"1"`) sem casar o texto. Um `it`, nada mais. O filtro de
-vendedor da mesma tela não serviria — o rótulo não tem dígito nenhum.
+**Clientes** é a única que já dá sem tocar no fixture, e só no filtro de
+produto: os rótulos são `"Bafômetro Phoebus (P1)"` e `"Tubo descartável
+(P2)"`, e o termo `"x1"` casa a condição dos dígitos de
+`buscaPorRotuloValorOuNumero` (dígitos do termo = `"1"`, dígitos do rótulo =
+`"1"`) sem casar o texto. Um `it`, nada mais. O filtro de vendedor da mesma
+tela não serviria — o rótulo não tem dígito nenhum.
 
-**Vendedores**, no filtro de produto, não dá: `buscaPorCnpjEntreParenteses` exige
-termo todo dígito, e o único dígito entre parênteses (`"1"`, `"2"`) já é
+**Vendedores**, no filtro de produto, não dá: `buscaPorCnpjEntreParenteses`
+exige termo todo dígito, e o único dígito entre parênteses (`"1"`, `"2"`) já é
 substring literal do rótulo — a condição de texto vence antes. Varri todos os
 termos todo-dígito de 0 a 9999 contra os dois rótulos do fixture: nenhum separa
 a estratégia do padrão.
@@ -156,10 +172,20 @@ a estratégia do padrão.
 dígito entre parênteses. O filtro de vendedores também não, porque nome de
 vendedor não tem parênteses para a regex achar.
 
-O custo real, então, são **três `it` mais o plantio de dado no fixture em duas
-telas** — exatamente o que Serviços teve de fazer, e diz por escrito que fez:
-"Este teste planta a opção 'Manutenção preventiva 1.234' no fixture"
-(`Servicos.multiselect.test.tsx:223`). Os três arquivos já têm o `abrir` e o
+**Serviços**, no filtro de cidade, é o caso intermediário. `buscaPorTextoOuNumero`
+é a mais barata das quatro estratégias porque não tem o guard de "termo todo
+dígito" que `buscaPorCnpjEntreParenteses` exige — mas ainda assim, com o
+fixture de hoje (cidades "Recife" e "Olinda", nenhuma com dígito), não existe
+termo que separe a estratégia do padrão: sem dígito no rótulo, a condição dos
+dígitos nunca casa. Não precisa da reestruturação que Vendedores e Vendas
+exigem (um campo `codigo` novo, um rótulo `"(codigo)"` inteiro para montar) —
+basta um dígito dentro de um nome de cidade já existente, o mesmo tipo de
+plantio mínimo que Serviços já fez para o filtro de tipos (`"Manutenção
+preventiva 1.234"`). Ainda é plantio, só que menor.
+
+O custo real, então, são **seis `it` mais o plantio de dado no fixture em
+três telas** (Vendedores, Vendas e Serviços) — o de Serviços mais barato que
+o dos outros dois, mas não gratuito. Os quatro arquivos já têm o `abrir` e o
 `campoDeBusca` de que o teste precisa; o que falta é o dado.
 
 A alternativa é deixar só a nota: custo zero agora, e o buraco continua aberto
@@ -196,8 +222,10 @@ não ameaça deduplicação nenhuma. É redundância, não defeito — quem deci
 
 Nenhum helper foi criado, de propósito, para não estourar o escopo das trocas.
 Há dois pontos para quem decidir: se um `dePares` deve existir, e se ele deve
-ser memoizado. O `.map` de hoje aloca array novo a cada render e perde a
-estabilidade de referência que o `useMemo` dava à lista original. Sem
+ser memoizado. A perda de estabilidade de referência não é só dos dois `.map`
+inline: `deTextos` (`buscaDeMultiSelect.ts:23`) também faz `textos.map(...)` e
+aloca array novo a cada render, e ela é quem alimenta os outros **13** usos, não
+só os dois de cima. Ou seja, o problema é dos 15 sítios, não de 2. Sem
 consequência hoje — o primitivo não é `React.memo`, então nada rerenderiza a
 mais por causa disso — mas é exatamente o tipo de coisa que passa a doer no dia
 em que alguém memoiza o primitivo e não entende por que não adiantou.
@@ -230,19 +258,51 @@ implicitamente nas seis telas, como efeito colateral do teste acima. Ele tem
 suposição que o teste depende mas não afirma. Um `it` por tela transformaria a
 mudança autorizada numa afirmação.
 
+E a mudança é mais larga do que "não fecha ao marcar" registra. A causa raiz
+não é a marcação: é que o componente deixou de ser declarado dentro da
+página. Nas seis cópias, `onChange` recriava o componente a cada render do
+pai e ele remontava do zero, resetando `isOpen` — e *qualquer* render do pai
+disparava isso, não só o de marcar uma opção. Medido contra a base: com o
+dropdown de empresas aberto em Vendas, digitar na busca **da tabela**
+(um filtro que não tem nada a ver com o dropdown) fechava o painel antes, e
+não fecha mais agora; o mesmo valia para mudar a data, ordenar uma coluna ou
+um refresh de dados. Marcar um checkbox é só o caso que os testes de
+caracterização exercitam — é o mais fácil de notar, não o único.
+
 Sobre ponteiros de comentário, o critério importa mais que a contagem, então
 vale declará-lo: **conta como dívida o ponteiro que aponta para código que não
 existe mais naquele arquivo**; não conta o que erra a linha por uma ou duas,
 porque esses são inevitáveis e inofensivos — o leitor acha o alvo olhando em
 volta.
 
-Pelo critério, a dívida são **dois**, os dois em
-`src/pages/Clientes.multiselect.test.tsx`: a linha **205** diz "A busca (~linha
-592)" e a **225** diz `Clientes.tsx:601`. A busca não mora mais em
-`Clientes.tsx` em linha nenhuma — mora em `buscaDeMultiSelect.ts`, e quem seguir
-o ponteiro cai no cabeçalho do bloco de filtros. As linhas 228 e 234 do mesmo
-arquivo *parecem* ponteiros mas não são: narram o que a Task 5 fez com
-`Clientes.tsx` na época, e continuam verdadeiras.
+Pelo critério, a dívida não são dois: são **dez**, espalhados em cinco
+arquivos, e o escopo do item era curto — não é só Clientes.
+
+Os dois originais estão em `src/pages/Clientes.multiselect.test.tsx`: a linha
+**205** diz "A busca (~linha 592)" e a **225** diz `Clientes.tsx:601`. A busca
+não mora mais em `Clientes.tsx` em linha nenhuma — mora em
+`buscaDeMultiSelect.ts`, e quem seguir o ponteiro cai no cabeçalho do bloco de
+filtros. As linhas 228 e 234 do mesmo arquivo *parecem* ponteiros mas não são:
+narram o que a Task 5 fez com `Clientes.tsx` na época, e continuam verdadeiras.
+
+Os outros seis, conferidos um a um, afirmam no presente e apontam para código
+que também já saiu do arquivo — a mesma extração que esvaziou `Clientes.tsx`
+esvaziou os outros cinco:
+
+- `Produtos.multiselect.test.tsx:145` diz que a função `normalizar` "existe no
+  arquivo" mas nunca é chamada; `grep normalizar src/pages/Produtos.tsx` não
+  devolve nada — ela não existe mais ali.
+- `Estoque.multiselect.test.tsx:186` cita `option.label.toLowerCase().includes(searchLower)`
+  como o que "o filtro só faz"; esse trecho não existe em `Estoque.tsx` — a
+  busca mora em `buscaPorTexto`, em `buscaDeMultiSelect.ts`, com outros nomes
+  de variável.
+- `Vendedores.multiselect.test.tsx:22,182,198` cita `option.match(/\((.*?)\)/)`
+  e `/^\d+$/.test(searchTerm)` como o que "o MultiSelect daqui" faz; nenhum dos
+  dois trechos existe em `Vendedores.tsx` — moraram em
+  `buscaPorCnpjEntreParenteses`, com os parâmetros renomeados para `opcao` e
+  `termo`.
+- `Vendas.multiselect.test.tsx:22,164,180` repete a mesma dupla de citações,
+  com o mesmo problema, também ausente de `Vendas.tsx`.
 
 Deriva de linha existe, e não é só de Clientes: `~linha 133` para
 `clientesUnicos`, hoje a 134 (`Clientes.multiselect.test.tsx:22` e `:213`);
@@ -282,6 +342,33 @@ Não foi consertado aqui porque esta fase não conserta — mas, diferente das
 outras da lista, esta não é uma escolha entre dois comportamentos defensáveis.
 É regressão de acessibilidade em relação a uma peça que já existe no repositório
 fazendo certo, e a decisão sensata é levá-la junto quando as duas se fundirem.
+
+## 8. O tamanho da opção mudou em duas telas — acrescentar à conferência no navegador
+
+Não é cor, então não é a mistura de paleta já aceita como consequência
+inevitável das cinco telas ainda não migradas (ver
+`.superpowers/sdd/2026-09-01-fase-4-multiselect/progress.md`: "a conferência
+no navegador é feita uma vez, no fim das seis... se a mistura estiver feia...
+nenhum trabalho se perde" — essa nota cobre `dark:`/paleta crua, não tamanho
+de fonte).
+
+`MultiSelect.tsx:139` renderiza `<span className="text-conteudo">` para o
+texto de cada opção, sem `text-sm`. Conferido contra as seis cópias antes da
+extração: **Clientes** (`git show 5f0fe921~1:src/pages/Clientes.tsx:663`) e
+**Servicos** (`git show aab23f77~1:src/pages/Servicos.tsx:550`) tinham
+`text-sm text-gray-700 dark:text-gray-200`; as outras quatro não tinham
+`text-sm` — Produtos, Vendedores e Vendas tinham só `text-gray-700
+dark:text-gray-200` (sem tamanho), e Estoque não tinha `<span>` nenhum, o
+texto saía cru dentro do `<label>`.
+
+Efeito prático: nas telas de Clientes e Servicos, as opções do dropdown
+ficaram **maiores** do que eram antes da extração (perderam o `text-sm`); nas
+outras quatro, o tamanho não mudou. É mudança de aparência real, não diferença
+de paleta — por isso não está coberta pela decisão já tomada sobre `dark:` e
+cores. Acrescentar à conferência no navegador que a fase já previu: olhar o
+dropdown aberto de Clientes e Servicos ao lado de uma das outras quatro e
+decidir se o tamanho maior fica ou se `text-sm` volta para a classe do
+`<span>` no primitivo.
 
 ## O que a fase entregou
 
