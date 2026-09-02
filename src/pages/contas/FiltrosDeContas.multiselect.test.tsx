@@ -115,7 +115,7 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     fireEvent.change(dentro.getByPlaceholderText("Pesquisar..."), {
       target: { value: "zzz" },
     });
-    expect(dentro.getByText("Nenhum resultado")).toBeInTheDocument();
+    expect(dentro.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
   });
 
   it("marcar avisa o pai com o valor acrescentado", () => {
