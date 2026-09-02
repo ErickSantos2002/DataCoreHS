@@ -190,13 +190,16 @@ describe("MultiSelect em Vendas", () => {
     expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
   });
 
-  // `MultiSelect` é declarado DENTRO do corpo de `Vendas` (não é um
-  // componente à parte) — cada clique que muda `filtroEmpresa` re-renderiza
-  // `Vendas` e recria a função `MultiSelect`, então React vê um componente
-  // novo e o remonta do zero. Isso reseta o estado local `isOpen` para
-  // `false`, e por isso o dropdown aparece fechado depois de QUALQUER
-  // seleção — é preciso reabri-lo (`abrir(...)`) antes do próximo clique
-  // dentro do painel, sempre.
+  // A cópia fechava o dropdown a cada marcação por acidente: `MultiSelect`
+  // era declarada DENTRO do corpo de `Vendas`, então todo clique que mudava
+  // `filtroEmpresa` re-renderizava `Vendas` e recriava a função
+  // `MultiSelect` — React via um componente novo e o remontava do zero,
+  // resetando o estado local `isOpen` para `false`. Por isso o teste
+  // original reabria o painel (`abrir(...)`) antes de cada clique seguinte
+  // dentro dele. O primitivo não tem esse acidente — o painel continua
+  // aberto até um clique fora ou no próprio botão —, então os cliques
+  // abaixo agem direto no painel que já está aberto; reabrir aqui fecharia
+  // o painel em vez de mantê-lo aberto.
   it("marcar de novo desmarca, e 'Limpar seleção' zera tudo", () => {
     render(<Vendas />);
 
@@ -207,16 +210,13 @@ describe("MultiSelect em Vendas", () => {
     ).toBeInTheDocument();
 
     // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
-    abrir("1 selecionado(s)");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
     expect(
       screen.getByRole("button", { name: "Todas as empresas" }),
     ).toBeInTheDocument();
 
     // Seleciona de novo para testar "Limpar seleção" isoladamente.
-    abrir("Todas as empresas");
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
-    abrir("1 selecionado(s)");
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
