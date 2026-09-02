@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type React from "react";
 import type { EstrategiaDeBusca, OpcaoDeMultiSelect } from "./buscaDeMultiSelect";
 import { buscaPorTexto } from "./buscaDeMultiSelect";
 
@@ -55,6 +56,14 @@ export function MultiSelect({
   const [aberto, setAberto] = useState(false);
   const [termo, setTermo] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const gatilhoRef = useRef<HTMLButtonElement>(null);
+
+  function aoTeclar(evento: React.KeyboardEvent<HTMLDivElement>) {
+    if (evento.key === "Escape" && aberto) {
+      setAberto(false);
+      gatilhoRef.current?.focus();
+    }
+  }
 
   useEffect(() => {
     function aoClicarFora(evento: MouseEvent) {
@@ -77,8 +86,9 @@ export function MultiSelect({
   const opcoesFiltradas = opcoes.filter((opcao) => buscarPor(opcao, termo));
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative" ref={containerRef} onKeyDown={aoTeclar}>
       <button
+        ref={gatilhoRef}
         type="button"
         aria-expanded={aberto}
         onClick={() => setAberto((valor) => !valor)}

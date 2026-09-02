@@ -112,4 +112,23 @@ describe("MultiSelect", () => {
 
     expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
   });
+
+  it("Escape fecha o painel e devolve o foco ao gatilho", () => {
+    render(
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={() => {}}
+        placeholder="Todos"
+      />,
+    );
+    const gatilho = screen.getByRole("button", { name: "Todos" });
+    fireEvent.click(gatilho);
+    expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+
+    fireEvent.keyDown(gatilho, { key: "Escape" });
+
+    expect(screen.queryByPlaceholderText("Pesquisar...")).toBeNull();
+    expect(document.activeElement).toBe(gatilho);
+  });
 });
