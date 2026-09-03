@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useServicos } from "../context/ServicosContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import ModalObservacoes from "../components/ModalObservacoes";
 import {
   MultiSelect,
@@ -82,8 +83,6 @@ const Servicos: React.FC = () => {
     campo: 'data_emissao',
     direcao: 'desc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(15);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Função para converter valor para número
@@ -371,12 +370,15 @@ const Servicos: React.FC = () => {
     return filtrados;
   }, [servicosFiltrados, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const servicosPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return servicosTabela.slice(inicio, fim);
-  }, [servicosTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando servicosTabela muda
+  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: servicosPaginados,
+    total: totalDeServicos,
+  } = usePaginacao(servicosTabela, 15);
 
 
   // Formatação de valores
@@ -1042,8 +1044,8 @@ const Servicos: React.FC = () => {
             <div className="mt-4">
               <Pagination
                 page={paginaAtual}
-                pageSize={itensPorPagina}
-                total={servicosTabela.length}
+                pageSize={15}
+                total={totalDeServicos}
                 onPageChange={setPaginaAtual}
               />
             </div>
