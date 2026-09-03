@@ -32,7 +32,7 @@ import {
   ChevronDown,
   Users,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { baixarPlanilha } from "../lib/planilha";
 import {
   MultiSelect,
   Pagination,
@@ -468,10 +468,10 @@ const Vendas: React.FC = () => {
       'Produtos': n.itens?.map(i => i.descricao).join(', ') || ''
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vendas");
-    XLSX.writeFile(wb, `vendas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [{ nome: "Vendas", linhas: dadosExport }],
+      `vendas_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
   }, [notasTabela]);
 
   if (carregando) {
