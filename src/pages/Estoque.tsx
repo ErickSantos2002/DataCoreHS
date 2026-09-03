@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useEstoque } from "../context/EstoqueContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import {
   BarChart,
   Bar,
@@ -153,8 +154,6 @@ const Estoque: React.FC = () => {
     campo: 'nome',
     direcao: 'asc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(15);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Listas únicas para filtros
@@ -318,12 +317,15 @@ const Estoque: React.FC = () => {
     return filtrados;
   }, [produtosFiltrados, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const produtosPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return produtosTabela.slice(inicio, fim);
-  }, [produtosTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando produtosTabela muda
+  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: produtosPaginados,
+    total: totalDeProdutos,
+  } = usePaginacao(produtosTabela, 15);
 
 
   // Formatação de valores
@@ -1149,8 +1151,8 @@ const Estoque: React.FC = () => {
             <div className="mt-4">
               <Pagination
                 page={paginaAtual}
-                pageSize={itensPorPagina}
-                total={produtosTabela.length}
+                pageSize={15}
+                total={totalDeProdutos}
                 onPageChange={setPaginaAtual}
               />
             </div>
