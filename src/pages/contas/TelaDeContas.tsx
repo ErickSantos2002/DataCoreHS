@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 
 import { Alert, Spinner } from "../../design-system/ui";
 import { useAuth } from "../../hooks/useAuth";
+import { baixarPlanilha } from "../../lib/planilha";
 import { CabecalhoContas } from "./CabecalhoContas";
 import { FiltrosDeContas } from "./FiltrosDeContas";
 import { GraficosDeContas } from "./GraficosDeContas";
@@ -173,10 +173,10 @@ export function TelaDeContas<C extends ContaBase>({
 
   const exportar = useCallback(() => {
     const linhas = linhasDaPlanilha(daTabela, dialeto, configuracao.planilha);
-    const planilha = XLSX.utils.json_to_sheet(linhas);
-    const livro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(livro, planilha, configuracao.planilha.aba);
-    XLSX.writeFile(livro, nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()));
+    baixarPlanilha(
+      [{ nome: configuracao.planilha.aba, linhas }],
+      nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()),
+    );
   }, [daTabela, dialeto, configuracao.planilha]);
 
   if (carregando) {
