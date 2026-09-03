@@ -29,7 +29,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import SolicitacaoComprasModal from "../components/SolicitacaoComprasModal";
-import { MultiSelect, Pagination } from "../design-system/ui";
+import { MultiSelect, Pagination, TableEmpty } from "../design-system/ui";
 
 // Tipagem do Produto do Estoque
 interface ProdutoEstoque {
@@ -1066,7 +1066,12 @@ const Estoque: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {produtosPaginados.map((produto, index) => (
+                  {produtosPaginados.length === 0 ? (
+                    // Pagination some com total zero; sem isso a tabela ficava
+                    // muda no filtro sem resultado (defeito 2 do spec).
+                    <TableEmpty colSpan={7} />
+                  ) : (
+                    produtosPaginados.map((produto, index) => (
                     <tr
                       key={produto.id}
                       className={`border-b border-gray-100 dark:border-gray-700 
@@ -1128,7 +1133,8 @@ const Estoque: React.FC = () => {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
