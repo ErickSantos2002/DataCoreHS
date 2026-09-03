@@ -2,7 +2,13 @@ import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useServicos } from "../context/ServicosContext";
 import ModalObservacoes from "../components/ModalObservacoes";
-import { MultiSelect, Pagination, deTextos, buscaPorTextoOuNumero } from "../design-system/ui";
+import {
+  MultiSelect,
+  Pagination,
+  TableEmpty,
+  deTextos,
+  buscaPorTextoOuNumero,
+} from "../design-system/ui";
 import {
   BarChart,
   Bar,
@@ -953,7 +959,12 @@ const Servicos: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {servicosPaginados.map((servico, index) => (
+                  {servicosPaginados.length === 0 ? (
+                    // Pagination some com total zero; sem isso a tabela ficava
+                    // muda no filtro sem resultado (defeito 2 do spec).
+                    <TableEmpty colSpan={6} />
+                  ) : (
+                    servicosPaginados.map((servico, index) => (
                     <tr
                       key={servico.id}
                       className={`border-b border-gray-100 dark:border-gray-700 
@@ -1009,7 +1020,8 @@ const Servicos: React.FC = () => {
                         )}
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                   {observacoesSelecionadas && (
                     <ModalObservacoes
                       observacoes={observacoesSelecionadas}
