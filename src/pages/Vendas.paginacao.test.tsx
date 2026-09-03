@@ -86,7 +86,7 @@ describe("paginacao em Vendas", () => {
 
   it("Proximo leva a segunda pagina, que tem o resto", () => {
     render(<Vendas />);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(linhasDaTabela()).toHaveLength(2);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
       "Mostrando 11 a 12 de 12 registros",
@@ -95,7 +95,7 @@ describe("paginacao em Vendas", () => {
 
   it("Anterior volta para a primeira", () => {
     render(<Vendas />);
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
     expect(linhasDaTabela()).toHaveLength(10);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
@@ -106,8 +106,8 @@ describe("paginacao em Vendas", () => {
   it("os extremos desabilitam", () => {
     render(<Vendas />);
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
-    expect(screen.getByRole("button", { name: "Próximo" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
   });
 });
