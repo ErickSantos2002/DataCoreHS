@@ -770,6 +770,34 @@ período e `useIsMobile`. Extrair vira fase própria em vez de acontecer durante
 cada migração, para a decisão de API ser tomada uma vez olhando os seis usos.
 Ver `2026-09-01-fase-4-blocos-comuns-design.md`.
 
+### Item 2 da Fase 4 — `Pagination` fechado (03/09/2026)
+
+As seis telas que ainda rolavam a própria paginação — Clientes, Estoque,
+Produtos, Serviços, Vendas e Vendedores — passaram a consumir o `Pagination`
+do design system e o hook novo `src/hooks/usePaginacao.ts`, com `TableEmpty`
+no `<tbody>`. O primitivo ganhou a forma compacta de celular que antes só
+existia dentro das seis cópias, e Contas — a única consumidora até aqui —
+herdou o rodapé compacto sem ter pedido.
+
+Os três defeitos que a medição achou nas seis cópias morreram na adoção: a
+frase de contagem, presa em `{totalPaginas > 1 && ...}`, sumia para quem tinha
+uma página só; não havia estado vazio, e filtro sem resultado deixava a tabela
+muda; e a página não voltava para a 1 ao filtrar — na página 7 de 84 produtos
+filtrando para 20, o rodapé escrevia "Mostrando 61 a 20 de 20 registros", com
+o intervalo invertido, e o botão Próxima seguia habilitado porque comparava
+`7 === 2`.
+
+As seis tiveram **229 inserções e 699 remoções** (líquido −470) contra a
+previsão de ~687; a branch inteira soma **16 arquivos, 1438 inserções, 703
+remoções** em 29 commits. Suíte em **1426 testes / 92 arquivos** (entrada:
+1373/85), lint em **119** — idêntico ao baseline, não subiu —, `tsc --noEmit`
+limpo.
+
+Duas divergências foram preservadas de propósito (tamanho de página e
+substantivo da contagem), e a forma compacta que Contas herdou de graça é item
+novo para a conferência no navegador, que segue pendente desde o item 1 — ver
+`2026-09-01-multiselect-divergencias.md`.
+
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
