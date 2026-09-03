@@ -32,7 +32,13 @@ import {
   Users,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { MultiSelect, Pagination, deTextos, buscaPorCnpjEntreParenteses } from "../design-system/ui";
+import {
+  MultiSelect,
+  Pagination,
+  TableEmpty,
+  deTextos,
+  buscaPorCnpjEntreParenteses,
+} from "../design-system/ui";
 
 // Tipagem da Nota
 interface Nota {
@@ -1076,7 +1082,12 @@ const Vendas: React.FC = () => {
               </thead>
 
               <tbody>
-                {notasPaginadas.map((nota, index) => (
+                {notasPaginadas.length === 0 ? (
+                  // Pagination some com total zero; sem isso a tabela ficava
+                  // muda no filtro sem resultado (defeito 2 do spec).
+                  <TableEmpty colSpan={6} />
+                ) : (
+                  notasPaginadas.map((nota, index) => (
                   <tr
                     key={nota.id}
                     className={`border-b border-gray-100 dark:border-gray-700 transition-colors 
@@ -1159,7 +1170,8 @@ const Vendas: React.FC = () => {
                       )}
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
                 {notaSelecionada && (
                   <ModalObservacoes
                     observacoes={notaSelecionada.observacoes ?? null} // ✅ garante string | null
