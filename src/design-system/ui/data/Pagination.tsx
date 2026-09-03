@@ -43,6 +43,12 @@ function calcularJanela(page: number, totalPages: number): number[] {
  * pagina** — `TableEmpty` na tabela, ou equivalente. Quem usar `Pagination`
  * sem esse estado vazio perde, no zero, a única informação que havia na
  * tela. É a regra que as telas do sistema seguem.
+ *
+ * Abaixo de `md` a janela de números dá lugar a `<`, a página atual e `>` —
+ * a forma completa não cabe em 360px. Os dois blocos existem no DOM e quem
+ * escolhe é o CSS, então em jsdom **os dois são encontráveis**: teste que
+ * procura "Anterior" acha o bloco completo, e o compacto responde por
+ * `aria-label`.
  */
 export function Pagination({ page, pageSize, total, onPageChange, itemLabel = "registros" }: PaginationProps) {
   if (total === 0) return null;
@@ -58,7 +64,7 @@ export function Pagination({ page, pageSize, total, onPageChange, itemLabel = "r
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borda pt-3 text-sm text-conteudo-muted">
       <p>{`Mostrando ${from} a ${to} de ${total} ${itemLabel}`}</p>
-      <div className="flex items-center gap-1.5">
+      <div className="hidden items-center gap-1.5 md:flex">
         <button
           type="button"
           disabled={emPrimeira}
@@ -103,6 +109,55 @@ export function Pagination({ page, pageSize, total, onPageChange, itemLabel = "r
           ].join(" ")}
         >
           Próxima
+        </button>
+      </div>
+      {/*
+        Forma compacta de celular.
+
+        A janela de cinco números mais Anterior e Próxima passa de 370px e não
+        cabe numa tela de 360px — envolvia em três linhas. As seis telas da
+        Fase 4 já contornavam isso com um bloco próprio, copiado igual nas
+        seis; o primitivo passa a resolver para todo mundo, e Contas ganha um
+        rodapé de celular que nunca teve.
+
+        Os rótulos visíveis continuam `<` e `>`, os mesmos das seis telas — a
+        troca pelos tipográficos `‹` e `›` seria melhoria de tipografia no meio
+        de uma unificação, e entraria como uma edição a mais na caracterização
+        do M2. O nome acessível, esse sim, é frase inteira: `<` sozinho não diz
+        nada em leitor de tela.
+      */}
+      <div className="flex items-center gap-2 md:hidden">
+        <button
+          type="button"
+          aria-label="Página anterior"
+          disabled={emPrimeira}
+          onClick={() => onPageChange(page - 1)}
+          className={[
+            "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+            "disabled:cursor-not-allowed disabled:opacity-40",
+          ].join(" ")}
+        >
+          {"<"}
+        </button>
+        <span
+          data-testid="pagina-atual-compacta"
+          className="rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo"
+        >
+          {page}
+        </span>
+        <button
+          type="button"
+          aria-label="Próxima página"
+          disabled={emUltima}
+          onClick={() => onPageChange(page + 1)}
+          className={[
+            "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+            "disabled:cursor-not-allowed disabled:opacity-40",
+          ].join(" ")}
+        >
+          {">"}
         </button>
       </div>
     </div>
