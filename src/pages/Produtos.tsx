@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import {
   BarChart,
   Bar,
@@ -117,8 +118,6 @@ const Produtos: React.FC = () => {
     campo: 'quantidadeVendida',
     direcao: 'desc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(10);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Gerenciador de presets de período
@@ -407,12 +406,15 @@ const Produtos: React.FC = () => {
     return filtrados;
   }, [produtosAgregados, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const produtosPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return produtosTabela.slice(inicio, fim);
-  }, [produtosTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando produtosTabela muda
+  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 7 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: produtosPaginados,
+    total: totalDeProdutos,
+  } = usePaginacao(produtosTabela, 10);
 
   // Formatação de valores
   const formatarValorAbreviado = (valor: number) => {
@@ -993,8 +995,8 @@ const Produtos: React.FC = () => {
           <div className="mt-4">
             <Pagination
               page={paginaAtual}
-              pageSize={itensPorPagina}
-              total={produtosTabela.length}
+              pageSize={10}
+              total={totalDeProdutos}
               itemLabel="produtos"
               onPageChange={setPaginaAtual}
             />
