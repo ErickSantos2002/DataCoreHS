@@ -171,8 +171,16 @@ export function tomDaSituacao(situacao: string | null | undefined): TomDaSituaca
   return "success";
 }
 
-/** Uma linha da planilha — as sete colunas exportadas, nesta ordem. */
+/**
+ * Uma linha da planilha — as sete colunas exportadas, nesta ordem.
+ *
+ * O índice de string é o que deixa este tipo passar como `Record<string,
+ * unknown>` para `baixarPlanilha`; sem ele o TypeScript recusa um objeto de
+ * propriedades nomeadas onde a assinatura pede índice, mesmo com os mesmos
+ * campos.
+ */
 export interface LinhaDaPlanilha {
+  [coluna: string]: string | number;
   Número: string;
   Data: string;
   Cliente: string;
