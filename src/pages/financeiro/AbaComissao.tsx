@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 
 import { Alert, Card, CardTitle, Input } from "../../design-system/ui";
+import { diaLocal } from "../../lib/datas";
 import {
   converterParaNumero,
   formatarDinheiro,
@@ -28,14 +29,6 @@ const EQUIPE_INICIAL: PessoaDigitada[] = EQUIPE_PADRAO.map((pessoa) => ({
 /** Identificador de linha — só precisa ser único dentro da sessão. */
 function novoId(): string {
   return `l${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
-}
-
-/** A data de hoje em `AAAA-MM-DD`, pelo relógio local. */
-function dataDeHoje(): string {
-  const hoje = new Date();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoje.getDate()).padStart(2, "0");
-  return `${hoje.getFullYear()}-${mes}-${dia}`;
 }
 
 /**
@@ -124,7 +117,7 @@ const AbaComissao: React.FC = () => {
     );
     XLSX.utils.book_append_sheet(livro, abaDeServico, "Serviço");
 
-    XLSX.writeFile(livro, `comissao-${dataDeHoje()}.xlsx`);
+    XLSX.writeFile(livro, `comissao-${diaLocal(new Date())}.xlsx`);
   }
 
   return (
