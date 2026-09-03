@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dataDeCalendario } from "./datas";
+import { dataDeCalendario, diaLocal } from "./datas";
 
 /**
  * Roda a função com o fuso do processo trocado, e devolve o fuso anterior.
@@ -62,5 +62,25 @@ describe("data de calendário", () => {
     // uma tabela em português.
     expect(dataDeCalendario("lixo")).toBe("—");
     expect(dataDeCalendario("15/01/2026")).toBe("—");
+  });
+});
+
+describe("diaLocal", () => {
+  it("devolve o dia do calendario no fuso local", () => {
+    expect(diaLocal(new Date("2026-08-28T12:00:00Z"))).toBe("2026-08-28");
+  });
+
+  it("as 23h locais ainda sao o mesmo dia, nao o seguinte", () => {
+    // O defeito que esta funcao existe para evitar. O instante e construido em
+    // hora LOCAL de proposito: assim a asserção vale em qualquer fuso, e o
+    // teste nao precisa saber em qual esta rodando. Em Sao Paulo, este mesmo
+    // instante e 02h de 29/08 em UTC — e `toISOString()` devolveria o dia
+    // errado.
+    const vinteETresHoras = new Date(2026, 7, 28, 23, 0, 0);
+    expect(diaLocal(vinteETresHoras)).toBe("2026-08-28");
+  });
+
+  it("preenche mes e dia com zero a esquerda", () => {
+    expect(diaLocal(new Date(2026, 0, 5, 12, 0, 0))).toBe("2026-01-05");
   });
 });
