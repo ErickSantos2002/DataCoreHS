@@ -29,18 +29,20 @@ desktop e um bloco compacto para celular.
 
 | Tela | Bloco de markup | Itens/página | Substantivo | Colunas |
 |---|---|---|---|---|
-| Clientes | 111 linhas | 15 | registros | 6 |
-| Estoque | 105 | 15 | registros | 8 |
-| Produtos | 104 | **10** | **produtos** | 7 |
-| Serviços | 104 | 15 | registros | 7 |
-| Vendas | 104 | **10** | registros | 7 |
-| Vendedores | 99 | **10** | registros | 8 |
+| Clientes | 111 linhas | 15 | registros | 5 |
+| Estoque | 105 | 15 | registros | 7 |
+| Produtos | 104 | **10** | **produtos** | 6 |
+| Serviços | 104 | 15 | registros | 6 |
+| Vendas | 104 | **10** | registros | 6 |
+| Vendedores | 99 | **10** | registros | 7 |
 
 São **627 linhas de markup**, mais cerca de 60 de estado e `slice` — perto de
 **687 no total**, quase o tamanho do `MultiSelect` (737) que o item 1 apagou.
 
-Cada tela tem **uma única tabela**, então a contagem de `<th>` é o `colSpan`
-sem ambiguidade. E a forma compacta de celular é **literalmente a mesma string
+Cada tela tem **uma única tabela**, então a contagem de colunas é o `colSpan`
+sem ambiguidade. Ela vem do `<td>` de uma linha do corpo, e **não** de
+`grep -c "<th"`: esse conta o `<thead>` junto e devolve um a mais nas seis — foi
+o número errado que este spec trouxe na primeira versão. E a forma compacta de celular é **literalmente a mesma string
 de classes nas seis** (`flex md:hidden justify-center gap-2 items-center mt-2`),
 com os mesmos rótulos `<` e `>`: não divergiu, foi copiada.
 
@@ -145,7 +147,7 @@ const { pagina, setPagina, itensDaPagina, total } = usePaginacao(produtosTabela,
 ```tsx
 // no <tbody>, o ramo que não existe hoje
 {itensDaPagina.length === 0 ? (
-  <TableEmpty colSpan={7} />
+  <TableEmpty colSpan={6} />   // Produtos; ver a tabela de colunas acima
 ) : (
   itensDaPagina.map(...)
 )}
