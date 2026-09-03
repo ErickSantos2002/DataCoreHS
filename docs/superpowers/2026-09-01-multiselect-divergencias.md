@@ -23,7 +23,10 @@ teste que os trave: são a forma do código (5), uma dívida nos próprios teste
 (6) e mudanças de aparência para conferir no navegador (8). O item 9 — o texto
 do estado vazio escrito de duas formas — **está fixado em teste** como os
 quatro primeiros: 13 asserções citam a forma atual, e trocá-la custa editar
-todas elas.
+todas elas. O item 10, da fase seguinte, traz duas divergências no mesmo
+molde — tamanho de página e substantivo da contagem — **fixadas em teste** nas
+seis telas, e mais uma decisão de aparência sem teste que a cubra, para a
+conferência no navegador.
 
 O item 7 era o único que não pedia escolha entre dois comportamentos
 defensáveis — era regressão de acessibilidade — e **deixou de ser pendência**:
@@ -484,6 +487,91 @@ unificar, contado: **uma linha** de produção (`MultiSelect.tsx:188`, nessa lin
 desde `c0040d2b`) e **13 asserções** de teste que citam o texto sem ponto — nos
 seis arquivos de caracterização das telas, no de Contas, no de ContasPagar e em
 `MultiSelect.test.tsx`.
+
+## 10. `Pagination` — o item 2 da Fase 4, e o que ele preservou de propósito
+
+Fechado em 03/09/2026. As seis telas que ainda rolavam a própria paginação —
+Clientes, Estoque, Produtos, Serviços, Vendas e Vendedores — passaram a
+consumir o `Pagination` do design system e o hook novo
+`src/hooks/usePaginacao.ts`, com `TableEmpty` no `<tbody>`. O método é o mesmo
+do MultiSelect: unificar sem mudar comportamento primeiro, corrigir depois. Os
+detalhes da execução — os três defeitos que a adoção matou e os números da
+medição — estão em `2026-09-03-fase-4-pagination-design.md`; este documento
+registra só o que sobrou pedindo decisão, do mesmo jeito que fez com as
+buscas do `MultiSelect`.
+
+Duas divergências foram preservadas, com o comportamento atual fixado em
+teste nas seis:
+
+| Tela | Itens por página | Substantivo da contagem |
+|---|---|---|
+| Clientes | 15 | registros |
+| Estoque | 15 | registros |
+| Produtos | 10 | **produtos** |
+| Serviços | 15 | registros |
+| Vendas | 10 | registros |
+| Vendedores | 10 | registros |
+
+**Tamanho de página.** `pageSize` é prop do primitivo — unificar o componente
+não obrigou a uniformizar o número, e as seis continuam pesando 10 ou 15 exatamente
+como antes. Se um dia o produto quiser todas na mesma contagem, é decisão de
+produto, não efeito colateral de refactor.
+
+**Substantivo da contagem.** `itemLabel` também é prop, e o default do
+primitivo já é "registros" — por isso cinco telas não passam nada e só Produtos
+passa `"produtos"`. É a mesma forma de divergência inofensiva que o item 1 já
+registrou para as buscas do `MultiSelect`: nenhuma das duas está errada, são
+domínios diferentes descrevendo a própria listagem.
+
+**O que ficou decidido, sem pedir escolha:** a forma compacta de celular — `<`,
+a página atual, `>` — subiu do markup copiado das seis para dentro do
+`Pagination`, e **Contas passou a herdá-la sem ter pedido**, porque era a única
+consumidora do primitivo antes deste item. É item novo para a conferência no
+navegador nos dois temas, que segue pendente desde o item 1 da Fase 4: olhar o
+rodapé de Contas abaixo de `md` e confirmar que o rodapé de celular que ela
+ganhou de graça não atrapalha a tela de dinheiro.
+
+Junto na mesma conferência, um segundo item: **com uma página só, as seis
+telas passam a mostrar um rodapé completo que antes não existia.** O spec
+autoriza como exceção a frase de contagem aparecer sozinha nesse caso, mas o
+que o primitivo de fato renderiza é maior — a frase mais os botões `Anterior`,
+`1` e `Próxima`, os três desabilitados, onde antes o `{totalPaginas > 1 &&
+...}` escondia o bloco inteiro. É inerente ao `Pagination`, não dá para adotar
+o primitivo e evitar isso, mas nenhuma das seis caracterizações cobre o caso —
+os fixtures usam 17 ou 12 itens, sempre duas páginas ou mais — e vale olhar no
+navegador antes de considerar resolvido.
+
+### Três achados colaterais, de fora deste item
+
+Apareceram durante a execução, são de outras telas ou fases, e ninguém vai
+lembrar deles se não ficarem escritos.
+
+**O comparador de ordenação de `Produtos.tsx` nunca devolve 0**
+(`src/pages/Produtos.tsx:400-402`, `aVal > bVal ? 1 : -1` nos dois ramos): itens
+empatados saem em ordem que depende só do motor JS, não de regra nenhuma. É o
+mesmo defeito que a Fase 3 já achou e corrigiu em Dashboard e Locação. As
+outras cinco telas desta fase — Clientes, Estoque, Serviços, Vendas e
+Vendedores — têm exatamente o mesmo padrão nas mesmas duas linhas do próprio
+comparador. Fica fora do escopo deste item porque não é paginação; vira
+trabalho de quem migrar essas seis telas na Fase 3.
+
+**`Vendas.tsx` não termina em newline.** Pré-existente — já estava assim em
+`main` antes desta fase tocar o arquivo. E não é a única: das seis telas
+deste item, só `Produtos.tsx` termina em newline; Clientes, Estoque, Serviços
+e Vendedores têm o mesmo formato de Vendas. Não vale linha própria por tela;
+vale o registro de que existe, para quem for atrás de "por que o prettier
+reformata isso" não achar que foi este item que introduziu.
+
+**Violar o contrato do `usePaginacao` derruba a tela, não degrada em
+silêncio.** O hook exige que a lista recebida venha de um `useMemo` com os
+filtros na dependência — é o que garante que o reset de página dispara só
+quando a lista muda de verdade, não a cada render. Passar uma lista recriada a
+cada render faz o reset rodar durante o próprio render, produzir outra
+referência nova, disparar outro reset, e o React aborta com "Too many
+re-renders" em vez de paginar errado por baixo do capô. Está no docblock do
+hook (`src/hooks/usePaginacao.ts`), e vale a menção aqui porque é a garantia
+de que ninguém vai violar o contrato por acidente sem notar — a tela cai na
+hora, alto e claro.
 
 ## O que a fase entregou
 

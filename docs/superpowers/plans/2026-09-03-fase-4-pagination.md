@@ -701,6 +701,24 @@ describe("usePaginacao", () => {
     expect(result.current.pagina).toBe(2);
   });
 
+  it("reseta tambem quando a lista nova tem o MESMO tamanho", () => {
+    // Sem este teste, uma implementação com `[itens.length]` na dependência
+    // passaria nos outros quatro e ainda assim estaria errada: filtrar pode
+    // devolver a mesma quantidade de itens e ser outra lista. É a diferença
+    // entre resetar por identidade (certo) e por tamanho (quase certo).
+    const OUTRA = Array.from({ length: 12 }, (_, i) => `outro ${i + 1}`);
+    const { result, rerender } = renderHook(
+      ({ itens }) => usePaginacao(itens, 10),
+      { initialProps: { itens: LISTA } },
+    );
+
+    act(() => result.current.setPagina(2));
+    rerender({ itens: OUTRA });
+
+    expect(result.current.pagina).toBe(1);
+    expect(result.current.itensDaPagina[0]).toBe("outro 1");
+  });
+
   it("lista vazia devolve total zero e nenhuma linha", () => {
     const { result } = renderHook(() => usePaginacao([], 10));
 
@@ -769,20 +787,25 @@ Expected: PASS, 5 testes.
 
 - [ ] **Passo 5: provar que os testes enxergam**
 
-Comentar o `useEffect` do reset e rodar: o teste "volta para a primeira pagina
-quando a lista muda" tem de falhar. Reverter.
+Duas plantações, uma por vez, revertendo cada uma:
 
-Depois trocar a dependência `[itens]` por `[itens.length]` e rodar de novo com
-uma lista de mesmo tamanho — como o teste do reset usa tamanhos diferentes,
-acrescentar temporariamente um `rerender({ itens: [...LISTA] })` para conferir
-que a versão por `length` não resetaria. Reverter as duas coisas.
+1. Comentar o `useEffect` do reset. Esperado: falham "volta para a primeira
+   pagina quando a lista muda" **e** "reseta tambem quando a lista nova tem o
+   MESMO tamanho".
+2. Trocar a dependência `[itens]` por `[itens.length]`. Esperado: falha **só**
+   "reseta tambem quando a lista nova tem o MESMO tamanho" — e é exatamente
+   para isso que esse teste existe.
+
+A segunda plantação é a que importa: sem ela, uma implementação por tamanho
+passaria nos outros quatro testes e o hook estaria quase certo, que aqui é o
+mesmo que errado.
 
 - [ ] **Passo 6: suíte inteira, lint e tsc**
 
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
-Expected: **92 arquivos**, 1407 + 5 = **1412 testes**, lint ≤ 119, `tsc` limpo.
+Expected: **92 arquivos**, 1407 + 6 = **1413 testes**, lint ≤ 119, `tsc` limpo.
 
 `renderHook` está disponível: `@testing-library/react` aqui é **16.3.2**
 (conferido em 03/09/2026), e o helper existe desde a 13.1. Não trocar a versão
@@ -876,7 +899,7 @@ vazou para fora do rodapé.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
-Expected: 92 arquivos, **1412 testes**, lint **abaixo** de 119 (saíram ~104
+Expected: 92 arquivos, **1413 testes**, lint **abaixo** de 119 (saíram ~104
 linhas de JSX), `tsc` limpo.
 
 - [ ] **Passo 5: commit**
@@ -960,7 +983,7 @@ Expected: **nenhuma saída.**
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
-Expected: 92 arquivos, 1412 testes, lint **bem abaixo** de 119 (saíram ~523
+Expected: 92 arquivos, 1413 testes, lint **bem abaixo** de 119 (saíram ~523
 linhas de JSX nas cinco), `tsc` limpo.
 
 - [ ] **Passo 6: commit, um por tela**
@@ -1058,7 +1081,7 @@ Produtos 6, Serviços 6, Vendas 6, Vendedores 7.
 - [ ] **Passo 4: rodar e ver passar**
 
 Run: `npm test`
-Expected: 92 arquivos, 1412 + 6 = **1418 testes**, verdes.
+Expected: 92 arquivos, 1413 + 6 = **1419 testes**, verdes.
 
 - [ ] **Passo 5: provar que os seis testes enxergam**
 
@@ -1204,7 +1227,7 @@ Vendedores; 15 em Clientes, Estoque e Serviços.
 - [ ] **Passo 4: rodar e ver passar**
 
 Run: `npm test`
-Expected: 92 arquivos, 1418 + 6 = **1424 testes**, verdes.
+Expected: 92 arquivos, 1419 + 6 = **1425 testes**, verdes.
 
 - [ ] **Passo 5: conferir que o estado próprio sumiu**
 

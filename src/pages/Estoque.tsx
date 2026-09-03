@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useEstoque } from "../context/EstoqueContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import {
   BarChart,
   Bar,
@@ -29,7 +30,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import SolicitacaoComprasModal from "../components/SolicitacaoComprasModal";
-import { MultiSelect } from "../design-system/ui";
+import { MultiSelect, Pagination, TableEmpty } from "../design-system/ui";
 
 // Tipagem do Produto do Estoque
 interface ProdutoEstoque {
@@ -153,8 +154,6 @@ const Estoque: React.FC = () => {
     campo: 'nome',
     direcao: 'asc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(15);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Listas únicas para filtros
@@ -318,14 +317,16 @@ const Estoque: React.FC = () => {
     return filtrados;
   }, [produtosFiltrados, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const produtosPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return produtosTabela.slice(inicio, fim);
-  }, [produtosTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando produtosTabela muda
+  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: produtosPaginados,
+    total: totalDeProdutos,
+  } = usePaginacao(produtosTabela, 15);
 
-  const totalPaginas = Math.ceil(produtosTabela.length / itensPorPagina);
 
   // Formatação de valores
   const formatarValorAbreviado = (valor: number) => {
@@ -1067,7 +1068,12 @@ const Estoque: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {produtosPaginados.map((produto, index) => (
+                  {produtosPaginados.length === 0 ? (
+                    // Pagination some com total zero; sem isso a tabela ficava
+                    // muda no filtro sem resultado (defeito 2 do spec).
+                    <TableEmpty colSpan={7} />
+                  ) : (
+                    produtosPaginados.map((produto, index) => (
                     <tr
                       key={produto.id}
                       className={`border-b border-gray-100 dark:border-gray-700 
@@ -1129,117 +1135,27 @@ const Estoque: React.FC = () => {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
-            {/* Paginação */}
-            {totalPaginas > 1 && (
-              <div className="mt-4">
-                {/* Texto de registros */}
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-2 md:mb-0">
-                  Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a{" "}
-                  {Math.min(paginaAtual * itensPorPagina, produtosTabela.length)} de{" "}
-                  {produtosTabela.length} registros
-                </div>
-
-                {/* Desktop */}
-                <div className="hidden md:flex justify-between items-center">
-                  <div></div> {/* placeholder só pra alinhar */}
-                  <div className="flex gap-2">
-                    {/* Botão Anterior */}
-                    <button
-                      onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                      disabled={paginaAtual === 1}
-                      className="px-3 py-1 border rounded-lg 
-                        bg-white dark:bg-slate-800 
-                        border-gray-300 dark:border-gray-600 
-                        text-gray-700 dark:text-gray-300
-                        hover:bg-gray-50 dark:hover:bg-slate-700 
-                        disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Anterior
-                    </button>
-
-                    {/* Números de página */}
-                    <div className="flex gap-1">
-                      {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                        let pageNum;
-                        if (totalPaginas <= 5) pageNum = i + 1;
-                        else if (paginaAtual <= 3) pageNum = i + 1;
-                        else if (paginaAtual >= totalPaginas - 2) pageNum = totalPaginas - 4 + i;
-                        else pageNum = paginaAtual - 2 + i;
-
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setPaginaAtual(pageNum)}
-                            className={`px-3 py-1 border rounded-lg transition-colors ${
-                              paginaAtual === pageNum
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Botão Próximo */}
-                    <button
-                      onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                      disabled={paginaAtual === totalPaginas}
-                      className="px-3 py-1 border rounded-lg 
-                        bg-white dark:bg-slate-800 
-                        border-gray-300 dark:border-gray-600 
-                        text-gray-700 dark:text-gray-300
-                        hover:bg-gray-50 dark:hover:bg-slate-700 
-                        disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Próximo
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mobile */}
-                <div className="flex md:hidden justify-center gap-2 items-center mt-2">
-                  <button
-                    onClick={() => setPaginaAtual(prev => Math.max(1, prev - 1))}
-                    disabled={paginaAtual === 1}
-                    className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-slate-800 
-                      border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-slate-700 
-                      disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {"<"}
-                  </button>
-
-                  <span className="px-3 py-1 border rounded-lg 
-                    bg-white dark:bg-slate-800 
-                    text-gray-700 dark:text-gray-300
-                    border-gray-300 dark:border-gray-600">
-                    {paginaAtual}
-                  </span>
-
-                  <button
-                    onClick={() => setPaginaAtual(prev => Math.min(totalPaginas, prev + 1))}
-                    disabled={paginaAtual === totalPaginas}
-                    className="px-3 py-1 border rounded-lg 
-                      bg-white dark:bg-slate-800 
-                      border-gray-300 dark:border-gray-600 
-                      text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-slate-700 
-                      disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {">"}
-                  </button>
-                </div>
-              </div>
-            )}
+            {/*
+              O `Pagination` do design system, e não as 105 linhas que estavam
+              aqui. As que saíram escondiam a frase de contagem dentro do
+              `{totalPaginas > 1 && ...}`: quem tinha 15 itens ou menos não
+              lia contagem nenhuma. É o mesmo defeito 1.7 que a Fase 1 corrigiu
+              em Contas, e ele morre junto com o bloco.
+            */}
+            <div className="mt-4">
+              <Pagination
+                page={paginaAtual}
+                pageSize={15}
+                total={totalDeProdutos}
+                onPageChange={setPaginaAtual}
+              />
+            </div>
           </div>
         </div>
       </div>  
