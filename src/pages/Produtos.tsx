@@ -30,7 +30,7 @@ import {
   ChevronDown,
   Hash,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { baixarPlanilha } from "../lib/planilha";
 import { MultiSelect, Pagination, TableEmpty, deTextos } from "../design-system/ui";
 
 // Tipagem da Nota
@@ -445,10 +445,10 @@ const Produtos: React.FC = () => {
       'Número de Vendas': p.numeroVendas,
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Produtos");
-    XLSX.writeFile(wb, `produtos_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [{ nome: "Produtos", linhas: dadosExport }],
+      `produtos_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
   }, [produtosTabela]);
 
   if (carregando) {
