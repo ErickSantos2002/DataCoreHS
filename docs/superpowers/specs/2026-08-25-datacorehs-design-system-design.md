@@ -788,10 +788,12 @@ o intervalo invertido, e o botão Próxima seguia habilitado porque comparava
 `7 === 2`.
 
 As seis tiveram **229 inserções e 699 remoções** (líquido −470) contra a
-previsão de ~687; a branch inteira soma **16 arquivos, 1438 inserções, 703
-remoções** em 29 commits. Suíte em **1426 testes / 92 arquivos** (entrada:
-1373/85), lint em **119** — idêntico ao baseline, não subiu —, `tsc --noEmit`
-limpo.
+previsão de ~687. A branch inteira, medida da base real
+(`git merge-base main HEAD`), soma **19 arquivos, 1575 inserções, 714
+remoções** em **31 commits**; só `src/` são **16 arquivos, 1438 inserções, 703
+remoções** — a diferença são os documentos. Suíte em **1426 testes / 92
+arquivos** (entrada: 1373/85), lint em **119** — idêntico ao baseline, não
+subiu —, `tsc --noEmit` limpo.
 
 Duas divergências foram preservadas de propósito (tamanho de página e
 substantivo da contagem), e a forma compacta que Contas herdou de graça é item

@@ -23,7 +23,10 @@ teste que os trave: são a forma do código (5), uma dívida nos próprios teste
 (6) e mudanças de aparência para conferir no navegador (8). O item 9 — o texto
 do estado vazio escrito de duas formas — **está fixado em teste** como os
 quatro primeiros: 13 asserções citam a forma atual, e trocá-la custa editar
-todas elas.
+todas elas. O item 10, da fase seguinte, traz duas divergências no mesmo
+molde — tamanho de página e substantivo da contagem — **fixadas em teste** nas
+seis telas, e mais uma decisão de aparência sem teste que a cubra, para a
+conferência no navegador.
 
 O item 7 era o único que não pedia escolha entre dois comportamentos
 defensáveis — era regressão de acessibilidade — e **deixou de ser pendência**:
