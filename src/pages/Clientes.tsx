@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import {
   MultiSelect,
   Pagination,
@@ -99,8 +100,6 @@ const Clientes: React.FC = () => {
     campo: 'ultimaCompra',
     direcao: 'desc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(15);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
   // Gerenciador de presets de período
@@ -482,12 +481,15 @@ const Clientes: React.FC = () => {
     return filtrados;
   }, [clientesFiltrados, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const clientesPaginados = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return clientesTabela.slice(inicio, fim);
-  }, [clientesTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando clientesTabela muda
+  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: clientesPaginados,
+    total: totalDeClientes,
+  } = usePaginacao(clientesTabela, 15);
 
 
   // Função para alternar ordenação
@@ -1171,8 +1173,8 @@ const Clientes: React.FC = () => {
             <div className="mt-4">
               <Pagination
                 page={paginaAtual}
-                pageSize={itensPorPagina}
-                total={clientesTabela.length}
+                pageSize={15}
+                total={totalDeClientes}
                 onPageChange={setPaginaAtual}
               />
             </div>
