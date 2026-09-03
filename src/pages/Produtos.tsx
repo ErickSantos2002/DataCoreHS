@@ -414,7 +414,7 @@ const Produtos: React.FC = () => {
     setPagina: setPaginaAtual,
     itensDaPagina: produtosPaginados,
     total: totalDeProdutos,
-  } = usePaginacao(produtosTabela, 10);
+  } = usePaginacao(produtosTabela, 15);
 
   // Formatação de valores
   const formatarValorAbreviado = (valor: number) => {
@@ -995,7 +995,7 @@ const Produtos: React.FC = () => {
           <div className="mt-4">
             <Pagination
               page={paginaAtual}
-              pageSize={10}
+              pageSize={15}
               total={totalDeProdutos}
               itemLabel="produtos"
               onPageChange={setPaginaAtual}

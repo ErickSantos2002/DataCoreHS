@@ -12,27 +12,27 @@ import Produtos from "./Produtos";
  * que a frase de contagem diz, e o que os botões fazem nos extremos.
  *
  * Produtos AGREGA: `produtosAgregados` soma os `itens` das notas por
- * `codigo`, então uma nota com 12 itens de código distinto vira 12 linhas de
+ * `codigo`, então uma nota com 17 itens de código distinto vira 17 linhas de
  * tabela. É por isso que o fixture é uma nota só.
  *
  * A ordenação padrão da tabela é por `quantidadeVendida` decrescente. O
  * comparador de `produtosTabela` (`aVal > bVal ? 1 : -1`) nunca devolve 0,
  * então com quantidades empatadas o resultado depende de como o V8 quebra o
  * empate — não é o comportamento da tela, é um acidente do motor JS. Por
- * isso cada item tem uma quantidade distinta (12 a 1, decrescente com o
+ * isso cada item tem uma quantidade distinta (17 a 1, decrescente com o
  * código): a ordenação fica determinística e a página 1 sai exatamente
- * "Produto 01".."Produto 10", igual à intenção original do fixture.
+ * "Produto 01".."Produto 15", igual à intenção original do fixture.
  *
- * Página de 10 itens, 12 produtos: duas páginas, a segunda com 2.
+ * Página de 15 itens, 17 produtos: duas páginas, a segunda com 2.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const ITENS = Array.from({ length: 12 }, (_, i) => ({
+const ITENS = Array.from({ length: 17 }, (_, i) => ({
   codigo: `P${String(i + 1).padStart(2, "0")}`,
   descricao: `Produto ${String(i + 1).padStart(2, "0")}`,
-  quantidade: String(12 - i),
+  quantidade: String(17 - i),
   valor_total: "100",
 }));
 
@@ -87,19 +87,19 @@ function linhasDaTabela(): HTMLElement[] {
 }
 
 describe("paginacao em Produtos", () => {
-  it("corta a tabela em 10 linhas por pagina", () => {
+  it("corta a tabela em 15 linhas por pagina", () => {
     render(<Produtos />);
 
-    expect(linhasDaTabela()).toHaveLength(10);
+    expect(linhasDaTabela()).toHaveLength(15);
     expect(within(corpoDaTabela()).getByText("Produto 01")).toBeInTheDocument();
-    expect(within(corpoDaTabela()).queryByText("Produto 11")).not.toBeInTheDocument();
+    expect(within(corpoDaTabela()).queryByText("Produto 16")).not.toBeInTheDocument();
   });
 
   it("a frase de contagem diz o intervalo e o total", () => {
     render(<Produtos />);
 
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 10 de 12 produtos",
+      "Mostrando 1 a 15 de 17 produtos",
     );
   });
 
@@ -109,10 +109,10 @@ describe("paginacao em Produtos", () => {
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     expect(linhasDaTabela()).toHaveLength(2);
-    expect(within(corpoDaTabela()).getByText("Produto 11")).toBeInTheDocument();
+    expect(within(corpoDaTabela()).getByText("Produto 16")).toBeInTheDocument();
     expect(within(corpoDaTabela()).queryByText("Produto 01")).not.toBeInTheDocument();
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 11 a 12 de 12 produtos",
+      "Mostrando 16 a 17 de 17 produtos",
     );
   });
 
@@ -124,7 +124,7 @@ describe("paginacao em Produtos", () => {
 
     expect(within(corpoDaTabela()).getByText("Produto 01")).toBeInTheDocument();
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 10 de 12 produtos",
+      "Mostrando 1 a 15 de 17 produtos",
     );
   });
 
@@ -157,7 +157,7 @@ describe("paginacao em Produtos", () => {
     render(<Produtos />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 11 a 12");
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 16 a 17");
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
       target: { value: "Produto 0" },

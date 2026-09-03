@@ -363,7 +363,7 @@ const Vendedores: React.FC = () => {
     setPagina: setPaginaAtual,
     itensDaPagina: notasPaginadas,
     total: totalDeNotas,
-  } = usePaginacao(notasTabela, 10);
+  } = usePaginacao(notasTabela, 15);
 
 
   // Formatação de valores
@@ -1146,7 +1146,7 @@ const Vendedores: React.FC = () => {
           <div className="mt-4">
             <Pagination
               page={paginaAtual}
-              pageSize={10}
+              pageSize={15}
               total={totalDeNotas}
               onPageChange={setPaginaAtual}
             />
