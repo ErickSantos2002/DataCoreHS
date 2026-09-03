@@ -35,7 +35,13 @@ import {
 import * as XLSX from "xlsx";
 import ModalObservacoes from "../components/ModalObservacoes";
 import { useToast } from "../components/ToastProvider";
-import { MultiSelect, Pagination, deTextos, buscaPorCnpjEntreParenteses } from "../design-system/ui";
+import {
+  MultiSelect,
+  Pagination,
+  TableEmpty,
+  deTextos,
+  buscaPorCnpjEntreParenteses,
+} from "../design-system/ui";
 
 // Cores para gráficos
 const CORES = {
@@ -960,7 +966,12 @@ const Vendedores: React.FC = () => {
               </thead>
 
               <tbody>
-                {notasPaginadas.map((nota, index) => (
+                {notasPaginadas.length === 0 ? (
+                  // Pagination some com total zero; sem isso a tabela ficava
+                  // muda no filtro sem resultado (defeito 2 do spec).
+                  <TableEmpty colSpan={7} />
+                ) : (
+                  notasPaginadas.map((nota, index) => (
                   <tr
                     key={nota.id}
                     className={`border-b border-gray-100 dark:border-gray-700 transition-colors 
@@ -1113,7 +1124,8 @@ const Vendedores: React.FC = () => {
                       )}
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
                 <ModalObservacoes
                   observacoes={observacoesAtivas}
                   onClose={() => setObservacoesAtivas(null)}
