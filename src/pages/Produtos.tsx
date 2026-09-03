@@ -30,7 +30,7 @@ import {
   Hash,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { MultiSelect, Pagination, deTextos } from "../design-system/ui";
+import { MultiSelect, Pagination, TableEmpty, deTextos } from "../design-system/ui";
 
 // Tipagem da Nota
 interface Nota {
@@ -922,7 +922,12 @@ const Produtos: React.FC = () => {
               </thead>
 
               <tbody>
-                {produtosPaginados.map((produto, index) => (
+                {produtosPaginados.length === 0 ? (
+                  // Pagination some com total zero; sem isso a tabela ficava
+                  // muda no filtro sem resultado (defeito 2 do spec).
+                  <TableEmpty colSpan={6} />
+                ) : (
+                  produtosPaginados.map((produto, index) => (
                   <tr
                     key={produto.codigo}
                     className={`border-b border-gray-100 dark:border-gray-700 transition-colors
@@ -972,7 +977,8 @@ const Produtos: React.FC = () => {
                       {produto.numeroVendas}
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
