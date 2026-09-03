@@ -1175,6 +1175,7 @@ const Clientes: React.FC = () => {
                 page={paginaAtual}
                 pageSize={15}
                 total={totalDeClientes}
+                itemLabel="clientes"
                 onPageChange={setPaginaAtual}
               />
             </div>

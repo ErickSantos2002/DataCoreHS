@@ -111,7 +111,7 @@ describe("paginacao em Clientes", () => {
   it("a frase de contagem diz o intervalo e o total", () => {
     render(<Clientes />);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 15 de 17 registros",
+      "Mostrando 1 a 15 de 17 clientes",
     );
   });
 
@@ -120,7 +120,7 @@ describe("paginacao em Clientes", () => {
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(linhasDaTabela()).toHaveLength(2);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 16 a 17 de 17 registros",
+      "Mostrando 16 a 17 de 17 clientes",
     );
   });
 
@@ -130,7 +130,7 @@ describe("paginacao em Clientes", () => {
     fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
     expect(linhasDaTabela()).toHaveLength(15);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 15 de 17 registros",
+      "Mostrando 1 a 15 de 17 clientes",
     );
   });
 
@@ -156,7 +156,7 @@ describe("paginacao em Clientes", () => {
   it("filtrar volta para a primeira pagina", () => {
     // O defeito 3: quem estava na pagina 2 e filtrava continuava na 2, com a
     // tabela em branco e o rodape escrevendo um intervalo invertido — algo
-    // como "Mostrando 16 a 9 de 9 registros".
+    // como "Mostrando 16 a 9 de 9 clientes".
     render(<Clientes />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));

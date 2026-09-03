@@ -1148,6 +1148,7 @@ const Vendedores: React.FC = () => {
               page={paginaAtual}
               pageSize={15}
               total={totalDeNotas}
+              itemLabel="notas"
               onPageChange={setPaginaAtual}
             />
           </div>
