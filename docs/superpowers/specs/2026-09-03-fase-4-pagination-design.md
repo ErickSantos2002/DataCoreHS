@@ -42,9 +42,11 @@ São **627 linhas de markup**, mais cerca de 60 de estado e `slice` — perto de
 Cada tela tem **uma única tabela**, então a contagem de colunas é o `colSpan`
 sem ambiguidade. Ela vem do `<td>` de uma linha do corpo, e **não** de
 `grep -c "<th"`: esse conta o `<thead>` junto e devolve um a mais nas seis — foi
-o número errado que este spec trouxe na primeira versão. E a forma compacta de celular é **literalmente a mesma string
-de classes nas seis** (`flex md:hidden justify-center gap-2 items-center mt-2`),
-com os mesmos rótulos `<` e `>`: não divergiu, foi copiada.
+o número errado que este spec trouxe na primeira versão.
+
+E a forma compacta de celular é **literalmente a mesma string de classes nas
+seis** (`flex md:hidden justify-center gap-2 items-center mt-2`), com os mesmos
+rótulos `<` e `>`: não divergiu, foi copiada.
 
 Do outro lado, `src/design-system/ui/data/Pagination.tsx` tem 8 testes e **um
 consumidor só**, `pages/contas/TabelaDeContas.tsx:300`, das gêmeas.
