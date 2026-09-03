@@ -15,13 +15,13 @@ import Vendedores from "./Vendedores";
  * repetidas o comparador (`aVal > bVal ? 1 : -1`, nunca 0) desempata de
  * forma não determinística — defeito conhecido da tela, não desta task.
  *
- * Página de 10 itens, 12 notas: duas páginas, a segunda com 2.
+ * Página de 15 itens, 17 notas: duas páginas, a segunda com 2.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const NOTAS_VENDEDOR = Array.from({ length: 12 }, (_, i) => ({
+const NOTAS_VENDEDOR = Array.from({ length: 17 }, (_, i) => ({
   id: i + 1,
   numero: 1000 + i + 1,
   data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
@@ -89,15 +89,15 @@ function linhasDaTabela(): HTMLElement[] {
 }
 
 describe("paginacao em Vendedores", () => {
-  it("corta a tabela em 10 linhas por pagina", () => {
+  it("corta a tabela em 15 linhas por pagina", () => {
     render(<Vendedores />);
-    expect(linhasDaTabela()).toHaveLength(10);
+    expect(linhasDaTabela()).toHaveLength(15);
   });
 
   it("a frase de contagem diz o intervalo e o total", () => {
     render(<Vendedores />);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 10 de 12 registros",
+      "Mostrando 1 a 15 de 17 notas",
     );
   });
 
@@ -106,7 +106,7 @@ describe("paginacao em Vendedores", () => {
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(linhasDaTabela()).toHaveLength(2);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 11 a 12 de 12 registros",
+      "Mostrando 16 a 17 de 17 notas",
     );
   });
 
@@ -114,9 +114,9 @@ describe("paginacao em Vendedores", () => {
     render(<Vendedores />);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
-    expect(linhasDaTabela()).toHaveLength(10);
+    expect(linhasDaTabela()).toHaveLength(15);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      "Mostrando 1 a 10 de 12 registros",
+      "Mostrando 1 a 15 de 17 notas",
     );
   });
 
@@ -142,11 +142,11 @@ describe("paginacao em Vendedores", () => {
   it("filtrar volta para a primeira pagina", () => {
     // O defeito 3: quem estava na pagina 2 e filtrava continuava na 2, com a
     // tabela em branco e o rodape escrevendo um intervalo invertido — algo
-    // como "Mostrando 11 a 9 de 9 registros".
+    // como "Mostrando 16 a 9 de 9 notas".
     render(<Vendedores />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 11 a 12");
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 16 a 17");
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
       target: { value: "Cliente 0" },

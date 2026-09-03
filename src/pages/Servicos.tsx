@@ -1046,6 +1046,7 @@ const Servicos: React.FC = () => {
                 page={paginaAtual}
                 pageSize={15}
                 total={totalDeServicos}
+                itemLabel="serviços"
                 onPageChange={setPaginaAtual}
               />
             </div>

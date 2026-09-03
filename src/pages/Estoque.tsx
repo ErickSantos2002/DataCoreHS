@@ -1153,6 +1153,7 @@ const Estoque: React.FC = () => {
                 page={paginaAtual}
                 pageSize={15}
                 total={totalDeProdutos}
+                itemLabel="produtos"
                 onPageChange={setPaginaAtual}
               />
             </div>
