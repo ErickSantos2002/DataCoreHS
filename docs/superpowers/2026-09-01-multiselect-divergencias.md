@@ -531,6 +531,16 @@ navegador nos dois temas, que segue pendente desde o item 1 da Fase 4: olhar o
 rodapé de Contas abaixo de `md` e confirmar que o rodapé de celular que ela
 ganhou de graça não atrapalha a tela de dinheiro.
 
+Junto na mesma conferência, um segundo item: **com uma página só, as seis
+telas passam a mostrar um rodapé completo que antes não existia.** O spec
+autoriza como exceção a frase de contagem aparecer sozinha nesse caso, mas o
+que o primitivo de fato renderiza é maior — a frase mais os botões `Anterior`,
+`1` e `Próxima`, os três desabilitados, onde antes o `{totalPaginas > 1 &&
+...}` escondia o bloco inteiro. É inerente ao `Pagination`, não dá para adotar
+o primitivo e evitar isso, mas nenhuma das seis caracterizações cobre o caso —
+os fixtures usam 17 ou 12 itens, sempre duas páginas ou mais — e vale olhar no
+navegador antes de considerar resolvido.
+
 ### Três achados colaterais, de fora deste item
 
 Apareceram durante a execução, são de outras telas ou fases, e ninguém vai

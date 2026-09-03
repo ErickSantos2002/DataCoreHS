@@ -24,6 +24,17 @@ import { useMemo, useState } from "react";
  * telas o contrato já era verdade antes do hook existir — todas fazem
  * `useMemo(..., [<listaFiltrada>, pesquisaTabela, ordenacao])`.
  *
+ * **O estouro depende de onde a lista instável nasce.** Ele acontece porque,
+ * nas seis telas, a lista sem `useMemo` é montada dentro do próprio
+ * componente que chama o hook — cada render do componente recria o array, o
+ * reset dispara, o render seguinte recria de novo, e o loop estoura alto.
+ * Uma lista instável que chegasse pronta de um componente **pai**, via prop,
+ * não teria esse loop: o pai rerenderiza por outro motivo, entrega uma
+ * referência nova, o reset volta a página para 1 uma vez só e para aí — sem
+ * estourar nada, calado. É por isso que o contrato do `useMemo` é de quem
+ * chama o hook, não de quem o escreveu: o silêncio do estouro aqui não é
+ * garantia geral, é o efeito colateral de como as seis telas montam a lista.
+ *
  * Resetar ao ordenar é intencional e não é efeito colateral: Contas já fazia
  * isso à mão desde `457e4176`, com nove `setPagina(1)` espalhados pelos
  * pontos de filtro e de ordenação. O hook generaliza a decisão em vez de
