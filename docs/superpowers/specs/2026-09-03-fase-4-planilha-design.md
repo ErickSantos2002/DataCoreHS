@@ -118,6 +118,8 @@ que prova que ele deixou de ser cego.
 export interface AbaDePlanilha {
   nome: string;
   linhas: Record<string, unknown>[];
+  /** Ajuste na folha depois de montada. Ver "A exceção de Vendedores". */
+  ajustar?: (folha: XLSX.WorkSheet) => void;
 }
 
 export function baixarPlanilha(abas: AbaDePlanilha[], arquivo: string): void;
@@ -136,6 +138,24 @@ baixarPlanilha(
   `comissao-${diaLocal(new Date())}.xlsx`,
 );
 ```
+
+### A exceção de Vendedores
+
+`Vendedores.tsx` é a única das nove que **mexe na folha depois de montada**: ela
+define `ws['!cols']` com nove larguras e varre as células das colunas `E` e `F`
+pondo `t: "n"` e `z: "#,##0.00"`, para o valor sair como número contábil em vez
+de texto. As outras oito entregam a folha como o `json_to_sheet` devolveu.
+
+Por isso o `ajustar` opcional. É uma saída de emergência, e saída de emergência
+é como se ganha uma prop por tela — o risco nomeado no item 1. O que a mantém
+honesta é o escopo: ela recebe a folha e não devolve nada, quem chama já tem o
+código pronto, e **o docblock diz que Vendedores é a única chamadora**. Se
+aparecer uma segunda, é hora de perguntar se aquilo devia ser padrão em vez de
+exceção.
+
+A alternativa era deixar Vendedores fora da extração. Foi recusada porque o
+esqueleto voltaria a existir em dois lugares, e o próximo a copiar copiaria o
+de lá — que é exatamente como nove cópias nasceram.
 
 **A lista de abas não é generalização especulativa.** A primeira versão desta
 spec propunha uma `aba` só, e a auto-revisão derrubou: `AbaComissao` já monta
@@ -173,8 +193,9 @@ por último pelo motivo de sempre.
 - **Migrar tela.** As seis continuam em `PENDENTES_FASE_3`.
 - **Mexer na montagem das linhas.** As colunas de cada planilha são domínio; se
   alguma estiver errada, é achado para registrar, não para consertar aqui.
-- **Formatação de célula, largura de coluna, tipo de dado no Excel.** Hoje
-  ninguém faz, e fazer agora seria inventar requisito.
+- **Levar a formatação de Vendedores para as outras oito.** Largura de coluna e
+  formato contábil são coisa que só ela faz hoje; espalhar seria mudança de
+  produto, não extração. Se as outras devem ganhar isso, é decisão à parte.
 - **Os outros itens da Fase 4** — preset de período, `useIsMobile`, clique fora.
   O preset ganha de graça o `diaLocal` no lugar certo, e agradece.
 
