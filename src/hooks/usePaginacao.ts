@@ -16,9 +16,12 @@ import { useMemo, useState } from "react";
  * **O reset olha a identidade de `itens`, não o tamanho** — filtrar pode
  * devolver a mesma quantidade e ainda assim ser outra lista. Isso impõe um
  * contrato ao chamador: **`itens` precisa vir de um `useMemo`** cujas
- * dependências sejam os filtros. Uma lista remontada a cada render prenderia
- * a paginação na página 1, calada. Nas seis telas isso já era verdade antes
- * do hook existir — todas fazem
+ * dependências sejam os filtros. Uma lista remontada a cada render **não**
+ * degrada em silêncio: o reset roda durante o render, então cada referência
+ * nova dispara outro reset, que produz outro render com outra referência
+ * nova, e o React aborta com "Too many re-renders". A tela cai em vez de
+ * paginar errado — barulhento, e por isso mesmo difícil de ignorar. Nas seis
+ * telas o contrato já era verdade antes do hook existir — todas fazem
  * `useMemo(..., [<listaFiltrada>, pesquisaTabela, ordenacao])`.
  *
  * Resetar ao ordenar é intencional e não é efeito colateral: Contas já fazia
