@@ -138,4 +138,21 @@ describe("paginacao em Vendedores", () => {
     expect(linhasDaTabela()).toHaveLength(1);
     expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
   });
+
+  it("filtrar volta para a primeira pagina", () => {
+    // O defeito 3: quem estava na pagina 2 e filtrava continuava na 2, com a
+    // tabela em branco e o rodape escrevendo um intervalo invertido — algo
+    // como "Mostrando 11 a 9 de 9 registros".
+    render(<Vendedores />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 11 a 12");
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "Cliente 0" },
+    });
+
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 1 a ");
+    expect(linhasDaTabela().length).toBeGreaterThan(0);
+  });
 });

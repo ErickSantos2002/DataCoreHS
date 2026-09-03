@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
+import { usePaginacao } from "../hooks/usePaginacao";
 import { Phone, Mail } from "lucide-react";
 import {
   BarChart,
@@ -86,8 +87,6 @@ const Vendedores: React.FC = () => {
     campo: 'data_emissao',
     direcao: 'desc'
   });
-  const [paginaAtual, setPaginaAtual] = useState(1);
-  const [itensPorPagina] = useState(10);
   const [pesquisaTabela, setPesquisaTabela] = useState("");
   const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
   const [tipoTemp, setTipoTemp] = useState<string>("");
@@ -356,12 +355,15 @@ const Vendedores: React.FC = () => {
     return filtradas;
   }, [notasFiltradas, pesquisaTabela, ordenacao]);
 
-  // Paginação
-  const notasPaginadas = useMemo(() => {
-    const inicio = (paginaAtual - 1) * itensPorPagina;
-    const fim = inicio + itensPorPagina;
-    return notasTabela.slice(inicio, fim);
-  }, [notasTabela, paginaAtual, itensPorPagina]);
+  // Paginacao: usePaginacao volta para a pagina 1 quando notasTabela muda de
+  // identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
+  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  const {
+    pagina: paginaAtual,
+    setPagina: setPaginaAtual,
+    itensDaPagina: notasPaginadas,
+    total: totalDeNotas,
+  } = usePaginacao(notasTabela, 10);
 
 
   // Formatação de valores
@@ -1144,8 +1146,8 @@ const Vendedores: React.FC = () => {
           <div className="mt-4">
             <Pagination
               page={paginaAtual}
-              pageSize={itensPorPagina}
-              total={notasTabela.length}
+              pageSize={10}
+              total={totalDeNotas}
               onPageChange={setPaginaAtual}
             />
           </div>
