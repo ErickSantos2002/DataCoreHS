@@ -174,13 +174,12 @@ export function tomDaSituacao(situacao: string | null | undefined): TomDaSituaca
 /**
  * Uma linha da planilha — as sete colunas exportadas, nesta ordem.
  *
- * O índice de string é o que deixa este tipo passar como `Record<string,
- * unknown>` para `baixarPlanilha`; sem ele o TypeScript recusa um objeto de
- * propriedades nomeadas onde a assinatura pede índice, mesmo com os mesmos
- * campos.
+ * É `type`, e não `interface`, porque só alias de tipo ganha índice de string
+ * implícito — sem isso o TypeScript recusa passá-la onde `baixarPlanilha` pede
+ * `Record<string, unknown>[]`, e a alternativa seria abrir a interface para
+ * chave arbitrária, perdendo o travamento das sete colunas.
  */
-export interface LinhaDaPlanilha {
-  [coluna: string]: string | number;
+export type LinhaDaPlanilha = {
   Número: string;
   Data: string;
   Cliente: string;
@@ -188,7 +187,7 @@ export interface LinhaDaPlanilha {
   Valor: number;
   Situação: string;
   Vendedor: string;
-}
+};
 
 /**
  * As linhas que vão para o Excel — exatamente as que estão na tabela, no
