@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 
 import { Alert, Card, CardTitle, Input } from "../../design-system/ui";
 import { diaLocal } from "../../lib/datas";
@@ -8,6 +7,7 @@ import {
   formatarDinheiro,
   mascaraDeDinheiro,
 } from "../../lib/dinheiro";
+import { baixarPlanilha } from "../../lib/planilha";
 import {
   INCENTIVOS_ATIVOS,
   calcularComissoes,
@@ -90,34 +90,34 @@ const AbaComissao: React.FC = () => {
    * e somar a coluna é a primeira coisa que alguém faz com o arquivo.
    */
   function exportar() {
-    const livro = XLSX.utils.book_new();
-
-    const abaDeVendas = XLSX.utils.json_to_sheet(
-      fechamentoDeVendas.linhas.map((linha) => ({
-        Vendedor: linha.nome,
-        "Total faturado": linha.total,
-        "Alíquota inbound": linha.aliquotas.inbound,
-        "Alíquota recompra": linha.aliquotas.recompra,
-        "Alíquota outbound": linha.aliquotas.outbound,
-        Comissão: linha.comissao,
-        Bônus: linha.bonus,
-        Rateio: linha.rateio,
-        Recebe: linha.recebe,
-        "Pelo mínimo garantido": linha.peloRateio ? "sim" : "não",
-      })),
+    baixarPlanilha(
+      [
+        {
+          nome: "Vendas",
+          linhas: fechamentoDeVendas.linhas.map((linha) => ({
+            Vendedor: linha.nome,
+            "Total faturado": linha.total,
+            "Alíquota inbound": linha.aliquotas.inbound,
+            "Alíquota recompra": linha.aliquotas.recompra,
+            "Alíquota outbound": linha.aliquotas.outbound,
+            Comissão: linha.comissao,
+            Bônus: linha.bonus,
+            Rateio: linha.rateio,
+            Recebe: linha.recebe,
+            "Pelo mínimo garantido": linha.peloRateio ? "sim" : "não",
+          })),
+        },
+        {
+          nome: "Serviço",
+          linhas: fechamentoDeServico.linhas.map((linha) => ({
+            Pessoa: linha.nome,
+            "% do papel": linha.percentual,
+            Valor: linha.valor,
+          })),
+        },
+      ],
+      `comissao-${diaLocal(new Date())}.xlsx`,
     );
-    XLSX.utils.book_append_sheet(livro, abaDeVendas, "Vendas");
-
-    const abaDeServico = XLSX.utils.json_to_sheet(
-      fechamentoDeServico.linhas.map((linha) => ({
-        Pessoa: linha.nome,
-        "% do papel": linha.percentual,
-        Valor: linha.valor,
-      })),
-    );
-    XLSX.utils.book_append_sheet(livro, abaDeServico, "Serviço");
-
-    XLSX.writeFile(livro, `comissao-${diaLocal(new Date())}.xlsx`);
   }
 
   return (
