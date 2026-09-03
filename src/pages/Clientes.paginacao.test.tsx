@@ -141,4 +141,15 @@ describe("paginacao em Clientes", () => {
     expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
   });
+
+  it("com filtro que nao casa nada, a tabela diz que esta vazia", () => {
+    render(<Clientes />);
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "zzzzz-nao-existe" },
+    });
+
+    expect(linhasDaTabela()).toHaveLength(1);
+    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+  });
 });

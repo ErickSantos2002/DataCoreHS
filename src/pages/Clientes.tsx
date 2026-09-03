@@ -1,7 +1,13 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
-import { MultiSelect, Pagination, deTextos, buscaPorRotuloValorOuNumero } from "../design-system/ui";
+import {
+  MultiSelect,
+  Pagination,
+  TableEmpty,
+  deTextos,
+  buscaPorRotuloValorOuNumero,
+} from "../design-system/ui";
 import {
   BarChart,
   Bar,
@@ -1080,7 +1086,12 @@ const Clientes: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {clientesPaginados.map((cliente, index) => (
+                  {clientesPaginados.length === 0 ? (
+                    // Pagination some com total zero; sem isso a tabela ficava
+                    // muda no filtro sem resultado (defeito 2 do spec).
+                    <TableEmpty colSpan={5} />
+                  ) : (
+                    clientesPaginados.map((cliente, index) => (
                     <tr
                       key={cliente.id}
                       className={`border-b border-gray-100 dark:border-gray-700 
@@ -1144,7 +1155,8 @@ const Clientes: React.FC = () => {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
