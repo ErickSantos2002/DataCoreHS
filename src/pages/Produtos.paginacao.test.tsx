@@ -106,7 +106,7 @@ describe("paginacao em Produtos", () => {
   it("Proximo leva a segunda pagina, que tem o resto", () => {
     render(<Produtos />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     expect(linhasDaTabela()).toHaveLength(2);
     expect(within(corpoDaTabela()).getByText("Produto 11")).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("paginacao em Produtos", () => {
   it("Anterior volta para a primeira", () => {
     render(<Produtos />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
 
     expect(within(corpoDaTabela()).getByText("Produto 01")).toBeInTheDocument();
@@ -133,9 +133,9 @@ describe("paginacao em Produtos", () => {
 
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
-    expect(screen.getByRole("button", { name: "Próximo" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
   });
 });
