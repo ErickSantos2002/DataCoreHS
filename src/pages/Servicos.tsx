@@ -38,7 +38,7 @@ import {
   MapPin,
   Building,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -411,10 +411,10 @@ const Servicos: React.FC = () => {
       'Descrição': s.discriminacao_servico
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Serviços");
-    XLSX.writeFile(wb, `servicos_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [{ nome: "Serviços", linhas: dadosExport }],
+      `servicos_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
   }, [servicosTabela]);
 
   // Exportação para PDF
