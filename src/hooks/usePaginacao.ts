@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 /**
  * Estado de paginação de uma listagem: a página atual, o corte da lista e o
@@ -25,17 +25,29 @@ import { useEffect, useMemo, useState } from "react";
  * isso à mão desde `457e4176`, com nove `setPagina(1)` espalhados pelos
  * pontos de filtro e de ordenação. O hook generaliza a decisão em vez de
  * pedir que cada tela lembre dela.
+ *
+ * **O reset acontece durante o render, não num `useEffect`.** Com efeito
+ * existiria um render em que `itens` já é a lista nova e `pagina` ainda é a
+ * antiga — nele `slice(10, 20)` numa lista de 3 devolve vazio, e a tabela
+ * pisca no estado vazio antes do efeito corrigir. Ajustando aqui, o React
+ * descarta esse render e refaz antes de tocar no DOM: nada chega a ser
+ * pintado. É o padrão que a documentação do React recomenda para "ajustar
+ * estado quando uma prop muda", e o motivo da regra de lint
+ * `react-hooks/set-state-in-effect` existir.
  */
 export function usePaginacao<T>(itens: T[], tamanhoDaPagina: number) {
   const [pagina, setPagina] = useState(1);
+  const [listaAnterior, setListaAnterior] = useState(itens);
 
-  useEffect(() => {
-    // O reset ao trocar de lista e o contrato deste hook (ver docblock);
-    // nao e estado derivado de render, e sim reacao a troca de identidade
-    // de `itens`.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  // Reset durante o render, e nao num efeito: com `useEffect` existiria um
+  // render com a lista nova e a pagina velha, em que `slice(10, 20)` numa
+  // lista de 3 devolve vazio e a tabela pisca no estado vazio antes de
+  // corrigir. Ajustando aqui, o React descarta este render e refaz antes de
+  // tocar no DOM, entao o estado intermediario nunca aparece.
+  if (itens !== listaAnterior) {
+    setListaAnterior(itens);
     setPagina(1);
-  }, [itens]);
+  }
 
   const itensDaPagina = useMemo(() => {
     const inicio = (pagina - 1) * tamanhoDaPagina;

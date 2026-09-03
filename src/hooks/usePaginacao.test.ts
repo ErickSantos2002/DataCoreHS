@@ -79,4 +79,24 @@ describe("usePaginacao", () => {
     expect(result.current.total).toBe(0);
     expect(result.current.itensDaPagina).toEqual([]);
   });
+
+  it("depois de trocar de lista, ainda da para paginar a mao", () => {
+    // O `listaAnterior` precisa acompanhar a lista nova, senao o reset
+    // dispararia de novo a cada render e a paginacao ficaria presa na
+    // primeira pagina depois de qualquer filtro — travando justamente quem
+    // filtrou e quer ver o resto.
+    const OUTRA = Array.from({ length: 12 }, (_, i) => `outro ${i + 1}`);
+    const { result, rerender } = renderHook(
+      ({ itens }) => usePaginacao(itens, 10),
+      { initialProps: { itens: LISTA } },
+    );
+
+    rerender({ itens: OUTRA });
+    expect(result.current.pagina).toBe(1);
+
+    act(() => result.current.setPagina(2));
+
+    expect(result.current.pagina).toBe(2);
+    expect(result.current.itensDaPagina).toEqual(["outro 11", "outro 12"]);
+  });
 });
