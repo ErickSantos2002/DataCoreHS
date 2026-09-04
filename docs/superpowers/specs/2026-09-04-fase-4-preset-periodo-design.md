@@ -25,7 +25,8 @@ resposta que Contas já deu.
 Cinco telas — `Clientes`, `Produtos`, `Servicos`, `Vendas` e `Vendedores` —
 carregam o mesmo `useEffect` de 32 linhas. Eles são **byte a byte idênticos**:
 mesmo `md5`, mesma indentação, mesmos comentários. Não há uma única divergência
-entre as cinco.
+entre as cinco **no bloco do preset** — o filtro que consome as datas, esse sim,
+diverge em `Servicos`, e está tratado mais abaixo.
 
 Isso é diferente do `MultiSelect`, que eram seis peças que discordavam entre si.
 Aqui **toda a divergência é contra Contas**:
@@ -47,52 +48,50 @@ Contas resolveu isso separando os dois em opções distintas, e registrou no
 docblock por que o mês passou a terminar no último dia: *"uma conta emitida dia
 20 sumia do 'mês atual' enquanto hoje fosse dia 15"*.
 
-## Os dois defeitos, que são independentes
+## O defeito — e o que parecia ser um segundo, e não era
 
-O item foi previsto como "o preset monta data em UTC". São dois, e o segundo é
-mais grave.
-
-### 1. O preset monta a data em UTC
+### O preset monta a data em UTC
 
 `hoje.toISOString().split("T")[0]` devolve o dia em UTC. Em `anoAtual` o bloco
 mistura `getFullYear()` (local) com `toISOString()` (UTC), que é textualmente o
 defeito que `contas.ts:257` documenta. É o defeito que o `PENDENTES_UTC` do
 `guarda-planilha` rastreia hoje, com as cinco telas na lista.
 
-Adotar `periodoDoPreset`, que sai de `diaLocal`, resolve.
+Adotar `periodoDoPreset`, que sai de `diaLocal`, resolve. **É o único defeito
+deste item.**
 
-### 2. O filtro esconde as notas emitidas hoje
+### O filtro: investigado, e está correto
 
-Este não estava previsto. As cinco filtram assim:
+Este documento afirmou, numa versão anterior, que o filtro escondia as notas
+emitidas hoje. **Estava errado, e o registro fica porque o erro é instrutivo.**
 
-```tsx
-(!dataFim || new Date(n.data_emissao) <= new Date(dataFim))
-```
+As cinco filtram com `new Date(n.data_emissao) <= new Date(dataFim)`, e a
+suspeita era que `data_emissao` chegasse como `"2026-09-04T00:00:00"` — sem `Z`,
+parseado como hora **local** — contra um `dataFim` `"2026-09-04"`, parseado como
+meia-noite **UTC**. Em Brasília os dois viram instantes diferentes e o `<=`
+reprovaria a nota do dia.
 
-`n.data_emissao` chega como `"2026-09-04T00:00:00"` — sem `Z`, então o
-JavaScript parseia como **hora local**. `dataFim` é `"2026-09-04"` — data pura,
-que o JavaScript parseia como **meia-noite UTC**. Em Brasília os dois viram
-instantes diferentes, e o `<=` reprova:
+O mecanismo é real. **A premissa não era:** `DataContext.tsx:70-79` e
+`ServicosContext.tsx:68-79` normalizam `data_emissao` para data pura antes de
+entregar às telas. Os dois lados do `<=` chegam como `AAAA-MM-DD`, os dois são
+parseados como meia-noite UTC, e a comparação está certa. Rodado contra o
+pipeline real: a nota de hoje aparece.
 
-```
-nota emitida hoje  → 2026-09-04T03:00:00.000Z
-dataFim = hoje     → 2026-09-04T00:00:00.000Z
-com fim=hoje  → a nota de hoje aparece? false
-com fim=30/09 → a nota de hoje aparece? true
-```
+**A lição:** verificar o mecanismo não é verificar o defeito. O formato com hora
+existe no repositório — em `Locacao.test.tsx` —, e foi de lá que a suspeita veio.
+Um defeito só é defeito depois de alguém seguir o dado da API até a comparação.
 
-**Com qualquer preset que termine hoje, as notas emitidas hoje somem da tela.**
-Vale para "Últimos 7 dias", para "Mês atual" e para "Ano atual" — os três.
+Fica registrado o que a investigação achou de verdade, tudo fora deste item:
 
-Contas escapa porque compara **texto** (`emissao < filtros.dataInicio`), sem
-construir `Date` nenhum. É a forma certa, e este repositório já a escolheu uma
-vez.
-
-Adotar o `periodoDoPreset` **mascararia** o sintoma em `mesAtual` e `anoAtual`,
-porque a ponta final passa a ser o fim do mês e do ano. Mas `7dias` e `30dias`
-continuam terminando hoje, e continuariam escondendo as notas de hoje. Por isso
-os dois defeitos entram no mesmo item: entregar só o primeiro seria entregar um
-preset certo alimentando um filtro errado.
+- **O filtro do `Servicos` diverge das outras quatro** (`Servicos.tsx:179-180`),
+  usando `new Date(dataInicio + "T00:00:00")` e `+ "T23:59:59"`. É parse local
+  explícito com borda de fim de dia — **mais robusto** que o das outras quatro,
+  não menos.
+- **A normalização do `DataContext` passa por `toISOString()`** (linha 75), num
+  bloco cujo comentário diz "sem UTC". A ida e volta é identidade a oeste de
+  Greenwich, então funciona aqui; a leste, deslocaria um dia.
+- As quatro dependem dessa normalização continuar existindo para o `new Date`
+  dos dois lados seguir concordando. Funciona, e é frágil.
 
 ## As decisões
 
@@ -116,11 +115,10 @@ mesmo módulo, e `FiltrosDeContas.tsx` passa a consumi-la. Sem isso sobraria uma
 sexta cópia da lista de opções — exatamente o defeito que o item existe para
 matar, sobrevivendo à sua própria correção.
 
-**5. A normalização da data é função nomeada, não `slice` solto.** Comparar
-texto exige normalizar os dois lados: `"2026-09-04T00:00:00" > "2026-09-04"` é
-verdadeiro, e a nota da borda sumiria de novo, pelo outro caminho. Contas não
-enfrenta isso porque o campo dela é só data. As cinco enfrentam, e a conta vai
-para `lib/periodo.ts` com nome e docblock, não repetida cinco vezes.
+**5. O filtro das cinco NÃO é tocado.** A investigação acima mostrou que ele
+está correto. Mexer em cinco filtros que funcionam, sem defeito para mostrar e
+sem teste que consiga demonstrar diferença de comportamento, é risco sem
+retorno. O que a investigação achou vai para o documento de divergências.
 
 **6. Os testes de `periodoDoPreset` NÃO precisam ser endurecidos — conferido, e
 o contrário do que este documento supôs primeiro.** A suspeita era que eles
@@ -147,37 +145,48 @@ telas, que é onde a fiação nova mora.
 - `periodoDoPreset(preset, agora)` — movido, sem mudança de corpo;
 - `periodoDoMes(ano, indiceDoMes)` — movido, dependência da anterior;
 - `PRESETS_DE_PERIODO` — a lista `{ value, label }` das cinco opções, hoje só
-  em `FiltrosDeContas.tsx`;
-- `diaDaData(valor)` — a normalização para `AAAA-MM-DD` que o filtro por texto
-  exige;
-- `dentroDoPeriodo(data, inicio, fim)` — a comparação por texto, que substitui
-  os dois `new Date(...)` de cada uma das cinco.
+  em `FiltrosDeContas.tsx` (onde se chama `PRESETS`).
 
 ## Como se prova
 
-**`src/pages/presetDePeriodo.test.tsx`** — um arquivo, as cinco telas. Monta
-cada uma, dirige o dropdown de período e afirma as duas datas resultantes e as
-linhas que sobram na tabela. Quatro compartilham `useAuth + useData`, então um
-helper serve para quatro; `Servicos` usa `useServicos` e tem o seu.
+**Uma correção ao que este documento supôs:** as cinco **têm** teste. Não em
+`<Nome>.test.tsx`, que não existe, mas em `<Nome>.paginacao.test.tsx` e
+`<Nome>.multiselect.test.tsx` — dez arquivos, escritos nos itens 1 e 2 desta
+mesma fase. Eles já trazem o harness pronto: `vi.mock("../hooks/useAuth")` e
+`vi.mock("../context/DataContext")` (ou `ServicosContext`, em `Servicos`), com
+fixtures de nota e cliente montados à mão.
 
-Nenhuma das cinco tem teste hoje — são as telas ainda não migradas da Fase 3.
-Este arquivo **não** é a caracterização que a Fase 3 vai pedir quando migrar
-cada uma: cobre só a fiação que este item muda, que é dropdown → datas →
-linhas. A caracterização completa continua sendo trabalho da Fase 3.
+Isso muda a estratégia para melhor: **não se escreve harness novo.** O teste
+deste item, `src/pages/<Nome>.periodo.test.tsx`, nasce por decalque do
+`.paginacao.test.tsx` de cada tela — mesmo mock, mesmo formato de fixture, só o
+fixture com datas escolhidas para separar as opções do dropdown.
 
-A ordem obriga a ver a quebra: o teste das cinco telas é escrito e verde contra
-o comportamento **novo** só depois de o `useEffect` sair — antes disso ele tem de
-falhar, e essa falha é a prova de que o teste enxerga a fiação.
+Cinco arquivos, um por tela, seguindo a nomenclatura que os itens 1 e 2 já
+fixaram. Cada um monta a tela, dirige o `<select>` de período e afirma as duas
+datas resultantes nos campos e as linhas que sobram na tabela.
+
+A ordem obriga a ver a quebra: o teste é escrito contra o comportamento **novo**
+e roda **antes** de o `useEffect` sair. Ele tem de falhar — "Mês atual" ainda
+devolvendo 01/09 a 04/09 em vez de 01/09 a 30/09 — e essa falha é a prova de que
+o teste enxerga a fiação.
+
+Estes cinco arquivos **não** são a caracterização que a Fase 3 vai pedir quando
+migrar cada tela: cobrem só o preset, do mesmo jeito que os `.paginacao` cobrem
+só a paginação.
 
 ## O que NÃO entra
 
 - **Migrar as cinco telas para o design system.** Elas seguem no
   `PENDENTES_FASE_3`; o `<select>` continua markup cru. Este item troca a
   lógica, não a aparência.
+- **O filtro das cinco.** Está correto — ver a investigação acima. A divergência
+  do `Servicos` e a fragilidade das outras quatro vão para o documento de
+  divergências.
+- **O `toISOString()` dentro de `DataContext.tsx:75`**, no bloco que diz "sem
+  UTC". Não é `src/pages/`, não é este item, e funciona a oeste de Greenwich.
+  Registrado.
 - **`emissaoDe` de Contas não normalizar a data.** Hoje é inofensivo, porque o
-  campo de emissão de Contas é data pura — mas é a mesma armadilha do item 5,
-  a um campo de distância de virar defeito. Vai para o documento de
-  divergências, não para o código.
+  campo de emissão de Contas é data pura. Registrado.
 - **O `useIsMobile` e o clique fora**, que são os dois itens seguintes.
 
 ## Riscos
@@ -203,8 +212,10 @@ para a lista não ficar lá vazia sem ninguém saber por quê.
 - `periodoDoPreset`, `periodoDoMes` e `Periodo` existem uma vez só, em
   `src/lib/periodo.ts`; `contas.ts` importa de lá.
 - A lista de opções existe uma vez só, e `FiltrosDeContas.tsx` a consome.
-- O teste das cinco telas **falha** contra o `useEffect` antigo, provado por
-  plantio antes de ele sair.
+- O filtro das cinco está **intocado**: `git diff` não mostra mudança nas linhas
+  de comparação de data.
+- Os cinco testes de período **falham** contra o `useEffect` antigo, visto antes
+  de ele sair — não por plantio, mas porque a ordem os põe primeiro.
 - As cinco telas respondem ao dropdown com as datas de Contas, provado pelo
   teste das cinco.
 - Suíte não regride e lint não sobe: baseline **1437 testes / 94 arquivos**,
