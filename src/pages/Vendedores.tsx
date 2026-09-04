@@ -33,6 +33,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import ModalObservacoes from "../components/ModalObservacoes";
 import { useToast } from "../components/ToastProvider";
@@ -463,7 +464,7 @@ const Vendedores: React.FC = () => {
           },
         },
       ],
-      `vendas_${vendedorLogado}_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `vendas_${vendedorLogado}_${diaLocal(new Date())}.xlsx`,
     );
   }, [notasTabela, vendedorLogado]);
 
