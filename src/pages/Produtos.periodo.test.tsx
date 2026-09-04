@@ -64,15 +64,6 @@ vi.mock("recharts", () => {
   };
 });
 
-/** O `<tbody>` da tabela, escopado — o card "Produto Mais Vendido" também
- * mostra o nome do produto, então uma busca sem escopo por "Produto 01"
- * acha os dois e `getByText` reclama de elemento duplicado. */
-function corpoDaTabela(): HTMLElement {
-  const corpo = document.querySelector("tbody");
-  if (!corpo) throw new Error("tbody nao encontrado");
-  return corpo as HTMLElement;
-}
-
 /**
  * O preset de período em Produtos, depois da adoção do `periodoDoPreset`.
  *
