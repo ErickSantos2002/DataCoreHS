@@ -30,6 +30,7 @@ import {
   ChevronDown,
   Hash,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import { MultiSelect, Pagination, TableEmpty, deTextos } from "../design-system/ui";
 
@@ -447,7 +448,7 @@ const Produtos: React.FC = () => {
 
     baixarPlanilha(
       [{ nome: "Produtos", linhas: dadosExport }],
-      `produtos_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `produtos_${diaLocal(new Date())}.xlsx`,
     );
   }, [produtosTabela]);
 
