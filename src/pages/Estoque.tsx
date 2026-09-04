@@ -26,7 +26,8 @@ import {
   ChevronDown,
   Activity,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { diaLocal } from "../lib/datas";
+import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import SolicitacaoComprasModal from "../components/SolicitacaoComprasModal";
@@ -358,10 +359,10 @@ const Estoque: React.FC = () => {
       'Valor Total': p.saldo * p.preco
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Estoque");
-    XLSX.writeFile(wb, `estoque_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [{ nome: "Estoque", linhas: dadosExport }],
+      `estoque_${diaLocal(new Date())}.xlsx`,
+    );
   }, [produtosTabela]);
 
   // Geração de PDF da solicitação de compra
@@ -399,7 +400,7 @@ const Estoque: React.FC = () => {
     );
 
     // Salvar
-    doc.save(`solicitacao_compras_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`solicitacao_compras_${diaLocal(new Date())}.pdf`);
     fecharModal();
   };
 

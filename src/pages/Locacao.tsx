@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 
 import { Alert, Spinner } from "../design-system/ui";
 import { useAuth } from "../hooks/useAuth";
+import { baixarPlanilha } from "../lib/planilha";
 import { fetchLocacao, type NotaLocacao } from "../services/notasapi";
 import { CabecalhoLocacao } from "./locacao/CabecalhoLocacao";
 import { ResumoLocacao } from "./locacao/ResumoLocacao";
@@ -67,10 +67,10 @@ const Locacao: React.FC = () => {
   }, []);
 
   const exportarExcel = useCallback(() => {
-    const planilha = XLSX.utils.json_to_sheet(linhasDaPlanilha(notasTabela));
-    const livro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(livro, planilha, ABA_DA_PLANILHA);
-    XLSX.writeFile(livro, nomeDoArquivo());
+    baixarPlanilha(
+      [{ nome: ABA_DA_PLANILHA, linhas: linhasDaPlanilha(notasTabela) }],
+      nomeDoArquivo(),
+    );
   }, [notasTabela]);
 
   if (carregando) {

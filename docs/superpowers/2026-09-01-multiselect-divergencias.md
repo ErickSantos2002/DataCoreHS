@@ -28,6 +28,13 @@ molde — tamanho de página e substantivo da contagem — **fixadas em teste** 
 seis telas, e mais uma decisão de aparência sem teste que a cubra, para a
 conferência no navegador.
 
+O item 11, da mesma fase, é o primeiro que registra um defeito **corrigido**
+em vez de preservado: o nome do arquivo exportado saía em UTC em onze lugares.
+O que ele deixa pedindo decisão são quatro coisas, e **nenhuma está fixada em
+teste** — uma prop com chamadora única, o preset de período que continua em UTC
+(isento por lista que só encolhe), duas datas de dado fora do alcance do guarda,
+e uma duplicação de PDF que sobreviveu à correção.
+
 O item 7 era o único que não pedia escolha entre dois comportamentos
 defensáveis — era regressão de acessibilidade — e **deixou de ser pendência**:
 foi resolvido na fase de 02/09/2026. Ele continua aqui como registro do que
@@ -573,6 +580,91 @@ hook (`src/hooks/usePaginacao.ts`), e vale a menção aqui porque é a garantia
 de que ninguém vai violar o contrato por acidente sem notar — a tela cai na
 hora, alto e claro.
 
+## 11. A exportação para Excel — o item 3 da Fase 4, e o defeito de fuso que ele desenterrou
+
+Fechado em 04/09/2026. `json_to_sheet` + `book_new` + `book_append_sheet` +
+`writeFile` estavam copiados em nove arquivos; hoje o esqueleto existe em um só,
+`src/lib/planilha.ts`, e as nove telas consomem `baixarPlanilha`. `diaLocal`
+subiu para `src/lib/datas.ts`, onde já morava `dataDeCalendario`. Os detalhes da
+execução estão em `2026-09-03-fase-4-planilha-design.md` e em
+`2026-09-03-fase-4-planilha-retomada.md`; aqui fica o que sobrou.
+
+**A cópia carregava um defeito, e a cópia é que o espalhou.** O nome do arquivo
+saía de `toISOString()`, que devolve o dia em **UTC**: às 23h de 28/08 em
+Brasília já são 02h de 29/08 em UTC, e quem exportava à noite arquivava com a
+data do dia seguinte. Onze ocorrências, em oito arquivos:
+
+| Onde | Formato | Como estava |
+|---|---|---|
+| Produtos, Vendas, Vendedores | `.xlsx` | `new Date().toISOString()` |
+| Clientes, Estoque, Serviços | `.xlsx` **e** `.pdf` | `new Date().toISOString()` |
+| `locacao/notasDeLocacao.ts` | `.xlsx` | `hoje.toISOString()`, parâmetro |
+| `components/SolicitacaoComprasModal.tsx` | `.pdf` | `new Date().toISOString()` |
+
+Sete das nove telas que exportam tinham o defeito. As duas que não tinham —
+Contas e a aba de Comissão — já haviam sido consertadas na Fase 3, e é por isso
+que o `diaLocal` existia em duas cópias antes deste item: cada conserto anterior
+escreveu a sua.
+
+**O plano previa sete, e eram onze.** Ele foi redigido em cima do `xlsx` e não
+enxergou os `.pdf`, que montam o nome pela mesma expressão, na mesma tela, três
+linhas abaixo. O décimo primeiro estava fora de `src/pages/` inteiramente —
+`components/SolicitacaoComprasModal.tsx` —, e só apareceu no passo final de
+conferência do spec, que varre `src/` e não `src/pages/`.
+
+**Locação é o caso que vale guardar, porque ela tinha teste.** Era tela migrada,
+com caracterização, e o defeito atravessou a migração inteira mesmo assim —
+porque os dois testes que tocavam o nome do arquivo **pregavam o defeito**, cada
+um do seu jeito:
+
+- `Locacao.test.tsx:545` calculava a data esperada com o mesmo
+  `new Date().toISOString()` que a tela usava. Concordava com a tela **por
+  construção**, certa ou errada. Fixar o que existe é o método correto — o que
+  faltou foi o passo seguinte, que é decidir o defeito em vez de deixá-lo
+  pregado;
+- `locacao/notasDeLocacao.test.ts:93` escolheu `12:00Z` como instante. Meio-dia
+  cai no mesmo dia em São Paulo e em UTC, então a asserção nunca exercitou a
+  virada.
+
+**A lição, que vale além deste item: um teste de data que escolhe o meio-dia não
+testa fuso.** O instante tem de ser escolhido perto da virada — e construído em
+**hora local** (`new Date(2026, 7, 28, 23, 0, 0)`), nunca por string ISO, para a
+asserção valer nos dois fusos sem consultar `process.env.TZ`. Com o instante
+trocado, o teste falhou pela primeira vez em `TZ=America/Sao_Paulo`, pedindo
+`locacao_2026-08-28.xlsx` e recebendo `locacao_2026-08-29.xlsx`.
+
+**O que trava isso agora:** `src/test/guarda-planilha.test.ts`, quatro testes.
+O esqueleto do `xlsx` só em `lib/planilha.ts`; nenhum
+`new Date().toISOString()` em `src/` inteiro; nenhum `toISOString` numa tela já
+limpa; e a lista de pendentes sem entrada obsoleta. Os quatro foram provados com
+plantio — quebra plantada, falha observada, revertida.
+
+### O que sobrou pedindo decisão
+
+**`ajustar` tem uma chamadora só.** É a prop de `AbaDePlanilha` que deixa mexer
+na folha antes de anexá-la ao livro, e existe porque `Vendedores` define largura
+de coluna. Uma segunda chamadora é sinal de que aquilo devia ser padrão do
+primitivo, não injeção — vale reavaliar quando aparecer.
+
+**O preset de período continua em UTC nas cinco telas**, e é o próximo item da
+Fase 4. Está isento no guarda pela lista `PENDENTES_UTC`, que **só encolhe**:
+apagar a linha é parte de migrar a tela, e o guarda falha se um arquivo da lista
+já estiver limpo. `Estoque` não está na lista — ela exporta, mas não tem preset.
+
+**Duas datas fora de nome de arquivo, que nenhum item da Fase 4 cobre.**
+`context/DataContext.tsx:75` e `context/DashboardContext.tsx:187` montam data com
+`toISOString`, e `Clientes.tsx:1133` exibe `ultimaCompra` em dd/mm/yyyy pelo
+mesmo caminho. É a mesma família de defeito, mas é data de **dado** e de
+**exibição**, não nome de arquivo. Ficam fora do guarda de propósito: estendê-lo
+até `context/` exigiria uma segunda lista de isenção para um problema que
+ninguém decidiu ainda.
+
+**O PDF de solicitação de compras existe em dois lugares.** `Estoque.tsx:403` e
+`components/SolicitacaoComprasModal.tsx:92` geram o mesmo
+`solicitacao_compras_AAAA-MM-DD.pdf`, cada um com o seu `jsPDF`. Os dois tinham
+o mesmo defeito de UTC e os dois foram corrigidos, mas a duplicação em si não
+foi tocada — não é planilha, e ninguém decidiu qual das duas é a boa.
+
 ## O que a fase entregou
 
 Nenhuma das seis cópias sobrou: `grep -rn "const MultiSelect" src/pages/`
@@ -601,13 +693,17 @@ construiu. Uma correção ao spec, conferida agora: ele **já tem um consumidor*
 que ainda rolam paginação própria. Ele devolve `null` com zero resultados e
 pressupõe `TableEmpty` no consumidor, que as seis ainda não têm.
 
-**Extração para Excel em `src/lib/planilha.ts`.** O spec falava em sete
-arquivos montando `json_to_sheet` + `book_new` + `book_append_sheet` +
-`writeFile` na mão; hoje são **nove** — as seis telas desta fase mais
-`financeiro/AbaComissao.tsx`, `Locacao.tsx` e `contas/TelaDeContas.tsx`.
+**Extração para Excel em `src/lib/planilha.ts` — feita em 04/09/2026, item 11
+acima.** O spec falava em sete arquivos montando `json_to_sheet` + `book_new` +
+`book_append_sheet` + `writeFile` na mão; eram **nove** — as seis telas desta
+fase mais `financeiro/AbaComissao.tsx`, `Locacao.tsx` e
+`contas/TelaDeContas.tsx`. Hoje é um.
 
-**Preset de período.** Cinco telas com o mesmo defeito, e vale registrar a
-forma exata dele: o rótulo que a pessoa lê já diz "Mês atual" nas cinco, mas o
+**Preset de período.** Cinco telas com o mesmo defeito. Ele já encontra
+`diaLocal` pronto em `src/lib/datas.ts`, posto lá pelo item 11, e as cinco telas
+são exatamente a lista `PENDENTES_UTC` do `guarda-planilha` — que falha se
+alguma delas for limpa sem a linha sair da lista. Vale registrar a forma exata
+do defeito: o rótulo que a pessoa lê já diz "Mês atual" nas cinco, mas o
 valor da opção é `"30dias"` e é ele que o `switch` casa — e o ramo monta
 `new Date(hoje.getFullYear(), hoje.getMonth(), 1)`, o primeiro dia do mês
 corrente, não trinta dias atrás. Ou seja: a interface não mente para quem usa, o

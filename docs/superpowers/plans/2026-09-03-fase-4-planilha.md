@@ -893,6 +893,7 @@ E assim para as outras cinco.
 - Modify: `src/pages/locacao/notasDeLocacao.ts` (`nomeDoArquivo`, `:209`)
 - Test: `src/pages/locacao/notasDeLocacao.test.ts:93` — **edição autorizada 1**
 - Test: `src/pages/Locacao.test.tsx:545` — **edição autorizada 2**
+- Create: `src/test/guarda-planilha.test.ts` — o guarda que trava os dois defeitos
 
 **Interfaces:**
 - Consumes: `diaLocal` (Task 1).
@@ -979,10 +980,88 @@ grep -rn "toISOString" src/
 Expected: nenhuma geração de nome de arquivo. Se aparecer `toISOString` em
 outro contexto (data para API, por exemplo), tudo bem — reporte onde.
 
+- [ ] **Passo 7b: o guarda que trava os dois defeitos, para sempre**
+
+Criar `src/test/guarda-planilha.test.ts`, no estilo da família de guardas que já
+existe em `src/test/` (`guarda-cores`, `guarda-alert`, `guarda-primitivos`…):
+
+```ts
+import { readdirSync, readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const arquivosDeCodigo = readdirSync("src", { recursive: true, encoding: "utf8" })
+  .filter(
+    (c) =>
+      /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"),
+  )
+  .map((c) => `src/${c}`);
+
+describe("guarda de planilha", () => {
+  it("o esqueleto do xlsx so existe em src/lib/planilha.ts", () => {
+    // Eram nove copias de `json_to_sheet` + `book_new` + `book_append_sheet` +
+    // `writeFile`, e sete delas montavam o nome do arquivo em UTC. Concentrar
+    // o esqueleto so vale se ele nao voltar a se espalhar: a decima copia
+    // nasceria com o mesmo defeito, porque quem copia copia inteiro.
+    const infratores: string[] = [];
+    for (const caminho of arquivosDeCodigo) {
+      if (caminho === "src/lib/planilha.ts") continue;
+      const conteudo = readFileSync(caminho, "utf8");
+      conteudo.split("\n").forEach((linha, i) => {
+        if (/json_to_sheet|book_new|book_append_sheet|XLSX\.writeFile/.test(linha)) {
+          infratores.push(`${caminho}:${i + 1}`);
+        }
+      });
+    }
+    expect(infratores).toEqual([]);
+  });
+
+  it("nenhum nome de arquivo exportado sai de toISOString", () => {
+    // `toISOString()` devolve UTC: as 23h de 28/08 em Sao Paulo ja sao 02h de
+    // 29/08 em UTC, e quem exportava a noite arquivava com a data do dia
+    // seguinte. O dia local sai de `diaLocal`, em src/lib/datas.ts.
+    //
+    // O guarda pula linha de COMENTARIO de proposito: varios arquivos de
+    // `pages/` citam `toISOString` justamente para explicar o defeito que
+    // deixaram de ter, e acusar esses comentarios seria acusar codigo certo —
+    // um guarda que acusa codigo certo e desligado.
+    const infratores: string[] = [];
+    for (const caminho of arquivosDeCodigo) {
+      if (!caminho.startsWith("src/pages/")) continue;
+      const conteudo = readFileSync(caminho, "utf8");
+      conteudo.split("\n").forEach((linha, i) => {
+        const semEspaco = linha.trim();
+        const eComentario =
+          semEspaco.startsWith("//") ||
+          semEspaco.startsWith("*") ||
+          semEspaco.startsWith("/*");
+        if (!eComentario && /toISOString\s*\(/.test(linha)) {
+          infratores.push(`${caminho}:${i + 1}`);
+        }
+      });
+    }
+    expect(infratores).toEqual([]);
+  });
+});
+```
+
+Rodar: `npx vitest run src/test/guarda-planilha.test.ts` — os dois têm de passar
+**agora**, e só agora: antes da Task 7 o primeiro falharia, e antes desta task o
+segundo falharia.
+
+**Confira que o guarda não acusa comentário.** Estes quatro arquivos citam
+`toISOString` em comentário, explicando o defeito que deixaram de ter, e **não**
+podem aparecer como infratores: `pages/contas/contas.ts:257` e `:637`,
+`pages/contas/contas.test.ts:291`, `pages/ContasPagar.test.tsx:1270` e
+`pages/ContasReceber.test.tsx:1112`. Se algum aparecer, o filtro de comentário
+está errado — conserte o filtro, **nunca** o comentário.
+
+Provar que enxergam: reintroduzir `toISOString` em `Produtos.tsx` (na expressão
+do nome do arquivo) e rodar — o segundo teste falha apontando a linha. Reverter.
+
 - [ ] **Passo 8: commit**
 
 ```bash
-git add src/pages/locacao/notasDeLocacao.ts src/pages/locacao/notasDeLocacao.test.ts src/pages/Locacao.test.tsx
+git add src/pages/locacao/notasDeLocacao.ts src/pages/locacao/notasDeLocacao.test.ts src/pages/Locacao.test.tsx src/test/guarda-planilha.test.ts
 git commit -m "fix(locacao): nome do arquivo exportado sai no fuso local"
 ```
 

@@ -33,7 +33,8 @@ import {
   Check,
   X,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { diaLocal } from "../lib/datas";
+import { baixarPlanilha } from "../lib/planilha";
 import ModalObservacoes from "../components/ModalObservacoes";
 import { useToast } from "../components/ToastProvider";
 import {
@@ -431,33 +432,40 @@ const Vendedores: React.FC = () => {
       };
     });
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Minhas Vendas");
-
-    ws['!cols'] = [
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 40 },
-      { wch: 18 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 50 }
-    ];
-
-    // Formatar colunas E e F como número contábil (sem "R$")
-    for (let cell in ws) {
-      if (cell[0] === 'E' || cell[0] === 'F') {
-        if (ws[cell] && typeof ws[cell].v === 'number') {
-          ws[cell].t = 'n';           // tipo numérico
-          ws[cell].z = '#,##0.00';    // formato numérico com vírgula
-        }
-      }
-    }
-
-    XLSX.writeFile(wb, `vendas_${vendedorLogado}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [
+        {
+          nome: "Minhas Vendas",
+          linhas: dadosExport,
+          // Largura de coluna e formato contabil nas colunas de valor. So esta
+          // tela faz isso entre as nove; sem o `t`/`z` o valor sai como texto
+          // e o Excel nao soma a coluna.
+          ajustar: (folha) => {
+            folha["!cols"] = [
+              { wch: 10 },
+              { wch: 12 },
+              { wch: 40 },
+              { wch: 18 },
+              { wch: 15 },
+              { wch: 15 },
+              { wch: 15 },
+              { wch: 20 },
+              { wch: 50 },
+            ];
+            for (const celula in folha) {
+              if (celula[0] === "E" || celula[0] === "F") {
+                const alvo = folha[celula];
+                if (alvo && typeof alvo.v === "number") {
+                  alvo.t = "n";
+                  alvo.z = "#,##0.00";
+                }
+              }
+            }
+          },
+        },
+      ],
+      `vendas_${vendedorLogado}_${diaLocal(new Date())}.xlsx`,
+    );
   }, [notasTabela, vendedorLogado]);
 
   if (carregando) {

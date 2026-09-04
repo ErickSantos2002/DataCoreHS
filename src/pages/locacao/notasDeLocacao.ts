@@ -1,4 +1,4 @@
-import { dataDeCalendario } from "../../lib/datas";
+import { dataDeCalendario, diaLocal } from "../../lib/datas";
 import type { NotaLocacao } from "../../services/notasapi";
 
 /**
@@ -171,8 +171,15 @@ export function tomDaSituacao(situacao: string | null | undefined): TomDaSituaca
   return "success";
 }
 
-/** Uma linha da planilha — as sete colunas exportadas, nesta ordem. */
-export interface LinhaDaPlanilha {
+/**
+ * Uma linha da planilha — as sete colunas exportadas, nesta ordem.
+ *
+ * É `type`, e não `interface`, porque só alias de tipo ganha índice de string
+ * implícito — sem isso o TypeScript recusa passá-la onde `baixarPlanilha` pede
+ * `Record<string, unknown>[]`, e a alternativa seria abrir a interface para
+ * chave arbitrária, perdendo o travamento das sete colunas.
+ */
+export type LinhaDaPlanilha = {
   Número: string;
   Data: string;
   Cliente: string;
@@ -180,7 +187,7 @@ export interface LinhaDaPlanilha {
   Valor: number;
   Situação: string;
   Vendedor: string;
-}
+};
 
 /**
  * As linhas que vão para o Excel — exatamente as que estão na tabela, no
@@ -205,9 +212,16 @@ export function linhasDaPlanilha(notas: NotaLocacao[]): LinhaDaPlanilha[] {
   }));
 }
 
-/** Nome do arquivo exportado — `locacao_AAAA-MM-DD.xlsx`, data em UTC. */
+/**
+ * Nome do arquivo exportado — `locacao_AAAA-MM-DD.xlsx`.
+ *
+ * A data é o DIA LOCAL. Saía de `toISOString` (UTC), e a partir das 21h de
+ * Brasília o arquivo já ia arquivado com a data do dia seguinte. Locação foi a
+ * última das sete a cair porque tinha teste — e o teste pregava o defeito: o
+ * instante escolhido era meio-dia, que cai no mesmo dia nos dois fusos.
+ */
 export function nomeDoArquivo(hoje: Date = new Date()): string {
-  return `locacao_${hoje.toISOString().split("T")[0]}.xlsx`;
+  return `locacao_${diaLocal(hoje)}.xlsx`;
 }
 
 /** Nome da aba dentro da planilha. */

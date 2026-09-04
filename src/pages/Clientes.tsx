@@ -40,7 +40,8 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import * as XLSX from "xlsx";
+import { diaLocal } from "../lib/datas";
+import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -524,10 +525,10 @@ const Clientes: React.FC = () => {
       'Status': c.status === 'ativo' ? 'Ativo' : 'Inativo'
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-    XLSX.writeFile(wb, `clientes_${new Date().toISOString().split('T')[0]}.xlsx`);
+    baixarPlanilha(
+      [{ nome: "Clientes", linhas: dadosExport }],
+      `clientes_${diaLocal(new Date())}.xlsx`,
+    );
   }, [clientesTabela]);
 
   // Exportação para PDF
@@ -556,7 +557,7 @@ const Clientes: React.FC = () => {
       body: dadosTabela,
     });
 
-    doc.save(`clientes_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`clientes_${diaLocal(new Date())}.pdf`);
   }, [clientesTabela, user]);
 
   if (carregando) {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { diaLocal } from "../lib/datas";
 import logo from "../assets/logo.png"; // ajuste o caminho se necessário
 
 interface Produto {
@@ -88,7 +89,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
     );
 
     // Salvar
-    doc.save(`solicitacao_compras_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`solicitacao_compras_${diaLocal(new Date())}.pdf`);
     fechar();
   };
 

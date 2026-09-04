@@ -30,3 +30,23 @@ export function dataDeCalendario(data: string | null | undefined): string {
   const [, ano, mes, dia] = casou;
   return `${dia}/${mes}/${ano}`;
 }
+
+/**
+ * O dia do calendário de um instante, no fuso de quem está olhando.
+ *
+ * Existe porque `toISOString().split("T")[0]` devolve o dia em **UTC**: às 23h
+ * de 28/08 em São Paulo já são 02h de 29/08 em UTC, e o nome do arquivo
+ * exportado saía com a data do dia seguinte. O defeito foi corrigido em Contas
+ * na Fase 1 e reencontrado em mais sete lugares no item 3 da Fase 4 — seis
+ * telas não migradas e, o mais instrutivo dos sete, `pages/locacao`, que é
+ * migrada e cujos testes pregavam o defeito em vez de pegá-lo.
+ *
+ * Veio de `pages/contas/contas.ts`, onde nasceu, e subiu para cá quando
+ * apareceu a segunda cópia (`dataDeHoje`, em `financeiro/AbaComissao.tsx`).
+ */
+export function diaLocal(instante: Date): string {
+  const ano = instante.getFullYear();
+  const mes = String(instante.getMonth() + 1).padStart(2, "0");
+  const dia = String(instante.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}

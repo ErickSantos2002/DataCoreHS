@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Locacao from "./Locacao";
 import { AuthContext } from "../context/AuthContext";
 import type { NotaLocacao } from "../services/notasapi";
+import { diaLocal } from "../lib/datas";
 
 /**
  * Teste de caracterização da tela de Locação.
@@ -538,12 +539,16 @@ describe("Locação — exportação para Excel", () => {
     ]);
   });
 
-  it("o arquivo se chama locacao_ mais a data de hoje em ISO", async () => {
+  it("o arquivo se chama locacao_ mais o dia local", async () => {
     await montar();
     fireEvent.click(screen.getByRole("button", { name: /exportar/i }));
 
-    // A tela usa `new Date().toISOString()`, que é UTC — o mesmo cálculo aqui.
-    const hoje = new Date().toISOString().split("T")[0];
+    // Antes, este teste calculava a data esperada com o mesmo
+    // `new Date().toISOString()` que a tela usava — concordava com a tela por
+    // construção, certa ou errada, e por isso o defeito de UTC atravessou a
+    // migração inteira. Agora afirma o dia local, que é o comportamento que a
+    // tela deve ter, e não o que ela por acaso tem.
+    const hoje = diaLocal(new Date());
     expect(planilha.arquivo).toBe(`locacao_${hoje}.xlsx`);
   });
 

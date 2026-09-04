@@ -89,8 +89,16 @@ describe("cor do selo de situação", () => {
 });
 
 describe("arquivo exportado", () => {
-  it("leva a data de hoje em ISO no nome", () => {
-    expect(nomeDoArquivo(new Date("2026-08-28T12:00:00Z"))).toBe("locacao_2026-08-28.xlsx");
+  it("o arquivo se chama locacao_ mais o dia local", () => {
+    // O instante anterior deste teste era "2026-08-28T12:00:00Z" — meio-dia,
+    // que cai no mesmo dia em São Paulo e em UTC, e por isso nunca exercitou a
+    // virada. Um teste de data que escolhe o meio-dia não testa fuso: foi assim
+    // que o defeito de UTC sobreviveu aqui mesmo com teste de caracterização.
+    //
+    // Este é construído em hora LOCAL, então a asserção vale nos dois fusos —
+    // o dia local de um instante local é sempre o mesmo dia.
+    const vinteETresHoras = new Date(2026, 7, 28, 23, 0, 0);
+    expect(nomeDoArquivo(vinteETresHoras)).toBe("locacao_2026-08-28.xlsx");
   });
 });
 

@@ -25,7 +25,7 @@
  * cadastros diferentes) e conta sem situação que não dá para filtrar.
  */
 
-import { dataDeCalendario } from "../../lib/datas";
+import { dataDeCalendario, diaLocal } from "../../lib/datas";
 
 /** Os campos que as duas telas leem de uma conta, já enriquecida pelo contexto. */
 export interface ContaBase {
@@ -245,21 +245,6 @@ export function opcoesDistintas(valores: (string | null)[]): string[] {
 export interface Periodo {
   inicio: string;
   fim: string;
-}
-
-/**
- * `AAAA-MM-DD` do dia LOCAL de um instante.
- *
- * `toISOString` daria o dia em UTC, e a oeste de Greenwich o dia em UTC vira
- * o de amanhã depois das 21h. Todo "hoje" desta tela é o dia local — é o dia
- * que a pessoa vê no relógio dela, e é o mesmo dia que `calcularKpis` usa
- * para decidir o que está vencido.
- */
-export function diaLocal(instante: Date): string {
-  const ano = instante.getFullYear();
-  const mes = String(instante.getMonth() + 1).padStart(2, "0");
-  const dia = String(instante.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
 }
 
 /**
