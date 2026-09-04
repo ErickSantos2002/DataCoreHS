@@ -37,10 +37,7 @@ const arquivosDeCodigo = readdirSync("src", {
 //
 // `src/pages/Estoque.tsx` não está na lista de propósito: ela exporta, mas não
 // tem preset de período, então saiu limpa já na Fase 4.
-const PENDENTES_UTC: string[] = [
-  "src/pages/Clientes.tsx",
-  "src/pages/Servicos.tsx",
-];
+const PENDENTES_UTC: string[] = ["src/pages/Clientes.tsx"];
 
 /** Linha que só CITA `toISOString` em comentário não é infração.
  *
