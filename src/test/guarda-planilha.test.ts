@@ -40,7 +40,6 @@ const arquivosDeCodigo = readdirSync("src", {
 const PENDENTES_UTC: string[] = [
   "src/pages/Clientes.tsx",
   "src/pages/Servicos.tsx",
-  "src/pages/Vendas.tsx",
   "src/pages/Vendedores.tsx",
 ];
 
