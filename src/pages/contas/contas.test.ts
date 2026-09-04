@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { periodoDoMes } from "../../lib/periodo";
 import {
   buscarNasContas,
   calcularKpis,
@@ -18,8 +19,6 @@ import {
   ordenarContas,
   periodoDaBarra,
   periodoDoAno,
-  periodoDoMes,
-  periodoDoPreset,
   proximaOrdenacao,
   type ContaBase,
   type DialetoDeContas,
@@ -241,88 +240,6 @@ describe("opções dos filtros", () => {
     expect(
       opcoesDistintas(["Óleo", "Nafta", "Ácido", "Zinco"]),
     ).toEqual(["Ácido", "Nafta", "Óleo", "Zinco"]);
-  });
-});
-
-describe("presets de período", () => {
-  it("Todos limpa as duas pontas", () => {
-    expect(periodoDoPreset("todos", AGORA)).toEqual({ inicio: "", fim: "" });
-  });
-
-  it("Personalizado não mexe em nada — devolve nulo", () => {
-    expect(periodoDoPreset("custom", AGORA)).toBeNull();
-  });
-
-  it("Ano atual é o único que olha para a frente: 01/01 a 31/12", () => {
-    expect(periodoDoPreset("anoAtual", AGORA)).toEqual({
-      inicio: "2026-01-01",
-      fim: "2026-12-31",
-    });
-  });
-
-  it("Mês atual é o mês INTEIRO, do dia 1 ao último — e não até hoje", () => {
-    // No meio do mês o fim é o último dia, não o dia de hoje: o preset diz
-    // "mês atual", e uma conta emitida dia 20 tem de aparecer no dia 15.
-    expect(periodoDoPreset("mesAtual", new Date("2026-03-15T12:00:00Z"))).toEqual({
-      inicio: "2026-03-01",
-      fim: "2026-03-31",
-    });
-    // O último dia é calculado, não chutado em 30: fevereiro de 2026 tem 28.
-    expect(periodoDoPreset("mesAtual", new Date("2026-02-10T12:00:00Z"))).toEqual({
-      inicio: "2026-02-01",
-      fim: "2026-02-28",
-    });
-    expect(periodoDoPreset("mesAtual", AGORA)).toEqual({
-      inicio: "2026-08-01",
-      fim: "2026-08-31",
-    });
-  });
-
-  it("Últimos 30 dias conta 30 dias para trás", () => {
-    expect(periodoDoPreset("30dias", AGORA)).toEqual({
-      inicio: "2026-08-01",
-      fim: "2026-08-31",
-    });
-  });
-
-  it("na virada do dia, as duas pontas saem do dia LOCAL", () => {
-    // 01/09 às 02h em Greenwich ainda é 31/08 às 23h em Brasília. Antes o
-    // início vinha de `getFullYear`/`getMonth` (local) e o fim de
-    // `toISOString` (UTC), e o "mês atual" atravessava a virada: 01/08 a
-    // 01/09. Agora as duas pontas contam o mesmo dia — o do relógio de quem
-    // olha a tela.
-    const viradaDoMes = new Date("2026-09-01T02:00:00Z");
-    const foraDoUtc = viradaDoMes.getTimezoneOffset() !== 0;
-
-    expect(periodoDoPreset("mesAtual", viradaDoMes)).toEqual(
-      foraDoUtc
-        ? { inicio: "2026-08-01", fim: "2026-08-31" }
-        : { inicio: "2026-09-01", fim: "2026-09-30" },
-    );
-    expect(periodoDoPreset("30dias", viradaDoMes)).toEqual(
-      foraDoUtc
-        ? { inicio: "2026-08-01", fim: "2026-08-31" }
-        : { inicio: "2026-08-02", fim: "2026-09-01" },
-    );
-  });
-
-  it("na virada do ano, o ano atual é o ano LOCAL — e não o de Greenwich", () => {
-    // 01/01/2026 às 02h em Greenwich ainda é 31/12/2025 em Brasília. Antes o
-    // "ano atual" saía inteiro do ano local e o "mês atual" terminava no dia
-    // em UTC, então dezembro aparecia rotulado como mês atual de janeiro.
-    const viradaDoAno = new Date("2026-01-01T02:00:00Z");
-    const foraDoUtc = viradaDoAno.getTimezoneOffset() !== 0;
-
-    expect(periodoDoPreset("anoAtual", viradaDoAno)).toEqual(
-      foraDoUtc
-        ? { inicio: "2025-01-01", fim: "2025-12-31" }
-        : { inicio: "2026-01-01", fim: "2026-12-31" },
-    );
-    expect(periodoDoPreset("mesAtual", viradaDoAno)).toEqual(
-      foraDoUtc
-        ? { inicio: "2025-12-01", fim: "2025-12-31" }
-        : { inicio: "2026-01-01", fim: "2026-01-31" },
-    );
   });
 });
 

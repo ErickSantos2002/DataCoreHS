@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Spinner } from "../../design-system/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { baixarPlanilha } from "../../lib/planilha";
+import { periodoDoPreset } from "../../lib/periodo";
 import { CabecalhoContas } from "./CabecalhoContas";
 import { FiltrosDeContas } from "./FiltrosDeContas";
 import { GraficosDeContas } from "./GraficosDeContas";
@@ -22,7 +23,6 @@ import {
   opcoesDistintas,
   ordenarContas,
   periodoDaBarra,
-  periodoDoPreset,
   proximaOrdenacao,
   type ContaBase,
   type DialetoDeContas,
