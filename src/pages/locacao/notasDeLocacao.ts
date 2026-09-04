@@ -1,4 +1,4 @@
-import { dataDeCalendario } from "../../lib/datas";
+import { dataDeCalendario, diaLocal } from "../../lib/datas";
 import type { NotaLocacao } from "../../services/notasapi";
 
 /**
@@ -212,9 +212,16 @@ export function linhasDaPlanilha(notas: NotaLocacao[]): LinhaDaPlanilha[] {
   }));
 }
 
-/** Nome do arquivo exportado — `locacao_AAAA-MM-DD.xlsx`, data em UTC. */
+/**
+ * Nome do arquivo exportado — `locacao_AAAA-MM-DD.xlsx`.
+ *
+ * A data é o DIA LOCAL. Saía de `toISOString` (UTC), e a partir das 21h de
+ * Brasília o arquivo já ia arquivado com a data do dia seguinte. Locação foi a
+ * última das sete a cair porque tinha teste — e o teste pregava o defeito: o
+ * instante escolhido era meio-dia, que cai no mesmo dia nos dois fusos.
+ */
 export function nomeDoArquivo(hoje: Date = new Date()): string {
-  return `locacao_${hoje.toISOString().split("T")[0]}.xlsx`;
+  return `locacao_${diaLocal(hoje)}.xlsx`;
 }
 
 /** Nome da aba dentro da planilha. */
