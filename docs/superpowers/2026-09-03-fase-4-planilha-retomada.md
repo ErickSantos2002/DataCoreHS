@@ -1,5 +1,15 @@
 # Onde o item 3 da Fase 4 parou, e como retomar
 
+> **Encerrado em 04/09/2026.** As Tasks 8, 9 e 10 foram executadas e o item está
+> fechado — nada aqui é mais pendência. O documento fica como registro do que a
+> parada custou e de como a retomada funcionou; o resultado final está no item 11
+> de `2026-09-01-multiselect-divergencias.md` e na seção "Item 3 da Fase 4" do
+> spec que governa. Duas coisas que a retomada descobriu e que este documento
+> não previa: os nomes de arquivo `.pdf` tinham o mesmo defeito de UTC (quatro
+> ocorrências, uma delas fora de `src/pages/`), e o guarda precisou de uma trava
+> **sem isenção** para não deixar o defeito voltar justamente nas telas que a
+> lista de pendentes isenta.
+
 Escrito em 03/09/2026, ao encerrar o dia com o plano na metade. Este documento é
 **versionado de propósito**: o ledger da execução vive em `.superpowers/`, que é
 ignorado pelo git e é apagado quando o plano termina. O que está aqui sobrevive.

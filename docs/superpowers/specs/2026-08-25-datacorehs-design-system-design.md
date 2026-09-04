@@ -800,6 +800,45 @@ substantivo da contagem), e a forma compacta que Contas herdou de graça é item
 novo para a conferência no navegador, que segue pendente desde o item 1 — ver
 `2026-09-01-multiselect-divergencias.md`.
 
+### Item 3 da Fase 4 — a exportação para Excel fechada (04/09/2026)
+
+`json_to_sheet` + `book_new` + `book_append_sheet` + `writeFile` estavam
+copiados em nove arquivos e hoje existem em um: `src/lib/planilha.ts`, com
+`baixarPlanilha(abas, arquivo)`. As nove telas que exportam consomem. `diaLocal`
+subiu para `src/lib/datas.ts`, ao lado de `dataDeCalendario`, e as duas cópias
+que existiam — em `contas/contas.ts` e em `financeiro/AbaComissao.tsx` — sumiram.
+
+A prova de que a extração não mudou comportamento: os quatro arquivos de teste
+que já mockavam o `xlsx` passaram **sem uma edição**, 303 asserções. Foi por isso
+que as três telas com teste vieram antes das seis sem.
+
+**A cópia carregava um defeito, e foi ele que deu sentido ao item.** O nome do
+arquivo saía de `toISOString()`, que devolve o dia em UTC: quem exportava depois
+das 21h de Brasília arquivava com a data do dia seguinte. **Onze ocorrências, em
+oito arquivos**, todas corrigidas — sete `.xlsx` e quatro `.pdf`, sendo que o
+plano só previa os `.xlsx` e uma das ocorrências estava fora de `src/pages/`
+(`components/SolicitacaoComprasModal.tsx`).
+
+Locação é o caso a lembrar: era tela **migrada, com teste de caracterização**, e
+o defeito atravessou a migração inteira porque os dois testes que tocavam o nome
+do arquivo pregavam o defeito — um replicando o `toISOString()` da tela, outro
+escolhendo `12:00Z` como instante. **Um teste de data que escolhe o meio-dia não
+testa fuso.** O instante tem de ser construído em hora local, perto da virada.
+
+`src/test/guarda-planilha.test.ts` trava os dois defeitos com quatro testes, os
+quatro provados por plantio. O preset de período continua em UTC nas cinco telas
+— é o item seguinte — e está isento por `PENDENTES_UTC`, lista que só encolhe.
+
+A branch, medida da base real (`git merge-base main HEAD`) e **antes deste
+documento entrar** (no commit `08c6b6a3`, o último de código), soma **21
+arquivos, 718 inserções, 132 remoções** em **25 commits**; só `src/` são **19
+arquivos, 487 inserções, 131 remoções** — a diferença são os documentos. Suíte em **1437 testes / 94 arquivos** (entrada:
+1426/92), lint em **118** — caiu um contra o baseline de 119, não subiu —,
+`tsc --noEmit` limpo, verde em `TZ=UTC` e `TZ=America/Sao_Paulo`.
+
+O que sobrou pedindo decisão está em `2026-09-01-multiselect-divergencias.md`,
+item 11.
+
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
