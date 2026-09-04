@@ -38,6 +38,7 @@ import {
   MapPin,
   Building,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -413,7 +414,7 @@ const Servicos: React.FC = () => {
 
     baixarPlanilha(
       [{ nome: "Serviços", linhas: dadosExport }],
-      `servicos_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `servicos_${diaLocal(new Date())}.xlsx`,
     );
   }, [servicosTabela]);
 
@@ -443,7 +444,7 @@ const Servicos: React.FC = () => {
       body: dadosTabela,
     });
 
-    doc.save(`servicos_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`servicos_${diaLocal(new Date())}.pdf`);
   }, [servicosTabela, user]);
 
   if (carregando) {
