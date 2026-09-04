@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
+import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
 import ModalObservacoes from "../components/ModalObservacoes";
 import { useToast } from "../components/ToastProvider";
 import {
@@ -94,37 +95,15 @@ const Vendedores: React.FC = () => {
   const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
   const [observacoesAtivas, setObservacoesAtivas] = useState<string | null>(null);
 
-  // Gerenciador de presets de período
+  // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
+  // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
+  // cinco montavam a data com `toISOString` (UTC) — a partir das 21h de
+  // Brasília o "ano atual" virava o ano seguinte.
   useEffect(() => {
-    const hoje = new Date();
-    let inicio = "";
-    let fim = hoje.toISOString().split("T")[0];
-
-    switch (presetPeriodo) {
-      case "7dias":
-        const semanaPassada = new Date(hoje);
-        semanaPassada.setDate(hoje.getDate() - 7);
-        inicio = semanaPassada.toISOString().split("T")[0];
-        break;
-      case "30dias":
-        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        inicio = primeiroDiaMes.toISOString().split("T")[0];
-        fim = hoje.toISOString().split("T")[0];
-        break;
-      case "anoAtual":
-        inicio = `${hoje.getFullYear()}-01-01`;
-        break;
-      case "todos":
-      default:
-        inicio = "";
-        fim = "";
-        break;
-    }
-
-    if (presetPeriodo !== "custom") {
-      setDataInicio(inicio);
-      setDataFim(fim);
-    }
+    const periodo = periodoDoPreset(presetPeriodo, new Date());
+    if (!periodo) return;
+    setDataInicio(periodo.inicio);
+    setDataFim(periodo.fim);
   }, [presetPeriodo]);
 
   // Lista única de clientes (com nome e CNPJ juntos)
@@ -545,11 +524,11 @@ const Vendedores: React.FC = () => {
                           dark:text-gray-200 dark:border-gray-600 
                           focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="todos">Todos</option>
-                <option value="7dias">Últimos 7 dias</option>
-                <option value="30dias">Mês atual</option>
-                <option value="anoAtual">Ano atual</option>
-                <option value="custom">Personalizado</option>
+                {PRESETS_DE_PERIODO.map((preset) => (
+                  <option key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </option>
+                ))}
               </select>
             </div>
 
