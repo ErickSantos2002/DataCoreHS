@@ -1024,6 +1024,16 @@ describe("Contas a Receber — presets de período", () => {
     expect(idsNaTela()).toHaveLength(6);
   });
 
+  it("Últimos 7 dias vai de hoje-7 até hoje — 24/08 a 31/08 de 2026", async () => {
+    await montar();
+    escolherPreset("7dias");
+
+    expect(campoDeData("Data Início").value).toBe("2026-08-24");
+    expect(campoDeData("Data Fim").value).toBe("2026-08-31");
+    // Nenhuma emissão cai nessa janela — a mais recente (106) é de 20/08.
+    expect(idsNaTela()).toEqual([]);
+  });
+
   it("Últimos 30 dias vai de hoje-30 até hoje — 01/08 a 31/08 de 2026", async () => {
     await montar();
     escolherPreset("30dias");

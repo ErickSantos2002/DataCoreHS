@@ -209,18 +209,30 @@ opção nova (`Últimos 30 dias`) preserva o comportamento antigo com o nome
 honesto, então nada some — o que existia continua alcançável, com o rótulo
 certo. Ainda assim é conferência no navegador, não só teste.
 
-**O `PENDENTES_UTC` fica vazio.** As cinco saem da lista e ela zera, o que faz o
-terceiro teste do `guarda-planilha` (lista sem entrada obsoleta) virar
-trivialmente verdadeiro. Se o guarda perde a lista ou a mantém como estrutura é
-decisão do plano, não desta spec — mas fica registrado que alguém tem de decidir,
-para a lista não ficar lá vazia sem ninguém saber por quê.
+**O `PENDENTES_UTC` quase fica vazio — corrigido durante a execução, não fica
+de todo.** A previsão aqui era que as cinco saíssem da lista e ela zerasse,
+fazendo o terceiro teste do `guarda-planilha` (lista sem entrada obsoleta)
+virar trivialmente verdadeiro. Quatro saem mesmo; a quinta, `Clientes.tsx`,
+tem um segundo `toISOString` fora do preset (a exibição de `ultimaCompra`) que
+esta spec não cobre, e apagar a linha dela quebraria o segundo teste do guarda
+("nenhuma tela fora da lista monta data com `toISOString`"). A lista termina
+com **uma** entrada, não vazia — ver "Como se sabe que terminou" abaixo, que
+tem o critério certo.
 
 ## Como se sabe que terminou
 
 - `grep -rn "presetPeriodo" src/pages/` não devolve nenhum `switch` — só o
   estado e o `<select>`.
-- `grep -rn "toISOString" src/pages/` não devolve nada fora de comentário.
-- `PENDENTES_UTC` está vazio, ou não existe mais, com a decisão registrada.
+- `grep -rn "toISOString" src/pages/` não devolve nada fora de comentário —
+  **exceto** `Clientes.tsx:1112`, que não é preset: é a exibição de
+  `ultimaCompra` em dd/mm/aaaa, fora do escopo deste item.
+- **Corrigido durante a execução:** `PENDENTES_UTC` **não** fica vazio — fica
+  com **uma** entrada, `"src/pages/Clientes.tsx"`, pelo motivo acima. A
+  previsão original (lista vazia) só valeria se `Clientes.tsx` não tivesse um
+  segundo `toISOString` fora do preset; como tem, esvaziar a lista quebraria o
+  segundo teste do `guarda-planilha` ("nenhuma tela fora da lista monta data
+  com toISOString"). O critério que vale é: a lista tem uma entrada, e o
+  comentário acima dela explica por quê — não vazia, e não apagada.
 - `periodoDoPreset`, `periodoDoMes` e `Periodo` existem uma vez só, em
   `src/lib/periodo.ts`; `contas.ts` importa de lá.
 - A lista de opções existe uma vez só, e `FiltrosDeContas.tsx` a consome.

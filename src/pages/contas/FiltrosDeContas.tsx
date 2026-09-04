@@ -1,16 +1,8 @@
 import { Filter } from "lucide-react";
 
 import { FilterBar, Input, MultiSelect, Select, deTextos } from "../../design-system/ui";
+import { PRESETS_DE_PERIODO } from "../../lib/periodo";
 import type { FiltrosDeContas as ValoresDosFiltros } from "./contas";
-
-/** Os cinco presets do "Período Rápido", na ordem em que aparecem. */
-const PRESETS = [
-  { value: "todos", label: "Todos" },
-  { value: "30dias", label: "Últimos 30 dias" },
-  { value: "mesAtual", label: "Mês atual" },
-  { value: "anoAtual", label: "Ano atual" },
-  { value: "custom", label: "Personalizado" },
-];
 
 export interface FiltrosDeContasProps {
   /** "Cliente" em Contas a Receber, "Fornecedor" em Contas a Pagar. */
@@ -84,7 +76,7 @@ export function FiltrosDeContas({
 
         <Select
           label="Período Rápido"
-          options={PRESETS}
+          options={PRESETS_DE_PERIODO}
           value={preset}
           onChange={(evento) => onPreset(evento.target.value)}
         />

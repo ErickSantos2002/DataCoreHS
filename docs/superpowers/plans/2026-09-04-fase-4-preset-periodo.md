@@ -419,8 +419,9 @@ Cada arquivo tem duas partes:
 **A. O cabeçalho de mocks** — `vi.mock` de `useAuth`, do contexto da tela e de
 `recharts`, mais os fixtures. **Não se escreve do zero:** é cópia verbatim do
 topo do `<Nome>.paginacao.test.tsx` **daquela mesma tela**, um arquivo que já
-existe no repositório desde o item 2 desta fase. Copiar até a linha anterior ao
-primeiro `describe`.
+existe no repositório desde o item 2 desta fase. Copiar do começo até a linha ANTERIOR ao
+primeiro `describe` — hoje L89 em Produtos, L105 em Clientes, L74 em Vendas,
+L91 em Vendedores e L77 em Servicos.
 
 **B. O corpo**, abaixo, trocando `<TELA>` pelo nome do componente:
 
@@ -443,21 +444,41 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** O campo de data pelo rótulo que fica em cima dele. */
-function campoData(rotulo: string): HTMLInputElement {
-  return screen.getByLabelText(rotulo) as HTMLInputElement;
+/**
+ * O bloco de um filtro, achado pelo TEXTO do rótulo.
+ *
+ * Não dá para usar `getByLabelText`: as cinco telas não têm um único
+ * `htmlFor` — os `<label>` são irmãos do campo, não estão associados a ele.
+ * É lacuna de acessibilidade real, registrada no documento de divergências,
+ * e consertá-la é mudança de markup numa tela que segue em PENDENTES_FASE_3.
+ * Este é o mesmo contorno que `ContasPagar.test.tsx:435` usa.
+ */
+function blocoDoFiltro(rotulo: string): HTMLElement {
+  const etiqueta = screen.getByText(rotulo);
+  if (!etiqueta.parentElement) throw new Error(`filtro "${rotulo}" sem bloco`);
+  return etiqueta.parentElement;
+}
+
+function campoData(rotulo: "Data Início" | "Data Fim"): HTMLInputElement {
+  const campo = blocoDoFiltro(rotulo).querySelector("input");
+  if (!campo) throw new Error(`campo "${rotulo}" nao existe`);
+  return campo as HTMLInputElement;
+}
+
+function seletorDePreset(): HTMLSelectElement {
+  const campo = blocoDoFiltro("Período Rápido").querySelector("select");
+  if (!campo) throw new Error("seletor de preset nao existe");
+  return campo as HTMLSelectElement;
 }
 
 function escolherPreset(valor: string): void {
-  const seletor = screen.getByLabelText("Período Rápido") as HTMLSelectElement;
-  fireEvent.change(seletor, { target: { value: valor } });
+  fireEvent.change(seletorDePreset(), { target: { value: valor } });
 }
 
 describe("preset de periodo em <TELA>", () => {
   it("oferece as seis opcoes, na ordem da lista compartilhada", () => {
     render(<TELA />);
-    const seletor = screen.getByLabelText("Período Rápido") as HTMLSelectElement;
-    expect(Array.from(seletor.options).map((o) => o.value)).toEqual([
+    expect(Array.from(seletorDePreset().options).map((o) => o.value)).toEqual([
       "todos",
       "7dias",
       "30dias",
@@ -528,12 +549,17 @@ Ajustar a linha de import do topo (a que vem do cabeçalho copiado) para trazer
 `beforeEach`, `afterEach`, `render`, `fireEvent` e `screen`, se o arquivo de
 paginação não os trouxer todos.
 
-**Se `getByLabelText("Período Rápido")` não achar o campo**, o `<label>` da tela
-não está associado ao `<select>` por `htmlFor`/`id`. Nesse caso **pare e
-reporte**: associar o rótulo é correção de acessibilidade legítima, mas é
-mudança de markup numa tela que este item não deveria tocar, e precisa de
-decisão. O contorno sem markup novo é
-`within(screen.getByText("Período Rápido").closest("div")!).getByRole("combobox")`.
+**Sobre os rótulos, já decidido no pré-voo:** as cinco telas têm **zero
+`htmlFor`** — conferido com `grep -c htmlFor` nas cinco, dá 0 em todas. Por isso
+o molde não usa `getByLabelText` em lugar nenhum, e sim a travessia por texto
+acima. **Não** acrescentar `htmlFor`/`id` ao markup: é correção de
+acessibilidade legítima, mas as cinco seguem em `PENDENTES_FASE_3` e este item
+não migra aparência. A lacuna está registrada para a Task 8.
+
+O `screen.getByText(rotulo)` pode achar mais de um nó se o texto do rótulo
+aparecer também num cabeçalho ou opção. Se der `Found multiple elements`,
+estreite com `within(...)` a partir do cartão de filtros da tela — **não**
+troque o rótulo nem o markup.
 
 **Os quatro casos que TÊM de falhar antes da troca**, em qualquer das cinco:
 a lista de opções (ainda com cinco valores, sem `mesAtual`), `mesAtual` (cai no
@@ -598,8 +624,9 @@ e passa a ser o mês inteiro; "Ano atual" passa a ir até 31/12; e a tela ganha
 Criar `src/pages/Produtos.periodo.test.tsx` seguindo a seção **"O molde do teste
 de período"** deste plano:
 
-- **parte A**, o cabeçalho de mocks: cópia verbatim das linhas 1 a 88 de
-  `src/pages/Produtos.paginacao.test.tsx` (até antes do `describe`), que já traz
+- **parte A**, o cabeçalho de mocks: cópia verbatim de
+  `src/pages/Produtos.paginacao.test.tsx`, do começo até a linha ANTERIOR ao
+  primeiro `describe` (hoje L89), que já traz
   o `vi.mock` de `useAuth`, os fixtures `ITENS` e `NOTAS`, o `vi.mock` de
   `DataContext` e o de `recharts`;
 - **parte B**, o corpo do molde, com `<TELA>` trocado por `Produtos`.
