@@ -102,8 +102,18 @@ já tem o comportamento decidido. Preservar o atual significaria escrever uma
 segunda função de período no repositório para depois convergir — o oposto do que
 o item quer.
 
-**2. As cinco ganham as cinco opções de Contas**, incluindo `mesAtual`, que não
-existe nelas hoje. O app inteiro passa a oferecer o mesmo menu.
+**2. O menu vira um só, com SEIS opções — e Contas também ganha.** Escrever o
+plano revelou o que esta seção não tinha visto: adotar a lista de Contas como
+ela é faria as cinco telas **perderem** "Últimos 7 dias", que elas têm e Contas
+não — e pior, silenciosamente, porque `periodoDoPreset` não tem ramo `7dias` e a
+escolha cairia no `default`, virando "Todos".
+
+A saída é `periodoDoPreset` ganhar o ramo `7dias` (sete dias atrás até hoje, o
+mesmo molde do `30dias`, e exatamente o que as cinco já faziam) e a lista
+compartilhada ficar com seis: `todos`, `7dias`, `30dias`, `mesAtual`, `anoAtual`
+e `custom`. As cinco telas ganham `mesAtual`; Contas ganha `7dias`. Aditivo dos
+dois lados — nada some de lugar nenhum, e o app inteiro passa a oferecer o mesmo
+menu, que é o objetivo do item.
 
 **3. `periodoDoAno` e `periodoDaBarra` ficam em Contas.** São clique em barra de
 gráfico, domínio dela, sem segundo consumidor. Sobem `Periodo`,
@@ -134,8 +144,9 @@ Eles resolvem a asserção nos dois fusos com um ternário sobre
 recomendou. É mais difícil de ler e igualmente correto; fica como observação,
 não como trabalho deste item.
 
-A função entra no item **como está**. A quebra é plantada no teste das cinco
-telas, que é onde a fiação nova mora.
+A função entra no item quase como está — a única mudança de corpo é o ramo
+`7dias` da decisão 2. A quebra é vista no teste das cinco telas, que é onde a
+fiação nova mora.
 
 ## A peça final
 
@@ -144,8 +155,9 @@ telas, que é onde a fiação nova mora.
 - `Periodo` — o par `{ inicio, fim }`, movido de `contas.ts`;
 - `periodoDoPreset(preset, agora)` — movido, sem mudança de corpo;
 - `periodoDoMes(ano, indiceDoMes)` — movido, dependência da anterior;
-- `PRESETS_DE_PERIODO` — a lista `{ value, label }` das cinco opções, hoje só
-  em `FiltrosDeContas.tsx` (onde se chama `PRESETS`).
+- `PRESETS_DE_PERIODO` — a lista `{ value, label }` das **seis** opções, hoje só
+  em `FiltrosDeContas.tsx` (onde se chama `PRESETS`, e tem cinco);
+- o ramo `7dias` de `periodoDoPreset`, que não existia — ver decisão 2.
 
 ## Como se prova
 
