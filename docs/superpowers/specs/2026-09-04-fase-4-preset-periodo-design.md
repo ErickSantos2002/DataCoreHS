@@ -219,8 +219,16 @@ para a lista não ficar lá vazia sem ninguém saber por quê.
 
 - `grep -rn "presetPeriodo" src/pages/` não devolve nenhum `switch` — só o
   estado e o `<select>`.
-- `grep -rn "toISOString" src/pages/` não devolve nada fora de comentário.
-- `PENDENTES_UTC` está vazio, ou não existe mais, com a decisão registrada.
+- `grep -rn "toISOString" src/pages/` não devolve nada fora de comentário —
+  **exceto** `Clientes.tsx:1112`, que não é preset: é a exibição de
+  `ultimaCompra` em dd/mm/aaaa, fora do escopo deste item.
+- **Corrigido durante a execução:** `PENDENTES_UTC` **não** fica vazio — fica
+  com **uma** entrada, `"src/pages/Clientes.tsx"`, pelo motivo acima. A
+  previsão original (lista vazia) só valeria se `Clientes.tsx` não tivesse um
+  segundo `toISOString` fora do preset; como tem, esvaziar a lista quebraria o
+  segundo teste do `guarda-planilha` ("nenhuma tela fora da lista monta data
+  com toISOString"). O critério que vale é: a lista tem uma entrada, e o
+  comentário acima dela explica por quê — não vazia, e não apagada.
 - `periodoDoPreset`, `periodoDoMes` e `Periodo` existem uma vez só, em
   `src/lib/periodo.ts`; `contas.ts` importa de lá.
 - A lista de opções existe uma vez só, e `FiltrosDeContas.tsx` a consome.

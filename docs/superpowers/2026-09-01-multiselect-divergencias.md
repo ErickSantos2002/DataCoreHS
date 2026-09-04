@@ -40,6 +40,12 @@ defensáveis — era regressão de acessibilidade — e **deixou de ser pendênc
 foi resolvido na fase de 02/09/2026. Ele continua aqui como registro do que
 ficou decidido. Fora ele, nada aqui está decidido.
 
+O item 12, também da mesma fase, segue o molde do item 11: um defeito
+**corrigido** (as cinco telas montavam o preset de período com o rótulo
+mentindo sobre o que a chave calculava), e nenhuma pendência nova fixada em
+teste — só achados para quem migrar cada tela na Fase 3, e um caso em que a
+investigação **não achou defeito nenhum**, registrado justamente por isso.
+
 ## 1. As quatro buscas
 
 O primitivo recebe a estratégia por injeção — a prop `buscarPor`, com
@@ -665,6 +671,145 @@ ninguém decidiu ainda.
 o mesmo defeito de UTC e os dois foram corrigidos, mas a duplicação em si não
 foi tocada — não é planilha, e ninguém decidiu qual das duas é a boa.
 
+## 12. O preset de período — o item 4 da Fase 4, e o rótulo que mentia para quem lia
+
+Fechado em 04/09/2026. `periodoDoPreset` e `PRESETS_DE_PERIODO` moram em
+`src/lib/periodo.ts` desde o item 11 preparar o terreno (`diaLocal` já estava
+em `src/lib/datas.ts`); cinco telas — Produtos, Vendas, Vendedores, Serviços e
+Clientes — trocaram o próprio `switch (presetPeriodo)` pela função
+compartilhada, uma tarefa por tela (Task 3 a Task 7). Os detalhes da execução
+estão em `docs/superpowers/specs/2026-09-04-fase-4-preset-periodo-design.md` e
+no ledger `.superpowers/sdd/2026-09-04-fase-4-preset-periodo/progress.md`;
+aqui fica o que sobrou.
+
+**O que mudou para quem usa.** As cinco cópias carregavam o mesmo defeito que
+o item 11 já tinha nomeado (1.3): o rótulo "Mês atual" ficava preso à chave
+`30dias`, que não calculava trinta dias nenhum — calculava do dia 1 do mês até
+HOJE, nunca até o fim do mês. "Ano atual" tinha o mesmo formato de defeito: de
+1º de janeiro até HOJE, nunca até 31/12. Conferido na cópia de antes da Task 3
+(`git show cecaf5a2:src/pages/Produtos.tsx:128-147`): a variável `fim` nasce
+como `hoje.toISOString()` antes do `switch`, e nem o ramo `"30dias"` nem o
+`"anoAtual"` a sobrescreviam — só `inicio` mudava. Depois da troca:
+
+- **"Mês atual" ganhou chave própria** (`mesAtual`, antes inexistente) e passa
+  a cobrir o mês inteiro, do dia 1 ao último — não mais "até hoje". Uma conta
+  emitida dia 20 deixa de sumir do filtro só porque hoje é dia 15.
+- **"Ano atual" vai até 31/12**, não mais até hoje.
+- **A chave `30dias` passou a fazer o que o nome sempre disse fazer.** Antes
+  ela nunca tinha calculado trinta dias — o rótulo "Mês atual" que ficava
+  preso a ela mentia sobre o cálculo real. Agora `30dias` é uma janela rolante
+  de fato, com o rótulo "Últimos 30 dias". É a única opção genuinamente
+  **nova** para quem usa as cinco telas: antes não existia forma de pedir uma
+  janela de 30 dias corridos.
+
+**Contas ganhou "Últimos 7 dias", aditivo.** Ao contrário das cinco telas —
+que já tinham essa opção —, `pages/contas/contas.ts` não tinha `7dias` na
+própria lista antes da Task 2 (conferido em `git show
+31b826e3:src/pages/contas/contas.ts`, a base do item). É a única mudança em
+Contas que este item trouxe; as outras cinco opções mantêm o comportamento que
+Contas já tinha, porque `"mesAtual"` e `"anoAtual"` já eram calculados do jeito
+certo lá — o defeito 1.3 era só das cinco telas, não de Contas.
+
+### A investigação do filtro que não deu em nada
+
+Uma versão anterior do documento de design deste item (`2026-09-04-fase-4-preset-periodo-design.md`)
+afirmou que o filtro manual de `dataInicio`/`dataFim` das cinco telas — o
+segundo mecanismo de data, que este item não toca, distinto do preset —
+escondia as notas emitidas hoje. A suspeita: `data_emissao` chegando como
+`"2026-09-04T00:00:00"` (sem `Z`, parseado como hora **local**) contra um
+`dataFim` `"2026-09-04"` (parseado como meia-noite **UTC**) — em Brasília os
+dois virariam instantes diferentes e `new Date(n.data_emissao) <= new
+Date(dataFim)` reprovaria a nota do próprio dia.
+
+**O mecanismo era real; a premissa não era.** `DataContext.tsx:70-79` e
+`ServicosContext.tsx:68-79` normalizam `data_emissao` para data pura
+(`AAAA-MM-DD`) antes de entregar às telas — nenhuma das duas pontas da
+comparação chega com hora. Rodado contra o pipeline de verdade, os dois lados
+viram meia-noite UTC igualmente e a nota de hoje aparece. A suspeita nasceu de
+um formato que existe no repositório (`Locacao.test.tsx` monta data com hora),
+mas não é o formato que essas duas telas recebem.
+
+**A lição, registrada para não se repetir:** verificar o mecanismo não é
+verificar o defeito. Um defeito só é defeito depois de alguém seguir o dado
+real da API até o ponto de comparação — não até onde o código *parece* poder
+quebrar.
+
+### Três achados colaterais, de fora deste item
+
+**O filtro do `Servicos` diverge das outras quatro, e é o mais robusto — mas
+não corrige defeito nenhum** (ver investigação acima). `Servicos.tsx:157-159`
+monta `new Date(dataInicio + "T00:00:00")` e `+ "T23:59:59"` — parse local
+explícito, com borda de fim de dia — em vez de comparar `new Date(...)` direto
+como as outras quatro. Fica registrado porque é uma terceira forma de montar
+filtro de data no repositório — a quarta, contando `emissaoDe`/`filtrarContas`
+de Contas abaixo — e quem um dia unificar filtros de tabela (não é este item,
+nem está no escopo da Fase 4) tem aqui as formas já mapeadas.
+
+**A normalização de `DataContext.tsx:75` passa por `toISOString()`, num bloco
+cujo próprio comentário diz "Conversão segura da data para local (sem UTC)".**
+O código constrói `new Date(ano, mes-1, dia)` — local, correto — e extrai
+`.toISOString().split("T")[0]` — UTC de novo. A ida e volta é identidade a
+oeste de Greenwich (Brasília inclusa: meia-noite local mais três horas
+continua no mesmo dia em UTC), então funciona hoje; a leste do meridiano,
+deslocaria um dia. E as quatro telas (não Serviços) **dependem** dessa
+normalização continuar existindo para os dois lados do filtro seguirem
+concordando — funciona, e é frágil: um comentário que promete uma coisa
+enquanto o código faz outra, sustentando um filtro que só está certo por
+causa dele. Data de **dado**, não de nome de arquivo — fora do alcance do
+`guarda-planilha`, e ninguém decidiu corrigi-lo ainda.
+
+**`emissaoDe` (`pages/contas/contas.ts:82-84`) não normaliza a data — só
+converte para `string`.** `filtrarContas` (`:290-291`) compara essa string
+direto contra `filtros.dataInicio`/`dataFim` com `<`/`>`, uma comparação
+lexicográfica que só funciona porque a API do Tiny devolve `AAAA-MM-DD` para o
+campo de emissão hoje. Não há `dataDeCalendario` nem validação de formato no
+meio: se o formato mudar, ou se algum dialeto (`DialetoDeContas`) apontar para
+um campo em outro formato, o filtro erra em silêncio — sem exceção, sem teste
+que acuse, só resultado errado. Registrado, não corrigido: nenhum item da Fase
+4 cobre `contas.ts`.
+
+### O que sobrou pedindo decisão
+
+**Os rótulos divergem entre as cinco telas, em dois eixos.** Produtos, Vendas
+e Vendedores usam "Período Rápido" + "Data Início"/"Data Fim"; Clientes e
+Serviços usam "Período" + "Início"/"Fim". Nenhuma foi renomeada — são telas em
+`PENDENTES_FASE_3`, e renomear rótulo é mudança de aparência, fora do escopo
+de um item que só troca o cálculo por baixo. Fica para quem migrar cada tela
+na Fase 3.
+
+**As cinco telas não têm um único `htmlFor`.** Os `<label>` do filtro de
+período são irmãos dos campos, nunca associados — confirmado por
+`grep -c htmlFor` zerado nas cinco antes deste item. É por isso que os cinco
+arquivos de teste (`*.periodo.test.tsx`) acham o campo por travessia de texto
+(`screen.getByText(rótulo).parentElement`) em vez de `getByLabelText`, o
+contorno que `ContasPagar.test.tsx` já usa neste repositório. É lacuna de
+acessibilidade real, não só decisão de teste — o mesmo tipo de regressão que o
+item 7 corrigiu no `MultiSelect`, ainda presente aqui porque as cinco telas
+seguem fora da Fase 3.
+
+**"Últimos 7 dias" entrou em Contas sem teste de caracterização próprio.** Foi
+acrescentado em `ContasPagar.test.tsx` (Task 2), no mesmo arquivo onde cada um
+dos outros quatro presets (`30dias`, `mesAtual`, `anoAtual`, `todos`) tem o
+seu `it`. O ramo está coberto no teste unitário de `periodoDoPreset` e nas
+cinco telas que o exercitam via `*.periodo.test.tsx`, mas não em Contas
+especificamente — se alguém quebrar só o fio entre o `<select>` de Contas e
+`periodoDoPreset("7dias", ...)`, a suíte de Contas não morde.
+
+### O que trava isso agora
+
+`src/test/guarda-planilha.test.ts` — o mesmo guarda do item 11, cuja lista
+`PENDENTES_UTC` cobria as cinco telas por causa deste defeito. Chegou a uma
+entrada só, `"src/pages/Clientes.tsx"`, e por um motivo que não é este item: a
+exibição de `ultimaCompra` em dd/mm/aaaa (`Clientes.tsx:1112`), um segundo
+`toISOString` fora do preset, registrado à parte no item 11 acima. As quatro
+tasks das telas que ficam de fato limpas — T3 (Produtos), T5 (Vendas), T6
+(Vendedores) e T7 (Serviços) — apagaram a própria linha ao migrar; T4
+(Clientes) manteve a dela, porque `ultimaCompra` não sai com o preset. O
+terceiro teste do guarda — "nenhuma entrada da lista de pendentes esta
+obsoleta" — rodou verde antes mesmo da Task 8 tocar o arquivo,
+prova de que o mecanismo "a lista só encolhe" funcionou tarefa a tarefa, sem
+precisar de um esvaziamento manual no fim.
+
 ## O que a fase entregou
 
 Nenhuma das seis cópias sobrou: `grep -rn "const MultiSelect" src/pages/`
@@ -699,15 +844,15 @@ acima.** O spec falava em sete arquivos montando `json_to_sheet` + `book_new` +
 fase mais `financeiro/AbaComissao.tsx`, `Locacao.tsx` e
 `contas/TelaDeContas.tsx`. Hoje é um.
 
-**Preset de período.** Cinco telas com o mesmo defeito. Ele já encontra
-`diaLocal` pronto em `src/lib/datas.ts`, posto lá pelo item 11, e as cinco telas
-são exatamente a lista `PENDENTES_UTC` do `guarda-planilha` — que falha se
-alguma delas for limpa sem a linha sair da lista. Vale registrar a forma exata
-do defeito: o rótulo que a pessoa lê já diz "Mês atual" nas cinco, mas o
-valor da opção é `"30dias"` e é ele que o `switch` casa — e o ramo monta
+**Preset de período — feito em 04/09/2026, item 12 acima.** Cinco telas
+tinham o mesmo defeito; hoje `periodoDoPreset` e `PRESETS_DE_PERIODO` moram em
+`src/lib/periodo.ts`, que usa o `diaLocal` posto em `src/lib/datas.ts` pelo
+item 11. A forma exata do defeito, para quem só ler este parágrafo: o rótulo
+que a pessoa lia já dizia "Mês atual" nas cinco, mas o valor da opção era
+`"30dias"`, e era ele que o `switch` casava — o ramo montava
 `new Date(hoje.getFullYear(), hoje.getMonth(), 1)`, o primeiro dia do mês
-corrente, não trinta dias atrás. Ou seja: a interface não mente para quem usa, o
-código mente para quem lê. Extrair primeiro, renomear a chave depois.
+corrente até HOJE, nunca trinta dias atrás e nunca até o fim do mês. Ou seja: a
+interface não mentia para quem usava, o código mentia para quem lia.
 
 **`useIsMobile` para `src/hooks/`.** Quatro cópias, em Produtos, Vendas,
 Estoque e Clientes.

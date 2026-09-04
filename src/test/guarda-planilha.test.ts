@@ -18,16 +18,16 @@ const arquivosDeCodigo = readdirSync("src", {
   )
   .map((c) => `src/${c}`);
 
-// Telas que AINDA montam data em UTC fora de nome de arquivo — o preset de
-// período (`hoje.toISOString()` para preencher os campos de data do filtro) e,
-// em Clientes, a exibição de `ultimaCompra` em dd/mm/yyyy.
+// Telas que AINDA montam data em UTC fora de nome de arquivo.
 //
-// É o mesmo defeito de fuso, e é o PRÓXIMO item da Fase 4: em `anoAtual` o
-// preset mistura `getFullYear()` (local) com `toISOString()` (UTC), que é
-// textualmente o que `pages/contas/contas.ts:257` documenta.
-//
-// Cada entrada existe para ser APAGADA quando aquela tela trocar o preset por
-// `diaLocal` — apagar a linha é parte de migrar, não um passo opcional.
+// A lista chegou a ter cinco entradas pelo preset de período
+// (`hoje.toISOString()` para preencher os campos de data do filtro, o mesmo
+// defeito que `pages/contas/contas.ts:257` documenta em `anoAtual`). O item 4
+// da Fase 4 tirou o preset de Produtos, Vendas, Vendedores, Serviços e Contas
+// — cada task (T3 a T7) apagou a própria linha ao migrar para
+// `periodoDoPreset`. Sobra uma: `Clientes.tsx` tem um SEGUNDO `toISOString`,
+// fora do preset e fora deste item — a exibição de `ultimaCompra` em
+// dd/mm/aaaa, registrada no item 11 do documento de divergências.
 //
 // A lista SÓ ENCOLHE. Duas travas garantem isso:
 //   1. arquivo fora da lista que use `toISOString` faz o guarda falhar;
@@ -119,8 +119,10 @@ describe("guarda de planilha", () => {
 
   it("nenhuma tela fora da lista monta data com toISOString", () => {
     // A trava larga: qualquer `toISOString` numa tela já limpa é regressão.
-    // As cinco da lista continuam isentas só pelo preset de período, e só até
-    // o próximo item da Fase 4.
+    // Clientes é a única isenta agora, e não mais pelo preset de período — o
+    // item 4 da Fase 4 fechou essa frente nas cinco outras telas. A isenção
+    // que sobra é a exibição de `ultimaCompra` (item 11 do documento de
+    // divergências), um defeito separado que ninguém decidiu corrigir ainda.
     //
     // Esta fica em `src/pages/` de propósito, ao contrário da trava de cima.
     // `context/DataContext.tsx:75` e `context/DashboardContext.tsx:187` também

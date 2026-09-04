@@ -839,6 +839,54 @@ arquivos, 487 inserções, 131 remoções** — a diferença são os documentos.
 O que sobrou pedindo decisão está em `2026-09-01-multiselect-divergencias.md`,
 item 11.
 
+### Item 4 da Fase 4 — o preset de período fechado (04/09/2026)
+
+`periodoDoPreset`, `periodoDoMes`, `Periodo` e `PRESETS_DE_PERIODO` estavam
+copiados em cinco telas (Produtos, Vendas, Vendedores, Serviços e Clientes) e
+em `pages/contas/contas.ts`; hoje existem uma vez só, em `src/lib/periodo.ts`,
+que as seis consomem. `diaLocal`, posto em `src/lib/datas.ts` pelo item 3
+acima, é quem monta as duas pontas do período — antes elas saíam de
+`hoje.toISOString()`, em UTC.
+
+**A cópia carregava o mesmo defeito que o item 3 já tinha nomeado (1.3): o
+rótulo mentia para quem lia o código.** Nas cinco telas, o rótulo "Mês atual"
+ficava preso à chave `"30dias"`, que não calculava trinta dias — calculava do
+dia 1 do mês até HOJE, nunca até o fim do mês; "Ano atual" ia de 1º de janeiro
+até HOJE, nunca até 31/12. Depois da troca: "Mês atual" ganhou chave própria
+(`mesAtual`) e cobre o mês inteiro; "Ano atual" vai até 31/12; e `"30dias"`
+passou a ser, de fato, uma janela rolante de 30 dias — a única opção
+genuinamente nova para quem usa as cinco telas. Contas ganhou "Últimos 7 dias",
+que as cinco já tinham e ela não; foi a única mudança do lado de Contas.
+
+**Uma investigação de defeito não confirmou nada, e o registro é o achado.**
+Uma suspeita de que o filtro manual de data das cinco telas (distinto do
+preset) comparasse hora local contra meia-noite UTC não se sustentou: as duas
+telas que alimentam essa comparação (`DataContext.tsx`, `ServicosContext.tsx`)
+já normalizam a data para `AAAA-MM-DD` antes de chegar à tela, então os dois
+lados da comparação concordam. A lição documentada:
+**verificar o mecanismo não é verificar o defeito** — só depois de seguir o
+dado real da API até a comparação é que dá para saber.
+
+A branch, medida da base real (`git merge-base main HEAD`) e **antes de
+qualquer commit desta última task (a de código e a de documentação) entrar**
+— o cuidado que faltou no item 3 e teve de ser emendado —, soma **10 commits,
+18 arquivos, 1292 inserções, 343 remoções**. O lint, ao longo do item inteiro,
+caiu de **118** (medido na `main`) para **104** antes desta task — 116, 114,
+111, 108, 105, 104, uma queda a cada tela — e foi para **103** com esta task,
+que apagou uma função de teste órfã (`corpoDaTabela`,
+`Produtos.periodo.test.tsx`). Treze dos catorze problemas a menos vieram das
+cinco telas, não por supressão: são os `case` com `let`
+(`no-case-declarations`) e as atribuições inúteis que saíam junto de cada
+`switch` removido, verificados um a um lintando o arquivo antigo isolado.
+Suíte em **1474 testes / 100 arquivos**, `tsc --noEmit` limpo, verde em
+`TZ=UTC` e `TZ=America/Sao_Paulo`.
+
+O que sobrou pedindo decisão está em `2026-09-01-multiselect-divergencias.md`,
+item 12 — os rótulos que divergem entre as cinco telas em dois eixos, a falta
+de `htmlFor` nos cinco filtros, "Últimos 7 dias" em Contas sem teste de
+caracterização próprio, e os três achados colaterais da investigação que não
+deu em nada.
+
 ### Em aberto
 
 1. **A pergunta da API, adiada pelo Erick e a mais séria:** o `PUT /users/{id}`
