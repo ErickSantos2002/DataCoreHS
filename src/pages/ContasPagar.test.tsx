@@ -1142,6 +1142,16 @@ describe("Contas a Pagar — presets de período", () => {
     expect(idsNaTela()).toHaveLength(6);
   });
 
+  it("'Últimos 7 dias' vai de 08/03 a 15/03 com o relógio em 15/03/2026", async () => {
+    await montar();
+    escolherPreset("7dias");
+
+    expect(campoData("Data Início")).toHaveValue("2026-03-08");
+    expect(campoData("Data Fim")).toHaveValue("2026-03-15");
+    // Emissão de 10/03 (106) é a única dentro da janela.
+    expect(idsNaTela()).toEqual(["106"]);
+  });
+
   it("'Últimos 30 dias' vai de 13/02 a 15/03 com o relógio em 15/03/2026", async () => {
     await montar();
     escolherPreset("30dias");

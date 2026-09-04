@@ -7,7 +7,7 @@ import { diaLocal } from "./datas";
  * Moraram em `pages/contas/contas.ts` até 04/09/2026, quando cinco telas
  * passaram a precisar deles. Antes disso as cinco carregavam uma cópia do
  * cálculo, byte a byte idêntica entre si, que montava as datas em UTC — e por
- * isso "Ano atual" virava o ano passado na virada.
+ * isso "Ano atual" virava o ano seguinte na virada.
  */
 
 export interface Periodo {

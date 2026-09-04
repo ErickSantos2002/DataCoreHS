@@ -22,12 +22,14 @@ const arquivosDeCodigo = readdirSync("src", {
 //
 // A lista chegou a ter cinco entradas pelo preset de período
 // (`hoje.toISOString()` para preencher os campos de data do filtro, o mesmo
-// defeito que `pages/contas/contas.ts:257` documenta em `anoAtual`). O item 4
-// da Fase 4 tirou o preset de Produtos, Vendas, Vendedores, Serviços e Contas
-// — cada task (T3 a T7) apagou a própria linha ao migrar para
-// `periodoDoPreset`. Sobra uma: `Clientes.tsx` tem um SEGUNDO `toISOString`,
-// fora do preset e fora deste item — a exibição de `ultimaCompra` em
-// dd/mm/aaaa, registrada no item 11 do documento de divergências.
+// defeito que `src/lib/periodo.ts:41-45` documenta em `anoAtual`). O item 4
+// da Fase 4 tirou o preset de Produtos, Vendas, Vendedores, Serviços e
+// Clientes — cada task (T3 a T7) apagou a própria linha ao migrar para
+// `periodoDoPreset`, exceto a T4 (Clientes), que não apagou de propósito:
+// `Clientes.tsx` tem um SEGUNDO `toISOString`, fora do preset e fora deste
+// item — a exibição de `ultimaCompra` em dd/mm/aaaa (`Clientes.tsx:1112`),
+// registrada no item 11 do documento de divergências, e por isso a tela
+// continua na lista.
 //
 // A lista SÓ ENCOLHE. Duas travas garantem isso:
 //   1. arquivo fora da lista que use `toISOString` faz o guarda falhar;
@@ -42,7 +44,8 @@ const PENDENTES_UTC: string[] = ["src/pages/Clientes.tsx"];
 /** Linha que só CITA `toISOString` em comentário não é infração.
  *
  *  Vários arquivos falam do defeito justamente para explicar o que deixaram de
- *  ter — `contas.ts:257` e `:637` são o caso. Acusar esses comentários seria
+ *  ter — `src/lib/periodo.ts:41-45` e `src/pages/contas/contas.ts:589` são o
+ *  caso. Acusar esses comentários seria
  *  acusar código certo, e o desfecho provável é alguém apagar o comentário para
  *  o teste passar: o repositório perderia a explicação do defeito. */
 function usosDeToISOString(caminho: string): string[] {

@@ -22,8 +22,10 @@ describe("periodoDoPreset", () => {
   });
 
   it("Últimos 7 dias conta sete dias para trás", () => {
-    // O único preset cujo comportamento NÃO muda para as cinco telas: elas já
-    // faziam `setDate(hoje.getDate() - 7)` com o fim em hoje. O ramo nasce aqui
+    // A janela é a mesma que as cinco telas já calculavam — `setDate(hoje.getDate()
+    // - 7)` com o fim em hoje —, mas as duas pontas agora saem do DIA LOCAL. As
+    // cópias antigas montavam as pontas com `toISOString` (UTC), e por isso
+    // divergiam do dia local a partir das 21h em Brasília. O ramo nasce aqui
     // porque Contas não tinha esta opção, e sem ele a escolha cairia no
     // `default` e viraria "Todos" — silenciosamente.
     expect(periodoDoPreset("7dias", AGORA)).toEqual({

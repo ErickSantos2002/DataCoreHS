@@ -170,7 +170,7 @@ describe("preset de periodo em Clientes", () => {
     expect(campoData("Fim")).toHaveValue("2026-03-15");
   });
 
-  it("Ultimos 7 dias nao mudou — e o unico preset que sobreviveu igual", () => {
+  it("Últimos 7 dias mantém a janela, agora contada no dia local", () => {
     render(<Clientes />);
     escolherPreset("7dias");
 
@@ -191,6 +191,10 @@ describe("preset de periodo em Clientes", () => {
   it("Todos limpa as duas datas", () => {
     render(<Clientes />);
     escolherPreset("anoAtual");
+
+    expect(campoData("Início")).toHaveValue("2026-01-01");
+    expect(campoData("Fim")).toHaveValue("2026-12-31");
+
     escolherPreset("todos");
 
     expect(campoData("Início")).toHaveValue("");
