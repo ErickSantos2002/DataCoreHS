@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Activity,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -360,7 +361,7 @@ const Estoque: React.FC = () => {
 
     baixarPlanilha(
       [{ nome: "Estoque", linhas: dadosExport }],
-      `estoque_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `estoque_${diaLocal(new Date())}.xlsx`,
     );
   }, [produtosTabela]);
 
@@ -399,7 +400,7 @@ const Estoque: React.FC = () => {
     );
 
     // Salvar
-    doc.save(`solicitacao_compras_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`solicitacao_compras_${diaLocal(new Date())}.pdf`);
     fecharModal();
   };
 
