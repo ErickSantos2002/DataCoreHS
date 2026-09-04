@@ -32,6 +32,7 @@ import {
   ChevronDown,
   Users,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import {
   MultiSelect,
@@ -470,7 +471,7 @@ const Vendas: React.FC = () => {
 
     baixarPlanilha(
       [{ nome: "Vendas", linhas: dadosExport }],
-      `vendas_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `vendas_${diaLocal(new Date())}.xlsx`,
     );
   }, [notasTabela]);
 
