@@ -4,18 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Vendedores from "./Vendedores";
 
 /**
- * O preset de periodo em Vendedores, depois da adocao do `periodoDoPreset`.
+ * O preset de período em Vendedores, depois da adoção do `periodoDoPreset`.
  *
- * O que se fixa aqui e a fiacao: escolher no `<select>` de periodo tem de
+ * O que se fixa aqui é a fiação: escolher no `<select>` de período tem de
  * escrever as duas datas nos campos. A conta em si mora em `src/lib/periodo.ts`
- * e tem teste unitario proprio; este arquivo prova que a tela chama a conta.
+ * e tem teste unitário próprio; este arquivo prova que a tela chama a conta.
  *
- * Os `vi.mock` e os fixtures abaixo sao copia do `Vendedores.paginacao.test.tsx` —
- * e a mesma tela, com as mesmas dependencias, e duplicar o cabecalho custa
+ * Os `vi.mock` e os fixtures abaixo são cópia do `Vendedores.paginacao.test.tsx` —
+ * é a mesma tela, com as mesmas dependências, e duplicar o cabeçalho custa
  * menos que um helper compartilhado que acopla os dois arquivos.
  *
- * O relogio e fixado em 15/03/2026: as assercoes falam de "mes atual" e "ano
- * atual", e sem relogio fixo o teste passaria hoje e falharia em abril.
+ * O relógio é fixado em 15/03/2026: as asserções falam de "mês atual" e "ano
+ * atual", e sem relógio fixo o teste passaria hoje e falharia em abril.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
