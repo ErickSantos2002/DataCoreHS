@@ -209,11 +209,15 @@ opção nova (`Últimos 30 dias`) preserva o comportamento antigo com o nome
 honesto, então nada some — o que existia continua alcançável, com o rótulo
 certo. Ainda assim é conferência no navegador, não só teste.
 
-**O `PENDENTES_UTC` fica vazio.** As cinco saem da lista e ela zera, o que faz o
-terceiro teste do `guarda-planilha` (lista sem entrada obsoleta) virar
-trivialmente verdadeiro. Se o guarda perde a lista ou a mantém como estrutura é
-decisão do plano, não desta spec — mas fica registrado que alguém tem de decidir,
-para a lista não ficar lá vazia sem ninguém saber por quê.
+**O `PENDENTES_UTC` quase fica vazio — corrigido durante a execução, não fica
+de todo.** A previsão aqui era que as cinco saíssem da lista e ela zerasse,
+fazendo o terceiro teste do `guarda-planilha` (lista sem entrada obsoleta)
+virar trivialmente verdadeiro. Quatro saem mesmo; a quinta, `Clientes.tsx`,
+tem um segundo `toISOString` fora do preset (a exibição de `ultimaCompra`) que
+esta spec não cobre, e apagar a linha dela quebraria o segundo teste do guarda
+("nenhuma tela fora da lista monta data com `toISOString`"). A lista termina
+com **uma** entrada, não vazia — ver "Como se sabe que terminou" abaixo, que
+tem o critério certo.
 
 ## Como se sabe que terminou
 

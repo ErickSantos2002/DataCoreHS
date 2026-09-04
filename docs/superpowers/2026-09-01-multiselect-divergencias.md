@@ -30,10 +30,11 @@ conferência no navegador.
 
 O item 11, da mesma fase, é o primeiro que registra um defeito **corrigido**
 em vez de preservado: o nome do arquivo exportado saía em UTC em onze lugares.
-O que ele deixa pedindo decisão são quatro coisas, e **nenhuma está fixada em
-teste** — uma prop com chamadora única, o preset de período que continua em UTC
-(isento por lista que só encolhe), duas datas de dado fora do alcance do guarda,
-e uma duplicação de PDF que sobreviveu à correção.
+O que ele deixou pedindo decisão foram quatro coisas, e **nenhuma estava fixada
+em teste** — uma prop com chamadora única, o preset de período que continuava
+em UTC (isento por lista que só encolhe), duas datas de dado fora do alcance do
+guarda, e uma duplicação de PDF que sobreviveu à correção. O preset de período
+foi o item seguinte da mesma fase, e fechou — ver item 12 abaixo.
 
 O item 7 era o único que não pedia escolha entre dois comportamentos
 defensáveis — era regressão de acessibilidade — e **deixou de ser pendência**:
@@ -652,10 +653,11 @@ na folha antes de anexá-la ao livro, e existe porque `Vendedores` define largur
 de coluna. Uma segunda chamadora é sinal de que aquilo devia ser padrão do
 primitivo, não injeção — vale reavaliar quando aparecer.
 
-**O preset de período continua em UTC nas cinco telas**, e é o próximo item da
-Fase 4. Está isento no guarda pela lista `PENDENTES_UTC`, que **só encolhe**:
-apagar a linha é parte de migrar a tela, e o guarda falha se um arquivo da lista
-já estiver limpo. `Estoque` não está na lista — ela exporta, mas não tem preset.
+**O preset de período continuava em UTC nas cinco telas**, e era o próximo item
+da Fase 4 — fechado no item 12, abaixo. Estava isento no guarda pela lista
+`PENDENTES_UTC`, que **só encolhe**: apagar a linha é parte de migrar a tela, e
+o guarda falha se um arquivo da lista já estiver limpo. `Estoque` não está na
+lista — ela exporta, mas não tem preset.
 
 **Duas datas fora de nome de arquivo, que nenhum item da Fase 4 cobre.**
 `context/DataContext.tsx:75` e `context/DashboardContext.tsx:187` montam data com
