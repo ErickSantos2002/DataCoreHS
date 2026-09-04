@@ -40,6 +40,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
+import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -526,7 +527,7 @@ const Clientes: React.FC = () => {
 
     baixarPlanilha(
       [{ nome: "Clientes", linhas: dadosExport }],
-      `clientes_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `clientes_${diaLocal(new Date())}.xlsx`,
     );
   }, [clientesTabela]);
 
@@ -556,7 +557,7 @@ const Clientes: React.FC = () => {
       body: dadosTabela,
     });
 
-    doc.save(`clientes_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`clientes_${diaLocal(new Date())}.pdf`);
   }, [clientesTabela, user]);
 
   if (carregando) {
