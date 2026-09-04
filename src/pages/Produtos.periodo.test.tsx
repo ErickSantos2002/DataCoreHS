@@ -4,26 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Produtos from "./Produtos";
 
 /**
- * Caracterização da PAGINAÇÃO COMO ELA VIVE em Produtos.
+ * O preset de periodo em Produtos, depois da adocao do `periodoDoPreset`.
  *
- * Não é a tela, e não é o MultiSelect (esse tem arquivo próprio ao lado):
- * é o rodapé. O que se fixa aqui é o contrato que a adoção do `Pagination`
- * do design system tem de preservar — quantas linhas cabem numa página, o
- * que a frase de contagem diz, e o que os botões fazem nos extremos.
+ * O que se fixa aqui e a fiacao: escolher no `<select>` de periodo tem de
+ * escrever as duas datas nos campos. A conta em si mora em `src/lib/periodo.ts`
+ * e tem teste unitario proprio; este arquivo prova que a tela chama a conta.
  *
- * Produtos AGREGA: `produtosAgregados` soma os `itens` das notas por
- * `codigo`, então uma nota com 17 itens de código distinto vira 17 linhas de
- * tabela. É por isso que o fixture é uma nota só.
+ * Os `vi.mock` e os fixtures abaixo sao copia do `Produtos.paginacao.test.tsx` —
+ * e a mesma tela, com as mesmas dependencias, e duplicar o cabecalho custa
+ * menos que um helper compartilhado que acopla os dois arquivos.
  *
- * A ordenação padrão da tabela é por `quantidadeVendida` decrescente. O
- * comparador de `produtosTabela` (`aVal > bVal ? 1 : -1`) nunca devolve 0,
- * então com quantidades empatadas o resultado depende de como o V8 quebra o
- * empate — não é o comportamento da tela, é um acidente do motor JS. Por
- * isso cada item tem uma quantidade distinta (17 a 1, decrescente com o
- * código): a ordenação fica determinística e a página 1 sai exatamente
- * "Produto 01".."Produto 15", igual à intenção original do fixture.
- *
- * Página de 15 itens, 17 produtos: duas páginas, a segunda com 2.
+ * O relogio e fixado em 15/03/2026: as assercoes falam de "mes atual" e "ano
+ * atual", e sem relogio fixo o teste passaria hoje e falharia em abril.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),

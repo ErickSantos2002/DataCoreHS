@@ -4,24 +4,18 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import Clientes from "./Clientes";
 
 /**
- * Caracterização da PAGINAÇÃO COMO ELA VIVE em Clientes.
+ * O preset de periodo em Clientes, depois da adocao do `periodoDoPreset`.
  *
- * Molde de `Produtos.paginacao.test.tsx` (Task 2). Diferença: Clientes NÃO
- * agrega — cada cliente do fixture vira uma linha da tabela (Produtos soma
- * `itens` por código; aqui não há nada parecido), então o fixture já é uma
- * lista de N clientes, com N = pageSize + 2.
+ * O que se fixa aqui e a fiacao: escolher no `<select>` de periodo tem de
+ * escrever as duas datas nos campos. A conta em si mora em `src/lib/periodo.ts`
+ * e tem teste unitario proprio; este arquivo prova que a tela chama a conta.
  *
- * `clientesTabela` só mantém quem tem `numeroComprasPeriodo > 0`
- * (Clientes.tsx ~linha 258), então cada cliente do fixture precisa de pelo
- * menos uma nota cujo `cliente.cpf_cnpj` bata (depois de normalizado) com o
- * `cpf_cnpj` do cliente enriquecido — daí a nota 1-para-1 com o cliente.
+ * Os `vi.mock` e os fixtures abaixo sao copia do `Clientes.paginacao.test.tsx` —
+ * e a mesma tela, com as mesmas dependencias, e duplicar o cabecalho custa
+ * menos que um helper compartilhado que acopla os dois arquivos.
  *
- * A ordenação padrão é por `ultimaCompra` decrescente (Clientes.tsx ~linha
- * 93). Por isso cada nota tem uma `data_emissao` distinta: com datas
- * repetidas o comparador (`aVal > bVal ? 1 : -1`, nunca 0) desempata de
- * forma não determinística — defeito conhecido da tela, não desta task.
- *
- * Página de 15 itens, 17 clientes: duas páginas, a segunda com 2.
+ * O relogio e fixado em 15/03/2026: as assercoes falam de "mes atual" e "ano
+ * atual", e sem relogio fixo o teste passaria hoje e falharia em abril.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
