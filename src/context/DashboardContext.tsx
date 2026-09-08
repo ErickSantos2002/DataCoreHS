@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchFaturamentoMensal } from "../services/notasapi";
 import { useConfiguracoes } from "./ConfiguracoesContext";
-import { rotuloDoMes } from "./faturamento";
+import { rotuloDoMes } from "./mes";
 
 interface FaturamentoMensal {
   mes: string;
