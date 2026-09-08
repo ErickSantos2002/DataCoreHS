@@ -227,6 +227,35 @@ export const fetchVendas = async (
   return response.data;
 };
 
+/** Faturamento mes a mes de um ano, ja somado pelo banco.
+ *
+ * Vem da camada `gold`, onde a regra do que conta como faturamento ja foi
+ * aplicada — o oposto de `fetchVendas`, que devolve as notas e deixa a tela
+ * filtrar e somar. Sao sempre doze linhas, com zero nos meses sem nota, entao
+ * quem consome nao precisa preencher buraco.
+ *
+ * `produto` e NF-e, `servico` e NFS-e, `total` e a soma dos dois — o numero
+ * que o dashboard mostra como faturamento da empresa.
+ */
+export interface FaturamentoMensalAPI {
+  ano: number;
+  /** 1 = janeiro. */
+  mes: number;
+  produto: number;
+  servico: number;
+  total: number;
+}
+
+export const fetchFaturamentoMensal = async (
+  ano: number,
+): Promise<FaturamentoMensalAPI[]> => {
+  const response = await api.get<FaturamentoMensalAPI[]>(
+    "/faturamento/mensal",
+    { params: { ano } },
+  );
+  return response.data;
+};
+
 // Notas com marcador "Locação"
 export const fetchLocacao = async (
   params: Params = {},

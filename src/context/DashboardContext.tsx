@@ -1,11 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchVendas, fetchNotasServico } from "../services/notasapi";
+import { fetchFaturamentoMensal } from "../services/notasapi";
 import { useConfiguracoes } from "./ConfiguracoesContext";
-import {
-  rotuloDoMes,
-  totaisPorMes,
-  type RegrasDeFaturamento,
-} from "./faturamento";
+import { rotuloDoMes } from "./faturamento";
 
 interface FaturamentoMensal {
   mes: string;
@@ -58,12 +54,10 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         return config?.valor?.split(",").map((v) => v.trim()) || [];
       }
 
-      // O que conta como faturamento. As regras em si moram em faturamento.ts,
-      // aplicadas igual nos dois recortes que esta tela busca.
-      const regras: RegrasDeFaturamento = {
-        cfopValidos: getArray("CFOP_VALIDOS"),
-        marcadoresInvalidos: getArray("MARCADORES_INVALIDOS"),
-      };
+      // CFOP_VALIDOS e MARCADORES_INVALIDOS nao sao mais lidos aqui: o que conta
+      // como faturamento e decidido na camada `gold` e chega pronto pela API.
+      // A configuracao continua existindo para quem ainda filtra no navegador —
+      // ver as outras telas — mas esta parou de ter uma copia da regua.
 
       // MESES_ANALISE é 1-based (1 = janeiro), do jeito que se digita em
       // Configurações. O Date do JS conta mês a partir de 0 — daí o -1 abaixo.
@@ -74,27 +68,22 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       const hoje = new Date();
       const anoAtual = hoje.getFullYear();
 
-      // O ano corrente inteiro, em UMA requisição de venda e uma de serviço.
-      // Dela saem as TRÊS leituras que a tela faz dele: o total do ano, a
-      // quebra mês a mês do gráfico e os meses do trimestre em apuração. É o
-      // mesmo dado agrupado de três jeitos, sem nenhuma requisição a mais.
+      // O ano corrente inteiro, em UMA requisição de doze linhas. Dela saem as
+      // TRÊS leituras que a tela faz: o total do ano, a quebra mês a mês do
+      // gráfico e os meses do trimestre em apuração.
       //
-      // O trimestre vinha de um laço à parte: seis requisições sequenciais
-      // (uma de venda e uma de serviço por mês de MESES_ANALISE) sobre notas
-      // que a busca do ano já traz. Antes de apagá-lo os dois caminhos foram
-      // rodados lado a lado contra a base real, nos doze meses de 2026 e nos
-      // doze de 2025: os 24 pares batem, com diferença máxima de 7e-10 —
-      // ruído de ordem de soma em ponto flutuante, não um centavo. Eles
-      // podiam divergir se a API filtrasse por um campo de data diferente de
-      // `data_emissao`, que é por onde `totaisPorMes` separa os meses; das 26
-      // requisições nenhuma devolveu nota fora da janela pedida, então o
-      // campo é o mesmo.
+      // O trimestre sai daqui, e não de requisições próprias: ele é um recorte
+      // dos mesmos doze meses. Já foi um laço de seis requisições, apagado
+      // depois de rodar os dois caminhos lado a lado contra a base real (24
+      // pares conferidos, diferença máxima de 7e-10 — ruído de ponto
+      // flutuante). Continua valendo, e agora por um motivo mais forte: quem
+      // separa os meses é o banco, não esta tela.
       let totalAnoCompleto = 0;
       let serieDoAno: FaturamentoMensal[] = [];
       let mesesEmApuracao: FaturamentoMensal[] = [];
 
       try {
-        const totais = await totaisDoAno(anoAtual, regras);
+        const totais = await totaisDoAno(anoAtual);
         totalAnoCompleto = totais.reduce((acc, valor) => acc + valor, 0);
         // Mês futuro ficaria como barra vazia no fim do gráfico, sugerindo
         // queda onde só há calendário. O gráfico para no mês corrente.
@@ -117,20 +106,19 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         0,
       );
 
-      // O ano anterior, na mesma dupla de requisições do ano corrente. É a
-      // forma sazonal que a projeção de fechamento usa para estimar o que
-      // falta do trimestre. Falhar aqui não derruba a tela: sem esta série a
-      // projeção cai no método linear e diz na tela que caiu.
+      // O ano anterior: a forma sazonal que a projeção de fechamento usa para
+      // estimar o que falta do trimestre. Falhar aqui não derruba a tela — sem
+      // esta série a projeção cai no método linear e diz na tela que caiu.
       //
-      // Vem DEPOIS do ano corrente, e não junto. Disparar os quatro pedidos
-      // de uma vez foi medido e é mais LENTO: são as quatro respostas mais
-      // pesadas da tela e a API as atende em disputa — na mesma bancada,
-      // 1.421 ms em paralelo contra 1.072 ms em série. Concorrência aqui não
-      // é ganho de graça; a fila é do outro lado.
+      // Segue DEPOIS do ano corrente, e não em paralelo. O motivo original era
+      // que as quatro requisições pesadas disputavam a API (1.421 ms em
+      // paralelo contra 1.072 ms em série, medido). Agora são duas requisições
+      // de doze linhas e a disputa não existe mais; manter em série é só o
+      // custo de uma viagem, e não vale reescrever sem medir de novo.
       let totaisDoAnoAnterior: number[] = [];
 
       try {
-        totaisDoAnoAnterior = await totaisDoAno(anoAtual - 1, regras);
+        totaisDoAnoAnterior = await totaisDoAno(anoAtual - 1);
       } catch (err) {
         console.error("Erro ao buscar o faturamento do ano anterior", err);
       }
@@ -166,23 +154,34 @@ export const useDashboard = () => useContext(DashboardContext);
 
 // Helpers
 
-/** O faturamento de cada mês de um ano, em doze posições. Duas requisições —
- *  vendas e serviços do ano inteiro — e o agrupamento por data de emissão. */
-async function totaisDoAno(
-  ano: number,
-  regras: RegrasDeFaturamento,
-): Promise<number[]> {
-  const inicio = format(new Date(ano, 0, 1));
-  const fim = format(new Date(ano, 11, 31));
+/** O faturamento de cada mês de um ano, em doze posições — índice 0 é janeiro.
+ *
+ *  UMA requisição, e a soma já vem pronta do banco.
+ *
+ *  Antes eram duas (as notas de venda e as de serviço do ano inteiro), e a
+ *  soma acontecia aqui: milhares de notas com cliente, itens e marcadores
+ *  dentro trafegavam para virar doze números. Pior que o peso era a régua —
+ *  filtrar CFOP e marcador aqui significava manter, no navegador, uma terceira
+ *  cópia da definição de faturamento, que ninguém sincronizava com a do
+ *  backend nem com a do dbt.
+ *
+ *  Agora a régua mora num lugar só, na camada `gold`. Aqui só se lê.
+ *
+ *  A API devolve sempre doze linhas, com zero em mês sem nota — por isso não
+ *  há preenchimento de buraco deste lado. `total` é produto (NF-e) mais
+ *  serviço (NFS-e), a mesma soma que esta tela sempre mostrou.
+ */
+async function totaisDoAno(ano: number): Promise<number[]> {
+  const linhas = await fetchFaturamentoMensal(ano);
 
-  const [vendas, servicos] = await Promise.all([
-    fetchVendas({ data_inicio: inicio, data_fim: fim }),
-    fetchNotasServico({ data_inicio: inicio, data_fim: fim }),
-  ]);
-
-  return totaisPorMes({ vendas, servicos, regras, ano });
-}
-
-function format(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const totais = Array<number>(12).fill(0);
+  for (const linha of linhas) {
+    // Defensivo de propósito: mês fora de 1..12 seria índice inválido, e
+    // `totais[-1] = x` em JS não estoura — cria uma propriedade "-1" no array
+    // e some do gráfico sem erro nenhum.
+    if (linha.mes >= 1 && linha.mes <= 12) {
+      totais[linha.mes - 1] = linha.total;
+    }
+  }
+  return totais;
 }
