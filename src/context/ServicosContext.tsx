@@ -2,13 +2,21 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { fetchNotasServico } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
 
+/**
+ * Uma nota de serviço, como `/faturamento/servicos` a entrega.
+ *
+ * Os três valores são NÚMERO, e não mais `number | string`: a origem grava
+ * texto em duas convenções, e quem converte agora é o `gold`. A união com
+ * `string` era o que obrigava cada consumidor a converter — e foi assim que
+ * uma cópia antiga da conversão sobreviveu aqui dentro.
+ */
 interface Servico {
   id: number;
-  numero_nfse: string;
+  numero_nfse: number;
   data_emissao: string;
-  valor_servico: number | string;
-  valor_total_recebido?: number | string;
-  valor_iss?: number | string;
+  valor_servico: number;
+  valor_total_recebido?: number;
+  valor_iss?: number;
   razao_social_tomador: string;
   cpf_cnpj_tomador: string;
   email_tomador?: string;
@@ -47,17 +55,6 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Função para converter valor string para número
-  const converterParaNumero = (valor: string | number | undefined): number => {
-    if (typeof valor === "number") return valor;
-    if (!valor) return 0;
-    const s = valor.toString().replace(/R\$/g, "").replace(/\s/g, "");
-    // Se tem vírgula → formato brasileiro "1.250,80": strip pontos, troca vírgula por ponto
-    if (s.includes(",")) return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
-    // Sem vírgula → ponto é decimal (ex: "418.50" vindo da API)
-    return parseFloat(s) || 0;
-  };
-
   const atualizarServicos = useCallback(async () => {
     try {
       setCarregando(true);
@@ -74,13 +71,13 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           dataEmissaoAjustada = `${dataLocal.getFullYear()}-${String(dataLocal.getMonth() + 1).padStart(2, "0")}-${String(dataLocal.getDate()).padStart(2, "0")}`;
         }
 
-        return {
-          ...servico,
-          data_emissao: dataEmissaoAjustada,
-          valor_servico: converterParaNumero(servico.valor_servico),
-          valor_total_recebido: converterParaNumero(servico.valor_total_recebido),
-          valor_iss: converterParaNumero(servico.valor_iss),
-        };
+        // Os três valores já chegam como número de `/faturamento/servicos`, que os lê
+        // do `gold`. Aqui morava uma CÓPIA da conversão de texto para número — a versão
+        // antiga, sem o teste de ponto-de-milhar que o `lib/dinheiro.ts` ganhou depois.
+        // Nela `"1.234"` viraria R$ 1,23. Nenhuma nota caía nesse caso hoje (medido:
+        // zero), mas a cópia era bomba armada esperando um cadastro escrito de outro
+        // jeito — e some junto com o texto que a obrigava a existir.
+        return { ...servico, data_emissao: dataEmissaoAjustada };
       });
 
       setServicos(servicosNormalizados);
@@ -103,7 +100,9 @@ export const ServicosProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       return {
         ...servico,
-        valor_servico_numero: converterParaNumero(servico.valor_servico),
+        // `valor_servico` já é número; o campo continua existindo com o nome antigo
+        // porque a tela de Financeiro e a de Serviços o leem assim.
+        valor_servico_numero: servico.valor_servico,
         mes: data.toLocaleDateString("pt-BR", { month: "long" }),
         ano: data.getFullYear(),
       };

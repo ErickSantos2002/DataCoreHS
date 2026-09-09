@@ -80,13 +80,20 @@ export interface NotaLocacao {
   marcadores?: Marcador[];
 }
 
+/**
+ * Uma nota de servico que conta como faturamento, pela regua do `gold`.
+ *
+ * Os tres valores chegam como NUMERO. Na origem sao texto, e em duas
+ * convencoes (`1.234,56` e `1234.56`) — o `gold` ja converteu, com macro
+ * testada, e o navegador nao precisa mais adivinhar qual e qual.
+ */
 export interface NotaServico {
   id: number;
-  numero_nfse: string;
+  numero_nfse: number;
   data_emissao: string;
-  valor_servico: number | string;
-  valor_total_recebido?: number | string;
-  valor_iss?: number | string;
+  valor_servico: number;
+  valor_total_recebido?: number;
+  valor_iss?: number;
   razao_social_tomador: string;
   cpf_cnpj_tomador: string;
   email_tomador?: string;
@@ -320,7 +327,9 @@ export const fetchClientes = async (
 export const fetchNotasServico = async (
   params: Params = {},
 ): Promise<NotaServico[]> => {
-  const response = await api.get<NotaServico[]>("/notas_servico/", { params });
+  const response = await api.get<NotaServico[]>("/faturamento/servicos", {
+    params,
+  });
   return response.data;
 };
 
