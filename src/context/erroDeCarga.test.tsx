@@ -6,24 +6,28 @@ import { AuthContext } from "./AuthContext";
 import { ContasPagarProvider, useContasPagar } from "./ContasPagarContext";
 import { ContasReceberProvider, useContasReceber } from "./ContasReceberContext";
 import { ServicosProvider, useServicos } from "./ServicosContext";
-import { VendasProvider, useVendas } from "./VendasContext";
+import { useFaturamento } from "../pages/financeiro/useFaturamento";
 
 /**
- * Os quatro contextos que alimentam o Financeiro contam quando a busca falha.
+ * As quatro fontes que alimentam o Financeiro contam quando a busca falha.
  *
  * Sem isso a tela abre inteira em "Sem dados" com a API caída, e quem olha
  * não distingue "a API caiu" de "a empresa não faturou" — foi o que a
  * conferência no navegador mostrou. É o mesmo defeito 1.10 que as gêmeas
- * fecharam para as contas; aqui ele se fecha para vendas e serviços, e o que
- * já funcionava fica travado por teste.
+ * fecharam para as contas; aqui ele se fecha para o faturamento e os
+ * serviços, e o que já funcionava fica travado por teste.
+ *
+ * O faturamento entra como HOOK e não como provider: ele substituiu o
+ * `VendasContext`, que existia só para esta tela. O contrato testado é o
+ * mesmo — falhou, diz que falhou.
  */
 
-const fetchVendas = vi.hoisted(() => vi.fn());
+const fetchFaturamentoMensal = vi.hoisted(() => vi.fn());
 const fetchNotasServico = vi.hoisted(() => vi.fn());
 const fetchContasPagar = vi.hoisted(() => vi.fn());
 const fetchContasReceber = vi.hoisted(() => vi.fn());
 vi.mock("../services/notasapi", () => ({
-  fetchVendas,
+  fetchFaturamentoMensal,
   fetchNotasServico,
   fetchContasPagar,
   fetchContasReceber,
@@ -47,8 +51,8 @@ function ComSessao({ children }: { children: ReactNode }) {
   );
 }
 
-function EspiaoDeVendas() {
-  const { erro, carregando } = useVendas();
+function EspiaoDeFaturamento() {
+  const { erro, carregando } = useFaturamento();
   return <p>{carregando ? "carregando" : (erro ?? "sem erro")}</p>;
 }
 
@@ -67,17 +71,17 @@ function EspiaoDeReceber() {
   return <p>{carregando ? "carregando" : (erro ?? "sem erro")}</p>;
 }
 
-/** Os quatro, com a frase que cada um deve dizer quando a busca falha. */
+/** As quatro, com a frase que cada uma deve dizer quando a busca falha. */
 const CONTEXTOS = [
   {
-    nome: "vendas",
-    busca: fetchVendas,
-    frase: "Não foi possível carregar as notas de venda.",
+    nome: "faturamento",
+    busca: fetchFaturamentoMensal,
+    frase: "Não foi possível carregar o faturamento.",
+    // Sem provider: é hook, e não context. Continua dentro de `ComSessao`
+    // porque o interceptor de token do axios lê a sessão.
     montar: () => (
       <ComSessao>
-        <VendasProvider>
-          <EspiaoDeVendas />
-        </VendasProvider>
+        <EspiaoDeFaturamento />
       </ComSessao>
     ),
   },

@@ -12,7 +12,6 @@ import { DashboardProvider } from "./context/DashboardContext";
 import { DataProvider } from "./context/DataContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { ServicosProvider } from "./context/ServicosContext";
-import { VendasProvider } from "./context/VendasContext";
 
 const Login = lazy(() => import("./pages/Login"));
 const Home = lazy(() => import("./pages/Home"));
@@ -47,7 +46,7 @@ const ContasReceber = lazy(() => import("./pages/ContasReceber"));
  * ## Por que os providers estão aqui
  *
  * O `main.tsx` empilhava dez providers em volta do aplicativo inteiro, então
- * abrir a tela de login montava `EstoqueProvider`, `VendasProvider`,
+ * abrir a tela de login montava `EstoqueProvider`, `DataProvider`,
  * `ContasPagarProvider` e mais sete — cada um carregando dados que aquela tela
  * nunca ia usar. Agora cada context é montado no ramo que o consome, e o
  * `main.tsx` guarda só o que é global de verdade: tema, sessão e o router.
@@ -55,8 +54,8 @@ const ContasReceber = lazy(() => import("./pages/ContasReceber"));
  * O critério, quando um context tem mais de um consumidor: ele sobe até o
  * menor grupo de rotas que **só** contém consumidores dele. Quando dois
  * conjuntos de consumidores se cruzam sem um conter o outro — o caso de
- * `Servicos` (`/servicos` e `/financeiro`), de `ContasPagar` (`/contas-pagar` e
- * `/financeiro`) e de `ContasReceber` (`/contas-receber` e `/financeiro`) — o
+ * `ContasPagar` (`/contas-pagar` e `/financeiro`) e de `ContasReceber`
+ * (`/contas-receber` e `/financeiro`) — o
  * provider aparece em dois pontos de montagem, em vez de subir até um ancestral
  * que arrastaria junto rotas que não o consomem. O preço é não compartilhar
  * estado entre esses ramos; o preço da alternativa seria voltar a montar dados
@@ -255,15 +254,11 @@ const AppRoutes: React.FC = () => (
             path="/financeiro"
             element={
               <RequirePermissao rota="/financeiro">
-                <VendasProvider>
-                  <ServicosProvider>
-                    <ContasPagarProvider>
-                      <ContasReceberProvider>
-                        <GerenciamentoFinanceiro />
-                      </ContasReceberProvider>
-                    </ContasPagarProvider>
-                  </ServicosProvider>
-                </VendasProvider>
+                <ContasPagarProvider>
+                  <ContasReceberProvider>
+                    <GerenciamentoFinanceiro />
+                  </ContasReceberProvider>
+                </ContasPagarProvider>
               </RequirePermissao>
             }
           />

@@ -11,8 +11,6 @@ import {
 } from "../design-system/ui";
 import { useContasPagar } from "../context/ContasPagarContext";
 import { useContasReceber } from "../context/ContasReceberContext";
-import { useServicos } from "../context/ServicosContext";
-import { useVendas } from "../context/VendasContext";
 import AbaCentroCusto from "./financeiro/AbaCentroCusto";
 import AbaComissao from "./financeiro/AbaComissao";
 import AbaMeta from "./financeiro/AbaMeta";
@@ -27,12 +25,11 @@ import {
   pontosAcumulados,
   pontosComparativos,
   somaDoAno,
-  somarServicos,
-  somarVendas,
   variacaoMensal,
   type Ano,
   type TipoDeReceita,
 } from "./financeiro/financeiro";
+import { useFaturamento } from "./financeiro/useFaturamento";
 
 /** As quatro abas da tela, na ordem em que aparecem. */
 const ABAS = [
@@ -46,7 +43,7 @@ const ABAS = [
 /**
  * Gerenciamento Financeiro — a receita da empresa vista de quatro ângulos.
  *
- * A tela é o esqueleto: junta os quatro contextos, guarda o que a pessoa
+ * A tela é o esqueleto: junta as fontes, guarda o que a pessoa
  * escolheu (aba, anos ligados, tipo de receita, ano do balancete e ano do
  * centro de custo) e entrega cada recorte pronto para a aba correspondente.
  * As contas moram em `financeiro/financeiro.ts`, o desenho nos componentes
@@ -57,15 +54,13 @@ const ABAS = [
  */
 const GerenciamentoFinanceiro: React.FC = () => {
   const {
-    notas,
-    carregando: carregandoVendas,
-    erro: erroDeVendas,
-  } = useVendas();
-  const {
-    servicosEnriquecidos,
-    carregando: carregandoServicos,
-    erro: erroDeServicos,
-  } = useServicos();
+    vendas: vendasPorAnoMes,
+    servicos: servicosPorAnoMes,
+    notasDeVenda,
+    notasDeServico,
+    carregando: carregandoFaturamento,
+    erro: erroDeFaturamento,
+  } = useFaturamento();
   const {
     contas: contasPagar,
     carregando: carregandoPagar,
@@ -79,16 +74,13 @@ const GerenciamentoFinanceiro: React.FC = () => {
   /**
    * O que não carregou.
    *
-   * Num aviso só, e não um por fonte: quando a API cai, cai para as quatro, e
-   * quatro tarjas vermelhas empilhadas empurrariam a tela inteira para baixo
-   * dizendo a mesma coisa quatro vezes.
+   * Num aviso só, e não um por fonte: quando a API cai, cai para todas, e
+   * tarjas vermelhas empilhadas empurrariam a tela inteira para baixo dizendo
+   * a mesma coisa três vezes.
    */
-  const falhas = [
-    erroDeVendas,
-    erroDeServicos,
-    erroDePagar,
-    erroDeReceber,
-  ].filter((falha): falha is string => Boolean(falha));
+  const falhas = [erroDeFaturamento, erroDePagar, erroDeReceber].filter(
+    (falha): falha is string => Boolean(falha),
+  );
 
   const [abaAtiva, setAbaAtiva] = useState<string>("visaoGeral");
   const [anosAtivos, setAnosAtivos] = useState<Set<Ano>>(new Set(ANOS));
@@ -96,20 +88,14 @@ const GerenciamentoFinanceiro: React.FC = () => {
   const [anoBalancete, setAnoBalancete] = useState<number>(2026);
   const [anoCentro, setAnoCentro] = useState(2025);
 
-  const vendasPorAnoMes = useMemo(() => somarVendas(notas), [notas]);
-  const servicosPorAnoMes = useMemo(
-    () => somarServicos(servicosEnriquecidos),
-    [servicosEnriquecidos],
-  );
-
   const total = useMemo(
     () => combinarPorTipo(tipo, vendasPorAnoMes, servicosPorAnoMes),
     [tipo, vendasPorAnoMes, servicosPorAnoMes],
   );
 
   const kpis = useMemo(
-    () => kpisPorAno(total, notas, servicosEnriquecidos, tipo),
-    [total, notas, servicosEnriquecidos, tipo],
+    () => kpisPorAno(total, notasDeVenda, notasDeServico, tipo),
+    [total, notasDeVenda, notasDeServico, tipo],
   );
   const comparativo = useMemo(
     () => pontosComparativos(total, anosAtivos),
@@ -147,7 +133,7 @@ const GerenciamentoFinanceiro: React.FC = () => {
     [vendasPorAnoMes, servicosPorAnoMes, anoAnterior],
   );
 
-  if (carregandoVendas || carregandoServicos || carregandoPagar) {
+  if (carregandoFaturamento || carregandoPagar) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted md:h-full md:min-h-0">
         <Spinner size="lg" />

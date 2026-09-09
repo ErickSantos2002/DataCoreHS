@@ -127,17 +127,24 @@ export function prefixoDaCategoria(
   return achado ? achado[1] : GRUPO_SEM_CATEGORIA;
 }
 
-/** Só o que a tela lê de uma nota de venda. */
-export interface NotaDeVenda {
-  data_emissao: string;
-  valor_nota: number;
-}
-
-/** Só o que a tela lê de uma nota de serviço já enriquecida. */
-export interface ServicoDoAno {
+/**
+ * Uma linha de `GET /faturamento/mensal` — um mês de um ano, já somado pelo
+ * banco a partir da camada `gold`.
+ *
+ * A tela não vê mais nota nenhuma. Antes ela baixava as 4.352 notas de venda
+ * com cliente, itens e marcadores dentro (cerca de 9,7 MB) para somar doze
+ * números por ano; agora recebe os números somados. E, mais importante que o
+ * tamanho: quem decide o que é venda passou a ser a régua única do `gold`, não
+ * este arquivo.
+ */
+export interface LinhaDeFaturamento {
   ano: number;
-  data_emissao: string;
-  valor_servico_numero: number;
+  /** 1 = janeiro. */
+  mes: number;
+  produto: number;
+  servico: number;
+  quantidade_produto: number;
+  quantidade_servico: number;
 }
 
 /** Só o que o balancete lê de uma conta a pagar. */
@@ -156,39 +163,52 @@ function serieZerada(): SeriePorAnoMes {
   return serie;
 }
 
-/**
- * Soma as notas de venda por ano e mês.
- *
- * Nota de ano fora da janela é descartada em silêncio — o `if (ano in serie)`
- * é o que impede que a base histórica de 2021 apareça somada em 2022.
- */
-export function somarVendas(notas: NotaDeVenda[]): SeriePorAnoMes {
-  const serie = serieZerada();
-  for (const nota of notas) {
-    const [anoTexto, mesTexto] = nota.data_emissao.split("-");
-    const ano = Number(anoTexto);
-    const mes = Number(mesTexto) - 1;
-    if (ano in serie) serie[ano][mes] += Number(nota.valor_nota || 0);
-  }
-  return serie;
+/** As quatro leituras que a tela faz da resposta da API. */
+export interface FaturamentoDaJanela {
+  vendas: SeriePorAnoMes;
+  servicos: SeriePorAnoMes;
+  /** Quantas notas de venda em cada ano. */
+  notasDeVenda: ContagemPorAno;
+  /** Quantas notas de serviço em cada ano. */
+  notasDeServico: ContagemPorAno;
 }
 
+/** Um número por ano da janela. */
+export type ContagemPorAno = Record<number, number>;
+
 /**
- * Soma os serviços por ano e mês.
+ * Distribui as linhas mensais da API nas séries que a tela desenha.
  *
- * O ano vem do campo `ano` que o contexto já calculou, e o mês da data — é
- * assim que a tela sempre leu, e mudar para ler os dois da data mudaria
- * número em qualquer serviço cujo `ano` divirja da `data_emissao`.
+ * Linha de ano fora da janela é descartada em silêncio — é o mesmo cuidado que
+ * a soma no navegador tinha, e continua valendo porque a API aceita a faixa
+ * que quem chama pedir: se um dia alguém pedir 2015 aqui, 2015 não pode
+ * aparecer somado dentro de 2022.
+ *
+ * Mês fora de 1..12 também é ignorado. Não deveria existir — a API monta os
+ * meses com `generate_series` — mas o índice do array é calculado a partir
+ * dele, e um mês 0 ou 13 escreveria fora da série sem erro nenhum.
  */
-export function somarServicos(servicos: ServicoDoAno[]): SeriePorAnoMes {
-  const serie = serieZerada();
-  for (const servico of servicos) {
-    const mes = Number(servico.data_emissao.split("-")[1]) - 1;
-    if (servico.ano in serie) {
-      serie[servico.ano][mes] += servico.valor_servico_numero;
-    }
+export function seriesDaApi(linhas: LinhaDeFaturamento[]): FaturamentoDaJanela {
+  const vendas = serieZerada();
+  const servicos = serieZerada();
+  const notasDeVenda: ContagemPorAno = {};
+  const notasDeServico: ContagemPorAno = {};
+  for (const ano of ANOS) {
+    notasDeVenda[ano] = 0;
+    notasDeServico[ano] = 0;
   }
-  return serie;
+
+  for (const linha of linhas) {
+    if (!(linha.ano in vendas)) continue;
+    const mes = linha.mes - 1;
+    if (mes < 0 || mes > 11) continue;
+    vendas[linha.ano][mes] += linha.produto || 0;
+    servicos[linha.ano][mes] += linha.servico || 0;
+    notasDeVenda[linha.ano] += linha.quantidade_produto || 0;
+    notasDeServico[linha.ano] += linha.quantidade_servico || 0;
+  }
+
+  return { vendas, servicos, notasDeVenda, notasDeServico };
 }
 
 /** Aplica o filtro de tipo às duas séries. */
@@ -239,20 +259,18 @@ export interface KpiDeAno {
 
 export function kpisPorAno(
   total: SeriePorAnoMes,
-  notas: NotaDeVenda[],
-  servicos: ServicoDoAno[],
+  notasDeVenda: ContagemPorAno,
+  notasDeServico: ContagemPorAno,
   tipo: TipoDeReceita,
 ): KpiDeAno[] {
   return ANOS.map((ano, indice) => {
     const totalDoAno = somaDoAno(total, ano);
     const totalAnterior = indice > 0 ? somaDoAno(total, ANOS[indice - 1]) : 0;
-    const deVendas =
-      tipo !== "servicos"
-        ? notas.filter((n) => Number(n.data_emissao.split("-")[0]) === ano)
-            .length
-        : 0;
-    const deServicos =
-      tipo !== "vendas" ? servicos.filter((s) => s.ano === ano).length : 0;
+    // Quem conta as notas é o banco. A contagem de venda é de NOTAS distintas,
+    // e não de linhas do fato — `gold.fato_vendas` tem grão de item, e contar
+    // linhas devolveria quase mil e quinhentas notas a mais.
+    const deVendas = tipo !== "servicos" ? (notasDeVenda[ano] ?? 0) : 0;
+    const deServicos = tipo !== "vendas" ? (notasDeServico[ano] ?? 0) : 0;
     return {
       ano,
       total: totalDoAno,

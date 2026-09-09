@@ -244,14 +244,26 @@ export interface FaturamentoMensalAPI {
   produto: number;
   servico: number;
   total: number;
+  /** Quantas NOTAS de produto (NF-e) no mes — nao linhas de item. */
+  quantidade_produto: number;
+  /** Quantas NOTAS de servico (NFS-e) no mes. */
+  quantidade_servico: number;
 }
 
+/**
+ * O faturamento mes a mes de um ano, ou de uma faixa quando `anoFim` e dado.
+ *
+ * A faixa existe para a tela de Financeiro, que compara cinco anos lado a
+ * lado: uma requisicao de sessenta linhas no lugar de cinco requisicoes, e
+ * sem a tela precisar decidir qual e a janela.
+ */
 export const fetchFaturamentoMensal = async (
   ano: number,
+  anoFim?: number,
 ): Promise<FaturamentoMensalAPI[]> => {
   const response = await api.get<FaturamentoMensalAPI[]>(
     "/faturamento/mensal",
-    { params: { ano } },
+    { params: anoFim === undefined ? { ano } : { ano, ano_fim: anoFim } },
   );
   return response.data;
 };

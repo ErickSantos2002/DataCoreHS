@@ -20,23 +20,39 @@ import GerenciamentoFinanceiro from "./GerenciamentoFinanceiro";
  * faturamento do ano anterior, que nasce aqui e é consumido lá.
  */
 
-const estadoVendas = vi.hoisted(() => ({
-  notas: [] as Record<string, unknown>[],
+/**
+ * O faturamento chega somado pela API, em linhas de mês.
+ *
+ * O dublê roda a `seriesDaApi` DE VERDADE sobre essas linhas: o que se afirma
+ * nos testes abaixo é a conta da tela sobre a resposta da API, e não um
+ * objeto de séries escrito à mão que passaria mesmo se a distribuição por
+ * ano e mês estivesse errada.
+ */
+const estadoFaturamento = vi.hoisted(() => ({
+  linhas: [] as {
+    ano: number;
+    mes: number;
+    produto: number;
+    servico: number;
+    quantidade_produto: number;
+    quantidade_servico: number;
+  }[],
   carregando: false,
   erro: null as string | null,
 }));
-vi.mock("../context/VendasContext", () => ({
-  useVendas: () => estadoVendas,
-}));
-
-const estadoServicos = vi.hoisted(() => ({
-  servicosEnriquecidos: [] as Record<string, unknown>[],
-  carregando: false,
-  erro: null as string | null,
-}));
-vi.mock("../context/ServicosContext", () => ({
-  useServicos: () => estadoServicos,
-}));
+vi.mock("./financeiro/useFaturamento", async () => {
+  const { seriesDaApi } = await vi.importActual<
+    typeof import("./financeiro/financeiro")
+  >("./financeiro/financeiro");
+  return {
+    useFaturamento: () => ({
+      ...seriesDaApi(estadoFaturamento.linhas),
+      carregando: estadoFaturamento.carregando,
+      erro: estadoFaturamento.erro,
+      recarregar: vi.fn(),
+    }),
+  };
+});
 
 const estadoPagar = vi.hoisted(() => ({
   contas: [] as Record<string, unknown>[],
@@ -229,36 +245,51 @@ function abrirAba(nome: string) {
   fireEvent.click(controle(nome));
 }
 
+/** Uma linha de `/faturamento/mensal`, com os campos que faltam zerados. */
+function mesDaApi(
+  ano: number,
+  mes: number,
+  campos: {
+    produto?: number;
+    servico?: number;
+    quantidade_produto?: number;
+    quantidade_servico?: number;
+  },
+) {
+  return {
+    ano,
+    mes,
+    produto: 0,
+    servico: 0,
+    quantidade_produto: 0,
+    quantidade_servico: 0,
+    ...campos,
+  };
+}
+
 /**
  * Base fechada, com número redondo, usada na maior parte do arquivo.
  *
  * Vendas: jan/25 150.000 (duas notas) · fev/25 200.000 · jan/26 300.000, mais
- * uma nota de 2021 que está FORA da janela de anos da tela.
+ * uma linha de 2021 que está FORA da janela de anos da tela.
  * Serviços: jan/25 50.000 · mar/26 20.000.
  *
  * → 2025 combinado 400.000 em 4 transações · 2026 combinado 320.000 em 2.
  */
 function baseFechada() {
-  estadoVendas.notas = [
-    { id: 1, data_emissao: "2025-01-15", valor_nota: 100_000 },
-    { id: 2, data_emissao: "2025-01-20", valor_nota: 50_000 },
-    { id: 3, data_emissao: "2025-02-10", valor_nota: 200_000 },
-    { id: 4, data_emissao: "2026-01-10", valor_nota: 300_000 },
-    { id: 5, data_emissao: "2021-01-10", valor_nota: 999_999 },
-  ];
-  estadoServicos.servicosEnriquecidos = [
-    {
-      id: 1,
-      ano: 2025,
-      data_emissao: "2025-01-05",
-      valor_servico_numero: 50_000,
-    },
-    {
-      id: 2,
-      ano: 2026,
-      data_emissao: "2026-03-01",
-      valor_servico_numero: 20_000,
-    },
+  estadoFaturamento.linhas = [
+    mesDaApi(2025, 1, {
+      produto: 150_000,
+      quantidade_produto: 2,
+      servico: 50_000,
+      quantidade_servico: 1,
+    }),
+    mesDaApi(2025, 2, { produto: 200_000, quantidade_produto: 1 }),
+    mesDaApi(2026, 1, { produto: 300_000, quantidade_produto: 1 }),
+    mesDaApi(2026, 3, { servico: 20_000, quantidade_servico: 1 }),
+    // Fora da janela: a API só devolve o que se pede, mas quem pedir 2021 não
+    // pode vê-lo somado dentro de 2022.
+    mesDaApi(2021, 1, { produto: 999_999, quantidade_produto: 1 }),
   ];
 }
 
@@ -304,14 +335,11 @@ beforeEach(() => {
   // depender do dia em que roda.
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-09-01T12:00:00"));
-  estadoVendas.notas = [];
-  estadoVendas.carregando = false;
-  estadoServicos.servicosEnriquecidos = [];
-  estadoServicos.carregando = false;
+  estadoFaturamento.linhas = [];
+  estadoFaturamento.carregando = false;
   estadoPagar.contas = [];
   estadoPagar.carregando = false;
-  estadoVendas.erro = null;
-  estadoServicos.erro = null;
+  estadoFaturamento.erro = null;
   estadoPagar.erro = null;
   estadoReceber.erro = null;
 });
@@ -322,8 +350,7 @@ afterEach(() => {
 
 describe("Financeiro — carregando", () => {
   it.each([
-    ["vendas", () => (estadoVendas.carregando = true)],
-    ["serviços", () => (estadoServicos.carregando = true)],
+    ["o faturamento", () => (estadoFaturamento.carregando = true)],
     ["contas a pagar", () => (estadoPagar.carregando = true)],
   ])("espera enquanto %s ainda está carregando", (_nome, ligar) => {
     ligar();
@@ -342,24 +369,22 @@ describe("Financeiro — falha de carga", () => {
     // faturamento: cinco anos com "Sem dados" e nenhuma pista de que o
     // número não existe porque a rede caiu.
     baseFechada();
-    estadoVendas.erro = "Não foi possível carregar as notas de venda.";
+    estadoFaturamento.erro = "Não foi possível carregar o faturamento.";
     render(<GerenciamentoFinanceiro />);
 
     expect(
-      screen.getByText("Não foi possível carregar as notas de venda."),
+      screen.getByText("Não foi possível carregar o faturamento."),
     ).toBeInTheDocument();
   });
 
-  it("lista as quatro quando tudo cai de uma vez", () => {
-    estadoVendas.erro = "Não foi possível carregar as notas de venda.";
-    estadoServicos.erro = "Não foi possível carregar as notas de serviço.";
+  it("lista as três quando tudo cai de uma vez", () => {
+    estadoFaturamento.erro = "Não foi possível carregar o faturamento.";
     estadoPagar.erro = "Não foi possível carregar as contas a pagar.";
     estadoReceber.erro = "Não foi possível carregar as contas a receber.";
     render(<GerenciamentoFinanceiro />);
 
     for (const frase of [
-      "Não foi possível carregar as notas de venda.",
-      "Não foi possível carregar as notas de serviço.",
+      "Não foi possível carregar o faturamento.",
       "Não foi possível carregar as contas a pagar.",
       "Não foi possível carregar as contas a receber.",
     ]) {
@@ -871,8 +896,8 @@ describe("Financeiro — o que a página entrega para a aba Meta", () => {
   });
 
   it("sem faturamento no ano anterior, entrega zero", () => {
-    estadoVendas.notas = [
-      { id: 1, data_emissao: "2026-01-10", valor_nota: 300_000 },
+    estadoFaturamento.linhas = [
+      mesDaApi(2026, 1, { produto: 300_000, quantidade_produto: 1 }),
     ];
     render(<GerenciamentoFinanceiro />);
     abrirAba("Meta");

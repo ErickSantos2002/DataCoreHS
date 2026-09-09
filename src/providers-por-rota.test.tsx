@@ -10,7 +10,7 @@ import { AuthContext } from "./context/AuthContext";
  *
  * Até a Fase 2 o `main.tsx` empilhava dez providers em volta do aplicativo
  * inteiro: quem abria a tela de login montava `EstoqueProvider`,
- * `VendasProvider`, `ContasPagarProvider` e mais sete, cada um disparando a
+ * `DataProvider`, `ContasPagarProvider` e mais sete, cada um disparando a
  * própria carga de dados que aquela tela nunca ia usar.
  *
  * O que este arquivo trava é os dois lados da afirmação, porque só a metade
@@ -24,8 +24,7 @@ import { AuthContext } from "./context/AuthContext";
  * |----------------|------------------------------------------------------------|
  * | Estoque        | `pages/Estoque`                                            |
  * | Data           | `pages/Clientes`, `Vendas`, `Produtos`, `Vendedores`       |
- * | Servicos       | `pages/Servicos`, `pages/GerenciamentoFinanceiro`          |
- * | Vendas         | `pages/GerenciamentoFinanceiro`                            |
+ * | Servicos       | `pages/Servicos`                                           |
  * | ContasPagar    | `pages/ContasPagar`, `pages/GerenciamentoFinanceiro`       |
  * | ContasReceber  | `pages/ContasReceber`, `pages/GerenciamentoFinanceiro`     |
  * | Configuracoes  | `pages/Configuracoes`, `pages/Dashboard`, `components/MetaTab` |
@@ -53,9 +52,6 @@ vi.mock("./context/EstoqueContext", () => ({
 vi.mock("./context/DataContext", () => ({ DataProvider: espiao("Data") }));
 vi.mock("./context/ServicosContext", () => ({
   ServicosProvider: espiao("Servicos"),
-}));
-vi.mock("./context/VendasContext", () => ({
-  VendasProvider: espiao("Vendas"),
 }));
 vi.mock("./context/ContasPagarContext", () => ({
   ContasPagarProvider: espiao("ContasPagar"),
@@ -144,16 +140,13 @@ const ESPERADO: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["/contas-receber", ["ContasReceber"]],
   ["/configuracoes", ["Configuracoes"]],
   ["/dashboard", ["Configuracoes", "Dashboard"]],
+  // Servicos e Vendas saíram daqui quando a tela passou a ler o faturamento
+  // já somado de `GET /faturamento/mensal`: as duas séries por ano e mês vêm
+  // da mesma requisição, e o `VendasContext` — que existia só para esta
+  // tela — deixou de existir.
   [
     "/financeiro",
-    [
-      "Configuracoes",
-      "ContasPagar",
-      "ContasReceber",
-      "Dashboard",
-      "Servicos",
-      "Vendas",
-    ],
+    ["Configuracoes", "ContasPagar", "ContasReceber", "Dashboard"],
   ],
 ];
 
@@ -164,7 +157,7 @@ describe("providers montados por rota", () => {
     const montadosNoLogin = await providersMontadosEm("/login");
 
     expect(montadosNoLogin).not.toContain("Estoque");
-    expect(montadosNoLogin).not.toContain("Vendas");
+    expect(montadosNoLogin).not.toContain("Data");
     expect(montadosNoLogin).toEqual([]);
   });
 
