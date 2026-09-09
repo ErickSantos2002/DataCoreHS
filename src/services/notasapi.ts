@@ -221,13 +221,12 @@ export interface CentroCustoConfig {
 }
 
 // ── Notas Fiscais ────────────────────────────────────────────────────────────
-
-/** `unknown`: nenhuma tela consome este endpoint hoje, entao nao ha de onde
- *  derivar a forma. Quem for usar que estreite. */
-export const fetchNotas = async (params: Params = {}): Promise<unknown> => {
-  const response = await api.get("/notas_fiscais/", { params });
-  return response.data;
-};
+//
+// `fetchNotas` (/notas_fiscais/) e `fetchItensNota` (/itens_nota/) foram apagadas em
+// 2026-09-08: nenhuma tela as chamava, e os dois endpoints passaram a devolver uma
+// PAGINA — `{ itens, total, limite, offset }` — em vez da tabela inteira. Uma funcao
+// morta que promete a lista completa e pior que nenhuma: quem a encontrasse pronta
+// escreveria uma tela em cima de um contrato que nao existe mais.
 
 /**
  * As notas que contam como faturamento, ja filtradas pelo banco.
@@ -314,12 +313,6 @@ export const fetchClientes = async (
   params: Params = {},
 ): Promise<Cliente[]> => {
   const response = await api.get<Cliente[]>("/clientes/", { params });
-  return response.data;
-};
-
-/** `unknown`: funcao sem nenhum chamador no app. */
-export const fetchItensNota = async (params: Params = {}): Promise<unknown> => {
-  const response = await api.get("/itens_nota/", { params });
   return response.data;
 };
 
