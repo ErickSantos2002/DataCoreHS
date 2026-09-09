@@ -36,7 +36,7 @@ import {
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
-import ModalObservacoes from "../components/ModalObservacoes";
+import ModalObservacoesDaNota from "../components/ModalObservacoesDaNota";
 import { useToast } from "../components/ToastProvider";
 import {
   MultiSelect,
@@ -93,7 +93,10 @@ const Vendedores: React.FC = () => {
   const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
   const [tipoTemp, setTipoTemp] = useState<string>("");
   const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
-  const [observacoesAtivas, setObservacoesAtivas] = useState<string | null>(null);
+  // Guarda o ID, e não o texto: o texto é buscado pelo modal ao abrir.
+  const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(
+    null,
+  );
 
   // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
   // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
@@ -1039,9 +1042,9 @@ const Vendedores: React.FC = () => {
 
                     {/* Observações */}
                     <td className="px-4 py-3 text-center">
-                      {nota.observacoes ? (
+                      {nota.tem_observacoes ? (
                         <button
-                          onClick={() => setObservacoesAtivas(nota.observacoes!)}
+                          onClick={() => setNotaDasObservacoes(nota.id)}
                           className="px-3 py-1 text-sm font-medium rounded-full 
                                     bg-blue-100 text-blue-700 
                                     dark:bg-blue-900 dark:text-blue-300 
@@ -1115,10 +1118,12 @@ const Vendedores: React.FC = () => {
                   </tr>
                   ))
                 )}
-                <ModalObservacoes
-                  observacoes={observacoesAtivas}
-                  onClose={() => setObservacoesAtivas(null)}
-                />
+                {notaDasObservacoes !== null && (
+                  <ModalObservacoesDaNota
+                    idNota={notaDasObservacoes}
+                    onClose={() => setNotaDasObservacoes(null)}
+                  />
+                )}
               </tbody>
             </table>
           </div>

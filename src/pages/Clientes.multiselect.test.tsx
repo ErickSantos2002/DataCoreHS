@@ -71,7 +71,7 @@ const NOTAS = [
     itens: [
       { codigo: "P1", descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
     ],
-    observacoes: null,
+    tem_observacoes: false,
   },
   {
     id: 2,
@@ -85,7 +85,7 @@ const NOTAS = [
     itens: [
       { codigo: "P2", descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
     ],
-    observacoes: null,
+    tem_observacoes: false,
   },
 ];
 

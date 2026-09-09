@@ -39,6 +39,15 @@ export interface Marcador {
   descricao: string;
 }
 
+/**
+ * Uma nota que conta como faturamento, pela regua da camada `gold`.
+ *
+ * `natureza_operacao`, `descricao_situacao` e `marcadores` NAO estao mais
+ * aqui: eram os campos com que o navegador refazia a decisao de "isto e
+ * venda?" — decisao que agora e do banco. Sem eles no tipo, uma tela nova nao
+ * consegue reimplementar a regua sem antes pedir os campos de volta, e pedir
+ * de volta e uma conversa.
+ */
 export interface NotaVenda {
   id: number;
   numero?: number;
@@ -49,11 +58,14 @@ export interface NotaVenda {
   nome_vendedor: string;
   tipo?: TipoNota | null;
   itens: ItemNota[];
-  observacoes?: string | null;
-  // Lidos pelo DashboardContext ao filtrar o faturamento por CFOP.
-  natureza_operacao?: string | null;
-  descricao_situacao?: string | null;
-  marcadores?: Marcador[];
+  /**
+   * SE ha observacao — nao o texto.
+   *
+   * O campo livre e o mais pesado e o mais sensivel da nota (numero de serie,
+   * chave de acesso, nome de quem recebeu), e so e lido quando alguem abre o
+   * modal. O texto vem de `fetchObservacoesDaVenda` nessa hora.
+   */
+  tem_observacoes?: boolean;
 }
 
 export interface NotaLocacao {
@@ -217,14 +229,33 @@ export const fetchNotas = async (params: Params = {}): Promise<unknown> => {
   return response.data;
 };
 
-// Notas Vendas
+/**
+ * As notas que contam como faturamento, ja filtradas pelo banco.
+ *
+ * Trocou `/notas_fiscais/vendas/` por `/faturamento/vendas` (item 9.2). O
+ * endpoint antigo reimplementava a regua em Python — CFOP procurado como
+ * substring dentro de um campo de texto livre, e lista fixa de marcadores
+ * comparada sem normalizar caixa — e devolvia a nota inteira, com marcadores,
+ * enderecos de entrega e formas de envio aninhados: ~9,7 MB. O novo le a
+ * camada `gold` e manda ~1,8 MB.
+ */
 export const fetchVendas = async (
   params: Params = {},
 ): Promise<NotaVenda[]> => {
-  const response = await api.get<NotaVenda[]>("/notas_fiscais/vendas/", {
+  const response = await api.get<NotaVenda[]>("/faturamento/vendas", {
     params,
   });
   return response.data;
+};
+
+/** O texto das observacoes de uma nota, buscado quando o modal abre. */
+export const fetchObservacoesDaVenda = async (
+  idNota: number,
+): Promise<string | null> => {
+  const response = await api.get<{ id: number; observacoes: string | null }>(
+    `/faturamento/vendas/${idNota}/observacoes`,
+  );
+  return response.data.observacoes;
 };
 
 /** Faturamento mes a mes de um ano, ja somado pelo banco.

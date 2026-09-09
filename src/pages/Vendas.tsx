@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { fetchVendas } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
 import { useData } from "../context/DataContext";
 import { usePaginacao } from "../hooks/usePaginacao";
-import ModalObservacoes from "../components/ModalObservacoes";
+import ModalObservacoesDaNota from "../components/ModalObservacoesDaNota";
 import {
   BarChart,
   Bar,
@@ -42,25 +41,6 @@ import {
   deTextos,
   buscaPorCnpjEntreParenteses,
 } from "../design-system/ui";
-
-// Tipagem da Nota
-interface Nota {
-  id: number;
-  data_emissao: string;
-  valor_nota: number;
-  cliente: { 
-    nome: string; 
-    cpf_cnpj: string; 
-  } | null;
-  nome_vendedor: string;
-  itens: { 
-    descricao: string; 
-    quantidade: string; 
-    valor_total: string;
-    valor_unitario?: string;
-  }[];
-  observacoes?: string | null;
-}
 
 // Cores padrão para gráficos
 const CORES = {
@@ -136,7 +116,10 @@ const Vendas: React.FC = () => {
     direcao: 'desc'
   });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
-  const [notaSelecionada, setNotaSelecionada] = useState<Nota | null>(null);
+  // O ID basta: o texto das observações é buscado pelo modal ao abrir.
+  const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(
+    null,
+  );
 
   // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
   // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
@@ -1136,9 +1119,9 @@ const Vendas: React.FC = () => {
 
                     {/* Observações */}
                     <td className="px-4 py-3 text-center">
-                      {nota.observacoes ? (
+                      {nota.tem_observacoes ? (
                         <button
-                          onClick={() => setNotaSelecionada(nota)}
+                          onClick={() => setNotaDasObservacoes(nota.id)}
                           className="px-3 py-1 text-sm font-medium rounded-full 
                                     bg-blue-100 text-blue-700 
                                     dark:bg-blue-900 dark:text-blue-300 
@@ -1154,10 +1137,10 @@ const Vendas: React.FC = () => {
                   </tr>
                   ))
                 )}
-                {notaSelecionada && (
-                  <ModalObservacoes
-                    observacoes={notaSelecionada.observacoes ?? null} // ✅ garante string | null
-                    onClose={() => setNotaSelecionada(null)}
+                {notaDasObservacoes !== null && (
+                  <ModalObservacoesDaNota
+                    idNota={notaDasObservacoes}
+                    onClose={() => setNotaDasObservacoes(null)}
                   />
                 )}
               </tbody>

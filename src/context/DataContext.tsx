@@ -1,4 +1,19 @@
-// DataContext.tsx
+/**
+ * Os cadastros e as vendas que as quatro telas do Comercial compartilham —
+ * Clientes, Vendas, Produtos e Vendedores.
+ *
+ * As vendas vêm de `GET /faturamento/vendas`, que devolve as notas já
+ * filtradas pela régua da camada `gold`. Antes vinham de
+ * `/notas_fiscais/vendas/`, que reimplementava essa régua em Python e
+ * mandava a nota inteira — com marcadores, endereços de entrega e formas de
+ * envio aninhados, cerca de 9,7 MB. Agora são ~1,8 MB.
+ *
+ * As quatro telas continuam filtrando e agregando no navegador, e isso é de
+ * propósito: elas cruzam filtros (cliente × produto × vendedor × período) e
+ * desenham gráfico sobre o conjunto todo. Levar essa agregação para o banco é
+ * a fase seguinte, e é ela que destrava paginar a lista — nesta ordem, porque
+ * paginar antes faria a primeira página ser lida como o total.
+ */
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { fetchClientes, fetchVendas, updateNotaTipo } from "../services/notasapi";
 import { useAuth } from "../hooks/useAuth";
@@ -26,7 +41,14 @@ interface Nota {
     valor_unitario?: string;
     codigo?: string;
   }[];
-  observacoes?: string | null; // ✅ adicionar aqui
+  /**
+   * SE a nota tem observação — não o texto.
+   *
+   * O texto é o campo mais pesado e mais sensível da nota (número de série,
+   * chave de acesso, nome de quem recebeu) e só é lido quando alguém abre o
+   * modal. `ModalObservacoesDaNota` o busca nessa hora.
+   */
+  tem_observacoes?: boolean;
 }
 
 interface ClienteEnriquecido extends Cliente {

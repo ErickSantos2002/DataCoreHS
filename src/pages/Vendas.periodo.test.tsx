@@ -33,7 +33,7 @@ const NOTAS_VENDAS = Array.from({ length: 17 }, (_, i) => ({
   itens: [
     { descricao: "Item", quantidade: "1", valor_total: String(100 + i) },
   ],
-  observacoes: null,
+  tem_observacoes: false,
 }));
 
 vi.mock("../context/DataContext", () => ({
