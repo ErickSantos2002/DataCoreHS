@@ -152,6 +152,18 @@ function campoData(rotulo: "Início" | "Fim"): HTMLInputElement {
   return campo as HTMLInputElement;
 }
 
+/**
+ * Escolhe uma opção num dos três multiselects do topo.
+ *
+ * O nome acessível do gatilho fechado é o rótulo mais o placeholder
+ * (`aria-labelledby` do rótulo + o texto do botão), mesmo molde de
+ * `Servicos.multiselect.test.tsx`, símbolo `abrir`.
+ */
+function escolherNoFiltro(rotulo: string, placeholder: string, opcao: string): void {
+  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${placeholder}` }));
+  fireEvent.click(screen.getByRole("checkbox", { name: opcao }));
+}
+
 /** Rótulo do cartão -> valor que ele tem de mostrar, sobre o fixture inteiro. */
 const KPIS_SEM_FILTRO: Array<[string, string]> = [
   ["Faturamento Total", "R$ 2.200,00"],
@@ -209,6 +221,39 @@ describe("KPIs de Serviços", () => {
       fireEvent.change(campoData("Fim"), { target: { value: "2026-02-28" } });
 
       expect(within(cartaoDoKpi(rotulo)).getByText(valor)).toBeInTheDocument();
+    },
+  );
+
+  // ── OS TRÊS MULTISELECTS CHEGAM AO RECORTE ──────────────────────────────
+  // O teste do período acima prova que a DATA entra na consulta; os três
+  // multiselects não tinham equivalente — `Servicos.multiselect.test.tsx`
+  // prova o comportamento do primitivo (abrir, buscar, marcar, limpar), não
+  // o efeito da escolha sobre o resultado. Com `cliente: filtroCidade` e
+  // `cidade: filtroCliente` trocados na chamada de `recorteDeServicos`
+  // (`Servicos.tsx`), a pessoa escolhia "Alfa Mineração" no filtro de
+  // cliente, a consulta saía com `cidade=Alfa Mineração`, o servidor não
+  // casava nada e a tela ia a zero — 48 testes verdes.
+  //
+  // Os três casos levam a resultados distintos entre si, então uma troca
+  // entre dois filtros quaisquer derruba os dois lados: o rótulo de cliente
+  // não casa com nenhuma cidade, o de cidade não casa com nenhum tipo, e a
+  // tela iria a "R$ 0,00" com "0" notas.
+
+  it.each([
+    ["Cliente (Tomador)", "Todos os clientes", "Alfa Mineração (11.222.333/0001-44)", "R$ 1.700,00", "2"],
+    ["Cidade do Serviço", "Todas as cidades", "Olinda/PE", "R$ 500,00", "1"],
+    ["Tipo de Serviço", "Todos os tipos", "Inspeção de equipamentos", "R$ 700,00", "1"],
+  ])(
+    "o filtro %s chega ao recorte e muda os KPIs",
+    (rotulo, placeholder, opcao, faturamento, notas) => {
+      render(<Servicos />);
+
+      escolherNoFiltro(rotulo, placeholder, opcao);
+
+      expect(
+        within(cartaoDoKpi("Faturamento Total")).getByText(faturamento),
+      ).toBeInTheDocument();
+      expect(within(cartaoDoKpi("NFS-e Emitidas")).getByText(notas)).toBeInTheDocument();
     },
   );
 

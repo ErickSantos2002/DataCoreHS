@@ -266,6 +266,51 @@ describe("tabela de Serviços", () => {
     ).toBeInTheDocument();
   });
 
+  // ── O MODAL DE OBSERVAÇÕES ──────────────────────────────────────────────
+  // O teste acima prova que o botão existe na célula certa, e só isso —
+  // ninguém clicava nele nem conferia o que abria. Com
+  // `setObservacoesSelecionadas(servico.razao_social_tomador)`, a pessoa
+  // clicava esperando a discriminação do serviço e o modal mostrava
+  // "Alfa Mineração": 54 testes verdes.
+  //
+  // O agravante é que este modal SE MOVEU nesta branch — saiu de dentro do
+  // `<tbody>` de `Servicos.tsx` (onde era HTML inválido) para irmão do `Card`
+  // em `TabelaDeServicos.tsx`. Mover sem um teste que observe o
+  // comportamento movido é exatamente o que a regra "caracterização antes de
+  // mover uma linha" existe para impedir: nada provava que ele ainda abria.
+
+  it.each([
+    ["3001", "Calibração de bafômetro"],
+    ["1002", "Manutenção preventiva"],
+  ])(
+    "clicar em Ver Observações na linha %s abre o modal com a discriminacao dela",
+    (numero, discriminacao) => {
+      // Duas linhas, e não uma: com uma só, um modal que mostrasse sempre a
+      // primeira nota (ou o nome do cliente daquela linha) passaria verde.
+      render(<Servicos />);
+
+      const cel = celula(linhaContendo(numero), "Descrição");
+      fireEvent.click(within(cel).getByRole("button", { name: "Ver Observações" }));
+
+      expect(screen.getByText("Observações da Nota")).toBeInTheDocument();
+      expect(screen.getByText(discriminacao)).toBeInTheDocument();
+    },
+  );
+
+  it("o modal so aparece depois do clique, e o Fechar o tira da tela", () => {
+    render(<Servicos />);
+
+    expect(screen.queryByText("Observações da Nota")).not.toBeInTheDocument();
+
+    const cel = celula(linhaContendo("3001"), "Descrição");
+    fireEvent.click(within(cel).getByRole("button", { name: "Ver Observações" }));
+    expect(screen.getByText("Observações da Nota")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Fechar" }));
+
+    expect(screen.queryByText("Observações da Nota")).not.toBeInTheDocument();
+  });
+
   it("as linhas saem na ordem em que a pagina chegou, sem a tela reordenar", () => {
     // O falso devolve o fixture na ordem em que ele está (Alfa, Beta, Gama) —
     // a ordenação é do servidor. Se a tela voltasse a ordenar por conta
