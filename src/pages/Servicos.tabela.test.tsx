@@ -381,22 +381,22 @@ describe("tabela de Serviços", () => {
     expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
   });
 
-  it("com a tabela vazia, os dois botoes de exportar seguem habilitados", () => {
-    // Achado ao trazer o teste (não corrigido): na branch `fase-3-servicos` os
-    // dois botões traziam `disabled={total === 0}`, e a asserção original era
-    // que eles desabilitassem. A versão desta branch não desabilita — exportar
-    // com a tabela vazia gera planilha e PDF só com cabeçalho. Fica
-    // caracterizado como está; restaurar o `disabled` é mudança de
-    // comportamento, e vai numa task própria, com plantação.
+  it("com a tabela vazia, os dois botoes de exportar ficam desabilitados", () => {
+    // Os dois: exportar sem nenhuma linha gerava planilha e PDF só com o
+    // cabeçalho. As duas metades da asserção importam — com a tabela cheia
+    // os botões têm de continuar habilitados, senão um `disabled` fixo
+    // passaria por conserto.
     render(<Servicos />);
 
     expect(screen.getByRole("button", { name: /^excel$/i })).toBeEnabled();
     expect(screen.getByRole("button", { name: /^pdf$/i })).toBeEnabled();
 
+    // Esvazia pelo PERÍODO, e não pela pesquisa, para não acoplar este teste
+    // à plantação do teste da busca.
     filtrarParaVazio();
 
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByRole("button", { name: /^excel$/i })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /^pdf$/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^excel$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^pdf$/i })).toBeDisabled();
   });
 });

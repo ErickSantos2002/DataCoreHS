@@ -76,12 +76,6 @@ const COLUNAS: ColunaDeServicos[] = [
  * `<div>` não é filho válido de `<tbody>`) para irmão da tabela, sem mudar
  * nada visível, porque o modal é `position: fixed`.
  *
- * **Um defeito conhecido, preservado de propósito** (quem corrige é a task
- * dos consertos, com plantação própria):
- * - os botões de exportar não desabilitam com `total === 0` — falta o mesmo
- *   `disabled={total === 0}` que `TabelaDeContas.tsx` já tem no símbolo
- *   `TabelaDeContas`.
- *
  * O ícone de cada cabeçalho ordenável (`Icone` em `COLUNAS`) veio junto do
  * movimento: a tela em `Servicos.tsx` desenhava um `FileText`, `Building`,
  * `Calendar`, `MapPin` e `DollarSign` antes do rótulo, e mover é mover. Só a
@@ -184,6 +178,13 @@ export function TabelaDeServicos({
             <Button
               variant="success"
               onClick={onExportarExcel}
+              // Sem nenhuma linha o clique gerava planilha e PDF só com o
+              // cabeçalho — arquivo vazio que sai por e-mail parecendo
+              // resultado. `TabelaDeContas.tsx` e `TabelaDeProdutos.tsx` já
+              // desabilitam do mesmo jeito. `total` é o recorte inteiro
+              // (filtro + busca), não a página: uma busca que não casa com
+              // nada também desabilita.
+              disabled={total === 0}
               icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
             >
               Excel
@@ -191,6 +192,7 @@ export function TabelaDeServicos({
             <Button
               variant="primary"
               onClick={onExportarPDF}
+              disabled={total === 0}
               icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
             >
               PDF
