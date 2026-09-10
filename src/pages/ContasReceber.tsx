@@ -1,6 +1,5 @@
 import React from "react";
 
-import { useContasReceber, type ContaReceberEnriquecida } from "../context/ContasReceberContext";
 import { TelaDeContas, type ConfiguracaoDeContas } from "./contas/TelaDeContas";
 import type { DialetoDeContas } from "./contas/contas";
 
@@ -25,13 +24,11 @@ import type { DialetoDeContas } from "./contas/contas";
  * preservar o comportamento de hoje exatamente como está, travado por teste,
  * até a conferência ser feita. Se ela disser outra coisa, muda esta linha.
  */
-const DIALETO: DialetoDeContas<ContaReceberEnriquecida> = {
-  campoDaEmissao: "data",
-  situacoesQuitadas: ["recebido", "pago"],
+const DIALETO: DialetoDeContas = {
   chaveQuitado: "recebido",
 };
 
-const CONFIGURACAO: ConfiguracaoDeContas<ContaReceberEnriquecida> = {
+const CONFIGURACAO: ConfiguracaoDeContas = {
   titulo: "Contas a Receber",
   descricao: "Acompanhe e gerencie as contas a receber integradas ao Tiny ERP.",
   mensagemDeCarregamento: "Carregando contas a receber...",
@@ -58,17 +55,8 @@ const CONFIGURACAO: ConfiguracaoDeContas<ContaReceberEnriquecida> = {
 };
 
 /** Contas a Receber — os títulos do Tiny ERP que a empresa tem para receber. */
-const ContasReceber: React.FC = () => {
-  const { contasEnriquecidas, carregando, erro } = useContasReceber();
-
-  return (
-    <TelaDeContas
-      configuracao={CONFIGURACAO}
-      contas={contasEnriquecidas}
-      carregando={carregando}
-      erro={erro}
-    />
-  );
-};
+const ContasReceber: React.FC = () => (
+  <TelaDeContas tipo="contas_receber" configuracao={CONFIGURACAO} />
+);
 
 export default ContasReceber;

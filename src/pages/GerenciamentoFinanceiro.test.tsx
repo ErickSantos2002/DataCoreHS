@@ -377,19 +377,23 @@ describe("Financeiro — falha de carga", () => {
     ).toBeInTheDocument();
   });
 
-  it("lista as três quando tudo cai de uma vez", () => {
+  it("lista as duas quando tudo cai de uma vez", () => {
+    // Eram três. As contas a RECEBER saíram desta tela em 2026-09-09: ela nunca
+    // leu os dados, e o provider era montado só para propagar a falha de uma
+    // busca de 11,2 MB. Sem busca, não há falha para avisar.
     estadoFaturamento.erro = "Não foi possível carregar o faturamento.";
     estadoPagar.erro = "Não foi possível carregar as contas a pagar.";
-    estadoReceber.erro = "Não foi possível carregar as contas a receber.";
     render(<GerenciamentoFinanceiro />);
 
     for (const frase of [
       "Não foi possível carregar o faturamento.",
       "Não foi possível carregar as contas a pagar.",
-      "Não foi possível carregar as contas a receber.",
     ]) {
       expect(screen.getByText(frase)).toBeInTheDocument();
     }
+    expect(
+      screen.queryByText("Não foi possível carregar as contas a receber."),
+    ).not.toBeInTheDocument();
   });
 
   it("o aviso acompanha a pessoa para qualquer aba", () => {

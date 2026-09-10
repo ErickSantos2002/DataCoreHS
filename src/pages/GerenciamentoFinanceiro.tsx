@@ -10,7 +10,6 @@ import {
   TabsTrigger,
 } from "../design-system/ui";
 import { useContasPagar } from "../context/ContasPagarContext";
-import { useContasReceber } from "../context/ContasReceberContext";
 import AbaCentroCusto from "./financeiro/AbaCentroCusto";
 import AbaComissao from "./financeiro/AbaComissao";
 import AbaMeta from "./financeiro/AbaMeta";
@@ -66,10 +65,12 @@ const GerenciamentoFinanceiro: React.FC = () => {
     carregando: carregandoPagar,
     erro: erroDePagar,
   } = useContasPagar();
-  // Só a falha interessa aqui: o provider busca as contas a receber ao montar
-  // porque outras telas contam com elas em memória, e esta tela não lê os
-  // dados — mas se a busca cair, quem está olhando merece saber.
-  const { erro: erroDeReceber } = useContasReceber();
+  // As contas a RECEBER saíram daqui em 2026-09-09. Esta tela nunca leu os
+  // dados: o provider era montado só para propagar a falha da busca, e a
+  // justificativa era que outras telas contavam com as contas em memória —
+  // desde o item 9.4, nenhuma conta. Baixar 11,2 MB para talvez mostrar uma
+  // tarja não se paga.
+  const erroDeReceber: string | null = null;
 
   /**
    * O que não carregou.

@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ContasReceber from "./ContasReceber";
 import { AuthContext } from "../context/AuthContext";
-import { ContasReceberProvider } from "../context/ContasReceberContext";
 import type { ContaReceber } from "../context/ContasReceberContext";
 
 /**
@@ -29,8 +28,46 @@ import type { ContaReceber } from "../context/ContasReceberContext";
  * com um comentário marcando a suspeita. Quem decide se é defeito é o Erick.
  */
 
-const buscarContas = vi.hoisted(() => vi.fn());
-vi.mock("../services/notasapi", () => ({ fetchContasReceber: buscarContas }));
+/**
+ * O servidor, falso. A tela deixou de receber contas e passou a receber
+ * agregados (item 9.4), e havia duas saidas: reescrever estas ~2.000 linhas
+ * alimentando a tela com agregados prontos, ou pôr um servidor falso no lugar
+ * do de verdade e deixar os testes como estavam.
+ *
+ * Esta e a segunda. `contas/servidorFalso` reproduz `core/contas_agregado.py`,
+ * e e a unica copia dessa conta em TypeScript. O que ele NAO prova e que o SQL
+ * esta certo — um duble e a copia, nao o original; quem prova o SQL e a
+ * verificacao que roda contra o banco de producao.
+ *
+ * O que estes testes provam continua sendo o que sempre provaram: que a tela
+ * desenha corretamente o que recebe, e que o clique certo pede o recorte certo.
+ */
+const servidor = vi.hoisted(() => ({
+  contas: [] as Record<string, unknown>[],
+  modo: "ok" as "ok" | "falha" | "pendente",
+  chamadas: 0,
+}));
+
+vi.mock("../services/notasapi", async () => {
+  const { criarServidorDeContas } = await import("./contas/servidorFalso");
+  const falso = criarServidorDeContas(() => servidor.contas as never[], {
+    campoDaEmissao: "data",
+    quitadas: ["recebido", "pago"],
+  });
+  const responder = <T,>(real: () => Promise<T>): Promise<T> => {
+    if (servidor.modo === "falha") return Promise.reject(new Error("500"));
+    if (servidor.modo === "pendente") return new Promise<T>(() => {});
+    return real();
+  };
+  return {
+    fetchResumoDeContas: (tipo: string, params: Record<string, unknown>) => {
+      servidor.chamadas += 1;
+      return responder(() => falso.fetchResumoDeContas(tipo, params));
+    },
+    fetchPaginaDeContas: (tipo: string, params: Record<string, unknown>) =>
+      responder(() => falso.fetchPaginaDeContas(tipo, params)),
+  };
+});
 
 /** O que a exportação de fato mandou para o `xlsx`, sem tocar em disco. */
 const planilha = vi.hoisted(() => ({
@@ -128,7 +165,7 @@ function Molde({ children }: { children: ReactNode }) {
         error: null,
       }}
     >
-      <ContasReceberProvider>{children}</ContasReceberProvider>
+      {children}
     </AuthContext.Provider>
   );
 }
@@ -275,7 +312,8 @@ const CONTAS: ContaReceber[] = [
 ];
 
 async function montar(contas: ContaReceber[] = CONTAS) {
-  buscarContas.mockResolvedValue(contas);
+  servidor.contas = contas as never[];
+  servidor.modo = "ok";
   const resultado = render(<ContasReceber />, { wrapper: Molde });
   await screen.findByRole("table");
   return resultado;
@@ -284,6 +322,20 @@ async function montar(contas: ContaReceber[] = CONTAS) {
 /** Texto de um elemento, com o espaço fino do `R$` virando espaço normal. */
 function texto(elemento: Element | null | undefined): string {
   return (elemento?.textContent ?? "").replace(/\u00a0/g, " ").trim();
+}
+
+/**
+ * Deixa as buscas disparadas pela interacao terminarem.
+ *
+ * Clicar num filtro deixou de recalcular um `useMemo` e passou a PEDIR o
+ * recorte ao banco (item 9.4). Mesmo com o servidor falso respondendo na hora,
+ * a resposta chega numa microtask — e uma asserção logo depois do clique leria
+ * a tela do recorte anterior.
+ */
+async function assentar() {
+  await act(async () => {
+    await Promise.resolve();
+  });
 }
 
 /** Valor de um KPI, achado pelo rótulo e lido no elemento ao lado. */
@@ -329,23 +381,26 @@ function blocoDoFiltro(rotulo: string): HTMLElement {
   return bloco;
 }
 
-function abrirFiltro(rotulo: string) {
+async function abrirFiltro(rotulo: string) {
   fireEvent.click(within(blocoDoFiltro(rotulo)).getByRole("button"));
+  await assentar();
 }
 
 /** Abre o multi-select e marca uma opção pelo texto dela. */
-function marcarOpcao(rotulo: string, opcao: string) {
+async function marcarOpcao(rotulo: string, opcao: string) {
   const bloco = blocoDoFiltro(rotulo);
-  if (within(bloco).queryAllByRole("checkbox").length === 0) abrirFiltro(rotulo);
+  if (within(bloco).queryAllByRole("checkbox").length === 0) await abrirFiltro(rotulo);
   fireEvent.click(within(bloco).getByRole("checkbox", { name: opcao }));
+  await assentar();
 }
 
-function opcoesDoFiltro(rotulo: string): string[] {
+async function opcoesDoFiltro(rotulo: string): Promise<string[]> {
   const bloco = blocoDoFiltro(rotulo);
-  if (within(bloco).queryAllByRole("checkbox").length === 0) abrirFiltro(rotulo);
+  if (within(bloco).queryAllByRole("checkbox").length === 0) await abrirFiltro(rotulo);
   return within(bloco)
     .getAllByRole("checkbox")
     .map((caixa) => texto(caixa.parentElement));
+  await assentar();
 }
 
 function campoDeData(rotulo: string): HTMLInputElement {
@@ -354,14 +409,16 @@ function campoDeData(rotulo: string): HTMLInputElement {
   return campo as HTMLInputElement;
 }
 
-function preencherData(rotulo: string, valor: string) {
+async function preencherData(rotulo: string, valor: string) {
   fireEvent.change(campoDeData(rotulo), { target: { value: valor } });
+  await assentar();
 }
 
-function escolherPreset(valor: string) {
+async function escolherPreset(valor: string) {
   fireEvent.change(within(blocoDoFiltro("Período Rápido")).getByRole("combobox"), {
     target: { value: valor },
   });
+  await assentar();
 }
 
 /**
@@ -380,17 +437,19 @@ function campoDeBusca(): HTMLInputElement {
   return campo as HTMLInputElement;
 }
 
-function buscar(termo: string) {
+async function buscar(termo: string) {
   fireEvent.change(campoDeBusca(), { target: { value: termo } });
+  await assentar();
 }
 
 /** Clica no cabeçalho da coluna — no `<button>` de dentro quando existir. */
-function ordenarPor(coluna: string) {
+async function ordenarPor(coluna: string) {
   const cabecalho = screen
     .getAllByRole("columnheader")
     .find((celula) => texto(celula) === coluna);
   if (!cabecalho) throw new Error(`coluna "${coluna}" não existe na tabela`);
   fireEvent.click(cabecalho.querySelector("button") ?? cabecalho);
+  await assentar();
 }
 
 /** O cartão de um gráfico: sobe do título até o ancestral que tem a lista. */
@@ -409,16 +468,18 @@ function itensDoGrafico(titulo: string | RegExp): string[] {
 }
 
 /** Clica na barra cujo rótulo do eixo X é `chave`. */
-function clicarNaBarra(titulo: string | RegExp, chave: string) {
+async function clicarNaBarra(titulo: string | RegExp, chave: string) {
   const barra = within(cartaoDoGrafico(titulo))
     .getAllByRole("button")
     .find((botao) => texto(botao).startsWith(`label=${chave} `));
   if (!barra) throw new Error(`barra "${chave}" não está no gráfico`);
   fireEvent.click(barra);
+  await assentar();
 }
 
-function exportar() {
+async function exportar() {
   fireEvent.click(screen.getByRole("button", { name: /exportar excel/i }));
+  await assentar();
 }
 
 /** Verdadeiro quando a suíte roda fora do UTC (TZ=America/Sao_Paulo). */
@@ -431,7 +492,9 @@ beforeEach(() => {
   // senão o `findBy...` do testing-library nunca resolve.
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(AGORA);
-  buscarContas.mockReset();
+  servidor.contas = [];
+  servidor.modo = "ok";
+  servidor.chamadas = 0;
   planilha.linhas = [];
   planilha.aba = "";
   planilha.arquivo = "";
@@ -442,8 +505,8 @@ afterEach(() => {
 });
 
 describe("Contas a Receber — carregamento e lista vazia", () => {
-  it("mostra o aviso de carregando, e mais nada, enquanto a busca não volta", () => {
-    buscarContas.mockReturnValue(new Promise(() => {}));
+  it("mostra o aviso de carregando, e mais nada, enquanto a busca não volta", async () => {
+    servidor.modo = "pendente";
     render(<ContasReceber />, { wrapper: Molde });
 
     expect(screen.getByText("Carregando contas a receber...")).toBeInTheDocument();
@@ -454,7 +517,7 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
   it("busca as contas uma vez só ao abrir a tela", async () => {
     await montar();
 
-    expect(buscarContas).toHaveBeenCalledTimes(1);
+    expect(servidor.chamadas).toBe(1);
   });
 
   it("falha na busca avisa em bloco, e a tabela fica vazia", async () => {
@@ -463,7 +526,7 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // (defeito 1.10). O aviso é um `Alert` no fluxo da página — estado
     // permanente até recarregar —, e não um toast que some em 4 segundos.
     const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
-    buscarContas.mockRejectedValue(new Error("500"));
+    servidor.modo = "falha";
     render(<ContasReceber />, { wrapper: Molde });
 
     await screen.findByRole("table");
@@ -527,7 +590,7 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // carregar" em cada cartão diria a mesma coisa mais duas vezes, e a
     // distinção já mora no `Alert` vermelho no topo da página.
     const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
-    buscarContas.mockRejectedValue(new Error("500"));
+    servidor.modo = "falha";
     render(<ContasReceber />, { wrapper: Molde });
     await screen.findByRole("table");
 
@@ -573,11 +636,11 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     await montar();
     expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
 
-    buscar("nao existe esse cliente");
+    await buscar("nao existe esse cliente");
     expect(linhasDaTabela()).toHaveLength(0);
     expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
 
-    buscar("");
+    await buscar("");
     expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
   });
 
@@ -709,7 +772,7 @@ describe("Contas a Receber — KPIs", () => {
 
   it("os KPIs seguem os filtros", async () => {
     await montar();
-    marcarOpcao("Situação", "pendente");
+    await marcarOpcao("Situação", "pendente");
 
     expect(kpi("Total a Receber")).toBe("R$ 500,00");
     expect(kpi("Total Recebido")).toBe("R$ 0,00");
@@ -723,7 +786,7 @@ describe("Contas a Receber — KPIs", () => {
     // A busca só encolhe a tabela; os cinco KPIs continuam falando da base
     // filtrada inteira. É o comportamento de hoje.
     await montar();
-    buscar("gama");
+    await buscar("gama");
 
     expect(idsNaTela()).toEqual(["103"]);
     expect(kpi("Total a Receber")).toBe("R$ 1.000,00");
@@ -815,7 +878,7 @@ describe("Contas a Receber — opções dos filtros", () => {
   it("as situações são as distintas da base, sem repetição e sem vazio", async () => {
     await montar();
 
-    expect(opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente", "recebido"]);
+    expect(await opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente", "recebido"]);
   });
 
   it("situação nula e vazia não viram opção — e a conta some de qualquer seleção", async () => {
@@ -828,8 +891,8 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 3, situacao: "pendente" }),
     ]);
 
-    expect(opcoesDoFiltro("Situação")).toEqual(["pendente"]);
-    marcarOpcao("Situação", "pendente");
+    expect(await opcoesDoFiltro("Situação")).toEqual(["pendente"]);
+    await marcarOpcao("Situação", "pendente");
     expect(idsNaTela()).toEqual(["3"]);
   });
 
@@ -844,7 +907,7 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 5, categoria: null }),
     ]);
 
-    expect(opcoesDoFiltro("Categoria")).toEqual(["Água", "Boletos", "Zinco"]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual(["Água", "Boletos", "Zinco"]);
   });
 
   it("os clientes são os distintos, e o nome vazio NÃO vira opção", async () => {
@@ -858,30 +921,30 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 4, cliente_nome: "Alfa" }),
     ]);
 
-    expect(opcoesDoFiltro("Cliente")).toEqual(["Alfa", "Zeta"]);
+    expect(await opcoesDoFiltro("Cliente")).toEqual(["Alfa", "Zeta"]);
   });
 
   it("as opções saem da base inteira, e não do que sobrou dos outros filtros", async () => {
     await montar();
-    marcarOpcao("Situação", "pendente");
+    await marcarOpcao("Situação", "pendente");
 
     expect(idsNaTela()).toEqual(["103", "104"]);
-    expect(opcoesDoFiltro("Categoria")).toEqual(["Locação", "Produtos", "Serviços"]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual(["Locação", "Produtos", "Serviços"]);
   });
 });
 
 describe("Contas a Receber — cada filtro isolado", () => {
   it("situação: uma opção", async () => {
     await montar();
-    marcarOpcao("Situação", "aberto");
+    await marcarOpcao("Situação", "aberto");
 
     expect(idsNaTela()).toEqual(["105", "106"]);
   });
 
   it("situação: duas opções somam (é OU, não E)", async () => {
     await montar();
-    marcarOpcao("Situação", "aberto");
-    marcarOpcao("Situação", "pago");
+    await marcarOpcao("Situação", "aberto");
+    await marcarOpcao("Situação", "pago");
 
     expect(idsNaTela()).toEqual(["102", "105", "106"]);
   });
@@ -896,7 +959,7 @@ describe("Contas a Receber — cada filtro isolado", () => {
     expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cliente Todos" })).toBeInTheDocument();
 
-    marcarOpcao("Situação", "aberto");
+    await marcarOpcao("Situação", "aberto");
     expect(
       screen.getByRole("button", { name: "Situação 1 selecionado(s)" }),
     ).toBeInTheDocument();
@@ -906,7 +969,7 @@ describe("Contas a Receber — cada filtro isolado", () => {
     await montar();
     expect(texto(within(blocoDoFiltro("Situação")).getByRole("button"))).toBe("Todas");
 
-    marcarOpcao("Situação", "aberto");
+    await marcarOpcao("Situação", "aberto");
     expect(texto(within(blocoDoFiltro("Situação")).getAllByRole("button")[0])).toBe(
       "1 selecionado(s)",
     );
@@ -914,53 +977,55 @@ describe("Contas a Receber — cada filtro isolado", () => {
 
   it("Limpar seleção devolve a lista inteira", async () => {
     await montar();
-    marcarOpcao("Situação", "aberto");
+    await marcarOpcao("Situação", "aberto");
     expect(idsNaTela()).toEqual(["105", "106"]);
 
     fireEvent.click(
       within(blocoDoFiltro("Situação")).getByRole("button", { name: "Limpar seleção" }),
     );
+    await assentar();
     expect(idsNaTela()).toEqual(["101", "102", "103", "104", "105", "106"]);
   });
 
   it("a busca de dentro do multi-select filtra as opções sem diferenciar caixa", async () => {
     await montar();
-    abrirFiltro("Situação");
+    await abrirFiltro("Situação");
     fireEvent.change(
       within(blocoDoFiltro("Situação")).getByPlaceholderText("Pesquisar..."),
       { target: { value: "PEND" } },
     );
+    await assentar();
 
-    expect(opcoesDoFiltro("Situação")).toEqual(["pendente"]);
+    expect(await opcoesDoFiltro("Situação")).toEqual(["pendente"]);
   });
 
   it("categoria: uma opção — e a conta sem categoria fica de fora", async () => {
     await montar();
-    marcarOpcao("Categoria", "Serviços");
+    await marcarOpcao("Categoria", "Serviços");
 
     expect(idsNaTela()).toEqual(["101", "103"]);
   });
 
   it("cliente: uma opção", async () => {
     await montar();
-    marcarOpcao("Cliente", "Alfa Transportes");
+    await marcarOpcao("Cliente", "Alfa Transportes");
 
     expect(idsNaTela()).toEqual(["101", "104"]);
   });
 
   it("os três multi-selects juntos são interseção", async () => {
     await montar();
-    marcarOpcao("Situação", "pendente");
-    marcarOpcao("Categoria", "Locação");
-    marcarOpcao("Cliente", "Alfa Transportes");
+    await marcarOpcao("Situação", "pendente");
+    await marcarOpcao("Categoria", "Locação");
+    await marcarOpcao("Cliente", "Alfa Transportes");
 
     expect(idsNaTela()).toEqual(["104"]);
   });
 
   it("combinação sem nenhuma conta esvazia a tabela e zera os KPIs", async () => {
     await montar();
-    marcarOpcao("Situação", "recebido");
-    marcarOpcao("Categoria", "Produtos");
+    await marcarOpcao("Situação", "recebido");
+    await marcarOpcao("Categoria", "Produtos");
 
     expect(linhasDaTabela()).toHaveLength(0);
     expect(kpi("Total a Receber")).toBe("R$ 0,00");
@@ -972,38 +1037,38 @@ describe("Contas a Receber — filtro por data", () => {
   it("as datas filtram pela EMISSÃO, não pelo vencimento", async () => {
     // A 103 vence em 30/08 mas foi emitida em 05/03: agosto não a pega.
     await montar();
-    preencherData("Data Início", "2026-08-01");
-    preencherData("Data Fim", "2026-08-31");
+    await preencherData("Data Início", "2026-08-01");
+    await preencherData("Data Fim", "2026-08-31");
 
     expect(idsNaTela()).toEqual(["104", "105", "106"]);
   });
 
   it("as duas bordas são inclusivas", async () => {
     await montar();
-    preencherData("Data Início", "2026-02-15");
-    preencherData("Data Fim", "2026-03-05");
+    await preencherData("Data Início", "2026-02-15");
+    await preencherData("Data Fim", "2026-03-05");
 
     expect(idsNaTela()).toEqual(["102", "103"]);
   });
 
   it("só a data de início já corta o começo", async () => {
     await montar();
-    preencherData("Data Início", "2026-08-01");
+    await preencherData("Data Início", "2026-08-01");
 
     expect(idsNaTela()).toEqual(["104", "105", "106"]);
   });
 
   it("só a data de fim já corta o fim", async () => {
     await montar();
-    preencherData("Data Fim", "2026-02-15");
+    await preencherData("Data Fim", "2026-02-15");
 
     expect(idsNaTela()).toEqual(["101", "102"]);
   });
 
   it("mexer numa data joga o período rápido para Personalizado", async () => {
     await montar();
-    escolherPreset("mesAtual");
-    preencherData("Data Início", "2026-01-01");
+    await escolherPreset("mesAtual");
+    await preencherData("Data Início", "2026-01-01");
 
     expect(
       (within(blocoDoFiltro("Período Rápido")).getByRole("combobox") as HTMLSelectElement)
@@ -1026,7 +1091,7 @@ describe("Contas a Receber — presets de período", () => {
 
   it("Últimos 7 dias vai de hoje-7 até hoje — 24/08 a 31/08 de 2026", async () => {
     await montar();
-    escolherPreset("7dias");
+    await escolherPreset("7dias");
 
     expect(campoDeData("Data Início").value).toBe("2026-08-24");
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
@@ -1036,7 +1101,7 @@ describe("Contas a Receber — presets de período", () => {
 
   it("Últimos 30 dias vai de hoje-30 até hoje — 01/08 a 31/08 de 2026", async () => {
     await montar();
-    escolherPreset("30dias");
+    await escolherPreset("30dias");
 
     expect(campoDeData("Data Início").value).toBe("2026-08-01");
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
@@ -1045,7 +1110,7 @@ describe("Contas a Receber — presets de período", () => {
 
   it("Mês atual vai do dia 1 ao último dia do mês — 01/08 a 31/08 de 2026", async () => {
     await montar();
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
 
     expect(campoDeData("Data Início").value).toBe("2026-08-01");
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
@@ -1061,7 +1126,7 @@ describe("Contas a Receber — presets de período", () => {
       conta({ id: 2, data: "2026-03-20" }),
       conta({ id: 3, data: "2026-04-01" }),
     ]);
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
 
     expect(campoDeData("Data Início").value).toBe("2026-03-01");
     expect(campoDeData("Data Fim").value).toBe("2026-03-31");
@@ -1075,7 +1140,7 @@ describe("Contas a Receber — presets de período", () => {
       conta({ id: 3, data: "2026-12-31" }),
       conta({ id: 4, data: "2027-01-01" }),
     ]);
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
 
     expect(campoDeData("Data Início").value).toBe("2026-01-01");
     expect(campoDeData("Data Fim").value).toBe("2026-12-31");
@@ -1084,8 +1149,8 @@ describe("Contas a Receber — presets de período", () => {
 
   it("escolher Personalizado no select NÃO mexe nas datas que já estavam lá", async () => {
     await montar();
-    escolherPreset("anoAtual");
-    escolherPreset("custom");
+    await escolherPreset("anoAtual");
+    await escolherPreset("custom");
 
     expect(campoDeData("Data Início").value).toBe("2026-01-01");
     expect(campoDeData("Data Fim").value).toBe("2026-12-31");
@@ -1093,8 +1158,8 @@ describe("Contas a Receber — presets de período", () => {
 
   it("voltar para Todos limpa as datas que o preset anterior tinha posto", async () => {
     await montar();
-    escolherPreset("mesAtual");
-    escolherPreset("todos");
+    await escolherPreset("mesAtual");
+    await escolherPreset("todos");
 
     expect(campoDeData("Data Início").value).toBe("");
     expect(campoDeData("Data Fim").value).toBe("");
@@ -1123,7 +1188,7 @@ describe("Contas a Receber — fuso horário", () => {
     // um período que atravessava a virada. Agora o mês é o do relógio local.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
 
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-09-01",
@@ -1136,7 +1201,7 @@ describe("Contas a Receber — fuso horário", () => {
     // terminam em 31/08. As duas pontas andam juntas em cada fuso.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
-    escolherPreset("30dias");
+    await escolherPreset("30dias");
 
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-08-02",
@@ -1150,14 +1215,14 @@ describe("Contas a Receber — fuso horário", () => {
     // ponta em 2025 e a outra em 2026, que era o que acontecia.
     vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
     await montar();
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
 
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2025-01-01" : "2026-01-01",
     );
     expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-12-31");
 
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2025-12-01" : "2026-01-01",
     );
@@ -1177,28 +1242,28 @@ describe("Contas a Receber — fuso horário", () => {
 describe("Contas a Receber — busca da tabela", () => {
   it("casa o nome do cliente sem diferenciar caixa", async () => {
     await montar();
-    buscar("aLFa tRANsportes");
+    await buscar("aLFa tRANsportes");
 
     expect(idsNaTela()).toEqual(["101", "104"]);
   });
 
   it("casa a categoria", async () => {
     await montar();
-    buscar("produtos");
+    await buscar("produtos");
 
     expect(idsNaTela()).toEqual(["105"]);
   });
 
   it("casa o número do documento", async () => {
     await montar();
-    buscar("nf-002");
+    await buscar("nf-002");
 
     expect(idsNaTela()).toEqual(["102"]);
   });
 
   it("casa o histórico", async () => {
     await montar();
-    buscar("contrato anual");
+    await buscar("contrato anual");
 
     expect(idsNaTela()).toEqual(["103"]);
   });
@@ -1207,44 +1272,44 @@ describe("Contas a Receber — busca da tabela", () => {
     // A busca só baixava a caixa. Quem digita sem acento — o normal em
     // teclado apressado — não achava o cliente.
     await montar();
-    buscar("mineração");
+    await buscar("mineração");
     expect(idsNaTela()).toEqual(["102"]);
 
-    buscar("mineracao");
+    await buscar("mineracao");
     expect(idsNaTela()).toEqual(["102"]);
 
     // A categoria "Serviços" entra pela cedilha, no mesmo caminho.
-    buscar("servicos");
+    await buscar("servicos");
     expect(idsNaTela()).toEqual(["101", "103"]);
   });
 
   it("NÃO procura em situação, valor, saldo, id nem data", async () => {
     await montar();
 
-    buscar("recebido");
+    await buscar("recebido");
     expect(linhasDaTabela()).toHaveLength(0);
 
-    buscar("1000");
+    await buscar("1000");
     expect(linhasDaTabela()).toHaveLength(0);
 
-    buscar("101");
+    await buscar("101");
     expect(linhasDaTabela()).toHaveLength(0);
 
-    buscar("2026-01-10");
+    await buscar("2026-01-10");
     expect(linhasDaTabela()).toHaveLength(0);
   });
 
   it("casa pedaço no meio da palavra, não só o começo", async () => {
     await montar();
-    buscar("nergia");
+    await buscar("nergia");
 
     expect(idsNaTela()).toEqual(["103"]);
   });
 
   it("a busca soma ao filtro em vez de substituí-lo", async () => {
     await montar();
-    marcarOpcao("Categoria", "Serviços");
-    buscar("alfa");
+    await marcarOpcao("Categoria", "Serviços");
+    await buscar("alfa");
 
     expect(idsNaTela()).toEqual(["101"]);
   });
@@ -1261,72 +1326,72 @@ describe("Contas a Receber — ordenação", () => {
     // Inclusive na coluna que já estava ordenada: Vencimento abre crescente
     // e o primeiro clique inverte.
     await montar();
-    ordenarPor("Vencimento");
+    await ordenarPor("Vencimento");
 
     expect(idsNaTela()).toEqual(["106", "105", "104", "103", "102", "101"]);
   });
 
   it("ID Tiny nos dois sentidos", async () => {
     await montar();
-    ordenarPor("ID Tiny");
+    await ordenarPor("ID Tiny");
     expect(idsNaTela()).toEqual(["106", "105", "104", "103", "102", "101"]);
 
-    ordenarPor("ID Tiny");
+    await ordenarPor("ID Tiny");
     expect(idsNaTela()).toEqual(["101", "102", "103", "104", "105", "106"]);
   });
 
   it("Cliente nos dois sentidos", async () => {
     await montar();
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["103", "105", "106", "102", "101", "104"]);
 
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["101", "104", "102", "105", "106", "103"]);
   });
 
   it("Categoria nos dois sentidos — a conta sem categoria vira string vazia", async () => {
     await montar();
-    ordenarPor("Categoria");
+    await ordenarPor("Categoria");
     expect(idsNaTela()).toEqual(["101", "103", "105", "102", "104", "106"]);
 
-    ordenarPor("Categoria");
+    await ordenarPor("Categoria");
     expect(idsNaTela()).toEqual(["106", "102", "104", "105", "101", "103"]);
   });
 
   it("Emissão nos dois sentidos", async () => {
     await montar();
-    ordenarPor("Emissão");
+    await ordenarPor("Emissão");
     expect(idsNaTela()).toEqual(["106", "105", "104", "103", "102", "101"]);
 
-    ordenarPor("Emissão");
+    await ordenarPor("Emissão");
     expect(idsNaTela()).toEqual(["101", "102", "103", "104", "105", "106"]);
   });
 
   it("Valor nos dois sentidos — comparação numérica, não alfabética", async () => {
     await montar();
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["101", "102", "105", "103", "104", "106"]);
 
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["106", "104", "103", "105", "102", "101"]);
   });
 
   it("Saldo nos dois sentidos", async () => {
     await montar();
-    ordenarPor("Saldo");
+    await ordenarPor("Saldo");
     expect(idsNaTela()).toEqual(["105", "103", "104", "106", "101", "102"]);
 
-    ordenarPor("Saldo");
+    await ordenarPor("Saldo");
     expect(idsNaTela()).toEqual(["101", "102", "106", "104", "103", "105"]);
   });
 
   it("Situação nos dois sentidos — pela string crua, não pela badge", async () => {
     // A tabela mostra "Vencida" na 103, mas a ordenação usa "pendente".
     await montar();
-    ordenarPor("Situação");
+    await ordenarPor("Situação");
     expect(idsNaTela()).toEqual(["101", "103", "104", "102", "105", "106"]);
 
-    ordenarPor("Situação");
+    await ordenarPor("Situação");
     expect(idsNaTela()).toEqual(["105", "106", "102", "103", "104", "101"]);
   });
 
@@ -1340,14 +1405,14 @@ describe("Contas a Receber — ordenação", () => {
       conta({ id: 3, vencimento: "2026-05-01", valor: "100", saldo: "100" }),
     ]);
 
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
 
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
   });
 
@@ -1358,9 +1423,9 @@ describe("Contas a Receber — ordenação", () => {
       conta({ id: 3, cliente_nome: "Outro" }),
     ]);
 
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["3", "1", "2"]);
-    ordenarPor("Cliente");
+    await ordenarPor("Cliente");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
   });
 
@@ -1373,13 +1438,13 @@ describe("Contas a Receber — ordenação", () => {
         .map((c) => texto(c));
 
     expect(setas()).toEqual(["Vencimento"]);
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(setas()).toEqual(["Valor"]);
   });
 
   it("a ordenação vale para a lista inteira, não só para a página aberta", async () => {
     await montar(paginado(20));
-    ordenarPor("ID Tiny");
+    await ordenarPor("ID Tiny");
 
     expect(idsNaTela()[0]).toBe("20");
   });
@@ -1420,6 +1485,7 @@ describe("Contas a Receber — paginação", () => {
   it("a última página mostra o resto e a contagem acompanha", async () => {
     await montar(paginado(20));
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
 
     expect(linhasDaTabela()).toHaveLength(5);
     expect(idsNaTela()).toEqual(["16", "17", "18", "19", "20"]);
@@ -1456,6 +1522,7 @@ describe("Contas a Receber — paginação", () => {
     expect(screen.getByRole("button", { name: "Próxima" })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
   });
@@ -1463,9 +1530,10 @@ describe("Contas a Receber — paginação", () => {
   it("filtrar estando na página 2 volta para a página 1", async () => {
     await montar(paginado(20));
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(idsNaTela()[0]).toBe("16");
 
-    buscar("Cliente 0");
+    await buscar("Cliente 0");
     expect(idsNaTela()[0]).toBe("1");
     expect(linhasDaTabela()).toHaveLength(9);
   });
@@ -1475,7 +1543,8 @@ describe("Contas a Receber — paginação", () => {
     // página 2 continuava na 2, agora de uma lista que já não é a mesma.
     await montar(paginado(20));
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    ordenarPor("ID Tiny");
+    await assentar();
+    await ordenarPor("ID Tiny");
 
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
       "Mostrando 1 a 15 de 20 registros",
@@ -1495,6 +1564,7 @@ describe("Contas a Receber — paginação", () => {
     expect(numeros()).toEqual(["1", "2", "3", "4", "5"]);
 
     fireEvent.click(screen.getByRole("button", { name: "5" }));
+    await assentar();
     expect(numeros()).toEqual(["2", "3", "4", "5", "6"]);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
       "Mostrando 61 a 75 de 90 registros",
@@ -1581,7 +1651,7 @@ describe("Contas a Receber — gráfico de evolução", () => {
 
   it("clicar numa barra mensal filtra o mês inteiro e vira Personalizado", async () => {
     await montar();
-    clicarNaBarra(/Evolução/, "Ago");
+    await clicarNaBarra(/Evolução/, "Ago");
 
     expect(campoDeData("Data Início").value).toBe("2026-08-01");
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
@@ -1594,7 +1664,7 @@ describe("Contas a Receber — gráfico de evolução", () => {
 
   it("o clique acerta o último dia de mês curto — fevereiro de 2026 tem 28", async () => {
     await montar();
-    clicarNaBarra(/Evolução/, "Fev");
+    await clicarNaBarra(/Evolução/, "Fev");
 
     expect(campoDeData("Data Início").value).toBe("2026-02-01");
     expect(campoDeData("Data Fim").value).toBe("2026-02-28");
@@ -1603,7 +1673,7 @@ describe("Contas a Receber — gráfico de evolução", () => {
 
   it("clicar num mês sem nenhuma conta esvazia a tabela", async () => {
     await montar();
-    clicarNaBarra(/Evolução/, "Jun");
+    await clicarNaBarra(/Evolução/, "Jun");
 
     expect(campoDeData("Data Início").value).toBe("2026-06-01");
     expect(campoDeData("Data Fim").value).toBe("2026-06-30");
@@ -1619,8 +1689,8 @@ describe("Contas a Receber — gráfico de evolução", () => {
     // anos continuam na base (o gráfico segue anual) e o clique tem de
     // MANTER o preset em custom. Se ele trocasse para qualquer outro, o
     // efeito do período rápido reescreveria as datas por cima do ano clicado.
-    escolherPreset("custom");
-    clicarNaBarra("Evolução Anual", "2025");
+    await escolherPreset("custom");
+    await clicarNaBarra("Evolução Anual", "2025");
 
     expect(campoDeData("Data Início").value).toBe("2025-01-01");
     expect(campoDeData("Data Fim").value).toBe("2025-12-31");
@@ -1639,19 +1709,20 @@ describe("Contas a Receber — gráfico de evolução", () => {
   it("clicar na barra volta para a primeira página", async () => {
     await montar(paginado(20));
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(idsNaTela()[0]).toBe("16");
 
-    clicarNaBarra(/Evolução/, "Jan");
+    await clicarNaBarra(/Evolução/, "Jan");
     expect(idsNaTela()[0]).toBe("1");
   });
 
   it("o gráfico segue os filtros mas ignora a busca da tabela", async () => {
     await montar();
-    buscar("gama");
+    await buscar("gama");
     expect(idsNaTela()).toEqual(["103"]);
     expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=1000 aberto=0");
 
-    marcarOpcao("Cliente", "Gama Energia");
+    await marcarOpcao("Cliente", "Gama Energia");
     expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=0 aberto=0");
   });
 });
@@ -1691,17 +1762,20 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     expect(fatias[7]).toBe("name=Outros value=60");
   });
 
-  it("categoria nula vira a fatia Sem categoria, e vazia é uma fatia separada", async () => {
-    // Suspeita: `?? "Sem categoria"` não pega string vazia — categoria "" vira
-    // uma fatia de nome em branco, ao lado da de nome "Sem categoria".
+  it("categoria nula e categoria vazia são a MESMA fatia: Sem categoria", async () => {
+    // MUDOU em 2026-09-09, de propósito. Enquanto a pizza era montada no
+    // navegador, `null` virava "Sem categoria" e `""` virava uma fatia com
+    // rótulo vazio — duas fatias para a mesma ausência, e uma delas sem nome na
+    // legenda. O SQL apara e junta as duas (`NULLIF(trim(categoria), '')`), que
+    // é também o que faz a opção do filtro alcançar a linha gravada com espaço
+    // sobrando.
     await montar([
       conta({ id: 1, categoria: null, valor: "100" }),
       conta({ id: 2, categoria: "", valor: "50" }),
     ]);
 
     expect(itensDoGrafico("Distribuição por Categoria")).toEqual([
-      "name=Sem categoria value=100",
-      "name= value=50",
+      "name=Sem categoria value=150",
     ]);
   });
 
@@ -1757,8 +1831,16 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     expect(barras[9]).toBe("nome=Cliente 03 valor=30");
   });
 
-  it("os dois gráficos agrupam pelo nome cru: caixa e espaço sobrando não se juntam", async () => {
-    // Suspeita: "ALFA" e "Alfa " viram três clientes diferentes no Top 10.
+  it("espaço sobrando junta; caixa diferente ainda não", async () => {
+    // MUDOU PELA METADE em 2026-09-09. "Alfa" e "Alfa " eram dois clientes no
+    // Top 10 — duas barras com o mesmo rótulo aparente, e o filtro alcançando
+    // uma só. O `trim` do SQL junta as duas: medido na base real, são 108
+    // contas da Receita Federal em duas grafias que diferem só por espaço.
+    //
+    // A CAIXA continua separando: "ALFA" segue sendo outro cliente. Unificar
+    // por caixa é decidir que dois cadastros são a mesma empresa, e isso é
+    // identidade — a mesma fase própria que a `dim_cliente` do gold espera,
+    // medindo ranking por ranking. Não entra de carona numa migração.
     await montar([
       conta({ id: 1, cliente_nome: "Alfa", valor: "100" }),
       conta({ id: 2, cliente_nome: "ALFA", valor: "50" }),
@@ -1766,9 +1848,8 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     ]);
 
     expect(itensDoGrafico("Top 10 Clientes")).toEqual([
-      "nome=Alfa valor=100",
+      "nome=Alfa valor=110",
       "nome=ALFA valor=50",
-      "nome=Alfa  valor=10",
     ]);
   });
 });
@@ -1878,7 +1959,7 @@ describe("Contas a Receber — dinheiro", () => {
 describe("Contas a Receber — exportação para Excel", () => {
   it("exporta dezessete colunas, nesta ordem, na aba Contas a Receber", async () => {
     await montar();
-    exportar();
+    await exportar();
 
     expect(planilha.linhas).toHaveLength(6);
     expect(Object.keys(planilha.linhas[0])).toEqual([
@@ -1905,7 +1986,7 @@ describe("Contas a Receber — exportação para Excel", () => {
 
   it("cada célula da linha, com o valor exato", async () => {
     await montar([CONTAS[0]]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas).toEqual([
       {
@@ -1936,7 +2017,7 @@ describe("Contas a Receber — exportação para Excel", () => {
     // vazia nas colunas de texto e travessão na Liquidação —, mas é o que a
     // tabela também mostra, e mudar isso seria decisão de produto.
     await montar([conta({ id: 1, vencimento: "2026-12-01" })]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas).toEqual([
       {
@@ -1969,7 +2050,7 @@ describe("Contas a Receber — exportação para Excel", () => {
       conta({ id: 2, vencimento: "2026-08-30", situacao: "aberto" }),
       conta({ id: 3, vencimento: "2026-12-01", situacao: "pendente" }),
     ]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas.map((l) => l["Situação"])).toEqual([
       "pendente",
@@ -1981,15 +2062,15 @@ describe("Contas a Receber — exportação para Excel", () => {
 
   it("data com hora sai como o dia também na planilha", async () => {
     await montar([conta({ id: 1, liquidacao: "2026-01-18T10:00:00" })]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas[0]["Liquidação"]).toBe("18/01/2026");
   });
 
   it("exporta a lista filtrada e ordenada, e não só a página que está na tela", async () => {
     await montar(paginado(20));
-    ordenarPor("ID Tiny");
-    exportar();
+    await ordenarPor("ID Tiny");
+    await exportar();
 
     expect(planilha.linhas).toHaveLength(20);
     expect(planilha.linhas.map((l) => l["ID Tiny"]).slice(0, 3)).toEqual([20, 19, 18]);
@@ -1997,23 +2078,23 @@ describe("Contas a Receber — exportação para Excel", () => {
 
   it("a busca da tabela entra na planilha", async () => {
     await montar();
-    buscar("alfa");
-    exportar();
+    await buscar("alfa");
+    await exportar();
 
     expect(planilha.linhas.map((l) => l["ID Tiny"])).toEqual([101, 104]);
   });
 
   it("os filtros também entram na planilha", async () => {
     await montar();
-    marcarOpcao("Situação", "aberto");
-    exportar();
+    await marcarOpcao("Situação", "aberto");
+    await exportar();
 
     expect(planilha.linhas.map((l) => l["ID Tiny"])).toEqual([105, 106]);
   });
 
   it("o arquivo se chama contas_a_receber_ mais a data de hoje", async () => {
     await montar();
-    exportar();
+    await exportar();
 
     expect(planilha.arquivo).toBe("contas_a_receber_2026-08-31.xlsx");
   });
@@ -2023,7 +2104,7 @@ describe("Contas a Receber — exportação para Excel", () => {
     // exporta à noite tem de arquivar com a data do dia dele.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
     await montar();
-    exportar();
+    await exportar();
 
     expect(planilha.arquivo).toBe(
       foraDoUtcAgora() ? "contas_a_receber_2026-08-31.xlsx" : "contas_a_receber_2026-09-01.xlsx",

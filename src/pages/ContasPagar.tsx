@@ -1,6 +1,5 @@
 import React from "react";
 
-import { useContasPagar, type ContaPagarEnriquecida } from "../context/ContasPagarContext";
 import { TelaDeContas, type ConfiguracaoDeContas } from "./contas/TelaDeContas";
 import type { DialetoDeContas } from "./contas/contas";
 
@@ -20,13 +19,11 @@ import type { DialetoDeContas } from "./contas/contas";
  * `cliente_nome` não é cópia mal feita da gêmea: é o nome do campo que a API
  * manda para o FORNECEDOR, e é por isso que a tela o rotula "Fornecedor".
  */
-const DIALETO: DialetoDeContas<ContaPagarEnriquecida> = {
-  campoDaEmissao: "data_emissao",
-  situacoesQuitadas: ["pago"],
+const DIALETO: DialetoDeContas = {
   chaveQuitado: "pago",
 };
 
-const CONFIGURACAO: ConfiguracaoDeContas<ContaPagarEnriquecida> = {
+const CONFIGURACAO: ConfiguracaoDeContas = {
   titulo: "Contas a Pagar",
   descricao: "Acompanhe e gerencie as contas a pagar integradas ao Tiny ERP.",
   mensagemDeCarregamento: "Carregando contas a pagar...",
@@ -50,17 +47,8 @@ const CONFIGURACAO: ConfiguracaoDeContas<ContaPagarEnriquecida> = {
 };
 
 /** Contas a Pagar — os títulos do Tiny ERP que a empresa tem para pagar. */
-const ContasPagar: React.FC = () => {
-  const { contasEnriquecidas, carregando, erro } = useContasPagar();
-
-  return (
-    <TelaDeContas
-      configuracao={CONFIGURACAO}
-      contas={contasEnriquecidas}
-      carregando={carregando}
-      erro={erro}
-    />
-  );
-};
+const ContasPagar: React.FC = () => (
+  <TelaDeContas tipo="contas_pagar" configuracao={CONFIGURACAO} />
+);
 
 export default ContasPagar;

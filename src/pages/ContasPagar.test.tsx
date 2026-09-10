@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ContasPagar from "./ContasPagar";
 import { AuthContext } from "../context/AuthContext";
-import { ContasPagarProvider } from "../context/ContasPagarContext";
 import type { ContaPagar } from "../context/ContasPagarContext";
 
 /**
@@ -40,8 +39,46 @@ import type { ContaPagar } from "../context/ContasPagarContext";
 
 // --- Dublê do serviço -------------------------------------------------------
 
-const buscarContas = vi.hoisted(() => vi.fn());
-vi.mock("../services/notasapi", () => ({ fetchContasPagar: buscarContas }));
+/**
+ * O servidor, falso. A tela deixou de receber contas e passou a receber
+ * agregados (item 9.4), e havia duas saidas: reescrever estas ~2.000 linhas
+ * alimentando a tela com agregados prontos, ou pôr um servidor falso no lugar
+ * do de verdade e deixar os testes como estavam.
+ *
+ * Esta e a segunda. `contas/servidorFalso` reproduz `core/contas_agregado.py`,
+ * e e a unica copia dessa conta em TypeScript. O que ele NAO prova e que o SQL
+ * esta certo — um duble e a copia, nao o original; quem prova o SQL e a
+ * verificacao que roda contra o banco de producao.
+ *
+ * O que estes testes provam continua sendo o que sempre provaram: que a tela
+ * desenha corretamente o que recebe, e que o clique certo pede o recorte certo.
+ */
+const servidor = vi.hoisted(() => ({
+  contas: [] as Record<string, unknown>[],
+  modo: "ok" as "ok" | "falha" | "pendente",
+  chamadas: 0,
+}));
+
+vi.mock("../services/notasapi", async () => {
+  const { criarServidorDeContas } = await import("./contas/servidorFalso");
+  const falso = criarServidorDeContas(() => servidor.contas as never[], {
+    campoDaEmissao: "data_emissao",
+    quitadas: ["pago"],
+  });
+  const responder = <T,>(real: () => Promise<T>): Promise<T> => {
+    if (servidor.modo === "falha") return Promise.reject(new Error("500"));
+    if (servidor.modo === "pendente") return new Promise<T>(() => {});
+    return real();
+  };
+  return {
+    fetchResumoDeContas: (tipo: string, params: Record<string, unknown>) => {
+      servidor.chamadas += 1;
+      return responder(() => falso.fetchResumoDeContas(tipo, params));
+    },
+    fetchPaginaDeContas: (tipo: string, params: Record<string, unknown>) =>
+      responder(() => falso.fetchPaginaDeContas(tipo, params)),
+  };
+});
 
 // --- Dublê do xlsx ----------------------------------------------------------
 
@@ -170,7 +207,7 @@ function Molde({ children }: { children: ReactNode }) {
         error: null,
       }}
     >
-      <ContasPagarProvider>{children}</ContasPagarProvider>
+      {children}
     </AuthContext.Provider>
   );
 }
@@ -367,10 +404,25 @@ const texto = (elemento: Element | null | undefined) =>
   (elemento?.textContent ?? "").replace(/\s+/g, " ").trim();
 
 async function montar(contas: ContaPagar[] = CONTAS) {
-  buscarContas.mockResolvedValue(contas);
+  servidor.contas = contas as never[];
+  servidor.modo = "ok";
   const resultado = render(<ContasPagar />, { wrapper: Molde });
   await screen.findByRole("table");
   return resultado;
+}
+
+/**
+ * Deixa as buscas disparadas pela interacao terminarem.
+ *
+ * Clicar num filtro deixou de recalcular um `useMemo` e passou a PEDIR o
+ * recorte ao banco (item 9.4). Mesmo com o servidor falso respondendo na hora,
+ * a resposta chega numa microtask — e uma asserção logo depois do clique leria
+ * a tela do recorte anterior.
+ */
+async function assentar() {
+  await act(async () => {
+    await Promise.resolve();
+  });
 }
 
 /** Valor de um KPI, achado pelo rótulo e lido no elemento ao lado. */
@@ -403,24 +455,27 @@ function filtro(rotulo: string): HTMLElement {
 }
 
 /** Abre (ou fecha) a lista de um multi-select — o primeiro botão do bloco. */
-function alternarLista(rotulo: string) {
+async function alternarLista(rotulo: string) {
   fireEvent.click(within(filtro(rotulo)).getAllByRole("button")[0]);
+  await assentar();
 }
 
-function selecionar(rotulo: string, ...opcoes: string[]) {
-  alternarLista(rotulo);
+async function selecionar(rotulo: string, ...opcoes: string[]) {
+  await alternarLista(rotulo);
   for (const opcao of opcoes) {
     fireEvent.click(within(filtro(rotulo)).getByRole("checkbox", { name: opcao }));
+    await assentar();
   }
-  alternarLista(rotulo);
+  await alternarLista(rotulo);
+  await assentar();
 }
 
-function opcoesDoFiltro(rotulo: string): string[] {
-  alternarLista(rotulo);
+async function opcoesDoFiltro(rotulo: string): Promise<string[]> {
+  await alternarLista(rotulo);
   const nomes = within(filtro(rotulo))
     .queryAllByRole("checkbox")
     .map((caixa) => texto(caixa.closest("label")));
-  alternarLista(rotulo);
+  await alternarLista(rotulo);
   return nomes;
 }
 
@@ -438,16 +493,18 @@ function campoData(rotulo: "Data Início" | "Data Fim"): HTMLInputElement {
   return campo as HTMLInputElement;
 }
 
-function definirData(rotulo: "Data Início" | "Data Fim", valor: string) {
+async function definirData(rotulo: "Data Início" | "Data Fim", valor: string) {
   fireEvent.change(campoData(rotulo), { target: { value: valor } });
+  await assentar();
 }
 
 function seletorDePreset(): HTMLSelectElement {
   return within(painelDeFiltros()).getByRole("combobox") as HTMLSelectElement;
 }
 
-function escolherPreset(valor: string) {
+async function escolherPreset(valor: string) {
   fireEvent.change(seletorDePreset(), { target: { value: valor } });
+  await assentar();
 }
 
 /** O cartão da tabela — para não confundir a busca com a do multi-select. */
@@ -462,10 +519,11 @@ function cartaoDaTabela(): HTMLElement {
   return no;
 }
 
-function buscar(termo: string) {
+async function buscar(termo: string) {
   fireEvent.change(within(cartaoDaTabela()).getByPlaceholderText("Pesquisar..."), {
     target: { value: termo },
   });
+  await assentar();
 }
 
 /** Linhas de DADO — sem o cabeçalho e sem a linha de "nenhuma conta". */
@@ -491,16 +549,18 @@ function cabecalhos(): string[] {
   return screen.getAllByRole("columnheader").map((celula) => texto(celula));
 }
 
-function ordenarPor(coluna: string) {
+async function ordenarPor(coluna: string) {
   const cabecalho = screen
     .getAllByRole("columnheader")
     .find((celula) => texto(celula) === coluna);
   if (!cabecalho) throw new Error(`coluna "${coluna}" não existe na tabela`);
   fireEvent.click(cabecalho.querySelector("button") ?? cabecalho);
+  await assentar();
 }
 
-function exportar() {
+async function exportar() {
   fireEvent.click(screen.getByRole("button", { name: /exportar excel/i }));
+  await assentar();
 }
 
 // --- Leitura dos gráficos ---------------------------------------------------
@@ -519,8 +579,9 @@ const categorias = () => graficos.pizza as unknown as PontoCategoria[];
 const mesesComValor = () =>
   evolucao().filter((ponto) => ponto.pago !== 0 || ponto.aberto !== 0);
 
-function clicarNaBarra(rotulo: string) {
+async function clicarNaBarra(rotulo: string) {
   fireEvent.click(screen.getByRole("button", { name: `barra ${rotulo}` }));
+  await assentar();
 }
 
 const tituloDaEvolucao = () =>
@@ -537,7 +598,9 @@ beforeEach(() => {
   // `findByRole` de dentro do `montar` nunca resolveria.
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(HOJE);
-  buscarContas.mockReset();
+  servidor.contas = [];
+  servidor.modo = "ok";
+  servidor.chamadas = 0;
   planilha.linhas = [];
   planilha.aba = "";
   planilha.arquivo = "";
@@ -552,8 +615,8 @@ afterEach(() => {
 // ============================================================================
 
 describe("Contas a Pagar — carregamento e lista vazia", () => {
-  it("mostra o aviso de carregando, e nenhuma tabela, enquanto a busca não volta", () => {
-    buscarContas.mockReturnValue(new Promise(() => {}));
+  it("mostra o aviso de carregando, e nenhuma tabela, enquanto a busca não volta", async () => {
+    servidor.modo = "pendente";
     render(<ContasPagar />, { wrapper: Molde });
 
     expect(screen.getByText("Carregando contas a pagar...")).toBeInTheDocument();
@@ -563,7 +626,7 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
   it("busca as contas uma vez só ao abrir a tela", async () => {
     await montar();
 
-    expect(buscarContas).toHaveBeenCalledTimes(1);
+    expect(servidor.chamadas).toBe(1);
   });
 
   it("falha na busca avisa em bloco, e a tabela fica vazia", async () => {
@@ -572,7 +635,7 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     // O aviso é um `Alert` no fluxo da página, do mesmo jeito que na gêmea e
     // na tela de Locação.
     const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
-    buscarContas.mockRejectedValue(new Error("500"));
+    servidor.modo = "falha";
     render(<ContasPagar />, { wrapper: Molde });
 
     await screen.findByRole("table");
@@ -632,7 +695,7 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     // e "não há conta" já mora no `Alert` vermelho no topo da página, e
     // repeti-la em cada cartão diria a mesma coisa mais duas vezes.
     const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
-    buscarContas.mockRejectedValue(new Error("500"));
+    servidor.modo = "falha";
     render(<ContasPagar />, { wrapper: Molde });
     await screen.findByRole("table");
 
@@ -658,9 +721,9 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
   it("sem nenhuma conta, os multi-selects não têm opção nenhuma", async () => {
     await montar([]);
 
-    alternarLista("Situação");
+    await alternarLista("Situação");
     expect(within(filtro("Situação")).getByText("Nenhum resultado encontrado")).toBeInTheDocument();
-    alternarLista("Situação");
+    await alternarLista("Situação");
   });
 });
 
@@ -814,13 +877,13 @@ describe("Contas a Pagar — KPIs", () => {
   it("os KPIs seguem os filtros, mas ignoram a busca da tabela", async () => {
     await montar();
 
-    buscar("Alfa");
+    await buscar("Alfa");
     expect(idsNaTela()).toEqual(["101", "104"]);
     expect(kpi("Total em Aberto")).toBe("R$ 3.900,50");
     expect(kpi("Total Pago")).toBe("R$ 1.000,00");
 
-    buscar("");
-    selecionar("Fornecedor", "Alfa Papelaria");
+    await buscar("");
+    await selecionar("Fornecedor", "Alfa Papelaria");
     expect(kpi("Total em Aberto")).toBe("R$ 2.500,00");
     // Nenhuma das duas está paga, mas a 104 já teve 500 pagos (2000 − 1500).
     expect(kpi("Total Pago")).toBe("R$ 500,00");
@@ -960,14 +1023,14 @@ describe("Contas a Pagar — filtros", () => {
   it("as opções de cada multi-select são distintas, ordenadas e sem as vazias", async () => {
     await montar();
 
-    expect(opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente"]);
-    expect(opcoesDoFiltro("Categoria")).toEqual([
+    expect(await opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente"]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual([
       "Energia",
       "Frete",
       "Material",
       "Serviços",
     ]);
-    expect(opcoesDoFiltro("Fornecedor")).toEqual([
+    expect(await opcoesDoFiltro("Fornecedor")).toEqual([
       "Alfa Papelaria",
       "Beta Energia",
       "Delta Transportes",
@@ -984,43 +1047,43 @@ describe("Contas a Pagar — filtros", () => {
       conta({ id: 2, situacao: null, categoria: null, cliente_nome: "Zeta" }),
     ]);
 
-    expect(opcoesDoFiltro("Situação")).toEqual([]);
-    expect(opcoesDoFiltro("Categoria")).toEqual([]);
-    expect(opcoesDoFiltro("Fornecedor")).toEqual(["Zeta"]);
+    expect(await opcoesDoFiltro("Situação")).toEqual([]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual([]);
+    expect(await opcoesDoFiltro("Fornecedor")).toEqual(["Zeta"]);
   });
 
   it("filtro de situação isolado", async () => {
     await montar();
-    selecionar("Situação", "pago");
+    await selecionar("Situação", "pago");
 
     expect(idsNaTela()).toEqual(["102"]);
   });
 
   it("filtro de categoria isolado", async () => {
     await montar();
-    selecionar("Categoria", "Material");
+    await selecionar("Categoria", "Material");
 
     expect(idsNaTela()).toEqual(["101", "104"]);
   });
 
   it("filtro de fornecedor isolado", async () => {
     await montar();
-    selecionar("Fornecedor", "Beta Energia");
+    await selecionar("Fornecedor", "Beta Energia");
 
     expect(idsNaTela()).toEqual(["102", "106"]);
   });
 
   it("duas opções do mesmo filtro somam (é OU dentro do filtro)", async () => {
     await montar();
-    selecionar("Categoria", "Material", "Frete");
+    await selecionar("Categoria", "Material", "Frete");
 
     expect(idsNaTela()).toEqual(["101", "104", "105"]);
   });
 
   it("filtros diferentes se cortam (é E entre filtros)", async () => {
     await montar();
-    selecionar("Categoria", "Material", "Energia");
-    selecionar("Situação", "pendente");
+    await selecionar("Categoria", "Material", "Energia");
+    await selecionar("Situação", "pendente");
 
     // Material + Energia = 101, 102, 104, 106; das quais pendentes: 101, 104, 106.
     expect(idsNaTela()).toEqual(["101", "106", "104"]);
@@ -1034,7 +1097,7 @@ describe("Contas a Pagar — filtros", () => {
     expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Fornecedor Todos" })).toBeInTheDocument();
 
-    selecionar("Fornecedor", "Beta Energia");
+    await selecionar("Fornecedor", "Beta Energia");
     expect(
       screen.getByRole("button", { name: "Fornecedor 1 selecionado(s)" }),
     ).toBeInTheDocument();
@@ -1046,18 +1109,19 @@ describe("Contas a Pagar — filtros", () => {
     expect(rotuloDoBotaoDoFiltro("Situação")).toBe("Todas");
     expect(rotuloDoBotaoDoFiltro("Fornecedor")).toBe("Todos");
 
-    selecionar("Situação", "pago", "aberto");
+    await selecionar("Situação", "pago", "aberto");
     expect(rotuloDoBotaoDoFiltro("Situação")).toBe("2 selecionado(s)");
   });
 
   it("Limpar seleção devolve a lista inteira", async () => {
     await montar();
-    selecionar("Categoria", "Material");
+    await selecionar("Categoria", "Material");
     expect(idsNaTela()).toHaveLength(2);
 
-    alternarLista("Categoria");
+    await alternarLista("Categoria");
     fireEvent.click(within(filtro("Categoria")).getByRole("button", { name: "Limpar seleção" }));
-    alternarLista("Categoria");
+    await assentar();
+    await alternarLista("Categoria");
 
     expect(idsNaTela()).toHaveLength(6);
   });
@@ -1065,7 +1129,7 @@ describe("Contas a Pagar — filtros", () => {
   it("a pesquisa de dentro do multi-select filtra as opções, sem filtrar a tabela", async () => {
     await montar();
 
-    alternarLista("Fornecedor");
+    await alternarLista("Fornecedor");
     fireEvent.change(within(filtro("Fornecedor")).getByPlaceholderText("Pesquisar..."), {
       target: { value: "beta" },
     });
@@ -1074,7 +1138,7 @@ describe("Contas a Pagar — filtros", () => {
         .getAllByRole("checkbox")
         .map((c) => texto(c.closest("label"))),
     ).toEqual(["Beta Energia"]);
-    alternarLista("Fornecedor");
+    await alternarLista("Fornecedor");
 
     expect(idsNaTela()).toHaveLength(6);
   });
@@ -1084,31 +1148,31 @@ describe("Contas a Pagar — filtros", () => {
     // cobre só fevereiro não a pega — prova que quem manda é a emissão.
     await montar();
 
-    definirData("Data Início", "2026-02-01");
-    definirData("Data Fim", "2026-02-28");
+    await definirData("Data Início", "2026-02-01");
+    await definirData("Data Fim", "2026-02-28");
     expect(idsNaTela()).toEqual(["103", "104"]);
   });
 
   it("as duas pontas do intervalo são inclusivas", async () => {
     await montar();
 
-    definirData("Data Início", "2026-01-10"); // dia exato da emissão da 101
-    definirData("Data Fim", "2026-03-10"); // dia exato da emissão da 106
+    await definirData("Data Início", "2026-01-10"); // dia exato da emissão da 101
+    await definirData("Data Fim", "2026-03-10"); // dia exato da emissão da 106
     expect(idsNaTela()).toEqual(["102", "101", "106", "103", "104", "105"]);
 
-    definirData("Data Início", "2026-01-11");
-    definirData("Data Fim", "2026-03-09");
+    await definirData("Data Início", "2026-01-11");
+    await definirData("Data Fim", "2026-03-09");
     expect(idsNaTela()).toEqual(["102", "103", "104", "105"]);
   });
 
   it("só a data início, ou só a data fim, já filtra sozinha", async () => {
     await montar();
 
-    definirData("Data Início", "2026-03-01");
+    await definirData("Data Início", "2026-03-01");
     expect(idsNaTela()).toEqual(["106", "105"]);
 
-    definirData("Data Início", "");
-    definirData("Data Fim", "2026-01-31");
+    await definirData("Data Início", "");
+    await definirData("Data Fim", "2026-01-31");
     expect(idsNaTela()).toEqual(["102", "101"]);
   });
 
@@ -1116,7 +1180,7 @@ describe("Contas a Pagar — filtros", () => {
     await montar();
 
     expect(seletorDePreset()).toHaveValue("todos");
-    definirData("Data Início", "2026-02-01");
+    await definirData("Data Início", "2026-02-01");
     expect(seletorDePreset()).toHaveValue("custom");
     // E o "custom" não é sobrescrito pelo efeito: a data digitada fica.
     expect(campoData("Data Início")).toHaveValue("2026-02-01");
@@ -1124,8 +1188,8 @@ describe("Contas a Pagar — filtros", () => {
 
   it("filtro e busca valem juntos", async () => {
     await montar();
-    selecionar("Categoria", "Material", "Energia");
-    buscar("luz");
+    await selecionar("Categoria", "Material", "Energia");
+    await buscar("luz");
 
     // Material + Energia = 101, 102, 104, 106; "luz" está no histórico de
     // 102 e 106.
@@ -1144,7 +1208,7 @@ describe("Contas a Pagar — presets de período", () => {
 
   it("'Últimos 7 dias' vai de 08/03 a 15/03 com o relógio em 15/03/2026", async () => {
     await montar();
-    escolherPreset("7dias");
+    await escolherPreset("7dias");
 
     expect(campoData("Data Início")).toHaveValue("2026-03-08");
     expect(campoData("Data Fim")).toHaveValue("2026-03-15");
@@ -1154,7 +1218,7 @@ describe("Contas a Pagar — presets de período", () => {
 
   it("'Últimos 30 dias' vai de 13/02 a 15/03 com o relógio em 15/03/2026", async () => {
     await montar();
-    escolherPreset("30dias");
+    await escolherPreset("30dias");
 
     expect(campoData("Data Início")).toHaveValue("2026-02-13");
     expect(campoData("Data Fim")).toHaveValue("2026-03-15");
@@ -1169,7 +1233,7 @@ describe("Contas a Pagar — presets de período", () => {
       ...CONTAS,
       conta({ id: 7, id_tiny: 107, data_emissao: "2026-03-20", vencimento: "2026-05-20" }),
     ]);
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
 
     expect(campoData("Data Início")).toHaveValue("2026-03-01");
     expect(campoData("Data Fim")).toHaveValue("2026-03-31");
@@ -1178,7 +1242,7 @@ describe("Contas a Pagar — presets de período", () => {
 
   it("'Ano atual' pega o ano inteiro, do 1º de janeiro ao 31 de dezembro", async () => {
     await montar();
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
 
     expect(campoData("Data Início")).toHaveValue("2026-01-01");
     expect(campoData("Data Fim")).toHaveValue("2026-12-31");
@@ -1187,8 +1251,8 @@ describe("Contas a Pagar — presets de período", () => {
 
   it("'Personalizado' escolhido na mão não mexe nas datas que já estavam lá", async () => {
     await montar();
-    escolherPreset("anoAtual");
-    escolherPreset("custom");
+    await escolherPreset("anoAtual");
+    await escolherPreset("custom");
 
     expect(campoData("Data Início")).toHaveValue("2026-01-01");
     expect(campoData("Data Fim")).toHaveValue("2026-12-31");
@@ -1196,8 +1260,8 @@ describe("Contas a Pagar — presets de período", () => {
 
   it("voltar para 'Todos' limpa o intervalo de novo", async () => {
     await montar();
-    escolherPreset("mesAtual");
-    escolherPreset("todos");
+    await escolherPreset("mesAtual");
+    await escolherPreset("todos");
 
     expect(campoData("Data Início")).toHaveValue("");
     expect(campoData("Data Fim")).toHaveValue("");
@@ -1217,11 +1281,11 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     // 12:00Z é 09:00 em Brasília: o mesmo dia de calendário nos dois.
     await montar();
 
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
     expect(campoData("Data Início")).toHaveValue("2026-03-01");
     expect(campoData("Data Fim")).toHaveValue("2026-03-31");
 
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
     expect(campoData("Data Início")).toHaveValue("2026-01-01");
     expect(campoData("Data Fim")).toHaveValue("2026-12-31");
   });
@@ -1235,7 +1299,7 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
     await montar([]);
 
-    escolherPreset("mesAtual");
+    await escolherPreset("mesAtual");
     expect(campoData("Data Início")).toHaveValue(
       ATRASADO_EM_RELACAO_A_UTC ? "2025-12-01" : "2026-01-01",
     );
@@ -1243,7 +1307,7 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
       ATRASADO_EM_RELACAO_A_UTC ? "2025-12-31" : "2026-01-31",
     );
 
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
     expect(campoData("Data Início")).toHaveValue(
       ATRASADO_EM_RELACAO_A_UTC ? "2025-01-01" : "2026-01-01",
     );
@@ -1258,7 +1322,7 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
     await montar([]);
 
-    escolherPreset("30dias");
+    await escolherPreset("30dias");
     expect(campoData("Data Início")).toHaveValue(
       ATRASADO_EM_RELACAO_A_UTC ? "2025-12-01" : "2025-12-02",
     );
@@ -1300,44 +1364,44 @@ describe("Contas a Pagar — busca da tabela", () => {
   it("procura no fornecedor, na categoria, no nº do documento e no histórico", async () => {
     await montar();
 
-    buscar("Delta");
+    await buscar("Delta");
     expect(idsNaTela()).toEqual(["105"]);
 
     // "Frete" só existe na categoria — o fornecedor da 105 é "Delta
     // Transportes". Com "Energia" o teste ficaria cego: casaria pelo nome do
     // fornecedor mesmo se a busca deixasse de olhar a categoria.
-    buscar("Frete");
+    await buscar("Frete");
     expect(idsNaTela()).toEqual(["105"]);
 
-    buscar("NF-004");
+    await buscar("NF-004");
     expect(idsNaTela()).toEqual(["104"]);
 
-    buscar("toner");
+    await buscar("toner");
     expect(idsNaTela()).toEqual(["104"]);
   });
 
   it("não procura no valor, nas datas, no id nem na situação", async () => {
     await montar();
 
-    buscar("2000");
+    await buscar("2000");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
 
-    buscar("2026-01-10");
+    await buscar("2026-01-10");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
 
-    buscar("10/01/2026");
+    await buscar("10/01/2026");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
 
-    buscar("101");
+    await buscar("101");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
 
-    buscar("pendente");
+    await buscar("pendente");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
 
   it("não diferencia maiúscula de minúscula", async () => {
     await montar();
-    buscar("aLFa pAPELARIA");
+    await buscar("aLFa pAPELARIA");
 
     expect(idsNaTela()).toEqual(["101", "104"]);
   });
@@ -1347,14 +1411,14 @@ describe("Contas a Pagar — busca da tabela", () => {
     // categoria "Serviços" nem o fornecedor "Gama Serviços".
     await montar();
 
-    buscar("Serviços");
+    await buscar("Serviços");
     expect(idsNaTela()).toEqual(["103"]);
 
-    buscar("servicos");
+    await buscar("servicos");
     expect(idsNaTela()).toEqual(["103"]);
 
     // E quem não está lá continua não aparecendo.
-    buscar("servicais");
+    await buscar("servicais");
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
   });
 
@@ -1363,19 +1427,19 @@ describe("Contas a Pagar — busca da tabela", () => {
       conta({ id: 1, cliente_nome: "Solo Ltda", categoria: null, nro_documento: null, historico: null }),
     ]);
 
-    buscar("Solo");
+    await buscar("Solo");
     expect(idsNaTela()).toEqual(["101"]);
 
-    buscar("qualquer coisa");
+    await buscar("qualquer coisa");
     expect(linhasDaTabela()).toHaveLength(0);
   });
 
   it("busca em branco devolve a lista inteira", async () => {
     await montar();
-    buscar("Delta");
+    await buscar("Delta");
     expect(idsNaTela()).toHaveLength(1);
 
-    buscar("");
+    await buscar("");
     expect(idsNaTela()).toHaveLength(6);
   });
 });
@@ -1413,13 +1477,13 @@ describe("Contas a Pagar — ordenação", () => {
     async (coluna) => {
       await montar();
 
-      ordenarPor(coluna);
+      await ordenarPor(coluna);
       expect(idsNaTela()).toEqual(DECRESCENTE[coluna]);
 
-      ordenarPor(coluna);
+      await ordenarPor(coluna);
       expect(idsNaTela()).toEqual(CRESCENTE[coluna]);
 
-      ordenarPor(coluna);
+      await ordenarPor(coluna);
       expect(idsNaTela()).toEqual(DECRESCENTE[coluna]);
     },
   );
@@ -1427,11 +1491,11 @@ describe("Contas a Pagar — ordenação", () => {
   it("trocar de coluna sempre recomeça em decrescente", async () => {
     await montar();
 
-    ordenarPor("Valor");
-    ordenarPor("Valor"); // Valor está em crescente
+    await ordenarPor("Valor");
+    await ordenarPor("Valor"); // Valor está em crescente
     expect(idsNaTela()).toEqual(CRESCENTE.Valor);
 
-    ordenarPor("Fornecedor");
+    await ordenarPor("Fornecedor");
     expect(idsNaTela()).toEqual(DECRESCENTE.Fornecedor);
   });
 
@@ -1455,14 +1519,14 @@ describe("Contas a Pagar — ordenação", () => {
     );
     await montar(iguais);
 
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
 
-    ordenarPor("Fornecedor");
+    await ordenarPor("Fornecedor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
-    ordenarPor("Fornecedor");
+    await ordenarPor("Fornecedor");
     expect(idsNaTela()).toEqual(["1", "2", "3"]);
   });
 
@@ -1473,20 +1537,20 @@ describe("Contas a Pagar — ordenação", () => {
       conta({ id: 3, id_tiny: 3, categoria: "Alfa", vencimento: "2026-12-03" }),
     ]);
 
-    ordenarPor("Categoria"); // decrescente
+    await ordenarPor("Categoria"); // decrescente
     expect(idsNaTela()).toEqual(["1", "3", "2"]);
-    ordenarPor("Categoria"); // crescente
+    await ordenarPor("Categoria"); // crescente
     expect(idsNaTela()).toEqual(["2", "3", "1"]);
   });
 
   it("a ordenação vale sobre o que a busca e o filtro deixaram", async () => {
     await montar();
-    selecionar("Categoria", "Material", "Energia");
-    ordenarPor("Valor");
+    await selecionar("Categoria", "Material", "Energia");
+    await ordenarPor("Valor");
 
     expect(idsNaTela()).toEqual(["104", "101", "102", "106"]);
 
-    buscar("luz");
+    await buscar("luz");
     expect(idsNaTela()).toEqual(["102", "106"]);
   });
 
@@ -1500,7 +1564,7 @@ describe("Contas a Pagar — ordenação", () => {
         .map((c) => texto(c));
 
     expect(setas()).toEqual(["Vencimento"]);
-    ordenarPor("Valor");
+    await ordenarPor("Valor");
     expect(setas()).toEqual(["Valor"]);
   });
 });
@@ -1513,6 +1577,7 @@ describe("Contas a Pagar — paginação", () => {
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(linhasDaTabela()).toHaveLength(2);
     expect(screen.getByText("Mostrando 16 a 17 de 17 registros")).toBeInTheDocument();
   });
@@ -1535,6 +1600,7 @@ describe("Contas a Pagar — paginação", () => {
     expect(screen.getByRole("button", { name: "Próxima" })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
   });
@@ -1543,15 +1609,17 @@ describe("Contas a Pagar — paginação", () => {
     await montar(DEZESSETE);
 
     fireEvent.click(screen.getAllByRole("button", { name: "2" })[0]);
+    await assentar();
     expect(linhasDaTabela()).toHaveLength(2);
   });
 
   it("filtrar estando na página 2 volta para a página 1, sem deixar a tabela órfã", async () => {
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(linhasDaTabela()).toHaveLength(2);
 
-    selecionar("Situação", "pendente");
+    await selecionar("Situação", "pendente");
     expect(linhasDaTabela()).toHaveLength(15);
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
   });
@@ -1559,8 +1627,9 @@ describe("Contas a Pagar — paginação", () => {
   it("buscar estando na página 2 também volta para a página 1", async () => {
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
 
-    buscar("Fornecedor 1");
+    await buscar("Fornecedor 1");
     // "Fornecedor 10".."Fornecedor 17" = 8 linhas, cabem na página 1.
     expect(linhasDaTabela()).toHaveLength(8);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
@@ -1573,9 +1642,10 @@ describe("Contas a Pagar — paginação", () => {
     // estava na página 2 continuava na 2, agora de uma lista reordenada.
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
     expect(idsNaTela()[0]).toBe("916");
 
-    ordenarPor("ID Tiny");
+    await ordenarPor("ID Tiny");
     expect(idsNaTela()[0]).toBe("917");
     expect(linhasDaTabela()).toHaveLength(15);
   });
@@ -1583,14 +1653,15 @@ describe("Contas a Pagar — paginação", () => {
   it("mexer no período também volta para a página 1", async () => {
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
 
-    escolherPreset("anoAtual");
+    await escolherPreset("anoAtual");
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
   });
 
   it("a exportação leva a lista inteira, não só a página que está na tela", async () => {
     await montar(DEZESSETE);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas).toHaveLength(17);
   });
@@ -1657,7 +1728,7 @@ describe("Contas a Pagar — gráfico de evolução", () => {
 
   it("clicar numa barra do modo mensal filtra o mês inteiro daquele ano", async () => {
     await montar();
-    clicarNaBarra("Fev");
+    await clicarNaBarra("Fev");
 
     expect(campoData("Data Início")).toHaveValue("2026-02-01");
     expect(campoData("Data Fim")).toHaveValue("2026-02-28"); // 2026 não é bissexto
@@ -1668,16 +1739,16 @@ describe("Contas a Pagar — gráfico de evolução", () => {
   it("o último dia do mês é calculado, não chutado em 30", async () => {
     await montar();
 
-    clicarNaBarra("Jan");
+    await clicarNaBarra("Jan");
     expect(campoData("Data Fim")).toHaveValue("2026-01-31");
 
-    clicarNaBarra("Abr");
+    await clicarNaBarra("Abr");
     expect(campoData("Data Fim")).toHaveValue("2026-04-30");
   });
 
   it("clicar numa barra do modo anual filtra o ano inteiro — e o gráfico vira mensal", async () => {
     await montar(CONTAS_DOIS_ANOS);
-    clicarNaBarra("2025");
+    await clicarNaBarra("2025");
 
     expect(campoData("Data Início")).toHaveValue("2025-01-01");
     expect(campoData("Data Fim")).toHaveValue("2025-12-31");
@@ -1688,7 +1759,7 @@ describe("Contas a Pagar — gráfico de evolução", () => {
 
   it("clicar num mês sem nada esvazia a tabela em vez de não fazer nada", async () => {
     await montar();
-    clicarNaBarra("Set");
+    await clicarNaBarra("Set");
 
     expect(campoData("Data Início")).toHaveValue("2026-09-01");
     expect(campoData("Data Fim")).toHaveValue("2026-09-30");
@@ -1699,14 +1770,15 @@ describe("Contas a Pagar — gráfico de evolução", () => {
   it("clicar na barra estando na página 2 volta para a página 1", async () => {
     await montar(DEZESSETE);
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+    await assentar();
 
-    clicarNaBarra("Mar");
+    await clicarNaBarra("Mar");
     expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
   });
 
   it("o gráfico segue os filtros", async () => {
     await montar();
-    selecionar("Categoria", "Energia");
+    await selecionar("Categoria", "Energia");
 
     expect(mesesComValor()).toEqual([
       { label: "Jan", pago: 500, aberto: 0 },
@@ -1760,16 +1832,19 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
     expect(kpi("Média Mensal Faturada")).toBe("R$ 1.200,00");
   });
 
-  it("categoria nula vira 'Sem categoria'; a vazia continua vazia", async () => {
+  it("categoria nula e categoria vazia são a MESMA fatia: 'Sem categoria'", async () => {
+    // MUDOU em 2026-09-09, de propósito. Enquanto a pizza era montada no
+    // navegador, `null` virava "Sem categoria" e `""` virava uma fatia com
+    // rótulo vazio — duas fatias para a mesma ausência, e uma delas sem nome
+    // na legenda. O SQL apara e junta as duas (`NULLIF(trim(categoria), '')`),
+    // que é também o que faz a opção do filtro alcançar a linha gravada com
+    // espaço sobrando.
     await montar([
       conta({ id: 1, categoria: null, valor: "10.00" }),
       conta({ id: 2, categoria: "", valor: "20.00" }),
     ]);
 
-    expect(categorias()).toEqual([
-      { name: "", value: 20 },
-      { name: "Sem categoria", value: 10 },
-    ]);
+    expect(categorias()).toEqual([{ name: "Sem categoria", value: 30 }]);
   });
 
   it("a pizza mostra 8 fatias: as 7 maiores e uma de Outros com o resto", async () => {
@@ -1816,12 +1891,12 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
   it("os dois gráficos seguem os filtros, e ignoram a busca da tabela", async () => {
     await montar();
 
-    buscar("Alfa");
+    await buscar("Alfa");
     expect(categorias()).toHaveLength(4);
     expect(fornecedores()).toHaveLength(4);
 
-    buscar("");
-    selecionar("Fornecedor", "Alfa Papelaria");
+    await buscar("");
+    await selecionar("Fornecedor", "Alfa Papelaria");
     expect(categorias()).toEqual([{ name: "Material", value: 3000 }]);
     expect(fornecedores()).toEqual([{ nome: "Alfa Papelaria", valor: 3000 }]);
   });
@@ -1830,7 +1905,7 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
 describe("Contas a Pagar — exportação para Excel", () => {
   it("exporta dezesseis colunas, com estes rótulos e nesta ordem, na aba Contas a Pagar", async () => {
     await montar();
-    exportar();
+    await exportar();
 
     expect(Object.keys(planilha.linhas[0])).toEqual([
       "ID Tiny",
@@ -1855,7 +1930,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
 
   it("cada célula sai com o valor exato — número cru no dinheiro, dd/mm/aaaa nas datas", async () => {
     await montar([CONTAS[1]]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas).toEqual([
       {
@@ -1886,7 +1961,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
     await montar([
       conta({ id: 1, data_emissao: "2026-01-01", vencimento: "2026-12-31", liquidacao: "2026-07-10" }),
     ]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas[0]["Emissão"]).toBe("01/01/2026");
     expect(planilha.linhas[0]["Vencimento"]).toBe("31/12/2026");
@@ -1898,7 +1973,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
     // (`dataDeCalendario`) usa o travessão "—". Agora é o mesmo caractere
     // porque é a mesma função.
     await montar([conta({ id: 1, vencimento: "2026-12-01" })]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas[0]).toMatchObject({
       CPF_CNPJ: "",
@@ -1921,7 +1996,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
       conta({ id: 9, id_tiny: 109, vencimento: "2026-01-05", situacao: "aberto" }), // vencida
       CONTAS[2], // aberto, vence hoje -> não vencida
     ]);
-    exportar();
+    await exportar();
 
     expect(planilha.linhas.map((l) => l["Situação"])).toEqual([
       "aberto",
@@ -1933,16 +2008,16 @@ describe("Contas a Pagar — exportação para Excel", () => {
 
   it("exporta o que está filtrado, buscado e na ordem escolhida", async () => {
     await montar();
-    selecionar("Categoria", "Material");
-    ordenarPor("Valor"); // decrescente
+    await selecionar("Categoria", "Material");
+    await ordenarPor("Valor"); // decrescente
 
-    exportar();
+    await exportar();
     expect(planilha.linhas.map((l) => l["Nº Documento"])).toEqual(["NF-004", "NF-001"]);
 
     // "papel" sozinho casaria também com o fornecedor "Alfa Papelaria";
     // "papel a4" só existe no histórico da NF-001.
-    buscar("papel a4");
-    exportar();
+    await buscar("papel a4");
+    await exportar();
     expect(planilha.linhas.map((l) => l["Nº Documento"])).toEqual(["NF-001"]);
   });
 
@@ -1955,7 +2030,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
 
   it("o arquivo se chama contas_a_pagar_ mais a data LOCAL de hoje", async () => {
     await montar();
-    exportar();
+    await exportar();
 
     expect(planilha.arquivo).toBe("contas_a_pagar_2026-03-15.xlsx");
   });
@@ -1964,7 +2039,7 @@ describe("Contas a Pagar — exportação para Excel", () => {
     // 15/03 às 02h em Greenwich ainda é 14/03 às 23h em Brasília.
     vi.setSystemTime(new Date("2026-03-15T02:00:00Z"));
     await montar();
-    exportar();
+    await exportar();
 
     expect(planilha.arquivo).toBe(
       new Date().getTimezoneOffset() > 0

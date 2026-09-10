@@ -9,25 +9,21 @@ import { FiltrosDeContas } from "./FiltrosDeContas";
 import { GraficosDeContas } from "./GraficosDeContas";
 import { KpisDeContas } from "./KpisDeContas";
 import { TabelaDeContas } from "./TabelaDeContas";
+import type { TipoDeContas } from "../../services/notasapi";
 import {
   ORDENACAO_INICIAL,
-  buscarNasContas,
-  calcularKpis,
-  fatiaDaPagina,
-  filtrarContas,
   linhasDaPlanilha,
   montarCategorias,
   montarContrapartes,
   montarEvolucao,
   nomeDoArquivo,
-  opcoesDistintas,
-  ordenarContas,
   periodoDaBarra,
   proximaOrdenacao,
   type ContaBase,
   type DialetoDeContas,
   type FormatoDaPlanilha,
 } from "./contas";
+import { todasAsContas, usePaginaDeContas, useResumoDeContas } from "./useContas";
 
 /**
  * Tudo o que difere entre Contas a Receber e Contas a Pagar, num objeto só.
@@ -40,7 +36,7 @@ import {
  * na célula, além de cor de KPI, cor de barra, moldura de card e paginação —
  * não tem entrada nenhuma: virou código igual para as duas.
  */
-export interface ConfiguracaoDeContas<C extends ContaBase> {
+export interface ConfiguracaoDeContas {
   titulo: string;
   descricao: string;
   mensagemDeCarregamento: string;
@@ -53,16 +49,14 @@ export interface ConfiguracaoDeContas<C extends ContaBase> {
   legendaQuitado: string;
   legendaAberto: string;
   tomDoAberto: "acao" | "perigo";
-  dialeto: DialetoDeContas<C>;
-  planilha: FormatoDaPlanilha<C>;
+  dialeto: DialetoDeContas;
+  planilha: FormatoDaPlanilha<ContaBase>;
 }
 
-export interface TelaDeContasProps<C extends ContaBase> {
-  configuracao: ConfiguracaoDeContas<C>;
-  contas: C[];
-  carregando: boolean;
-  /** A mensagem de falha da busca, ou `null`/ausente quando deu certo. */
-  erro?: string | null;
+export interface TelaDeContasProps {
+  /** Qual das duas: decide o endpoint e o dialeto do banco. */
+  tipo: TipoDeContas;
+  configuracao: ConfiguracaoDeContas;
 }
 
 /**
@@ -81,12 +75,7 @@ export interface TelaDeContasProps<C extends ContaBase> {
  *
  * Por isso digitar na busca muda a tabela e não mexe nos números do topo.
  */
-export function TelaDeContas<C extends ContaBase>({
-  configuracao,
-  contas,
-  carregando,
-  erro = null,
-}: TelaDeContasProps<C>) {
+export function TelaDeContas({ tipo, configuracao }: TelaDeContasProps) {
   const { user } = useAuth();
   const { dialeto } = configuracao;
 
@@ -110,17 +99,6 @@ export function TelaDeContas<C extends ContaBase>({
     setDataFim(periodo.fim);
   }, [preset]);
 
-  // As opções saem da base INTEIRA, e não do que sobrou dos outros filtros:
-  // assim a lista não encolhe embaixo do dedo de quem está escolhendo.
-  const opcoes = useMemo(
-    () => ({
-      situacao: opcoesDistintas(contas.map((conta) => conta.situacao)),
-      categoria: opcoesDistintas(contas.map((conta) => conta.categoria)),
-      contraparte: opcoesDistintas(contas.map((conta) => conta.cliente_nome)),
-    }),
-    [contas],
-  );
-
   const filtros = useMemo(
     () => ({
       situacao: filtroSituacao,
@@ -132,30 +110,51 @@ export function TelaDeContas<C extends ContaBase>({
     [filtroSituacao, filtroCategoria, filtroContraparte, dataInicio, dataFim],
   );
 
-  const filtradas = useMemo(
-    () => filtrarContas(contas, filtros, dialeto),
-    [contas, filtros, dialeto],
+  // Os KPIs e os três gráficos, somados pelo banco sobre o recorte inteiro.
+  const { resumo, carregando, erro } = useResumoDeContas(tipo, filtros);
+
+  // A tabela é uma consulta à parte porque tem um filtro a mais — a busca — e
+  // porque muda de página sem que os números do topo mudem. É essa separação
+  // que faz digitar na busca não mexer nos KPIs, como sempre foi.
+  const { pagina: paginaDaTabela, erro: erroDaTabela } = usePaginaDeContas(
+    tipo,
+    filtros,
+    pesquisa,
+    ordenacao,
+    pagina,
   );
+
+  // As opções saem da base INTEIRA, e não do que sobrou dos outros filtros:
+  // assim a lista não encolhe embaixo do dedo de quem está escolhendo. Quem
+  // garante isso agora é o banco — as três consultas de opção ignoram o
+  // recorte de propósito.
+  const opcoes = resumo.opcoes;
 
   const kpis = useMemo(
-    () => calcularKpis(filtradas, dialeto, new Date()),
-    [filtradas, dialeto],
-  );
-  const evolucao = useMemo(
-    () => montarEvolucao(filtradas, dialeto, new Date()),
-    [filtradas, dialeto],
-  );
-  const categorias = useMemo(() => montarCategorias(filtradas, dialeto), [filtradas, dialeto]);
-  const contrapartes = useMemo(
-    () => montarContrapartes(filtradas, dialeto),
-    [filtradas, dialeto],
+    () => ({
+      totalAberto: resumo.kpis.total_aberto,
+      totalQuitado: resumo.kpis.total_quitado,
+      contasVencidas: resumo.kpis.contas_vencidas,
+      aVencer30: resumo.kpis.a_vencer_30,
+      mediaMensal: resumo.kpis.media_mensal,
+    }),
+    [resumo.kpis],
   );
 
-  const daTabela = useMemo(
-    () => ordenarContas(buscarNasContas(filtradas, pesquisa), ordenacao),
-    [filtradas, pesquisa, ordenacao],
+  const evolucao = useMemo(
+    () => montarEvolucao(resumo.por_ano, resumo.por_mes, dialeto, new Date()),
+    [resumo.por_ano, resumo.por_mes, dialeto],
   );
-  const daPagina = useMemo(() => fatiaDaPagina(daTabela, pagina), [daTabela, pagina]);
+  const categorias = useMemo(
+    () => montarCategorias(resumo.por_categoria),
+    [resumo.por_categoria],
+  );
+  const contrapartes = useMemo(
+    () => montarContrapartes(resumo.por_contraparte),
+    [resumo.por_contraparte],
+  );
+
+  const daPagina = paginaDaTabela.itens;
 
   const aoClicarNaEvolucao = useCallback(
     (estado: { activeLabel?: string }) => {
@@ -171,13 +170,23 @@ export function TelaDeContas<C extends ContaBase>({
     [evolucao.modo, evolucao.ano],
   );
 
-  const exportar = useCallback(() => {
-    const linhas = linhasDaPlanilha(daTabela, dialeto, configuracao.planilha);
-    baixarPlanilha(
-      [{ nome: configuracao.planilha.aba, linhas }],
-      nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()),
-    );
-  }, [daTabela, dialeto, configuracao.planilha]);
+  // A planilha leva o recorte INTEIRO, e não a página visível — exportar o que
+  // está na tela seria o mesmo erro de ler a primeira página como se fosse o
+  // total, num arquivo que alguém manda por e-mail.
+  const exportar = useCallback(async () => {
+    try {
+      const linhas = linhasDaPlanilha(
+        await todasAsContas(tipo, filtros, pesquisa, ordenacao),
+        configuracao.planilha,
+      );
+      baixarPlanilha(
+        [{ nome: configuracao.planilha.aba, linhas }],
+        nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()),
+      );
+    } catch (falha) {
+      console.error("Erro ao exportar as contas:", falha);
+    }
+  }, [tipo, filtros, pesquisa, ordenacao, configuracao.planilha]);
 
   if (carregando) {
     return (
@@ -207,7 +216,9 @@ export function TelaDeContas<C extends ContaBase>({
           si: "erro de carregamento (...) não empilhe com <Toast> para o mesmo
           evento". O `role="alert"` do primitivo anuncia sozinho.
         */}
-        {erro ? <Alert variant="danger">{erro}</Alert> : null}
+        {erro || erroDaTabela ? (
+          <Alert variant="danger">{erro ?? erroDaTabela}</Alert>
+        ) : null}
 
         <FiltrosDeContas
           rotuloDaContraparte={configuracao.rotuloDaContraparte}
@@ -265,7 +276,7 @@ export function TelaDeContas<C extends ContaBase>({
           rotuloDaContraparte={configuracao.rotuloDaContraparte}
           dialeto={dialeto}
           contas={daPagina}
-          total={daTabela.length}
+          total={paginaDaTabela.total}
           pagina={pagina}
           onPagina={setPagina}
           pesquisa={pesquisa}

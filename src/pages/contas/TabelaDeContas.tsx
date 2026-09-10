@@ -19,9 +19,7 @@ import {
 import { dataDeCalendario } from "../../lib/datas";
 import {
   ITENS_POR_PAGINA,
-  emissaoDe,
   estaEmAberto,
-  estaQuitada,
   formatarMoeda,
   type ContaBase,
   type DialetoDeContas,
@@ -83,7 +81,7 @@ export interface TabelaDeContasProps<C extends ContaBase> {
   titulo: string;
   /** "Cliente" ou "Fornecedor" — o rótulo da coluna da contraparte. */
   rotuloDaContraparte: string;
-  dialeto: DialetoDeContas<C>;
+  dialeto: DialetoDeContas;
   /** A página que está na tela. */
   contas: C[];
   /** Quantas contas o recorte inteiro tem — a paginação fala dele. */
@@ -110,9 +108,9 @@ function SeloDeSituacao<C extends ContaBase>({
   dialeto,
 }: {
   conta: C;
-  dialeto: DialetoDeContas<C>;
+  dialeto: DialetoDeContas;
 }) {
-  if (estaQuitada(conta.situacao, dialeto)) {
+  if (conta.quitada) {
     return <Badge variant="success">{conta.situacao}</Badge>;
   }
   // "Vencida" é estado CALCULADO, e não a situação que o Tiny mandou: entra
@@ -159,7 +157,7 @@ export function TabelaDeContas<C extends ContaBase>({
   onOrdenar,
   onExportar,
 }: TabelaDeContasProps<C>) {
-  const colunas = colunasDeContas(rotuloDaContraparte, dialeto.campoDaEmissao);
+  const colunas = colunasDeContas(rotuloDaContraparte, "emissao");
 
   const celula = (conta: C, chave: ChaveDeColuna): ReactNode => {
     switch (chave) {
@@ -178,7 +176,7 @@ export function TabelaDeContas<C extends ContaBase>({
       case "emissao":
         return (
           <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
-            {dataDeCalendario(emissaoDe(conta, dialeto))}
+            {dataDeCalendario(conta.emissao)}
           </TableCell>
         );
       case "contraparte":
@@ -202,13 +200,13 @@ export function TabelaDeContas<C extends ContaBase>({
       case "valor":
         return (
           <TableCell key={chave} className="whitespace-nowrap font-mono font-semibold text-action">
-            {formatarMoeda(conta.valor_numero)}
+            {formatarMoeda(conta.valor)}
           </TableCell>
         );
       case "saldo":
         return (
           <TableCell key={chave} className="whitespace-nowrap font-mono font-semibold">
-            {formatarMoeda(conta.saldo_numero)}
+            {formatarMoeda(conta.saldo)}
           </TableCell>
         );
       case "situacao":

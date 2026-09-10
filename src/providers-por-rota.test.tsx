@@ -54,9 +54,6 @@ vi.mock("./context/ServicosContext", () => ({
 vi.mock("./context/ContasPagarContext", () => ({
   ContasPagarProvider: espiao("ContasPagar"),
 }));
-vi.mock("./context/ContasReceberContext", () => ({
-  ContasReceberProvider: espiao("ContasReceber"),
-}));
 vi.mock("./context/ConfiguracoesContext", () => ({
   ConfiguracoesProvider: espiao("Configuracoes"),
 }));
@@ -134,18 +131,18 @@ const ESPERADO: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["/produtos", []],
   ["/vendedores", []],
   ["/servicos", ["Servicos"]],
-  ["/contas-pagar", ["ContasPagar"]],
-  ["/contas-receber", ["ContasReceber"]],
+  ["/contas-pagar", []],
+  ["/contas-receber", []],
   ["/configuracoes", ["Configuracoes"]],
   ["/dashboard", ["Configuracoes", "Dashboard"]],
   // Servicos e Vendas saíram daqui quando a tela passou a ler o faturamento
   // já somado de `GET /faturamento/mensal`: as duas séries por ano e mês vêm
   // da mesma requisição, e o `VendasContext` — que existia só para esta
   // tela — deixou de existir.
-  [
-    "/financeiro",
-    ["Configuracoes", "ContasPagar", "ContasReceber", "Dashboard"],
-  ],
+  // O `ContasReceber` saiu de `/financeiro` em 2026-09-09: a tela nunca leu os
+  // dados, e o provider existia para propagar a falha de uma busca de 11,2 MB.
+  // O `ContasPagar` fica enquanto o balancete somar os custos no navegador.
+  ["/financeiro", ["Configuracoes", "ContasPagar", "Dashboard"]],
 ];
 
 describe("providers montados por rota", () => {

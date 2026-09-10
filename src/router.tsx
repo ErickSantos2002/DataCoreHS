@@ -7,7 +7,6 @@ import { Spinner } from "./design-system/ui/core/Spinner";
 
 import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
-import { ContasReceberProvider } from "./context/ContasReceberContext";
 import { DashboardProvider } from "./context/DashboardContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { ServicosProvider } from "./context/ServicosContext";
@@ -190,17 +189,16 @@ const AppRoutes: React.FC = () => (
         />
       </Route>
 
-      {/* As duas telas de contas não se cruzam: `ContasPagar` só lê
-        `ContasPagarContext` e `ContasReceber` só lê `ContasReceberContext`.
-        Agrupá-las montaria em cada uma o provider da outra. */}
+      {/* As duas telas de contas não montam provider nenhum desde o item 9.4:
+        cada uma pede ao banco o recorte que desenha. O que havia aqui eram dois
+        contextos que baixavam a tabela inteira — 7,9 MB e 11,2 MB — para a tela
+        somar os KPIs e os três gráficos no navegador. */}
       <Route
         path="/contas-pagar"
         element={
           <ProtectedRoute>
             <RequirePermissao rota="/contas-pagar">
-              <ContasPagarProvider>
-                <ContasPagar />
-              </ContasPagarProvider>
+              <ContasPagar />
             </RequirePermissao>
           </ProtectedRoute>
         }
@@ -211,9 +209,7 @@ const AppRoutes: React.FC = () => (
         element={
           <ProtectedRoute>
             <RequirePermissao rota="/contas-receber">
-              <ContasReceberProvider>
-                <ContasReceber />
-              </ContasReceberProvider>
+              <ContasReceber />
             </RequirePermissao>
           </ProtectedRoute>
         }
@@ -255,10 +251,17 @@ const AppRoutes: React.FC = () => (
             path="/financeiro"
             element={
               <RequirePermissao rota="/financeiro">
+                {/* O `ContasReceberProvider` saiu daqui em 2026-09-09. Ele
+                    existia para propagar a falha de uma busca que esta tela
+                    NÃO lê — o comentário dizia que outras telas contavam com
+                    as contas em memória, e desde o item 9.4 nenhuma conta. Um
+                    provider que baixa 11,2 MB para talvez mostrar uma tarja
+                    não se paga.
+                    O de PAGAR fica: o balancete soma os custos por mês a
+                    partir da lista. É a última agregação de contas que ainda
+                    acontece no navegador. */}
                 <ContasPagarProvider>
-                  <ContasReceberProvider>
-                    <GerenciamentoFinanceiro />
-                  </ContasReceberProvider>
+                  <GerenciamentoFinanceiro />
                 </ContasPagarProvider>
               </RequirePermissao>
             }

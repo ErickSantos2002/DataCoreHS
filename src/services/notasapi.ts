@@ -561,3 +561,93 @@ export const salvarCentroCustoConfig = async (payload: {
   const response = await api.post("/centro_custo/config/", payload);
   return response.data;
 };
+
+// ── Contas: o que a tela desenha, somado pelo banco (item 9.4) ───────────────
+//
+// As duas telas de Contas baixavam a tabela inteira para calcular KPI,
+// evolucao, pizza de categorias e ranking de contraparte no navegador. Medido
+// em 2026-09-09: 7,9 MB em Contas a Pagar e 11,2 MB em Contas a Receber — as
+// duas respostas mais pesadas do sistema, maiores que a lista de notas de venda
+// que motivou a Fase 9 inteira.
+
+export type TipoDeContas = "contas_pagar" | "contas_receber";
+
+export interface FiltrosDeContasAPI extends Params {
+  situacao?: string[];
+  categoria?: string[];
+  contraparte?: string[];
+  data_inicio?: string;
+  data_fim?: string;
+}
+
+export interface ResumoDeContas {
+  kpis: {
+    total_aberto: number;
+    total_quitado: number;
+    contas_vencidas: number;
+    a_vencer_30: number;
+    media_mensal: number;
+    contas: number;
+  };
+  /** As duas series vem juntas; qual o grafico desenha e decisao da tela. */
+  por_ano: { ano: number; quitado: number; aberto: number }[];
+  por_mes: { ano: number; mes: number; quitado: number; aberto: number }[];
+  por_categoria: { nome: string; valor: number }[];
+  por_contraparte: { nome: string; valor: number }[];
+  opcoes: { situacao: string[]; categoria: string[]; contraparte: string[] };
+}
+
+export const fetchResumoDeContas = async (
+  tipo: TipoDeContas,
+  params: FiltrosDeContasAPI = {},
+): Promise<ResumoDeContas> => {
+  const response = await api.get<ResumoDeContas>(`/${tipo}/resumo`, { params });
+  return response.data;
+};
+
+/** Uma conta como a tabela a mostra — treze colunas, e nao as trinta da linha. */
+export interface ContaDaTela {
+  id: number;
+  id_tiny: number | null;
+  /** `contas_receber.data` e `contas_pagar.data_emissao` sob um nome so. */
+  emissao: string | null;
+  vencimento: string | null;
+  situacao: string | null;
+  categoria: string | null;
+  cliente_nome: string | null;
+  cliente_cpf_cnpj: string | null;
+  cliente_cidade: string | null;
+  cliente_uf: string | null;
+  nro_documento: string | null;
+  historico: string | null;
+  liquidacao: string | null;
+  /** Numero, e nao o texto que o navegador convertia: a coluna e `numeric`. */
+  valor: number;
+  saldo: number;
+  quitada: boolean;
+  /** Venceu e nao foi paga — a mesma regra que decide o KPI de vencidas. */
+  vencida: boolean;
+  // As tres colunas que existem em uma das tabelas e nao na outra, e que so a
+  // PLANILHA usa. Ausentes na tela que nao as tem.
+  forma_pagamento?: string | null;
+  portador?: string | null;
+  ocorrencia?: string | null;
+}
+
+export interface PaginaDeContas {
+  itens: ContaDaTela[];
+  /** Do FILTRO, nao da pagina. */
+  total: number;
+  total_aberto: number;
+  total_quitado: number;
+  limite: number;
+  offset: number;
+}
+
+export const fetchPaginaDeContas = async (
+  tipo: TipoDeContas,
+  params: Params = {},
+): Promise<PaginaDeContas> => {
+  const response = await api.get<PaginaDeContas>(`/${tipo}/pagina`, { params });
+  return response.data;
+};
