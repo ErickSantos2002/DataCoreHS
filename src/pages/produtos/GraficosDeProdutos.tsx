@@ -97,7 +97,12 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
             />
             <YAxis
               tick={({ x, y, payload }) => (
-                <text x={x} y={y} textAnchor="end" fontSize={11} fill={chartTheme.axis.stroke}>
+                // 12px, e não 11 — item 5 do checklist de tela migrada
+                // (tamanho mínimo de fonte). As outras três marcações de eixo
+                // desta tela e as de `GraficosDeContas.tsx` (a tela irmã) já
+                // usam 12; só esta destoava, e um rótulo de eixo é justamente
+                // o texto que a pessoa mais precisa ler de relance.
+                <text x={x} y={y} textAnchor="end" fontSize={12} fill={chartTheme.axis.stroke}>
                   {formatarValorAbreviado(payload.value)}
                 </text>
               )}
