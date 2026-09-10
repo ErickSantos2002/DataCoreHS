@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Icon } from "../core/Icon";
+import { useCliqueFora } from "../../../hooks/useCliqueFora";
 
 export interface SearchSelectOption {
   value: string;
@@ -72,16 +73,7 @@ export function SearchSelect({
 
   const selecionada = options.find((opcao) => opcao.value === value);
 
-  useEffect(() => {
-    if (!aberto) return;
-    function aoClicarFora(evento: MouseEvent) {
-      if (!containerRef.current?.contains(evento.target as Node)) {
-        fechar();
-      }
-    }
-    document.addEventListener("mousedown", aoClicarFora);
-    return () => document.removeEventListener("mousedown", aoClicarFora);
-  }, [aberto]);
+  useCliqueFora(containerRef, fechar, aberto);
 
   useEffect(() => {
     if (aberto && searchable) buscaRef.current?.focus();

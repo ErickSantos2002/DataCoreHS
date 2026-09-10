@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import type { EstrategiaDeBusca, OpcaoDeMultiSelect } from "./buscaDeMultiSelect";
 import { buscaPorTexto } from "./buscaDeMultiSelect";
+import { useCliqueFora } from "../../../hooks/useCliqueFora";
 
 export interface MultiSelectProps {
   /** Rótulo do campo — "Empresas", "Situação", "Cliente (Tomador)". */
@@ -88,15 +89,7 @@ export function MultiSelect({
     }
   }
 
-  useEffect(() => {
-    function aoClicarFora(evento: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(evento.target as Node)) {
-        setAberto(false);
-      }
-    }
-    document.addEventListener("mousedown", aoClicarFora);
-    return () => document.removeEventListener("mousedown", aoClicarFora);
-  }, []);
+  useCliqueFora(containerRef, () => setAberto(false), aberto);
 
   function alternar(valor: string) {
     if (selecionados.includes(valor)) {

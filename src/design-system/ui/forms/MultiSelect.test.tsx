@@ -224,4 +224,14 @@ describe("MultiSelect", () => {
     fireEvent.click(screen.getByRole("button", { name: "Produto Todos" }));
     expect(screen.getByLabelText("Pesquisar em Produto")).toBeInTheDocument();
   });
+
+  it("tocar fora fecha — no celular, mousedown nao vem", () => {
+    render(<MultiSelect rotulo="Produto" opcoes={OPCOES} selecionados={[]} onChange={vi.fn()} placeholder="Empresas" />);
+    fireEvent.click(screen.getByRole("button", { name: "Produto Empresas" }));
+    expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+
+    fireEvent.touchStart(document.body);
+
+    expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+  });
 });

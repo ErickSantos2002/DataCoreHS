@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SearchSelect } from "./SearchSelect";
@@ -45,6 +45,19 @@ describe("SearchSelect", () => {
     expect(screen.getByRole("listbox")).toBeInTheDocument();
     await userEvent.keyboard("{ArrowDown}{Enter}");
     expect(aoMudar).toHaveBeenCalledWith("2");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
+
+  it("clicar fora fecha a lista", async () => {
+    render(<SearchSelect label="Cliente" options={CLIENTES} searchable />);
+    await userEvent.click(screen.getByLabelText("Cliente"));
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+
+    // `mouseDown`, e não `click`: o componente fecha no `mousedown` do
+    // documento. `fireEvent.click` não dispara `mousedown`, entao o teste
+    // passaria mesmo com o listener removido.
+    fireEvent.mouseDown(document.body);
+
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 });

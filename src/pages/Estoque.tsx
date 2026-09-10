@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useEstoque } from "../context/EstoqueContext";
 import { usePaginacao } from "../hooks/usePaginacao";
@@ -27,6 +27,8 @@ import {
   Activity,
 } from "lucide-react";
 import { diaLocal } from "../lib/datas";
+import { useCliqueFora } from "../hooks/useCliqueFora";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -67,23 +69,6 @@ const CORES_GRAFICO = [
   CORES.cyan,
 ];
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640); // 🔹 abaixo de 640px = mobile
-    };
-
-    handleResize(); // roda uma vez ao carregar
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return isMobile;
-};
-
 const Estoque: React.FC = () => {
   const { user } = useAuth();
   const { produtos, carregando } = useEstoque();
@@ -105,30 +90,10 @@ const Estoque: React.FC = () => {
   const pizzaDistribRef = useRef<HTMLDivElement>(null);
   const pizzaSituacaoRef = useRef<HTMLDivElement>(null);
 
-  // fecha tooltip ao clicar fora
-  useEffect(() => {
-  // Aceita mouse OU touch
-  const onDocClick: EventListener = (ev: Event) => {
-    const target = ev.target as Node | null;
-    if (!target) return;
-
-    if (pizzaDistribRef.current && !pizzaDistribRef.current.contains(target)) {
-      setShowPizzaDistribuicao(false);
-    }
-    if (pizzaSituacaoRef.current && !pizzaSituacaoRef.current.contains(target)) {
-      setShowPizzaSituacao(false);
-    }
-  };
-
-  // Registra com a MESMA referência usada no cleanup
-  document.addEventListener("mousedown", onDocClick);
-  document.addEventListener("touchstart", onDocClick, { passive: true });
-
-  return () => {
-    document.removeEventListener("mousedown", onDocClick);
-    document.removeEventListener("touchstart", onDocClick);
-  };
-}, []);
+  // Uma chamada por popover: cada um é avaliado contra a própria ref, que é
+  // o que o `onDocClick` daqui já fazia com dois `if` dentro de um handler só.
+  useCliqueFora(pizzaDistribRef, () => setShowPizzaDistribuicao(false), showPizzaDistribuicao);
+  useCliqueFora(pizzaSituacaoRef, () => setShowPizzaSituacao(false), showPizzaSituacao);
 
   const atualizarQuantidade = (id: number, quantidade: number) => {
     setSolicitacao((prev) => {
@@ -710,6 +675,8 @@ const Estoque: React.FC = () => {
 
               <div
                 ref={pizzaDistribRef}
+                tabIndex={-1}
+                onKeyDown={(e) => e.key === "Escape" && setShowPizzaDistribuicao(false)}
                 onMouseLeave={() => setShowPizzaDistribuicao(false)}
                 className="relative"
               >
@@ -787,6 +754,8 @@ const Estoque: React.FC = () => {
 
               <div
                 ref={pizzaSituacaoRef}
+                tabIndex={-1}
+                onKeyDown={(e) => e.key === "Escape" && setShowPizzaSituacao(false)}
                 onMouseLeave={() => setShowPizzaSituacao(false)}
                 className="relative"
               >
