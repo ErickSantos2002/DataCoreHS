@@ -278,12 +278,27 @@ describe("linhasDaPlanilha", () => {
     ]);
   });
 
-  it("valor sai como número, e cliente/cidade saem formatados", () => {
-    const linha = linhasDaPlanilha([SERVICO_BASE])[0];
-
-    expect(linha.Valor).toBe(100);
-    expect(linha.Cliente).toBe("Cliente A");
-    expect(linha.Cidade).toBe("Recife/PE");
+  it("cada campo do servico vai para a coluna que leva o nome dele", () => {
+    // Uma asserção só, com os sete pares. Aqui havia três parciais — `Valor`,
+    // `Cliente` e `Cidade` —, e as outras quatro colunas ficavam sem valor
+    // afirmado: trocar `"Número NFS-e"` com `Descrição` em `linhasDaPlanilha`
+    // mandava "Calibração de bafômetro" na coluna do número e o 1001 na da
+    // descrição, e a suíte inteira ficava verde. Essa planilha sai por
+    // e-mail para o cliente.
+    //
+    // Os sete valores são distintos entre si de propósito: com valor
+    // repetido, uma troca simétrica entre duas colunas manteria o conjunto e
+    // escaparia. `toEqual` sobre o objeto inteiro fecha também o outro lado —
+    // uma coluna a mais ou a menos derruba.
+    expect(linhasDaPlanilha([SERVICO_BASE])[0]).toEqual({
+      "Número NFS-e": 1001,
+      Cliente: "Cliente A",
+      "CNPJ/CPF": "11.222.333/0001-44",
+      "Data Emissão": "10/01/2026",
+      Cidade: "Recife/PE",
+      Valor: 100,
+      Descrição: "Calibração de bafômetro",
+    });
   });
 
   it("a data de emissao e o dia que a string diz, em qualquer fuso", () => {
