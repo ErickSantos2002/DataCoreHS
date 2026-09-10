@@ -25,7 +25,10 @@ import { CabecalhoServicos } from "./servicos/CabecalhoServicos";
 import { FiltrosDeServicos } from "./servicos/FiltrosDeServicos";
 import { KpisDeServicos } from "./servicos/KpisDeServicos";
 import { GraficosDeServicos } from "./servicos/GraficosDeServicos";
-import { TabelaDeServicos } from "./servicos/TabelaDeServicos";
+import {
+  TabelaDeServicos,
+  type ExportacaoEmCurso,
+} from "./servicos/TabelaDeServicos";
 
 const Servicos: React.FC = () => {
   const { user } = useAuth();
@@ -128,12 +131,12 @@ const Servicos: React.FC = () => {
     }));
   };
 
-  // Achado ao mover (não corrigido): `exportando` é escrito nos quatro pontos
-  // abaixo e nunca lido. Quem clica em "Excel" num recorte grande não vê
-  // retorno nenhum enquanto as páginas todas são buscadas do servidor, e pode
-  // clicar de novo disparando a busca inteira outra vez. Dar vida a ele é
-  // conserto, e conserto não entra no commit que move.
-  const [exportando, setExportando] = useState(false);
+  // Qual exportação está em curso — vai para os dois botões, que desabilitam
+  // enquanto ela existe. Exportar busca o recorte INTEIRO do servidor, página
+  // a página (`todosOsServicos`): num recorte grande isso demora, e sem este
+  // estado a tela não dava retorno nenhum — a pessoa clicava de novo e
+  // disparava a busca inteira outra vez.
+  const [exportando, setExportando] = useState<ExportacaoEmCurso>(null);
 
   /** O recorte inteiro, e não a página visível — a planilha e o PDF sempre
    *  levaram a lista filtrada toda. */
@@ -149,7 +152,7 @@ const Servicos: React.FC = () => {
 
   // Exportação para Excel — a modelagem da linha mora em servicos.ts.
   const exportarExcel = useCallback(async () => {
-    setExportando(true);
+    setExportando("excel");
     try {
       baixarPlanilha(
         [{ nome: "Serviços", linhas: linhasDaPlanilha(await buscarTudo()) }],
@@ -158,7 +161,7 @@ const Servicos: React.FC = () => {
     } catch (falha) {
       console.error("Erro ao exportar os serviços:", falha);
     } finally {
-      setExportando(false);
+      setExportando(null);
     }
   }, [buscarTudo]);
 
@@ -166,7 +169,7 @@ const Servicos: React.FC = () => {
   // download) é apresentação e fica aqui; as linhas do corpo (`linhasDoPdf`)
   // são modelagem de dado e moram em servicos.ts, junto de `linhasDaPlanilha`.
   const exportarPDF = useCallback(async () => {
-    setExportando(true);
+    setExportando("pdf");
     try {
       const doc = new jsPDF();
 
@@ -187,7 +190,7 @@ const Servicos: React.FC = () => {
     } catch (falha) {
       console.error("Erro ao exportar o PDF dos serviços:", falha);
     } finally {
-      setExportando(false);
+      setExportando(null);
     }
   }, [buscarTudo, user]);
 
@@ -262,6 +265,7 @@ const Servicos: React.FC = () => {
             onOrdenar={alternarOrdenacao}
             onExportarExcel={exportarExcel}
             onExportarPDF={exportarPDF}
+            exportando={exportando}
           />
         </div>
       </div>

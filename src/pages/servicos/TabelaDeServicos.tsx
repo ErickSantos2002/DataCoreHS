@@ -31,6 +31,18 @@ import {
 import { converterParaNumero } from "../../lib/dinheiro";
 import type { OrdenacaoDeServicos, Servico } from "./servicos";
 
+/**
+ * Qual das duas exportações está em curso, ou `null` quando nenhuma está.
+ *
+ * É união, e não `boolean`, porque o rótulo tem de dizer a verdade: com um
+ * `boolean` os DOIS botões diriam "Exportando..." enquanto só um deles roda,
+ * e quem clicou em PDF veria o botão do Excel se anunciar. Os dois
+ * desabilitam de qualquer jeito — a busca do recorte inteiro é a mesma para
+ * as duas saídas, e disparar a segunda no meio da primeira busca tudo outra
+ * vez.
+ */
+export type ExportacaoEmCurso = "excel" | "pdf" | null;
+
 export interface TabelaDeServicosProps {
   /** A página já cortada — quem pagina é a tela, esta tabela só desenha. */
   servicos: Servico[];
@@ -44,6 +56,8 @@ export interface TabelaDeServicosProps {
   onOrdenar: (campo: OrdenacaoDeServicos["campo"]) => void;
   onExportarExcel: () => void;
   onExportarPDF: () => void;
+  /** Qual exportação está em curso — desabilita as duas e avisa na que roda. */
+  exportando: ExportacaoEmCurso;
 }
 
 /** As seis colunas, na ordem em que aparecem. `campo` fica de fora só na
@@ -94,6 +108,7 @@ export function TabelaDeServicos({
   onOrdenar,
   onExportarExcel,
   onExportarPDF,
+  exportando,
 }: TabelaDeServicosProps) {
   const [observacoesSelecionadas, setObservacoesSelecionadas] = useState<string | null>(null);
 
@@ -185,18 +200,26 @@ export function TabelaDeServicos({
               // desabilitam do mesmo jeito. `total` é o recorte inteiro
               // (filtro + busca), não a página: uma busca que não casa com
               // nada também desabilita.
-              disabled={total === 0}
+              //
+              // E desabilita também enquanto QUALQUER das duas exportações
+              // roda: exportar busca o recorte inteiro do servidor, página a
+              // página, e num recorte grande isso demora sem nada na tela
+              // dizendo que está acontecendo — a pessoa clicava de novo e
+              // disparava a busca inteira outra vez.
+              disabled={total === 0 || exportando !== null}
+              loading={exportando === "excel"}
               icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
             >
-              Excel
+              {exportando === "excel" ? "Exportando..." : "Excel"}
             </Button>
             <Button
               variant="primary"
               onClick={onExportarPDF}
-              disabled={total === 0}
+              disabled={total === 0 || exportando !== null}
+              loading={exportando === "pdf"}
               icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
             >
-              PDF
+              {exportando === "pdf" ? "Exportando..." : "PDF"}
             </Button>
           </div>
         </div>
