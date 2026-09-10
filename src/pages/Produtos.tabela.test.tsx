@@ -15,8 +15,10 @@ import Produtos from "./Produtos";
  * `pages/produtos/`. Ver o relatório da task para as duas divergências.
  *
  * A paginação já tem cobertura própria em `Produtos.paginacao.test.tsx` — este
- * arquivo cobre o que falta: as seis colunas, a pesquisa, a ordenação, o
- * estado vazio e o recorte que a tela manda para o servidor.
+ * arquivo cobre o que falta: as seis colunas, a pesquisa, o estado vazio, o
+ * recorte que a tela manda para o servidor e os dois cabeçalhos ordenáveis
+ * que este fixture consegue discriminar — "Quantidade" e "Código". Os outros
+ * três moram em `Produtos.ordenacao.test.tsx`, pelo motivo explicado abaixo.
  *
  * Os mocks de `useAuth` e `recharts` vêm do mesmo molde da Task 1
  * (`Produtos.kpis.test.tsx` / `Produtos.multiselect.test.tsx`).

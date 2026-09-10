@@ -8,13 +8,14 @@ export interface KpisDeProdutosProps {
 /**
  * A faixa de quatro indicadores do topo da tela de Produtos.
  *
- * Nasceu suja na Task 6 (extração inerte) e foi limpa na mesma task — por
- * isso nunca entrou no `PENDENTES_FASE_3`.
+ * Nunca entrou em `PENDENTES_FASE_3`: nasceu já sobre o `KpiCard` do design
+ * system, sem `dark:` nem paleta crua. (O texto anterior falava de uma
+ * "Task 6" que não existe no plano desta branch — veio colado junto do
+ * arquivo, copiado verbatim de `79954c07`.)
  *
- * "Produto Mais Vendido" usa `valorEhTexto`: o `KpiCard` então trunca com
- * reticências e, sozinho, coloca `title={String(value)}` no valor — é esse
- * atributo que `Produtos.kpis.test.tsx` usa (`getByTitle`) para distinguir
- * o card da mesma descrição que também aparece na tabela.
+ * "Produto Mais Vendido" usa `valorEhTexto`: descrição de produto é nome, não
+ * número, e sem isso o `KpiCard` tenta caber o texto inteiro na altura fixa
+ * de 116px em vez de truncar com reticências.
  */
 export function KpisDeProdutos({ kpis }: KpisDeProdutosProps) {
   return (

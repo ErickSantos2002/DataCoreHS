@@ -4,7 +4,11 @@ import type { FiltrosComerciais, ResumoComercial } from "../../services/notasapi
 /**
  * A conta pura da tela de Produtos, separada de `Produtos.tsx`.
  *
- * Extração inerte da Task 3 do plano de 08/09/2026: cada função aqui é um
+ * Extração inerte da Task 2 do plano
+ * `docs/superpowers/plans/2026-09-10-fase-3-produtos-sobre-origin.md` (o texto
+ * anterior citava uma "Task 3 do plano de 08/09/2026", que não existe neste
+ * repositório — veio colado junto do arquivo, copiado verbatim de
+ * `79954c07`): cada função aqui é um
  * `useMemo` que saiu do componente sem mudar de comportamento — perdeu o
  * `useMemo` em volta e ganhou como parâmetro o que antes vinha do escopo. Os
  * `useMemo` continuam na tela, chamando estas funções; o motivo está no

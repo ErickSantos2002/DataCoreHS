@@ -8,10 +8,16 @@ export interface CabecalhoProdutosProps {
  * Cabeçalho da tela de Produtos: título, quem está logado e uma frase sobre
  * o que a tela mostra.
  *
- * Limpeza retroativa decidida em 09/09/2026 (ver plano, "Mudança de rumo"):
- * o bloco tinha saído da Task 4 com `dark:` e paleta crua, forçando este
- * arquivo a entrar no `PENDENTES_FASE_3`. Aqui ele adota os tokens do design
- * system, como `CabecalhoContas.tsx` já faz para a tela irmã.
+ * Adota os tokens do design system no lugar de `dark:` e paleta crua, como
+ * `CabecalhoContas.tsx` já faz para a tela irmã — é o que deixa
+ * `src/pages/Produtos.tsx` sair de `PENDENTES_FASE_3` sem acordar o guarda de
+ * cores (`src/test/guarda-cores.test.ts`).
+ *
+ * O texto anterior mandava ver "o plano de 09/09/2026, «Mudança de rumo»" e a
+ * "Task 4": nenhum dos dois existe neste repositório. Vieram colados junto do
+ * arquivo, copiado verbatim de `79954c07` — uma tentativa anterior de migrar
+ * esta tela, com outra numeração de tasks. Quem seguisse o ponteiro pararia na
+ * task errada, então a citação saiu em vez de ser remendada.
  */
 export function CabecalhoProdutos({ usuario }: CabecalhoProdutosProps) {
   return (

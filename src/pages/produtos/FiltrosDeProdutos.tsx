@@ -29,11 +29,13 @@ export interface FiltrosDeProdutosProps {
  * A barra de filtros da tela de Produtos: três multi-seleções (empresas,
  * vendedores, produtos), o preset de período e as duas datas.
  *
- * Limpeza retroativa decidida em 09/09/2026 (ver plano, "Mudança de rumo"):
- * o bloco tinha saído da Task 5 com `dark:` e paleta crua, forçando este
- * arquivo a entrar no `PENDENTES_FASE_3`. Aqui ele adota `FilterBar`,
- * `Select` e `Input` do design system, como `FiltrosDeContas.tsx` já faz
- * para as telas de Contas.
+ * Adota `FilterBar`, `Select` e `Input` do design system no lugar de `dark:` e
+ * paleta crua, como `FiltrosDeContas.tsx` já faz para as telas de Contas — é o
+ * que deixa `src/pages/Produtos.tsx` sair de `PENDENTES_FASE_3`.
+ *
+ * O texto anterior mandava ver "o plano de 09/09/2026, «Mudança de rumo»" e a
+ * "Task 5", que não existem aqui: vieram colados junto do arquivo, copiado
+ * verbatim de `79954c07`. Ver o docblock de `CabecalhoProdutos.tsx`.
  *
  * `onDataInicio`/`onDataFim` continuam responsáveis por também levar o
  * preset para "custom" — esse acoplamento já existia em `Produtos.tsx` e o
