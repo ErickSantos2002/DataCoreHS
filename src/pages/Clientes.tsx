@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useIsMobile } from "../hooks/useIsMobile";
 import {
   useFiltrosComerciais,
   useResumoComercial,
@@ -72,18 +73,6 @@ const CORES_GRAFICO = [
   CORES.rosa,
   CORES.cyan,
 ];
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
-  React.useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 640);
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-  return isMobile;
-};
-
 
 const Clientes: React.FC = () => {
   const { user } = useAuth();
@@ -747,7 +736,6 @@ const Clientes: React.FC = () => {
 
                         const { nomeCompleto, valor } = payload[0].payload;
                         const isDark = document.documentElement.classList.contains("dark");
-                        const isMobileW = window.innerWidth < 640;
 
                         return (
                           <div
@@ -756,12 +744,12 @@ const Clientes: React.FC = () => {
                               border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
                               borderRadius: 8,
                               padding: "8px 12px",
-                              maxWidth: isMobileW ? 220 : 280,
+                              maxWidth: isMobile ? 220 : 280,
                               whiteSpace: "normal",
                               wordBreak: "break-word",
                               hyphens: "auto",
                               color: isDark ? "#f9fafb" : "#111827",
-                              fontSize: isMobileW ? "12px" : "13px",
+                              fontSize: isMobile ? "12px" : "13px",
                               lineHeight: 1.35,
                               boxShadow: "0 10px 20px rgba(0,0,0,.15)",
                             }}
