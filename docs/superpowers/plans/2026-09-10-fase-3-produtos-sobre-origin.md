@@ -267,7 +267,89 @@ git commit -m "refactor(produtos): a tela vira casca sobre pages/produtos, lendo
 
 ---
 
-### Task 3: Os quatro consertos, um commit cada
+### Task 3: Tapar os cinco buracos que a revisão achou na rede
+
+**Arquivos:**
+- Modificar: `src/pages/Produtos.tabela.test.tsx`, `src/pages/Produtos.kpis.test.tsx`
+- Criar ou modificar: `src/pages/produtos/produtos.test.ts`
+
+A revisão da Task 2 plantou 21 quebras. Reproduziu as dez que o implementador
+declarou — todas falham como ele disse — e achou **cinco que passam verdes com o
+código quebrado**. Esta task fecha esses cinco, e ela vem **antes** dos
+consertos de propósito: a Task 4 mexe em `ordenarEBuscar` e na tabela, e mudar
+comportamento com a rede furada nesses pontos é trabalhar às cegas.
+
+Nenhum passo aqui muda código de produção. Se algum teste novo ficar vermelho,
+você achou um defeito — **registre e pare**, não conserte.
+
+- [ ] **Passo 1: Ninguém observa o recorte que sai para o servidor**
+
+O buraco mais grave. `recorteDeProdutos` monta o que vira query no Postgres, e
+plantar `vendedor: []`, `produto: []` ou `dataFim: ""` deixa os 45 testes verdes.
+`Produtos.periodo.test.tsx` só afirma sobre o valor dentro do `<input>`, nunca
+sobre o recorte que sai.
+
+Cenário concreto que hoje passa despercebido: a pessoa escolhe "Ano atual", o
+campo mostra 31/12/2026, mas a query sai sem `data_fim` — o Postgres devolve
+tudo até o fim do histórico e os KPIs vêm inflados, com a suíte verde.
+
+Cobrir em `produtos.test.ts`, com plantação para cada um dos cinco campos
+(`clientes`, `vendedores`, `produtos`, `dataInicio`, `dataFim`).
+
+- [ ] **Passo 2: `rankingPorValor` não tem teste nenhum**
+
+Inverter o `sort` para ascendente deixa 45 verdes. Cenário: o gráfico rotulado
+"Top 10 Produtos (Valor)" passa a desenhar os dez produtos **mais baratos**, com
+o título intacto — a primeira barra vira o item de R$ 12,00 no lugar do de
+R$ 480.000,00. Trocar `.slice(0, limite)` por `.slice(0, 1)` também passa verde.
+
+Cobrir a ordem **e** o limite, cada um com plantação.
+
+- [ ] **Passo 3: `ordenarEBuscar` só tem o ramo `quantidadeVendida` coberto**
+
+Trocar o `case "valorTotal"` para ler `valorMedio` deixa 45 verdes. Cenário:
+clicar em "Valor Total" ordena pelo preço unitário médio e sobe ao topo um item
+de baixo giro.
+
+Cobrir **cada `case` do `switch`**, um teste por campo, cada um com plantação.
+Isto é pré-requisito da Task 4, que acrescenta o `case "codigo"`.
+
+- [ ] **Passo 4: Os dois gráficos não são observados**
+
+Plantar `dadosEvolucao → []` deixa 45 verdes. Cobrir que a evolução e o ranking
+chegam ao componente de gráfico com o que se espera.
+
+- [ ] **Passo 5: Seis comentários de teste apontam para código que não existe mais**
+
+`Produtos.tabela.test.tsx` linhas 202, 278, 291, 310, 330 e
+`Produtos.kpis.test.tsx` linha 7 citam `Produtos.tsx:551-625`, `740-833`,
+`288-307`, `721-730`, `60-70` — o arquivo tem 247 linhas. O de `:310` cita
+`filtrarNotas`, que foi apagada.
+
+Cenário: quem for acrescentar o `case "codigo"` na Task 4 segue a citação de
+`:291` até `Produtos.tsx:288` e cai fora do arquivo — o `switch` mora agora em
+`produtos.ts`. Corrigir as seis citações para onde o código realmente está.
+
+- [ ] **Passo 6: Provar que a rede fechou**
+
+Replantar as **cinco** quebras que passavam verdes e ver cada uma falhar agora:
+`vendedor: []` · `dataFim: ""` · `sort` invertido em `rankingPorValor` ·
+`case "valorTotal"` lendo `valorMedio` · `dadosEvolucao → []`.
+
+Se alguma ainda passar, o teste que você escreveu não enxerga o que diz.
+
+- [ ] **Passo 7: Suíte e commit**
+
+```bash
+npx tsc --noEmit
+TZ=UTC npm test 2>&1 | tail -4
+TZ=America/Sao_Paulo npm test 2>&1 | tail -4
+git add -A && git commit -m "test(produtos): a rede passa a ver o recorte, o ranking e a ordenacao"
+```
+
+---
+
+### Task 4: Os cinco consertos, um commit cada
 
 **Arquivos:**
 - Modificar: `src/pages/produtos/TabelaDeProdutos.tsx`,
@@ -349,7 +431,7 @@ npm run lint 2>&1 | grep problems
 
 ---
 
-### Task 4: A planilha vira conta pura, e a tela sai de `PENDENTES_FASE_3`
+### Task 5: A planilha vira conta pura, e a tela sai de `PENDENTES_FASE_3`
 
 **Arquivos:**
 - Modificar: `src/pages/produtos/produtos.ts`, `src/pages/Produtos.tsx`
@@ -395,7 +477,7 @@ git add -A && git commit -m "refactor(produtos): a tela sai de PENDENTES_FASE_3"
 
 ---
 
-### Task 5: O prettier, em commit próprio
+### Task 6: O prettier, em commit próprio
 
 Misturado com mudança de conteúdo, o diff fica ilegível — por isso é commit só
 dele.
