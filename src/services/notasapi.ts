@@ -245,12 +245,141 @@ export interface CentroCustoConfig {
  * enderecos de entrega e formas de envio aninhados: ~9,7 MB. O novo le a
  * camada `gold` e manda ~1,8 MB.
  */
+export interface PaginaDeVendas {
+  itens: NotaVenda[];
+  /** Quantas notas o FILTRO encontrou — nao quantas vieram nesta pagina. */
+  total: number;
+  /** O faturamento do filtro inteiro, somado pelo banco. */
+  valor_total: number;
+  limite: number;
+  offset: number;
+}
+
 export const fetchVendas = async (
   params: Params = {},
-): Promise<NotaVenda[]> => {
-  const response = await api.get<NotaVenda[]>("/faturamento/vendas", {
+): Promise<PaginaDeVendas> => {
+  const response = await api.get<PaginaDeVendas>("/faturamento/vendas", {
     params,
   });
+  return response.data;
+};
+
+/**
+ * Os cinco recortes que as telas do Comercial desenham, somados pelo banco.
+ *
+ * Antes cada tela baixava as 4.330 notas com os itens dentro e calculava KPI,
+ * evolucao mensal e tres rankings percorrendo array no navegador. As quatro
+ * faziam a mesma coisa sobre o mesmo conjunto, cruzando os mesmos quatro
+ * filtros — e cada uma com a sua copia da conta.
+ *
+ * A resposta deixa de crescer com o numero de notas: e do tamanho do que a
+ * tela desenha.
+ */
+export interface ResumoComercial {
+  kpis: {
+    /** Soma de `valor_nota` — o que Vendas e Clientes mostram. */
+    faturamento: number;
+    /** Soma de `valor_produtos` — o que Vendedores mostra. */
+    faturamento_produtos: number;
+    notas: number;
+    ticket_medio: number;
+    maior_venda: number;
+    menor_venda: number;
+    /** Desvio padrao POPULACIONAL — a mesma conta que a tela fazia. */
+    desvio_padrao_venda: number;
+    /** Linhas de item somadas; a tela divide por `notas` para "itens por venda". */
+    itens: number;
+  };
+  evolucao_mensal: {
+    ano: number;
+    mes: number;
+    /** Soma de `valor_nota` — Vendas e Clientes desenham este. */
+    total: number;
+    /** Soma de `valor_produtos` — Vendedores desenha este. */
+    total_produtos: number;
+    notas: number;
+    /**
+     * Itens vendidos no mes — Produtos desenha este.
+     *
+     * Respeita o filtro de produto no nivel do ITEM, e nao da nota: em Vendas o
+     * filtro escolhe as notas em que o produto aparece (e soma a nota inteira);
+     * aqui ele escolhe os itens.
+     */
+    quantidade: number;
+  }[];
+  por_produto: {
+    /** O codigo, ou '#' + descricao quando o item nao tem codigo. */
+    chave: string;
+    codigo: string | null;
+    descricao: string | null;
+    quantidade: number;
+    valor: number;
+    notas: number;
+  }[];
+  por_vendedor: {
+    nome: string;
+    valor: number;
+    valor_produtos: number;
+    notas: number;
+  }[];
+  por_cliente: {
+    /** CPF/CNPJ so com digitos — a chave que junta cadastro duplicado. */
+    documento: string;
+    nome: string | null;
+    /** Como esta no cadastro, com mascara. */
+    cpf_cnpj: string | null;
+    email: string | null;
+    fone: string | null;
+    valor: number;
+    valor_produtos: number;
+    notas: number;
+    ultima_compra: string | null;
+  }[];
+  /**
+   * A evolucao mensal dos CINCO maiores clientes do recorte, uma serie por
+   * cliente. Nao se remonta a partir de `por_cliente` nem de
+   * `evolucao_mensal`: um soma o periodo todo, o outro soma todos os clientes.
+   */
+  evolucao_por_cliente: {
+    documento: string;
+    ano: number;
+    mes: number;
+    total: number;
+  }[];
+}
+
+export const fetchResumoComercial = async (
+  params: Params = {},
+): Promise<ResumoComercial> => {
+  const response = await api.get<ResumoComercial>("/faturamento/resumo", {
+    params,
+  });
+  return response.data;
+};
+
+/**
+ * As opcoes dos multiselects, montadas pelo banco.
+ *
+ * ⚠️ A lista de produtos tem uma linha por CODIGO, e nao por grafia. A tela
+ * montava a dela com um `Map` chaveado pelo codigo — so a ultima grafia de
+ * cada codigo sobrevivia — mas filtrava comparando `descricao (codigo)`.
+ * Medido em 2026-09-09: eram 184 grafias para 127 produtos, o multiselect
+ * oferecia 97 opcoes, e 35,5% do valor dos itens estava fora do alcance de
+ * quem filtrava por produto — sem erro e sem aviso.
+ */
+export interface FiltrosComerciais {
+  clientes: { id: number; nome: string | null; cpf_cnpj: string | null }[];
+  vendedores: string[];
+  produtos: {
+    chave: string;
+    codigo: string | null;
+    descricao: string | null;
+    valor: number;
+  }[];
+}
+
+export const fetchFiltrosComerciais = async (): Promise<FiltrosComerciais> => {
+  const response = await api.get<FiltrosComerciais>("/faturamento/filtros");
   return response.data;
 };
 
@@ -315,13 +444,13 @@ export const fetchLocacao = async (
   return response.data;
 };
 
-// Clientes
-export const fetchClientes = async (
-  params: Params = {},
-): Promise<Cliente[]> => {
-  const response = await api.get<Cliente[]>("/clientes/", { params });
-  return response.data;
-};
+// `fetchClientes` (/clientes/) foi apagada em 2026-09-09, junto com o
+// `DataContext` que era seu unico chamador. As quatro telas do Comercial pediam
+// os 2.084 cadastros para cruzar com as notas no navegador; hoje o cliente vem
+// dentro de `/faturamento/resumo`, agregado pelo banco e so quem comprou no
+// recorte. `/clientes/` passou a devolver uma PAGINA, e uma funcao morta que
+// promete a lista completa e pior que nenhuma: quem a encontrasse pronta
+// escreveria uma tela em cima de um contrato que nao existe mais.
 
 // Notas Fiscais de Serviço
 export const fetchNotasServico = async (

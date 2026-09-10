@@ -21,7 +21,10 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const CLIENTES_ENRIQUECIDOS = Array.from({ length: 17 }, (_, i) => ({
+
+
+const { CLIENTES_ENRIQUECIDOS, NOTAS } = vi.hoisted(() => {
+  const CLIENTES_ENRIQUECIDOS = Array.from({ length: 17 }, (_, i) => ({
   id: i + 1,
   nome: `Cliente ${String(i + 1).padStart(2, "0")}`,
   cpf_cnpj: `11.111.111/0001-${String(i + 1).padStart(2, "0")}`,
@@ -33,8 +36,7 @@ const CLIENTES_ENRIQUECIDOS = Array.from({ length: 17 }, (_, i) => ({
   status: "ativo" as const,
   ticketMedio: 100 + i,
 }));
-
-const NOTAS = Array.from({ length: 17 }, (_, i) => ({
+  const NOTAS = Array.from({ length: 17 }, (_, i) => ({
   id: i + 1,
   numero: 1000 + i + 1,
   data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
@@ -52,21 +54,19 @@ const NOTAS = Array.from({ length: 17 }, (_, i) => ({
   ],
   tem_observacoes: false,
 }));
+  return { CLIENTES_ENRIQUECIDOS, NOTAS };
+});
 
-vi.mock("../context/DataContext", () => ({
-  useData: () => ({
-    clientes: CLIENTES_ENRIQUECIDOS.map(({ id, nome, cpf_cnpj, email, fone }) => ({
-      id,
-      nome,
-      cpf_cnpj,
-      email,
-      fone,
-    })),
-    clientesEnriquecidos: CLIENTES_ENRIQUECIDOS,
-    notas: NOTAS,
-    carregando: false,
-  }),
-}));
+// A tela deixou de ler o `DataContext` (item 9.4): a agregação por cliente vem
+// somada do banco. O falso mora em `comercial/hooksFalsos`.
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { criarHooksFalsos, resumoDeClientes } = await import("./comercial/hooksFalsos");
+  return {
+    ...real,
+    ...criarHooksFalsos(NOTAS, (ns) => resumoDeClientes(ns, CLIENTES_ENRIQUECIDOS)),
+  };
+});
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;

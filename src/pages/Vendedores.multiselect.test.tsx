@@ -27,7 +27,8 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const NOTAS_VENDEDOR = [
+const { NOTAS_VENDEDOR } = vi.hoisted(() => ({
+  NOTAS_VENDEDOR: [
   {
     id: 1,
     numero: 1001,
@@ -56,17 +57,16 @@ const NOTAS_VENDEDOR = [
     ],
     tem_observacoes: false,
   },
-];
-
-vi.mock("../context/DataContext", () => ({
-  useData: () => ({
-    notas: NOTAS_VENDEDOR,
-    notasVendedor: NOTAS_VENDEDOR,
-    carregando: false,
-    atualizarTipoNota: vi.fn(),
-    vendedorLogado: "Vendedor A",
-  }),
+],
 }));
+
+// A tela deixou de ler o `DataContext` (item 9.4): os agregados vêm somados do
+// banco e a tabela vem paginada. O falso mora em `comercial/hooksFalsos`.
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { criarHooksFalsos } = await import("./comercial/hooksFalsos");
+  return { ...real, ...criarHooksFalsos(NOTAS_VENDEDOR) };
+});
 
 /** Dublê do toast — a tela usa `erro` do ToastProvider fora do fluxo do MultiSelect. */
 vi.mock("../components/ToastProvider", () => ({

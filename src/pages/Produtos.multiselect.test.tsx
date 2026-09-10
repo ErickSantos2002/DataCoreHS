@@ -17,7 +17,8 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const NOTAS = [
+const { NOTAS } = vi.hoisted(() => ({
+  NOTAS: [
   {
     id: 1,
     data_emissao: "2026-01-10",
@@ -38,11 +39,17 @@ const NOTAS = [
       { codigo: "P2", descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
     ],
   },
-];
-
-vi.mock("../context/DataContext", () => ({
-  useData: () => ({ notas: NOTAS, carregando: false }),
+],
 }));
+
+// A tela deixou de ler o `DataContext` (item 9.4): a agregação vem somada do
+// banco. O falso mora em `comercial/hooksFalsos`, e para esta tela o que importa
+// é o `por_produto` — é ele que virou a tabela.
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
+});
 
 /**
  * Dublê do recharts.

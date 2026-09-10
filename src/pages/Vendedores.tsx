@@ -1,7 +1,14 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useData } from "../context/DataContext";
-import { usePaginacao } from "../hooks/usePaginacao";
+import {
+  paramsDoRecorte,
+  useFiltrosComerciais,
+  useResumoComercial,
+  useVendasPaginadas,
+  type CampoDeOrdenacao,
+  type RecorteComercial,
+} from "./comercial/useComercial";
+import { fetchVendas, updateNotaTipo, type NotaVenda } from "../services/notasapi";
 import { Phone, Mail } from "lucide-react";
 import {
   BarChart,
@@ -71,8 +78,8 @@ const CORES_GRAFICO = [
 
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
-  const { notas, notasVendedor, carregando, atualizarTipoNota, vendedorLogado } = useData();
   const { erro } = useToast();
+  const vendedorLogado = user?.username || "";
 
   // Estados dos filtros
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
@@ -80,16 +87,14 @@ const Vendedores: React.FC = () => {
   const [dataFim, setDataFim] = useState("");
   const [presetPeriodo, setPresetPeriodo] = useState("todos");
   const [filtroCliente, setFiltroCliente] = useState<string[]>([]);
-  
-  // Função para normalizar CNPJ (remove pontuação)
-  const normalizarCNPJ = (valor: string) => valor.replace(/\D/g, "");
 
   // Estados da tabela
-  const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
-    campo: 'data_emissao',
-    direcao: 'desc'
-  });
+  const [ordenacao, setOrdenacao] = useState<{
+    campo: CampoDeOrdenacao;
+    direcao: "asc" | "desc";
+  }>({ campo: "data_emissao", direcao: "desc" });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
+  const [paginaAtual, setPaginaAtual] = useState(1);
   const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
   const [tipoTemp, setTipoTemp] = useState<string>("");
   const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
@@ -109,116 +114,114 @@ const Vendedores: React.FC = () => {
     setDataFim(periodo.fim);
   }, [presetPeriodo]);
 
-  // Lista única de clientes (com nome e CNPJ juntos)
-  const clientesUnicos = useMemo(() =>
-    Array.from(
-      new Set(
-        notasVendedor.map(
-          (n) => `${n.cliente?.nome || "Não informado"} (${n.cliente?.cpf_cnpj || ""})`
-        ).filter(Boolean)
-      )
-    ),
-    [notasVendedor]
+  const { opcoes } = useFiltrosComerciais();
+
+  // Quem é do papel "vendas" vê só as próprias notas. Isso era o `notasVendedor`
+  // do contexto, um `includes` do username dentro do nome do vendedor; aqui a
+  // mesma continência escolhe QUAIS nomes entram no filtro, e o recorte em si
+  // passa a ser do banco. O efeito é idêntico e o navegador deixa de receber as
+  // notas dos outros para depois descartá-las — que era, além de trabalho à
+  // toa, mandar para a máquina de um vendedor a carteira inteira da empresa.
+  const vendedoresDoPapel = useMemo(() => {
+    if (user?.role !== "vendas") return [];
+    const alvo = vendedorLogado.toLowerCase();
+    return opcoes.vendedores.filter((v) => v.toLowerCase().includes(alvo));
+  }, [user?.role, vendedorLogado, opcoes.vendedores]);
+
+  const rotuloDoCliente = (c: { nome: string | null; cpf_cnpj: string | null }) =>
+    `${c.nome || "Não informado"} (${c.cpf_cnpj || ""})`;
+
+  const clientesUnicos = useMemo(
+    () => opcoes.clientes.map(rotuloDoCliente),
+    [opcoes.clientes],
   );
 
-  const produtosUnicos = useMemo(() =>
-    Array.from(
-      new Map(
-        notasVendedor.flatMap(n =>
-          n.itens?.map(i => [
-            i.codigo, 
-            { value: i.codigo, label: `${i.descricao} (${i.codigo})` }
-          ]) || []
-        )
-      ).values()
-    ),
-    [notasVendedor]
+  const produtosUnicos = useMemo(
+    () =>
+      opcoes.produtos.map((p) => ({
+        value: p.chave,
+        label: `${p.descricao} (${p.codigo ?? "sem código"})`,
+      })),
+    [opcoes.produtos],
   );
 
-  // Aplicação dos filtros
-  const notasFiltradas = useMemo(() => {
-    let baseNotas = user?.role === "vendas" ? notasVendedor : notas;
+  const idPorRotulo = useMemo(() => {
+    const mapa = new Map<string, number>();
+    opcoes.clientes.forEach((c) => mapa.set(rotuloDoCliente(c), c.id));
+    return mapa;
+  }, [opcoes.clientes]);
 
-    return baseNotas.filter(n => {
-      const produtoOk =
-        filtroProduto.length === 0 ||
-        n.itens?.some(item =>
-          filtroProduto.includes(`${item.descricao} (${item.codigo})`)
-        );
+  const recorte: RecorteComercial = useMemo(
+    () => ({
+      clientes: filtroCliente
+        .map((r) => idPorRotulo.get(r))
+        .filter((id): id is number => id !== undefined),
+      vendedores: vendedoresDoPapel,
+      // O multiselect de produto já guarda a CHAVE (o `value` das opções), e
+      // não o rótulo: aqui ele sempre foi de `{value,label}`, ao contrário do
+      // de Vendas.
+      produtos: filtroProduto,
+      dataInicio,
+      dataFim,
+    }),
+    [filtroCliente, vendedoresDoPapel, filtroProduto, dataInicio, dataFim, idPorRotulo],
+  );
 
-      const clienteFormatado = `${n.cliente?.nome || "Não informado"} (${n.cliente?.cpf_cnpj || ""})`;
-      const clienteOk =
-        filtroCliente.length === 0 || filtroCliente.includes(clienteFormatado);
+  const { resumo, carregando } = useResumoComercial(recorte);
 
-      const dataOk =
-        (!dataInicio || new Date(n.data_emissao) >= new Date(dataInicio)) &&
-        (!dataFim || new Date(n.data_emissao) <= new Date(dataFim));
+  const chaveDoRecorte =
+    JSON.stringify(recorte) + pesquisaTabela + JSON.stringify(ordenacao);
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [chaveDoRecorte]);
 
-      return produtoOk && clienteOk && dataOk;
-    });
-  }, [user?.role, notas, notasVendedor, filtroProduto, filtroCliente, dataInicio, dataFim]);
+  const { pagina } = useVendasPaginadas(recorte, {
+    busca: pesquisaTabela,
+    ordenarPor: ordenacao.campo,
+    direcao: ordenacao.direcao,
+    pagina: paginaAtual,
+    porPagina: 15,
+  });
 
+  // A edição do tipo é otimista sobre a página em memória: recarregar a
+  // listagem inteira para mudar uma célula faria a tabela piscar e devolveria
+  // a pessoa para o topo.
+  const [tiposEditados, setTiposEditados] = useState<Record<number, string>>({});
+  const notasPaginadas = useMemo(
+    () =>
+      pagina.itens.map((n) =>
+        tiposEditados[n.id] ? { ...n, tipo: tiposEditados[n.id] as typeof n.tipo } : n,
+      ),
+    [pagina.itens, tiposEditados],
+  );
+  const totalDeNotas = pagina.total;
 
-  // KPIs Calculados
+  // KPIs — Vendedores mede a MERCADORIA (`valor_produtos`), e não o total da
+  // nota. É a diferença que sempre existiu entre esta tela e a de Vendas.
   const kpis = useMemo(() => {
-    const totalFaturado = notasFiltradas.reduce(
-      (acc, n) => acc + Number(n.valor_produtos || 0),
-      0
-    );
-    const totalVendas = notasFiltradas.length;
-    const ticketMedio = totalVendas > 0 ? totalFaturado / totalVendas : 0;
-
-    // Produto mais vendido
-    const produtosAgrupados = notasFiltradas
-      .flatMap(n => n.itens || [])
-      .reduce((acc: any, item) => {
-        const key = item.descricao;
-        if (!acc[key]) acc[key] = 0;
-        acc[key] += Number(item.valor_total || 0);
-        return acc;
-      }, {});
-
-    const produtoMaisVendido = Object.entries(produtosAgrupados)
-      .sort(([,a]: any, [,b]: any) => b - a)[0];
-
+    const topo = resumo.por_produto[0];
+    const notas = resumo.kpis.notas;
     return {
-      totalFaturado,
-      totalVendas,
-      ticketMedio,
-      produtoMaisVendido: produtoMaisVendido ? {
-        nome: produtoMaisVendido[0],
-        valor: produtoMaisVendido[1] as number
-      } : null
+      totalFaturado: resumo.kpis.faturamento_produtos,
+      totalVendas: notas,
+      ticketMedio: notas > 0 ? resumo.kpis.faturamento_produtos / notas : 0,
+      produtoMaisVendido: topo
+        ? { nome: topo.descricao ?? "N/A", valor: topo.valor }
+        : null,
     };
-  }, [notasFiltradas]);
+  }, [resumo]);
 
-  // Dados para gráfico de evolução
   const dadosEvolucao = useMemo(() => {
-    // Primeiro agrupa por mês
-    const agrupadoMensal = notasFiltradas.reduce((acc: Record<string, number>, n) => {
-      const data = new Date(n.data_emissao);
-      const ano = data.getFullYear();
-      const mes = data.getMonth();
-      const chave = `${ano}-${mes}`;
-      if (!acc[chave]) acc[chave] = 0;
-      acc[chave] += Number(n.valor_produtos || 0);
-      return acc;
-    }, {});
+    const dadosMensais = resumo.evolucao_mensal.map((m) => {
+      const data = new Date(m.ano, m.mes - 1);
+      return {
+        mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+        total: m.total_produtos,
+        ordem: data.getTime(),
+        ano: m.ano,
+      };
+    });
 
-    const dadosMensais = Object.entries(agrupadoMensal)
-      .map(([chave, total]) => {
-        const [ano, mes] = chave.split("-");
-        const data = new Date(Number(ano), Number(mes));
-        return {
-          mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
-          total,
-          ordem: data.getTime(),
-          ano: Number(ano),
-        };
-      })
-      .sort((a, b) => a.ordem - b.ordem);
-
-    // Se tiver mais de 24 meses, agrupa por ano
     if (dadosMensais.length > 24) {
       const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
         if (!acc[item.ano]) acc[item.ano] = 0;
@@ -235,118 +238,28 @@ const Vendedores: React.FC = () => {
         .sort((a, b) => a.ordem - b.ordem);
     }
 
-    // Se tiver 24 meses ou menos, retorna os dados mensais
     return dadosMensais;
-  }, [notasFiltradas]);
+  }, [resumo.evolucao_mensal]);
 
-  // Top produtos vendidos
-  const topProdutos = useMemo(() => {
-    const agrupado = notasFiltradas
-      .flatMap(n => n.itens || [])
-      .reduce((acc: any, item) => {
-        const key = item.descricao;
-        if (!acc[key]) acc[key] = 0;
-        acc[key] += Number(item.valor_total || 0);
-        return acc;
-      }, {});
+  // ⚠️ Agrupado por CÓDIGO, e não pela grafia da descrição — ver a nota em
+  // `comercial/useComercial.ts`.
+  const topProdutos = useMemo(
+    () =>
+      resumo.por_produto.slice(0, 5).map((p) => ({
+        produto: p.descricao ?? "Sem descrição",
+        valor: p.valor,
+      })),
+    [resumo.por_produto],
+  );
 
-    return Object.entries(agrupado)
-      .map(([produto, valor]) => ({ produto, valor }))
-      .sort((a: any, b: any) => b.valor - a.valor)
-      .slice(0, 5);
-  }, [notasFiltradas]);
-
-  // Distribuição por cliente
-  const distribuicaoClientes = useMemo(() => {
-    const agrupado = notasFiltradas.reduce((acc: any, n) => {
-      const cliente = n.cliente?.nome || "Não informado";
-      if (!acc[cliente]) acc[cliente] = 0;
-      acc[cliente] += Number(n.valor_produtos || 0);
-      return acc;
-    }, {});
-
-    return Object.entries(agrupado)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a: any, b: any) => b.value - a.value)
-      .slice(0, 8);
-  }, [notasFiltradas]);
-
-  // Tabela com pesquisa e ordenação
-  const notasTabela = useMemo(() => {
-    let filtradas = [...notasFiltradas];
-
-    // Aplicar pesquisa
-    if (pesquisaTabela) {
-      const termoLower = pesquisaTabela.toLowerCase();
-      const termoNormalizado = /^\d+$/.test(pesquisaTabela) ? normalizarCNPJ(pesquisaTabela) : "";
-
-      filtradas = filtradas.filter(n => {
-        const nome = n.cliente?.nome?.toLowerCase() || "";
-        const cnpj = n.cliente?.cpf_cnpj?.toLowerCase() || "";
-        const cnpjNormalizado = normalizarCNPJ(n.cliente?.cpf_cnpj || "");
-        const email = n.cliente?.email?.toLowerCase() || "";
-        const fone = n.cliente?.fone?.replace(/\D/g, "") || "";
-
-        const termoFone = pesquisaTabela.replace(/\D/g, ""); // só dígitos
-
-        return (
-          nome.includes(termoLower) ||
-          cnpj.includes(termoLower) ||
-          (termoNormalizado && cnpjNormalizado.includes(termoNormalizado)) ||
-          n.nome_vendedor?.toLowerCase().includes(termoLower) ||
-          email.includes(termoLower) ||
-          (termoFone && fone.includes(termoFone)) ||
-          n.itens?.some(i => i.descricao?.toLowerCase().includes(termoLower)) ||
-          n.valor_produtos?.toString().includes(termoLower) ||
-          n.tipo?.toLowerCase().includes(termoLower)
-        );
-      });
-    }
-
-    // Aplicar ordenação
-    filtradas.sort((a, b) => {
-      let aVal: any, bVal: any;
-      
-      switch(ordenacao.campo) {
-        case 'data_emissao':
-          aVal = new Date(a.data_emissao);
-          bVal = new Date(b.data_emissao);
-          break;
-        case 'cliente':
-          aVal = a.cliente?.nome || '';
-          bVal = b.cliente?.nome || '';
-          break;
-        case 'valor':
-          aVal = Number(a.valor_produtos);
-          bVal = Number(b.valor_produtos);
-          break;
-        case 'tipo':
-          aVal = a.tipo || '';
-          bVal = b.tipo || '';
-          break;
-        default:
-          return 0;
-      }
-
-      if (ordenacao.direcao === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    return filtradas;
-  }, [notasFiltradas, pesquisaTabela, ordenacao]);
-
-  // Paginacao: usePaginacao volta para a pagina 1 quando notasTabela muda de
-  // identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
-  // pagina 2 ficava com slice fora da lista e o rodape invertido.
-  const {
-    pagina: paginaAtual,
-    setPagina: setPaginaAtual,
-    itensDaPagina: notasPaginadas,
-    total: totalDeNotas,
-  } = usePaginacao(notasTabela, 15);
+  const distribuicaoClientes = useMemo(
+    () =>
+      resumo.por_cliente.slice(0, 8).map((c) => ({
+        name: c.nome ?? "Não informado",
+        value: c.valor_produtos,
+      })),
+    [resumo.por_cliente],
+  );
 
 
   // Formatação de valores
@@ -360,7 +273,7 @@ const Vendedores: React.FC = () => {
   };
 
   // Função para alternar ordenação
-  const alternarOrdenacao = (campo: string) => {
+  const alternarOrdenacao = (campo: CampoDeOrdenacao) => {
     setOrdenacao(prev => ({
       campo,
       direcao: prev.campo === campo && prev.direcao === 'desc' ? 'asc' : 'desc'
@@ -381,7 +294,8 @@ const Vendedores: React.FC = () => {
   const salvarTipo = async (notaId: number) => {
     try {
       setSalvandoTipo(notaId);
-      await atualizarTipoNota(notaId, tipoTemp as "Outbound" | "Inbound" | "ReCompra");
+      await updateNotaTipo(notaId, tipoTemp as "Outbound" | "Inbound" | "ReCompra");
+      setTiposEditados((antes) => ({ ...antes, [notaId]: tipoTemp }));
       setEditandoTipo(null);
       setTipoTemp("");
     } catch (error) {
@@ -392,9 +306,32 @@ const Vendedores: React.FC = () => {
     }
   };
 
-  // Exportação para Excel
-  const exportarExcel = useCallback(() => {
-    const dadosExport = notasTabela.map(n => {
+  const [exportando, setExportando] = useState(false);
+
+  // Exportação: percorre as páginas até o fim. Exportar só a página visível
+  // seria o mesmo erro de ler a primeira página como se fosse o total — só
+  // que num arquivo que alguém manda por e-mail.
+  const exportarExcel = useCallback(async () => {
+    setExportando(true);
+    try {
+    const porPagina = 500;
+    const todas: NotaVenda[] = [];
+    let offset = 0;
+    for (;;) {
+      const resposta = await fetchVendas({
+        ...paramsDoRecorte(recorte),
+        busca: pesquisaTabela.trim() || undefined,
+        ordenar_por: ordenacao.campo,
+        direcao: ordenacao.direcao,
+        limite: porPagina,
+        offset,
+      });
+      todas.push(...resposta.itens);
+      offset += porPagina;
+      if (offset >= resposta.total) break;
+    }
+
+    const dadosExport = todas.map(n => {
       const dataFormatada = n.data_emissao
         ? n.data_emissao.split("-").reverse().join("/")
         : "";
@@ -448,7 +385,13 @@ const Vendedores: React.FC = () => {
       ],
       `vendas_${vendedorLogado}_${diaLocal(new Date())}.xlsx`,
     );
-  }, [notasTabela, vendedorLogado]);
+    } catch (falha) {
+      console.error("Erro ao exportar as vendas:", falha);
+      erro("Não foi possível exportar as vendas.");
+    } finally {
+      setExportando(false);
+    }
+  }, [recorte, pesquisaTabela, ordenacao, vendedorLogado, erro]);
 
   if (carregando) {
     return (
@@ -897,13 +840,13 @@ const Vendedores: React.FC = () => {
 
                   <th
                     className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => alternarOrdenacao("valor")}
+                    onClick={() => alternarOrdenacao("valor_produtos")}
                   >
                     <div className="flex items-center">
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         Valor
                       </span>
-                      {ordenacao.campo === "valor" &&
+                      {ordenacao.campo === "valor_produtos" &&
                         (ordenacao.direcao === "desc" ? (
                           <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
                         ) : (
@@ -1095,7 +1038,7 @@ const Vendedores: React.FC = () => {
                         </div>
                       ) : (
                         <div
-                          onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo)}
+                          onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo ?? null)}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 px-2 py-1 rounded"
                         >
                           <span

@@ -9,7 +9,6 @@ import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
 import { ContasReceberProvider } from "./context/ContasReceberContext";
 import { DashboardProvider } from "./context/DashboardContext";
-import { DataProvider } from "./context/DataContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
 import { ServicosProvider } from "./context/ServicosContext";
 
@@ -144,14 +143,16 @@ const AppRoutes: React.FC = () => (
         }
       />
 
-      {/* Comercial: as quatro telas do `DataContext` (clientes, vendas,
-        produtos e vendedores) compartilham a mesma carga de cadastros. */}
+      {/* Comercial: clientes, vendas, produtos e vendedores.
+        O `DataProvider` saiu daqui (item 9.4): as quatro telas pedem ao banco o
+        recorte que desenham, cada uma com o seu, em vez de compartilharem uma
+        carga do histórico inteiro. Estado global que existia só para não baixar
+        as mesmas 4.330 notas quatro vezes deixou de ter motivo quando ninguém
+        mais baixa as 4.330 notas. */}
       <Route
         element={
           <ProtectedRoute>
-            <DataProvider>
-              <Outlet />
-            </DataProvider>
+            <Outlet />
           </ProtectedRoute>
         }
       >

@@ -23,7 +23,6 @@ import { AuthContext } from "./context/AuthContext";
  * | Context        | Quem chama o hook                                          |
  * |----------------|------------------------------------------------------------|
  * | Estoque        | `pages/Estoque`                                            |
- * | Data           | `pages/Clientes`, `Vendas`, `Produtos`, `Vendedores`       |
  * | Servicos       | `pages/Servicos`                                           |
  * | ContasPagar    | `pages/ContasPagar`, `pages/GerenciamentoFinanceiro`       |
  * | ContasReceber  | `pages/ContasReceber`, `pages/GerenciamentoFinanceiro`     |
@@ -49,7 +48,6 @@ function espiao(nome: string) {
 vi.mock("./context/EstoqueContext", () => ({
   EstoqueProvider: espiao("Estoque"),
 }));
-vi.mock("./context/DataContext", () => ({ DataProvider: espiao("Data") }));
 vi.mock("./context/ServicosContext", () => ({
   ServicosProvider: espiao("Servicos"),
 }));
@@ -131,10 +129,10 @@ const ESPERADO: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["/locacao", []],
   ["/usuarios", []],
   ["/estoque", ["Estoque"]],
-  ["/clientes", ["Data"]],
-  ["/vendas", ["Data"]],
-  ["/produtos", ["Data"]],
-  ["/vendedores", ["Data"]],
+  ["/clientes", []],
+  ["/vendas", []],
+  ["/produtos", []],
+  ["/vendedores", []],
   ["/servicos", ["Servicos"]],
   ["/contas-pagar", ["ContasPagar"]],
   ["/contas-receber", ["ContasReceber"]],
@@ -157,7 +155,6 @@ describe("providers montados por rota", () => {
     const montadosNoLogin = await providersMontadosEm("/login");
 
     expect(montadosNoLogin).not.toContain("Estoque");
-    expect(montadosNoLogin).not.toContain("Data");
     expect(montadosNoLogin).toEqual([]);
   });
 

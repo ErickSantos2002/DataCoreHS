@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useData } from "../context/DataContext";
+import {
+  useFiltrosComerciais,
+  useResumoComercial,
+  type RecorteComercial,
+} from "./comercial/useComercial";
 import { usePaginacao } from "../hooks/usePaginacao";
 import {
   BarChart,
@@ -103,7 +107,6 @@ const useIsMobile = () => {
 
 const Produtos: React.FC = () => {
   const { user } = useAuth();
-  const { notas, carregando } = useData();
 
   const isMobile = useIsMobile();
 
@@ -133,112 +136,73 @@ const Produtos: React.FC = () => {
     setDataFim(periodo.fim);
   }, [presetPeriodo]);
 
-  // Listas únicas para filtros
-  const empresasUnicas: string[] = useMemo(() =>
-    Array.from(
-      new Set(
-        notas
-          .map(n => n.cliente ? `${n.cliente.nome} (${n.cliente.cpf_cnpj})` : null)
-          .filter((n): n is string => Boolean(n))
-      )
-    ),
-    [notas]
+  const { opcoes } = useFiltrosComerciais();
+
+  const rotuloDoCliente = (c: { nome: string | null; cpf_cnpj: string | null }) =>
+    `${c.nome} (${c.cpf_cnpj})`;
+  const rotuloDoProduto = (p: { descricao: string | null; codigo: string | null }) =>
+    `${p.descricao} (${p.codigo ?? "sem código"})`;
+
+  const empresasUnicas: string[] = useMemo(
+    () => opcoes.clientes.map(rotuloDoCliente),
+    [opcoes.clientes],
+  );
+  const vendedoresUnicos = useMemo(() => opcoes.vendedores, [opcoes.vendedores]);
+  const produtosUnicos = useMemo(
+    () => opcoes.produtos.map(rotuloDoProduto),
+    [opcoes.produtos],
   );
 
-  const vendedoresUnicos = useMemo(() =>
-    Array.from(new Set(notas.map(n => n.nome_vendedor).filter(Boolean))),
-    [notas]
+  const idPorRotulo = useMemo(() => {
+    const mapa = new Map<string, number>();
+    opcoes.clientes.forEach((c) => mapa.set(rotuloDoCliente(c), c.id));
+    return mapa;
+  }, [opcoes.clientes]);
+
+  const chavePorRotulo = useMemo(() => {
+    const mapa = new Map<string, string>();
+    opcoes.produtos.forEach((p) => mapa.set(rotuloDoProduto(p), p.chave));
+    return mapa;
+  }, [opcoes.produtos]);
+
+  const recorte: RecorteComercial = useMemo(
+    () => ({
+      clientes: filtroEmpresa
+        .map((r) => idPorRotulo.get(r))
+        .filter((id): id is number => id !== undefined),
+      vendedores: filtroVendedor,
+      produtos: filtroProduto
+        .map((r) => chavePorRotulo.get(r))
+        .filter((c): c is string => c !== undefined),
+      dataInicio,
+      dataFim,
+    }),
+    [filtroEmpresa, filtroVendedor, filtroProduto, dataInicio, dataFim, idPorRotulo, chavePorRotulo],
   );
 
-  const produtosUnicos = useMemo(() =>
-    Array.from(
-      new Map(
-        notas.flatMap(n =>
-          n.itens?.map(i => [
-            i.codigo,
-            `${i.descricao} (${i.codigo})`
-          ]) || []
-        )
-      ).values()
-    ),
-    [notas]
+  const { resumo, carregando } = useResumoComercial(recorte);
+
+  // A tabela desta tela é a lista de PRODUTOS agregados — hoje 127 linhas —, e
+  // não a de notas. Ela continua paginando no navegador de propósito: paginar
+  // no servidor só é necessário quando o que se pagina cresce com o histórico,
+  // e este agregado cresce com o catálogo. E, ao contrário do que acontecia
+  // antes, a lista aqui é COMPLETA: cada linha já é a soma do recorte inteiro,
+  // então a página nunca é confundida com o total.
+  //
+  // ⚠️ A agregação passou a incluir item SEM código (36 itens, 0,12% do valor),
+  // que a versão anterior descartava com um `if (!item.codigo) return`.
+  const produtosAgregados = useMemo(
+    () =>
+      resumo.por_produto.map((p) => ({
+        codigo: p.codigo ?? "",
+        descricao: p.descricao ?? "",
+        quantidadeVendida: p.quantidade,
+        valorTotal: p.valor,
+        valorMedio: p.quantidade > 0 ? p.valor / p.quantidade : 0,
+        numeroVendas: p.notas,
+      })),
+    [resumo.por_produto],
   );
-
-  // Aplicação dos filtros
-  const notasFiltradas = useMemo(() => {
-    return notas.filter(n => {
-      // Filtro de empresa
-      const empresaOk =
-        filtroEmpresa.length === 0 ||
-        filtroEmpresa.includes(`${n.cliente?.nome} (${n.cliente?.cpf_cnpj})`);
-
-      // Filtro de vendedor
-      const vendedorOk = filtroVendedor.length === 0 ||
-        filtroVendedor.includes(n.nome_vendedor);
-
-      // Filtro de produto
-      const produtoOk = filtroProduto.length === 0 ||
-      n.itens?.some(item =>
-        filtroProduto.includes(`${item.descricao} (${item.codigo})`)
-      );
-
-      // Filtro de data
-      const dataOk =
-        (!dataInicio || new Date(n.data_emissao) >= new Date(dataInicio)) &&
-        (!dataFim || new Date(n.data_emissao) <= new Date(dataFim));
-
-      return empresaOk && vendedorOk && produtoOk && dataOk;
-    });
-  }, [notas, filtroEmpresa, filtroVendedor, filtroProduto, dataInicio, dataFim]);
-
-  // Dados agregados de produtos
-  const produtosAgregados = useMemo(() => {
-    const agregado: Record<string, ProdutoAgregado & { notasIds: Set<number> }> = {};
-
-    notasFiltradas.forEach(nota => {
-      nota.itens?.forEach(item => {
-        // Pula itens sem código
-        if (!item.codigo) return;
-
-        // Se tem filtro de produto ativo, só inclui itens que estão no filtro
-        if (filtroProduto.length > 0) {
-          const itemFiltrado = filtroProduto.includes(`${item.descricao} (${item.codigo})`);
-          if (!itemFiltrado) return; // Pula itens que não estão no filtro
-        }
-
-        const key = item.codigo;
-        if (!agregado[key]) {
-          agregado[key] = {
-            codigo: item.codigo,
-            descricao: item.descricao,
-            quantidadeVendida: 0,
-            valorTotal: 0,
-            valorMedio: 0,
-            numeroVendas: 0,
-            notasIds: new Set<number>(), // Armazena IDs únicos das notas
-          };
-        }
-
-        agregado[key].quantidadeVendida += Number(item.quantidade || 0);
-        agregado[key].valorTotal += Number(item.valor_total || 0);
-        agregado[key].notasIds.add(nota.id); // Adiciona o ID da nota (Set garante unicidade)
-      });
-    });
-
-    // Calcula valor médio e número de vendas (notas únicas)
-    const resultado = Object.values(agregado).map(produto => {
-      const { notasIds, ...produtoSemSet } = produto;
-      return {
-        ...produtoSemSet,
-        valorMedio: produto.quantidadeVendida > 0
-          ? produto.valorTotal / produto.quantidadeVendida
-          : 0,
-        numeroVendas: produto.notasIds.size, // Conta notas únicas
-      };
-    });
-
-    return resultado;
-  }, [notasFiltradas, filtroProduto]);
 
   // KPIs Calculados
   const kpis = useMemo(() => {
@@ -269,41 +233,19 @@ const Produtos: React.FC = () => {
     };
   }, [produtosAgregados]);
 
-  // Dados para gráfico de evolução (quantidade de produtos vendidos por mês)
+  // Evolução: itens vendidos por mês. A quantidade vem do banco já com o filtro
+  // de produto aplicado no nível do ITEM — que é a distinção que esta tela faz
+  // e a de Vendas não: lá o filtro escolhe notas, aqui ele escolhe itens.
   const dadosEvolucao = useMemo(() => {
-    const agrupadoMensal: Record<string, number> = {};
-
-    notasFiltradas.forEach(nota => {
-      const data = new Date(nota.data_emissao);
-      const ano = data.getFullYear();
-      const mes = data.getMonth();
-      const chave = `${ano}-${mes}`;
-
-      if (!agrupadoMensal[chave]) agrupadoMensal[chave] = 0;
-
-      nota.itens?.forEach(item => {
-        // Se tem filtro de produto ativo, só soma itens que estão no filtro
-        if (filtroProduto.length > 0) {
-          const itemFiltrado = filtroProduto.includes(`${item.descricao} (${item.codigo})`);
-          if (!itemFiltrado) return; // Pula itens que não estão no filtro
-        }
-
-        agrupadoMensal[chave] += Number(item.quantidade || 0);
-      });
+    const dadosMensais = resumo.evolucao_mensal.map((m) => {
+      const data = new Date(m.ano, m.mes - 1);
+      return {
+        mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+        total: m.quantidade,
+        ordem: data.getTime(),
+        ano: m.ano,
+      };
     });
-
-    const dadosMensais = Object.entries(agrupadoMensal)
-      .map(([chave, total]) => {
-        const [ano, mes] = chave.split("-");
-        const data = new Date(Number(ano), Number(mes));
-        return {
-          mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
-          total,
-          ordem: data.getTime(),
-          ano: Number(ano),
-        };
-      })
-      .sort((a, b) => a.ordem - b.ordem);
 
     // Se tiver mais de 24 meses, agrupa por ano
     if (dadosMensais.length > 24) {
@@ -323,7 +265,7 @@ const Produtos: React.FC = () => {
     }
 
     return dadosMensais;
-  }, [notasFiltradas, filtroProduto]);
+  }, [resumo.evolucao_mensal]);
 
   // Ranking de produtos por valor
   const rankingProdutosValor = useMemo(() => {

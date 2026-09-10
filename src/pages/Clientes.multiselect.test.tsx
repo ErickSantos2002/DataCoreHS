@@ -28,7 +28,13 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const CLIENTES_ENRIQUECIDOS = [
+
+// Uma nota por cliente, para que os dois apareçam na tabela (só entra na
+// tabela quem tem `numeroComprasPeriodo > 0`, ~linha 257) — é o que dá à
+// asserção forte do `value` algo visível para diferenciar.
+
+const { CLIENTES_ENRIQUECIDOS, NOTAS } = vi.hoisted(() => {
+  const CLIENTES_ENRIQUECIDOS = [
   {
     id: 1,
     nome: "Alfa Mineração",
@@ -54,11 +60,7 @@ const CLIENTES_ENRIQUECIDOS = [
     ticketMedio: 500,
   },
 ];
-
-// Uma nota por cliente, para que os dois apareçam na tabela (só entra na
-// tabela quem tem `numeroComprasPeriodo > 0`, ~linha 257) — é o que dá à
-// asserção forte do `value` algo visível para diferenciar.
-const NOTAS = [
+  const NOTAS = [
   {
     id: 1,
     numero: 1001,
@@ -88,21 +90,19 @@ const NOTAS = [
     tem_observacoes: false,
   },
 ];
+  return { CLIENTES_ENRIQUECIDOS, NOTAS };
+});
 
-vi.mock("../context/DataContext", () => ({
-  useData: () => ({
-    clientes: CLIENTES_ENRIQUECIDOS.map(({ id, nome, cpf_cnpj, email, fone }) => ({
-      id,
-      nome,
-      cpf_cnpj,
-      email,
-      fone,
-    })),
-    clientesEnriquecidos: CLIENTES_ENRIQUECIDOS,
-    notas: NOTAS,
-    carregando: false,
-  }),
-}));
+// A tela deixou de ler o `DataContext` (item 9.4): a agregação por cliente vem
+// somada do banco. O falso mora em `comercial/hooksFalsos`.
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { criarHooksFalsos, resumoDeClientes } = await import("./comercial/hooksFalsos");
+  return {
+    ...real,
+    ...criarHooksFalsos(NOTAS, (ns) => resumoDeClientes(ns, CLIENTES_ENRIQUECIDOS)),
+  };
+});
 
 /**
  * Dublê do recharts.

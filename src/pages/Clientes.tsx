@@ -1,6 +1,10 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useData } from "../context/DataContext";
+import {
+  useFiltrosComerciais,
+  useResumoComercial,
+  type RecorteComercial,
+} from "./comercial/useComercial";
 import { usePaginacao } from "../hooks/usePaginacao";
 import {
   MultiSelect,
@@ -40,7 +44,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { diaLocal } from "../lib/datas";
+import { dataDeCalendarioComoDate, diaLocal } from "../lib/datas";
 import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
@@ -83,7 +87,6 @@ const useIsMobile = () => {
 
 const Clientes: React.FC = () => {
   const { user } = useAuth();
-  const { clientes, clientesEnriquecidos, carregando, notas } = useData();
 
   // Estados dos filtros
   const [filtroCliente, setFiltroCliente] = useState<string[]>([]);
@@ -115,190 +118,116 @@ const Clientes: React.FC = () => {
     setDataFim(periodo.fim);
   }, [presetPeriodo]);
 
-  // Listas únicas para filtros
-  const clientesUnicos = useMemo(() =>
-    Array.from(
-      new Map(
-        clientesEnriquecidos.map(c => [
-          c.cpf_cnpj.replace(/\D/g, ""), // chave única normalizada
-          {
-            value: c.cpf_cnpj.replace(/\D/g, ""), // esse vira o value único
-            label: `${c.nome} (${c.cpf_cnpj})`
-          }
-        ])
-      ).values()
-    ),
-    [clientesEnriquecidos]
-  );
+  const { opcoes } = useFiltrosComerciais();
 
-  const produtosUnicos = useMemo(() =>
-    Array.from(
-      new Map(
-        notas.flatMap(v =>
-          v.itens?.map(i => [
-            i.codigo,
-            `${i.descricao} (${i.codigo})`
-          ]) || []
-        )
-      ).values()
-    ),
-    [notas]
-  );
-
-  const vendedoresUnicos = useMemo(() =>
-    Array.from(new Set(notas.map(v => v.nome_vendedor).filter(Boolean))),
-    [notas]
-  );
-
-  // notas filtradas por período
-  const notasFiltradas = useMemo(() => {
-    return notas.filter(v => {
-      const dataOk =
-        (!dataInicio || new Date(v.data_emissao) >= new Date(dataInicio)) &&
-        (!dataFim || new Date(v.data_emissao) <= new Date(dataFim));
-      
-      const vendedorOk = 
-        filtroVendedor.length === 0 || filtroVendedor.includes(v.nome_vendedor);
-      
-      const produtoOk =
-        filtroProduto.length === 0 ||
-        v.itens?.some(item => filtroProduto.includes(`${item.descricao} (${item.codigo})`));
-
-      return dataOk && vendedorOk && produtoOk;
+  // O multiselect de cliente sempre trabalhou com o DOCUMENTO em dígitos como
+  // `value` — é ele que junta os cadastros repetidos do mesmo CNPJ. O recorte,
+  // porém, filtra por ID, então aqui se traduz um no outro: um documento pode
+  // corresponder a mais de um cadastro, e todos têm de entrar.
+  const idsPorDocumento = useMemo(() => {
+    const mapa = new Map<string, number[]>();
+    opcoes.clientes.forEach((c) => {
+      const doc = (c.cpf_cnpj ?? "").replace(/\D/g, "");
+      mapa.set(doc, [...(mapa.get(doc) ?? []), c.id]);
     });
-  }, [notas, dataInicio, dataFim, filtroVendedor, filtroProduto]);
+    return mapa;
+  }, [opcoes.clientes]);
 
-  // Em Clientes.tsx
-  const faturamentoTotalPeriodo = notasFiltradas.reduce(
-    (acc, n) => acc + Number(n.valor_nota || 0),
-    0
+  const clientesUnicos = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          opcoes.clientes.map((c) => [
+            (c.cpf_cnpj ?? "").replace(/\D/g, ""),
+            {
+              value: (c.cpf_cnpj ?? "").replace(/\D/g, ""),
+              label: `${c.nome} (${c.cpf_cnpj})`,
+            },
+          ]),
+        ).values(),
+      ),
+    [opcoes.clientes],
   );
 
-  // Função para normalizar CNPJs/CPFs, igual a Vendas
-  const normalizarCNPJ = (cnpj: string) => cnpj.replace(/\D/g, "");
+  const vendedoresUnicos = useMemo(() => opcoes.vendedores, [opcoes.vendedores]);
 
-  // Clientes filtrados e enriquecidos com dados do período
+  const rotuloDoProduto = (p: { descricao: string | null; codigo: string | null }) =>
+    `${p.descricao} (${p.codigo ?? "sem código"})`;
+
+  const produtosUnicos = useMemo(
+    () => opcoes.produtos.map(rotuloDoProduto),
+    [opcoes.produtos],
+  );
+
+  const chavePorRotulo = useMemo(() => {
+    const mapa = new Map<string, string>();
+    opcoes.produtos.forEach((p) => mapa.set(rotuloDoProduto(p), p.chave));
+    return mapa;
+  }, [opcoes.produtos]);
+
+  const recorte: RecorteComercial = useMemo(
+    () => ({
+      clientes: filtroCliente.flatMap((doc) => idsPorDocumento.get(doc) ?? []),
+      vendedores: filtroVendedor,
+      produtos: filtroProduto
+        .map((r) => chavePorRotulo.get(r))
+        .filter((c): c is string => c !== undefined),
+      dataInicio,
+      dataFim,
+    }),
+    [filtroCliente, filtroVendedor, filtroProduto, dataInicio, dataFim, idsPorDocumento, chavePorRotulo],
+  );
+
+  const { resumo, carregando } = useResumoComercial(recorte);
+
+  const faturamentoTotalPeriodo = resumo.kpis.faturamento;
+
+  // Os clientes com compra no recorte, já consolidados por documento pelo banco.
+  //
+  // Isto era o `clientesEnriquecidos` do contexto cruzado com as notas no
+  // navegador: para cada um dos 2.084 cadastros, um `filter` sobre as 4.330
+  // notas. O banco faz o mesmo agrupamento — pelo documento em dígitos, a mesma
+  // chave — e devolve só quem comprou, que é o que a tela mostra.
   const clientesFiltrados = useMemo(() => {
-    const clientesComDadosPeriodo = clientesEnriquecidos.map(cliente => {
-      const cpfCnpjNormalizado = cliente.cpf_cnpj.replace(/\D/g, '');
-
-      const notasClientePeriodo = notasFiltradas.filter(v => {
-        if (!v.cliente) return false;
-        const vendaCpfCnpjNormalizado = v.cliente.cpf_cnpj.replace(/\D/g, '');
-        return vendaCpfCnpjNormalizado === cpfCnpjNormalizado;
-      });
-
-      const totalCompradoPeriodo = notasClientePeriodo.reduce(
-        (acc, v) => acc + Number(v.valor_nota || 0), 0
-      );
-      const numeroComprasPeriodo = notasClientePeriodo.length;
-      const ticketMedioPeriodo = numeroComprasPeriodo > 0 
-        ? totalCompradoPeriodo / numeroComprasPeriodo 
-        : 0;
-
-      const ultimaCompra = notasClientePeriodo.length > 0
-        ? new Date(
-            Math.max(...notasClientePeriodo.map(v => new Date(v.data_emissao).getTime()))
-          )
-        : null;
-        
-        const hoje = new Date();
-        const limite90 = new Date(hoje);
-        limite90.setDate(hoje.getDate() - 90);
-        const limiteTs = limite90.getTime();
-
-        return {
-          ...cliente,
-          cpfCnpjNormalizado,
-          totalCompradoPeriodo,
-          numeroComprasPeriodo,
-          ticketMedioPeriodo,
-          notasPeriodo: notasClientePeriodo,
-          ultimaCompra,
-          status:
-            ultimaCompra && ultimaCompra.getTime() >= limiteTs
-              ? "ativo"
-              : "inativo"
-        };
-    });
-
-    // 🔑 Consolidar por CPF/CNPJ
-    const clientesUnificados = Object.values(
-      clientesComDadosPeriodo.reduce((acc, c) => {
-        if (!acc[c.cpfCnpjNormalizado]) {
-          acc[c.cpfCnpjNormalizado] = { ...c };
-        } else {
-          acc[c.cpfCnpjNormalizado].totalCompradoPeriodo += c.totalCompradoPeriodo;
-          acc[c.cpfCnpjNormalizado].numeroComprasPeriodo += c.numeroComprasPeriodo;
-          acc[c.cpfCnpjNormalizado].ticketMedioPeriodo = 
-            acc[c.cpfCnpjNormalizado].numeroComprasPeriodo > 0
-              ? acc[c.cpfCnpjNormalizado].totalCompradoPeriodo / acc[c.cpfCnpjNormalizado].numeroComprasPeriodo
-              : 0;
-        }
-        return acc;
-      }, {} as Record<string, any>)
-    );
-
-    // 🔥 Só mantém clientes que têm pelo menos 1 compra no período
-    const clientesComCompras = clientesUnificados.filter(c => c.numeroComprasPeriodo > 0);
-
-    return filtroCliente.length > 0
-      ? clientesComCompras.filter(c => filtroCliente.includes(c.cpf_cnpj.replace(/\D/g, "")))
-      : clientesComCompras;
-  }, [clientesEnriquecidos, notasFiltradas, filtroCliente]);
-
-  const { clientesAtivos, clientesInativos, totalClientes } = useMemo(() => {
-    // Mapeia todos os clientes, não só os filtrados
-    const clientesComDadosPeriodo = clientesEnriquecidos.map(cliente => {
-      const cpfCnpjNormalizado = cliente.cpf_cnpj.replace(/\D/g, '');
-
-      const notasClientePeriodo = notasFiltradas.filter(v => {
-        if (!v.cliente) return false;
-        const vendaCpfCnpjNormalizado = v.cliente.cpf_cnpj.replace(/\D/g, '');
-        return vendaCpfCnpjNormalizado === cpfCnpjNormalizado;
-      });
-
-      return {
-        ...cliente,
-        numeroComprasPeriodo: notasClientePeriodo.length,
-      };
-    });
-
-    // Ativos = pelo menos 1 compra
-    const clientesAtivos = clientesComDadosPeriodo.filter(c => c.numeroComprasPeriodo > 0);
-    const clientesInativos = clientesComDadosPeriodo.filter(c => c.numeroComprasPeriodo === 0);
-
-    return {
-      clientesAtivos,
-      clientesInativos,
-      totalClientes: clientesComDadosPeriodo.length
-    };
-  }, [clientesEnriquecidos, notasFiltradas]);
-
-  // KPIs: Ativos/Inativos por janelas de 90 dias (independente do período selecionado)
-  const kpis = useMemo(() => {
-    // Limite de 90 dias a partir de hoje
     const hoje = new Date();
     const limite90 = new Date(hoje);
     limite90.setDate(hoje.getDate() - 90);
     const limiteTs = limite90.getTime();
 
-    // Clientes ativos no período (compraram nos últimos 90 dias)
-    const ativos90 = clientesFiltrados.filter(c => {
-      if (!c.ultimaCompra) return false;
-      return c.ultimaCompra.getTime() >= limiteTs;
-    }).length;
+    return resumo.por_cliente.map((c) => {
+      const ultimaCompra = c.ultima_compra ? dataDeCalendarioComoDate(c.ultima_compra) : null;
+      return {
+        nome: c.nome ?? "Não informado",
+        cpf_cnpj: c.cpf_cnpj ?? "",
+        cpfCnpjNormalizado: c.documento,
+        email: c.email ?? undefined,
+        fone: c.fone ?? undefined,
+        totalCompradoPeriodo: c.valor,
+        numeroComprasPeriodo: c.notas,
+        ticketMedioPeriodo: c.notas > 0 ? c.valor / c.notas : 0,
+        ultimaCompra,
+        status:
+          ultimaCompra && ultimaCompra.getTime() >= limiteTs ? "ativo" : "inativo",
+      };
+    });
+  }, [resumo.por_cliente]);
 
-    // Inativos = clientes que compraram no período, mas não nos últimos 90 dias
+  // KPIs: Ativos/Inativos por janelas de 90 dias (independente do período selecionado)
+  const kpis = useMemo(() => {
+    const hoje = new Date();
+    const limite90 = new Date(hoje);
+    limite90.setDate(hoje.getDate() - 90);
+    const limiteTs = limite90.getTime();
+
+    const ativos90 = clientesFiltrados.filter(
+      (c) => c.ultimaCompra && c.ultimaCompra.getTime() >= limiteTs,
+    ).length;
     const inativos90 = clientesFiltrados.length - ativos90;
 
-    // Top cliente no período (já respeita filtros)
-    const topCliente = clientesFiltrados
-      .filter(c => c.totalCompradoPeriodo > 0)
-      .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo)[0];
+    // O ranking já vem ordenado por valor: o topo é a primeira linha.
+    const topCliente = clientesFiltrados[0];
 
-    // Ticket médio por cliente no período
-    const clientesComCompras = clientesFiltrados.filter(c => c.numeroComprasPeriodo > 0);
+    const clientesComCompras = clientesFiltrados.filter((c) => c.numeroComprasPeriodo > 0);
     const ticketMedioPorCliente = clientesComCompras.length > 0
       ? clientesComCompras.reduce((acc, c) => acc + c.ticketMedioPeriodo, 0) / clientesComCompras.length
       : 0;
@@ -314,8 +243,6 @@ const Clientes: React.FC = () => {
   // Dados para ranking de clientes (Top 10)
   const rankingClientes = useMemo(() => {
     return clientesFiltrados
-      .filter((c) => c.totalCompradoPeriodo > 0)
-      .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo)
       .slice(0, 10)
       .map((c) => ({
         nome: c.nome.length > 20 ? c.nome.substring(0, 20) + "..." : c.nome, // exibido no gráfico
@@ -324,55 +251,48 @@ const Clientes: React.FC = () => {
       }));
   }, [clientesFiltrados]);
 
-  // Dados para evolução por cliente
+  // Evolução dos cinco maiores clientes, uma linha por cliente.
+  //
+  // A série vem do banco pronta (`evolucao_por_cliente`): é o cruzamento de mês
+  // com cliente, e cruzamento não se remonta a partir de dois agregados que
+  // somam por margens diferentes.
   const evolucaoPorCliente = useMemo(() => {
-    // Pegar top 5 clientes
-    const topClientes = clientesFiltrados
-      .filter(c => c.totalCompradoPeriodo > 0)
-      .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo)
-      .slice(0, 5);
+    const nomePorDocumento = new Map(
+      resumo.por_cliente.map((c) => [c.documento, c.nome ?? c.documento]),
+    );
 
-    // Agrupar notas por mês para cada cliente
-    const mesesUnicos = new Set<string>();
-    const dadosPorCliente: any = {};
+    const meses = new Map<string, Record<string, number | string>>();
+    for (const linha of resumo.evolucao_por_cliente) {
+      const mesAno = `${linha.mes}/${linha.ano}`;
+      const ponto = meses.get(mesAno) ?? { mes: mesAno };
+      const nome = nomePorDocumento.get(linha.documento) ?? linha.documento;
+      ponto[nome] = ((ponto[nome] as number) ?? 0) + linha.total;
+      meses.set(mesAno, ponto);
+    }
 
-    topClientes.forEach(cliente => {
-      const cpfCnpjNormalizado = cliente.cpf_cnpj.replace(/\D/g, '');
-      dadosPorCliente[cliente.nome] = {};
+    // Zero explícito onde o cliente não vendeu no mês: sem isso a linha do
+    // gráfico salta o ponto e liga dois meses distantes como se fossem vizinhos.
+    const nomes = Array.from(
+      new Set(
+        resumo.evolucao_por_cliente.map(
+          (l) => nomePorDocumento.get(l.documento) ?? l.documento,
+        ),
+      ),
+    );
 
-      notasFiltradas.forEach(venda => {
-        if (!venda.cliente) return;
-        const vendaCpfCnpjNormalizado = venda.cliente.cpf_cnpj.replace(/\D/g, '');
-        
-        if (vendaCpfCnpjNormalizado === cpfCnpjNormalizado ||
-            venda.cliente.nome.toLowerCase() === cliente.nome.toLowerCase()) {
-          const data = new Date(venda.data_emissao);
-          const mesAno = `${data.getMonth() + 1}/${data.getFullYear()}`;
-          mesesUnicos.add(mesAno);
-          
-          if (!dadosPorCliente[cliente.nome][mesAno]) {
-            dadosPorCliente[cliente.nome][mesAno] = 0;
-          }
-          dadosPorCliente[cliente.nome][mesAno] += Number(venda.valor_nota);
-        }
+    return Array.from(meses.values())
+      .map((ponto) => {
+        nomes.forEach((nome) => {
+          if (ponto[nome] === undefined) ponto[nome] = 0;
+        });
+        return ponto;
+      })
+      .sort((a, b) => {
+        const [mesA, anoA] = String(a.mes).split("/").map(Number);
+        const [mesB, anoB] = String(b.mes).split("/").map(Number);
+        return anoA - anoB || mesA - mesB;
       });
-    });
-
-    // Converter para formato do gráfico
-    const mesesOrdenados = Array.from(mesesUnicos).sort((a, b) => {
-      const [mesA, anoA] = a.split('/').map(Number);
-      const [mesB, anoB] = b.split('/').map(Number);
-      return anoA - anoB || mesA - mesB;
-    });
-
-    return mesesOrdenados.map(mes => {
-      const dataPoint: any = { mes };
-      Object.keys(dadosPorCliente).forEach(cliente => {
-        dataPoint[cliente] = dadosPorCliente[cliente][mes] || 0;
-      });
-      return dataPoint;
-    });
-  }, [clientesFiltrados, notasFiltradas]);
+  }, [resumo.evolucao_por_cliente, resumo.por_cliente]);
 
   // Dados para distribuição de faturamento
   const distribuicaoFaturamento = useMemo(() => {
@@ -1075,7 +995,7 @@ const Clientes: React.FC = () => {
                   ) : (
                     clientesPaginados.map((cliente, index) => (
                     <tr
-                      key={cliente.id}
+                      key={cliente.cpfCnpjNormalizado}
                       className={`border-b border-gray-100 dark:border-gray-700 
                                   hover:bg-gray-50 dark:hover:bg-surface transition-colors ${
                                     index % 2 === 0

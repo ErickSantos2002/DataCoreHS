@@ -10,7 +10,15 @@ import axios, { type AxiosInstance } from "axios";
  * outro. Cada backend ganha a sua instância; a regra do token é uma só.
  */
 export function criarHttp(baseURL: string): AxiosInstance {
-  const http = axios.create({ baseURL });
+  const http = axios.create({
+    baseURL,
+    // `indexes: null` -> `cliente_id=1&cliente_id=2`, e nao `cliente_id[]=1`.
+    // Os dois backends sao FastAPI, e ele le lista repetindo a CHAVE: com os
+    // colchetes do padrao do axios o parametro simplesmente nao chega, o filtro
+    // fica valendo "sem filtro" e a tela mostra o universo inteiro como se
+    // fosse o recorte pedido — sem erro nenhum, que e o pior jeito de errar.
+    paramsSerializer: { indexes: null },
+  });
 
   http.interceptors.request.use(
     (config) => {

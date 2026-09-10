@@ -21,7 +21,8 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const NOTAS_VENDEDOR = Array.from({ length: 17 }, (_, i) => ({
+const { NOTAS_VENDEDOR } = vi.hoisted(() => ({
+  NOTAS_VENDEDOR: Array.from({ length: 17 }, (_, i) => ({
   id: i + 1,
   numero: 1000 + i + 1,
   data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
@@ -38,17 +39,16 @@ const NOTAS_VENDEDOR = Array.from({ length: 17 }, (_, i) => ({
     { codigo: "P1", descricao: "Item", quantidade: "1", valor_total: String(100 + i) },
   ],
   tem_observacoes: false,
+})),
 }));
 
-vi.mock("../context/DataContext", () => ({
-  useData: () => ({
-    notas: NOTAS_VENDEDOR,
-    notasVendedor: NOTAS_VENDEDOR,
-    carregando: false,
-    atualizarTipoNota: vi.fn(),
-    vendedorLogado: null,
-  }),
-}));
+// A tela deixou de ler o `DataContext` (item 9.4): os agregados vêm somados do
+// banco e a tabela vem paginada. O falso mora em `comercial/hooksFalsos`.
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { criarHooksFalsos } = await import("./comercial/hooksFalsos");
+  return { ...real, ...criarHooksFalsos(NOTAS_VENDEDOR) };
+});
 
 /** Dublê do toast — a tela usa `erro` do ToastProvider fora do fluxo da paginacao. */
 vi.mock("../components/ToastProvider", () => ({

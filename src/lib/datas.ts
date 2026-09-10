@@ -50,3 +50,24 @@ export function diaLocal(instante: Date): string {
   const dia = String(instante.getDate()).padStart(2, "0");
   return `${ano}-${mes}-${dia}`;
 }
+
+/**
+ * `"2026-07-10"` como `Date` no fuso de quem olha — meia-noite LOCAL.
+ *
+ * A inversa de `diaLocal`, e existe pelo mesmo motivo dela: `new Date("2026-07-10")`
+ * é meia-noite em **UTC**, que a oeste de Greenwich ainda é dia 9. Quem compara
+ * essa data com "hoje menos noventa dias" erra por um dia nas bordas — e erra
+ * calado, porque o resultado continua sendo uma data plausível.
+ *
+ * Devolve `null` para o que não começa com uma data ISO, e não `Invalid Date`:
+ * quem chama testa `if (data)` e não precisa saber de `isNaN(+data)`.
+ */
+export function dataDeCalendarioComoDate(
+  data: string | null | undefined,
+): Date | null {
+  if (!data) return null;
+  const casou = DATA_ISO.exec(data);
+  if (!casou) return null;
+  const [, ano, mes, dia] = casou;
+  return new Date(Number(ano), Number(mes) - 1, Number(dia));
+}
