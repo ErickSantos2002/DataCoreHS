@@ -16,11 +16,13 @@
  * `calcularKpis`, `rankingDeClientes`, `distribuicaoPorCidade`,
  * `ordenarEBuscar`) morreram nesta migração.
  *
- * Onde a lógica movida tem cara de defeito, o comentário registra o achado
- * sem corrigir — corrigir junto de mover impede saber qual dos dois quebrou.
+ * O único defeito que a lógica movida trazia — a data de emissão passando por
+ * `new Date` nas duas exportações — está corrigido; o docblock de
+ * `linhasDaPlanilha` conta qual era.
  */
 
 import type { ResumoDeServicos } from "../../services/notasapi";
+import { dataDeCalendario } from "../../lib/datas";
 import { converterParaNumero } from "../../lib/dinheiro";
 import type { PedidoDaTabelaDeServicos, RecorteDeServicos } from "./useServicos";
 
@@ -226,19 +228,21 @@ export function formatarValorAbreviado(valor: number): string {
  * paginação é da tabela na tela, e quem exporta espera a lista filtrada
  * completa, não os 15 itens da página em que estava.
  *
- * Achado ao mover (não corrigido): `new Date(s.data_emissao)` lê
- * `"AAAA-MM-DD"` como meia-noite em UTC, e `toLocaleDateString("pt-BR")`
- * mostra no fuso local — a oeste de Greenwich isso é o dia anterior. É o
- * mesmo defeito que `notasDeLocacao.ts` documenta e corrigiu por lá; aqui
- * continua como estava, porque corrigir junto de mover impede saber qual dos
- * dois quebrou.
+ * A "Data Emissão" saía com o dia errado em Brasília: era
+ * `new Date(s.data_emissao)`, e o ECMAScript lê `"AAAA-MM-DD"` como
+ * meia-noite em UTC — a oeste de Greenwich meia-noite em UTC ainda é o dia
+ * anterior, então 2026-03-15 virava 14/03/2026 na planilha enquanto a tabela
+ * na tela mostrava 15/03/2026. `data_emissao` é data de calendário, sem
+ * instante e sem fuso, e `dataDeCalendario` (`lib/datas.ts`) lê o dia certo
+ * direto da string, sem `Date` nenhum. Mesmo defeito e mesma correção de
+ * `notasDeLocacao.ts`.
  */
 export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[] {
   return servicos.map((s) => ({
     "Número NFS-e": s.numero_nfse,
     Cliente: s.razao_social_tomador,
     "CNPJ/CPF": s.cpf_cnpj_tomador,
-    "Data Emissão": new Date(s.data_emissao).toLocaleDateString("pt-BR"),
+    "Data Emissão": dataDeCalendario(s.data_emissao),
     Cidade: `${s.cidade_tomador}/${s.uf_tomador}`,
     Valor: converterParaNumero(s.valor_servico),
     Descrição: s.discriminacao_servico,
@@ -262,16 +266,16 @@ export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[]
  * problema que o corte evitava, e mudar esse número é decisão de produto,
  * não desta migração.
  *
- * Mesmo achado de `linhasDaPlanilha` acima, e mesmo motivo para não corrigir
- * agora: `new Date(s.data_emissao)` lê "AAAA-MM-DD" como meia-noite UTC, e
- * `toLocaleDateString("pt-BR")` mostra no fuso local — a oeste de Greenwich
- * sai o dia anterior.
+ * Mesmo defeito de fuso de `linhasDaPlanilha` acima, e mesma correção: a data
+ * passa por `dataDeCalendario` (`lib/datas.ts`) em vez de `new Date`, que lia
+ * "AAAA-MM-DD" como meia-noite UTC e imprimia o dia anterior a partir de
+ * `TZ=America/Sao_Paulo`.
  */
 export function linhasDoPdf(servicos: Servico[]): (string | number)[][] {
   return servicos.slice(0, 30).map((s) => [
     s.numero_nfse,
     s.razao_social_tomador.substring(0, 25),
-    new Date(s.data_emissao).toLocaleDateString("pt-BR"),
+    dataDeCalendario(s.data_emissao),
     `R$ ${converterParaNumero(s.valor_servico).toFixed(2)}`,
     `${s.cidade_tomador}/${s.uf_tomador}`,
   ]);

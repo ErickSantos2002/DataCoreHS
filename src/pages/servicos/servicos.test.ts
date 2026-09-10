@@ -6,6 +6,7 @@ import {
   evolucaoDoResumo,
   kpisDoResumo,
   linhasDaPlanilha,
+  linhasDoPdf,
   rankingDoResumo,
   recorteDeServicos,
   type Servico,
@@ -35,6 +36,30 @@ const SERVICO_BASE: Servico = {
   cidade_tomador: "Recife",
   uf_tomador: "PE",
   discriminacao_servico: "Calibração de bafômetro",
+};
+
+/**
+ * O serviço emitido na virada do ano — a fixture das duas exportações.
+ *
+ * `"2026-01-01"` é uma data de calendário sem hora, e o ECMAScript lê essa
+ * forma como **meia-noite em UTC**: é o pior caso possível, o instante exato
+ * da virada. Em `TZ=America/Sao_Paulo` (UTC-3) essa meia-noite ainda é
+ * 31/12/2025 — o defeito trocava o dia, o mês E o ano de uma vez, e é por
+ * isso que a data escolhida é 1º de janeiro e não uma do meio do mês: a
+ * falha fica impossível de confundir com arredondamento.
+ *
+ * ⚠️ **Em `TZ=UTC` o defeito não aparece** — meia-noite UTC lida em UTC é o
+ * dia certo, e nenhuma fixture muda isso, porque o erro só existe a oeste de
+ * Greenwich. Quem cobre este teste é a regra da suíte de rodar nos dois fusos
+ * (`TZ=UTC npm test` e `TZ=America/Sao_Paulo npm test`): a asserção vale nos
+ * dois — a propriedade afirmada é "o dia que a string diz", que não muda de
+ * fuso para fuso —, e com o defeito de volta ela cai no segundo.
+ */
+const SERVICO_NA_VIRADA: Servico = {
+  ...SERVICO_BASE,
+  id: 2,
+  numero_nfse: 1002,
+  data_emissao: "2026-01-01",
 };
 
 const RESUMO_BASE: ResumoDeServicos = {
@@ -218,5 +243,60 @@ describe("linhasDaPlanilha", () => {
     expect(linha.Valor).toBe(100);
     expect(linha.Cliente).toBe("Cliente A");
     expect(linha.Cidade).toBe("Recife/PE");
+  });
+
+  it("a data de emissao e o dia que a string diz, em qualquer fuso", () => {
+    // Duas datas distintas, e não uma: uma função que devolvesse a data fixa
+    // passaria com uma só. A da virada é a que carrega a prova (ver o
+    // docblock de SERVICO_NA_VIRADA); a outra guarda o caso comum.
+    const datas = linhasDaPlanilha([SERVICO_BASE, SERVICO_NA_VIRADA]).map(
+      (linha) => linha["Data Emissão"],
+    );
+
+    // Uma asserção só, com as duas: assim a falha mostra as duas datas de
+    // uma vez em vez de parar na primeira.
+    expect(datas).toEqual(["10/01/2026", "01/01/2026"]);
+  });
+});
+
+/**
+ * `linhasDoPdf` não tinha cobertura nenhuma até aqui — o movimento a trouxe
+ * de `Servicos.tsx` e o único teste que a tocava era o da tela, que não abre
+ * o PDF. Entra junto do conserto de fuso porque é uma das duas saídas em que
+ * o defeito aparecia.
+ */
+describe("linhasDoPdf", () => {
+  it("as cinco colunas saem na ordem do cabecalho do relatorio", () => {
+    // O cabeçalho do `autoTable` (em `Servicos.tsx`, símbolo `exportarPDF`) é
+    // ["NFS-e", "Cliente", "Data", "Valor", "Cidade"] — a cidade vem DEPOIS
+    // do valor aqui, ao contrário da planilha. Cada campo tem valor distinto,
+    // então trocar duas colunas de lugar derruba as duas pontas.
+    expect(linhasDoPdf([SERVICO_BASE])[0]).toEqual([
+      1001,
+      "Cliente A",
+      "10/01/2026",
+      "R$ 100.00",
+      "Recife/PE",
+    ]);
+  });
+
+  it("a data de emissao e o dia que a string diz, em qualquer fuso", () => {
+    // Mesma prova de `linhasDaPlanilha` acima, e mesmo motivo: a data não
+    // pode passar por `new Date`, senão `TZ=America/Sao_Paulo` imprime o dia
+    // anterior — aqui, 31/12/2025.
+    const datas = linhasDoPdf([SERVICO_BASE, SERVICO_NA_VIRADA]).map((linha) => linha[2]);
+
+    expect(datas).toEqual(["10/01/2026", "01/01/2026"]);
+  });
+
+  it("corta em 30 linhas, mesmo com mais servicos no recorte", () => {
+    // Limite herdado do relatório original: um PDF com centenas de linhas de
+    // tabela era o problema que o corte evitava.
+    const servicos: Servico[] = Array.from({ length: 35 }, (_, indice) => ({
+      ...SERVICO_BASE,
+      id: indice + 1,
+    }));
+
+    expect(linhasDoPdf(servicos)).toHaveLength(30);
   });
 });

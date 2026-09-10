@@ -113,10 +113,11 @@ export function TabelaDeServicos({
           </TableCell>
         );
       case "emissao":
-        // `split("-").reverse().join("/")` não passa por `new Date` — não
-        // tem o defeito de fuso que `linhasDaPlanilha`/`linhasDoPdf`
-        // documentam em servicos.ts, porque nunca converteu a string em
-        // `Date`.
+        // `split("-").reverse().join("/")` não passa por `new Date` — nunca
+        // teve o defeito de fuso que `linhasDaPlanilha` e `linhasDoPdf`
+        // tinham em servicos.ts, porque nunca converteu a string em `Date`.
+        // Era essa diferença que fazia a tela mostrar 15/03 e a planilha
+        // sair com 14/03 em Brasília.
         return (
           <TableCell key={chave} muted className="whitespace-nowrap">
             {servico.data_emissao.split("-").reverse().join("/")}
