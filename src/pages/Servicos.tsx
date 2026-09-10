@@ -7,7 +7,7 @@ import {
   type RecorteDeServicos,
 } from "./servicos/useServicos";
 import { periodoDoPreset } from "../lib/periodo";
-import { Spinner } from "../design-system/ui";
+import { Alert, Spinner } from "../design-system/ui";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
@@ -77,7 +77,7 @@ const Servicos: React.FC = () => {
     [filtroCliente, filtroCidade, filtroTipoServico, dataInicio, dataFim],
   );
 
-  const { resumo, carregando } = useResumoDeServicos(recorte);
+  const { resumo, carregando, erro } = useResumoDeServicos(recorte);
 
   // Voltar para a página 1 quando o recorte, a busca ou a ordem mudam: quem
   // estava na página 12 de um filtro amplo ficaria olhando página vazia.
@@ -87,7 +87,7 @@ const Servicos: React.FC = () => {
     setPaginaAtual(1);
   }, [chaveDoRecorte]);
 
-  const { pagina } = usePaginaDeServicos(recorte, {
+  const { pagina, erro: erroDaTabela } = usePaginaDeServicos(recorte, {
     busca: pesquisaTabela,
     ordenarPor: ordenacao.campo,
     direcao: ordenacao.direcao,
@@ -213,6 +213,28 @@ const Servicos: React.FC = () => {
       <div className="p-6">
         {/* Cabeçalho */}
         <CabecalhoServicos usuario={user} />
+
+        {/*
+          Falha de busca é AVISO EM BLOCO, e não toast. Os dois hooks já
+          calculavam `erro` com a frase pronta e a tela descartava os dois:
+          com a API caída, `RESUMO_VAZIO` e `PAGINA_VAZIA` desenhavam uma tela
+          inteira e plausível — "R$ 0,00", "N/A" no Top Cliente, gráficos
+          vazios, "Nenhum resultado encontrado." — e quem olhava lia "não
+          houve serviço nesse período" e ia embora. O estado é permanente até
+          recarregar, então o aviso tem de ficar na tela: um toast some em 4
+          segundos e devolve a pessoa à tela vazia sem explicação. Mesmo
+          padrão de `contas/TelaDeContas.tsx` e da tela de Locação; o
+          `role="alert"` do primitivo anuncia sozinho.
+
+          Um `Alert` só para as duas buscas: as duas caem pela mesma queda de
+          rede, e dois blocos vermelhos idênticos diriam a mesma coisa duas
+          vezes.
+        */}
+        {erro || erroDaTabela ? (
+          <div className="mt-6">
+            <Alert variant="danger">{erro ?? erroDaTabela}</Alert>
+          </div>
+        ) : null}
 
         <div className="mt-6">
           {/* Filtros */}
