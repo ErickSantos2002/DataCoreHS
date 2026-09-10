@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useIsMobile } from "../hooks/useIsMobile";
 import {
   paramsDoRecorte,
   useFiltrosComerciais,
@@ -83,19 +84,6 @@ const CORES_GRAFICO = [
     "#64748b", // cinza claro
     "#94a3b8", // cinza mais suave
 ];
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 640);
-    handleResize(); // roda na montagem
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return isMobile;
-};
 
 const Vendas: React.FC = () => {
   const { user } = useAuth();
@@ -715,10 +703,10 @@ const Vendas: React.FC = () => {
                 <YAxis
                   type="category"
                   dataKey="vendedor"
-                  width={window.innerWidth < 640 ? 80 : 140} // 🔥 mais compacto no mobile
-                  tick={{ fontSize: window.innerWidth < 640 ? 9 : 12 }}
+                  width={isMobile ? 80 : 140} // 🔥 mais compacto no mobile
+                  tick={{ fontSize: isMobile ? 9 : 12 }}
                   tickFormatter={(name: string) =>
-                    window.innerWidth < 640
+                    isMobile
                       ? name.length > 8 ? `${name.substring(0, 8)}...` : name
                       : name.length > 15 ? `${name.substring(0, 15)}...` : name
                   }
