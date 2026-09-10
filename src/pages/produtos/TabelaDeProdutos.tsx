@@ -59,10 +59,6 @@ const COLUNAS: ColunaDeProdutos[] = [
  * `Produtos.tabela.test.tsx` dispara o clique no `<th>` que encontra por
  * `closest("th")`. Trocar para o botão do primitivo exigiria reescrever esse
  * teste, e a task pede para ele passar sem edição.
- *
- * "Código" chama `onOrdenar("codigo")` mas não reordena nada — outro achado
- * preservado: `ordenarEBuscar` (`produtos.ts`) não tem `case "codigo"` no
- * `switch`, então o clique muda o estado sem mudar a ordem da tabela.
  */
 export function TabelaDeProdutos({
   produtos,

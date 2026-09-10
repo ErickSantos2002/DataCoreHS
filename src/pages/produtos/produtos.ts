@@ -274,6 +274,14 @@ export function ordenarEBuscar(
     let aVal: any, bVal: any;
 
     switch (ordenacao.campo) {
+      // Sem este `case`, "codigo" caía no `default: return 0` e o clique no
+      // cabeçalho da coluna Código mudava o estado de ordenação sem mexer em
+      // uma linha da tabela. Mesmo padrão de "descricao": fallback para
+      // string vazia antes de comparar, porque item sem código vira `""`.
+      case "codigo":
+        aVal = a.codigo || "";
+        bVal = b.codigo || "";
+        break;
       case "descricao":
         aVal = a.descricao || "";
         bVal = b.descricao || "";

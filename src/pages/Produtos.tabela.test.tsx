@@ -285,38 +285,36 @@ describe("tabela de Produtos", () => {
     expect(within(linhas[2]).getByText("P3")).toBeInTheDocument();
   });
 
-  // DIVERGÊNCIA (registrada no relatório, e não é a do item sem código):
-  // o teste original (escrito contra a versão decomposta de `main`) esperava
-  // que clicar em "Código" ordenasse a tabela — lá o defeito já tinha sido
-  // corrigido (item 2 da Task 11 de lá). Aqui o `switch` de `ordenarEBuscar`
-  // (`produtos/produtos.ts`) não tem `case "codigo"`, cai no
-  // `default: return 0`, e a ordem não muda —
-  // nem a seta de direção aparece (o cabeçalho de Código também não tem o
-  // bloco condicional do `ChevronUp`/`ChevronDown` que os outros têm). Achado
-  // ao mover (não corrigido): fica caracterizado como está, no mesmo espírito
-  // do "defeito preservado" de `Produtos.multiselect.test.tsx`.
-  it("clicar no cabecalho de codigo NAO reordena (defeito preservado: falta o case 'codigo')", () => {
-    // Comparar contra o estado ANTES do clique seria frágil: `produtosTabela`
-    // reconstrói sempre a partir de `produtosAgregados` (que já chega
-    // ordenado por valor decrescente, de `resumoDeProdutos`), então "antes"
-    // só bateria com "depois" se a ordenação vigente coincidisse por acaso
-    // com essa ordem — o que aconteceria neste fixture, mas por coincidência.
-    // A prova robusta é outra: alternar a DIREÇÃO não muda nada, porque o
-    // `switch` de `ordenarEBuscar` (`produtos/produtos.ts`, procurar pelo
-    // `case "descricao"` — sem número de linha de propósito, porque a task que
-    // acrescentar o `case "codigo"` desloca tudo abaixo dele) não tem
-    // `case "codigo"` e cai no `default: return 0` nos dois sentidos.
+  it("clicar no cabecalho de codigo reordena a tabela pelo codigo", () => {
+    // Este teste era, ate a Task 4, a caracterizacao de um DEFEITO: o `switch`
+    // de `ordenarEBuscar` (`produtos/produtos.ts`, procurar pelo
+    // `case "descricao"` — sem numero de linha de proposito, porque o `case`
+    // novo desloca tudo abaixo dele) nao tinha `case "codigo"` e caia no
+    // `default: return 0`, entao o clique mudava o estado de ordenacao sem
+    // mexer numa linha. O `case` entrou, e a asserção virou a do conserto.
+    //
+    // Alternar a DIRECAO e o que prova o conserto: a ordem inicial da tabela
+    // (quantidadeVendida desc) e P2, P1, P3 — nem a ascendente nem a
+    // descendente por codigo coincidem com ela, entao nenhum dos dois cliques
+    // pode passar por acidente.
     render(<Produtos />);
 
     const colCodigo = cabecalho("Código");
 
+    // Primeiro clique num campo novo: `alternarOrdenacao` (`Produtos.tsx`)
+    // sempre comeca em desc.
     fireEvent.click(colCodigo);
-    const apos1Clique = linhasDaTabela().map((l) => l.textContent);
+    let linhas = linhasDaTabela();
+    expect(within(linhas[0]).getByText("P3")).toBeInTheDocument();
+    expect(within(linhas[1]).getByText("P2")).toBeInTheDocument();
+    expect(within(linhas[2]).getByText("P1")).toBeInTheDocument();
 
+    // Segundo clique no mesmo campo: inverte para asc.
     fireEvent.click(colCodigo);
-    const apos2Cliques = linhasDaTabela().map((l) => l.textContent);
-
-    expect(apos2Cliques).toEqual(apos1Clique);
+    linhas = linhasDaTabela();
+    expect(within(linhas[0]).getByText("P1")).toBeInTheDocument();
+    expect(within(linhas[1]).getByText("P2")).toBeInTheDocument();
+    expect(within(linhas[2]).getByText("P3")).toBeInTheDocument();
   });
 
   it("o estado vazio aparece com frase completa quando o filtro nao acha nada", () => {

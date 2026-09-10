@@ -319,8 +319,8 @@ describe("rankingPorValor", () => {
 
 describe("ordenarEBuscar", () => {
   /**
-   * Três produtos em que os quatro campos ordenáveis dão quatro ordens
-   * DIFERENTES entre si, e nenhuma delas é a ordem de entrada.
+   * Três produtos em que os quatro campos numéricos e de descrição dão quatro
+   * ordens DIFERENTES entre si, e nenhuma delas é a ordem de entrada.
    *
    * É o que faz cada `case` do `switch` ser observável: a revisão da Task 2
    * trocou o `case "valorTotal"` para ler `valorMedio` e os 45 testes ficaram
@@ -330,6 +330,10 @@ describe("ordenarEBuscar", () => {
    *
    *   descrição ↓ P2, P3, P1  ·  quantidade ↓ P2, P1, P3
    *   valor total ↓ P1, P3, P2  ·  valor médio ↓ P3, P1, P2
+   *
+   * O código é a exceção de propósito: P1, P2, P3 entram nessa ordem, então
+   * a ASCENDENTE por código coincide com a ordem de entrada — e por isso o
+   * teste de código afirma a DESCENDENTE, que não coincide com nada.
    */
   const CATALOGO: ProdutoAgregado[] = [
     {
@@ -362,6 +366,18 @@ describe("ordenarEBuscar", () => {
   function ordemPor(campo: string): string[] {
     return ordenarEBuscar(CATALOGO, "", { campo, direcao: "desc" }).map((p) => p.codigo);
   }
+
+  it("ordena por código, e não pela ordem de entrada", () => {
+    // O `switch` de `ordenarEBuscar` não tinha `case "codigo"`: clicar no
+    // cabeçalho da coluna Código mudava o estado de ordenação e caía no
+    // `default: return 0`, deixando a tabela exatamente como estava.
+    // O catálogo entra P1, P2, P3 — a ordem de entrada é a ASCENDENTE por
+    // código, então só a descendente prova que o `case` existe.
+    expect(ordemPor("codigo")).toEqual(["P3", "P2", "P1"]);
+    expect(
+      ordenarEBuscar(CATALOGO, "", { campo: "codigo", direcao: "asc" }).map((p) => p.codigo),
+    ).toEqual(["P1", "P2", "P3"]);
+  });
 
   it("ordena por descrição, de Z para A", () => {
     expect(ordemPor("descricao")).toEqual(["P2", "P3", "P1"]);
