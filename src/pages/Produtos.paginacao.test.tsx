@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { baixarPlanilha } from "../lib/planilha";
 import Produtos from "./Produtos";
@@ -30,11 +30,25 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-/** Dublê de `baixarPlanilha` — o teste de exportação olha só para as linhas
- * que chegam nela, sem gerar `.xlsx` de verdade. */
+/** Dublê de `baixarPlanilha` — os testes de exportação leem os dois
+ * argumentos que chegam nela (as abas e o nome do arquivo), sem gerar
+ * `.xlsx` de verdade. */
 vi.mock("../lib/planilha", () => ({
   baixarPlanilha: vi.fn(),
 }));
+
+// `vitest.config.ts` não liga `clearMocks`, e mais de um teste aqui exporta:
+// sem isto o segundo veria a chamada do primeiro e o `toHaveBeenCalledTimes(1)`
+// passaria a contar duas.
+beforeEach(() => {
+  vi.mocked(baixarPlanilha).mockClear();
+});
+
+// Só um teste daqui fixa o relógio; devolvê-lo sempre evita que a escolha dele
+// vaze para os vizinhos na ordem em que o vitest resolver rodá-los.
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 
 const { NOTAS } = vi.hoisted(() => {
@@ -65,13 +79,20 @@ vi.mock("./comercial/useComercial", async (original) => {
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
+// O `BarChart` escreve a série que recebeu: é o único jeito de contar quantas
+// barras o "Top 10" desenha. Os outros dublês seguem mudos — nenhum outro
+// teste deste arquivo olha para gráfico.
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   return {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ data, children }: { data?: unknown[]; children?: React.ReactNode }) => (
+      <div data-testid="grafico-ranking" data-serie={JSON.stringify(data ?? [])}>
+        {children}
+      </div>
+    ),
     LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
     PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
@@ -196,5 +217,50 @@ describe("paginacao em Produtos", () => {
     expect(baixarPlanilha).toHaveBeenCalledTimes(1);
     const [abas] = vi.mocked(baixarPlanilha).mock.calls[0];
     expect(abas[0].linhas).toHaveLength(17);
+  });
+
+  it("exporta uma aba chamada Produtos, num arquivo carimbado com o dia", () => {
+    // Os dois testes de planilha olhavam só a QUANTIDADE de linhas. Trocar o
+    // nome da aba por "Planilha1", ou tirar a data do nome do arquivo, passava
+    // verde. Sem a data, duas exportações em dias diferentes viram o mesmo
+    // `produtos.xlsx` e a segunda sobrescreve a primeira na pasta de
+    // Downloads, sem aviso nenhum.
+    //
+    // O relógio é fixado para que o nome esperado seja uma constante, e não a
+    // mesma expressão que a tela usa — repetir `diaLocal(new Date())` na
+    // asserção provaria apenas que dois lados calculam igual, inclusive
+    // quando os dois estão errados. Meio-dia LOCAL de propósito: a asserção
+    // não é sobre fuso, e assim o dia é o mesmo em `UTC` e em
+    // `America/Sao_Paulo`.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
+
+    render(<Produtos />);
+    fireEvent.click(screen.getByRole("button", { name: /exportar excel/i }));
+
+    const [abas, arquivo] = vi.mocked(baixarPlanilha).mock.calls[0];
+    expect(abas).toHaveLength(1);
+    expect(abas[0].nome).toBe("Produtos");
+    expect(arquivo).toBe("produtos_2026-03-15.xlsx");
+  });
+
+  it("o Top 10 do grafico recebe dez produtos, e nao os dezessete nem tres", () => {
+    // O `10` de `rankingPorValor(produtosAgregados, 10)` em `Produtos.tsx` era
+    // um número que ninguém conferia: trocá-lo por `3` deixava o card com o
+    // título "Top 10 Produtos (Valor)" desenhando três barras. A conta pura
+    // `rankingPorValor` está testada com limite 2 — o buraco era o argumento
+    // na casca, e só a tela renderizada o alcança.
+    //
+    // Este é o único fixture de Produtos com mais de dez produtos, por isso o
+    // teste mora aqui. A afirmação é sobre a CONTAGEM: os dezessete têm o
+    // mesmo valor total, então a identidade de quem entra no corte depende do
+    // desempate do `sort` e não é comportamento da tela.
+    render(<Produtos />);
+
+    const serie = JSON.parse(
+      screen.getByTestId("grafico-ranking").dataset.serie ?? "[]",
+    );
+
+    expect(serie).toHaveLength(10);
   });
 });

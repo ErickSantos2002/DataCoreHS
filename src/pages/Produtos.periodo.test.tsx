@@ -183,6 +183,40 @@ describe("preset de periodo em Produtos", () => {
     expect(campoData("Data Fim")).toHaveValue("");
   });
 
+  it("digitar a data de inicio na mao leva o preset para Personalizado", () => {
+    // O `onChange` do `<select>` estava coberto; o caminho inverso, não.
+    // Tirar o `setPresetPeriodo("custom")` do `onDataInicio` (`Produtos.tsx`)
+    // passava verde na suíte inteira. Cenário: a pessoa escolhe "Este ano",
+    // depois digita 01/03/2026 em "Data Início" — o select continua escrito
+    // "Este ano" enquanto o intervalo consultado é outro. E como o efeito só
+    // reage a MUDANÇA de preset, nada volta a alinhar os dois: o rótulo mente
+    // até alguém trocar o preset de novo.
+    render(<Produtos />);
+    escolherPreset("anoAtual");
+    expect(seletorDePreset()).toHaveValue("anoAtual");
+
+    fireEvent.change(campoData("Data Início"), { target: { value: "2026-03-01" } });
+
+    expect(seletorDePreset()).toHaveValue("custom");
+    // A data digitada tem de sobreviver: se o preset virasse outro que não
+    // "custom", o efeito reescreveria as duas datas por cima.
+    expect(campoData("Data Início")).toHaveValue("2026-03-01");
+    expect(campoData("Data Fim")).toHaveValue("2026-12-31");
+  });
+
+  it("digitar a data de fim na mao tambem leva o preset para Personalizado", () => {
+    // O outro lado do mesmo fio — `onDataFim` repete a decisão de
+    // `onDataInicio` e some com a mesma facilidade.
+    render(<Produtos />);
+    escolherPreset("anoAtual");
+
+    fireEvent.change(campoData("Data Fim"), { target: { value: "2026-06-30" } });
+
+    expect(seletorDePreset()).toHaveValue("custom");
+    expect(campoData("Data Início")).toHaveValue("2026-01-01");
+    expect(campoData("Data Fim")).toHaveValue("2026-06-30");
+  });
+
   it("Personalizado nao mexe nas datas que ja estavam la", () => {
     render(<Produtos />);
     escolherPreset("anoAtual");

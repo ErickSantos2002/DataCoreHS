@@ -187,6 +187,45 @@ describe("calcularKpis", () => {
     });
   });
 
+  it("com lista cheia devolve os cinco números, cada um no seu campo", () => {
+    // O único teste com `toEqual` sobre o objeto inteiro era o da lista vazia,
+    // onde os cinco campos valem 0 ou `null` — qualquer troca entre eles passa
+    // ali. Foi assim que duas plantações atravessaram a suíte de 1524 testes:
+    // trocar `totalFaturado` e `ticketMedio` entre si (a tela passava a dizer
+    // que a empresa faturou R$ 162,50) e dobrar `totalProdutosUnicos`.
+    //
+    // Os cinco valores abaixo são distintos entre si de propósito: 8, 1300,
+    // 162,5 e 2 não coincidem, então nenhuma troca entre campos sobrevive.
+    const agregados: ProdutoAgregado[] = [
+      {
+        chave: "P1",
+        codigo: "P1",
+        descricao: "Bafômetro Phoebus",
+        quantidadeVendida: 3,
+        valorTotal: 300,
+        valorMedio: 100,
+        numeroVendas: 1,
+      },
+      {
+        chave: "P2",
+        codigo: "P2",
+        descricao: "Tubo descartável",
+        quantidadeVendida: 5,
+        valorTotal: 1000,
+        valorMedio: 200,
+        numeroVendas: 1,
+      },
+    ];
+
+    expect(calcularKpis(agregados)).toEqual({
+      totalProdutosVendidos: 8,
+      totalFaturado: 1300,
+      ticketMedio: 162.5,
+      produtoMaisVendido: agregados[1],
+      totalProdutosUnicos: 2,
+    });
+  });
+
   it("com empate na quantidade vendida, o primeiro da lista ganha o mais vendido", () => {
     // O reduce usa `>` estrito: um produto empatado com o atual líder não o
     // substitui, então quem aparece primeiro na lista de agregados vence o
@@ -410,6 +449,22 @@ describe("ordenarEBuscar", () => {
     expect(ordemPor("valorMedio")).toEqual(["P3", "P1", "P2"]);
   });
 
+  it("a pesquisa acha pelo código, e não só pela descrição", () => {
+    // O `filter` da pesquisa tem dois ramos, descrição e código, e só o da
+    // descrição era exercitado: apagar `p.codigo?.toLowerCase().includes(...)`
+    // ficava verde na suíte inteira. Cenário: a pessoa digita "P2" no campo
+    // "Pesquisar produto..." e a tabela responde "Nenhum resultado
+    // encontrado." com o produto P2 listado logo acima, antes de ela digitar.
+    //
+    // Nenhuma das três descrições do catálogo contém "p2", então este termo só
+    // pode casar pelo código — é o que torna o ramo observável.
+    expect(
+      ordenarEBuscar(CATALOGO, "P2", { campo: "codigo", direcao: "desc" }).map(
+        (p) => p.codigo,
+      ),
+    ).toEqual(["P2"]);
+  });
+
   it("com pesquisa que não acha nada devolve lista vazia", () => {
     const agregados: ProdutoAgregado[] = [
       {
@@ -433,20 +488,25 @@ describe("ordenarEBuscar", () => {
 });
 
 describe("linhasDaPlanilha", () => {
-  it("exporta as seis colunas na ordem em que a tabela mostra", () => {
-    const agregados: ProdutoAgregado[] = [
-      {
-        chave: "P1",
-        codigo: "P1",
-        descricao: "Produto A",
-        quantidadeVendida: 3,
-        valorTotal: 300,
-        valorMedio: 100,
-        numeroVendas: 2,
-      },
-    ];
+  /**
+   * Uma linha cujos seis valores são distintos entre si — inclusive o código,
+   * que é texto, e a descrição. Valor repetido deixaria uma troca de coluna
+   * passar despercebida, que é exatamente o defeito que este bloco fecha.
+   */
+  const UMA_LINHA: ProdutoAgregado[] = [
+    {
+      chave: "P1",
+      codigo: "P1",
+      descricao: "Produto A",
+      quantidadeVendida: 3,
+      valorTotal: 300,
+      valorMedio: 100,
+      numeroVendas: 2,
+    },
+  ];
 
-    expect(Object.keys(linhasDaPlanilha(agregados)[0])).toEqual([
+  it("exporta as seis colunas na ordem em que a tabela mostra", () => {
+    expect(Object.keys(linhasDaPlanilha(UMA_LINHA)[0])).toEqual([
       "Código",
       "Produto",
       "Quantidade Vendida",
@@ -454,6 +514,31 @@ describe("linhasDaPlanilha", () => {
       "Valor Médio",
       "Número de Vendas",
     ]);
+  });
+
+  it("cada cabecalho leva o valor do campo que ele nomeia", () => {
+    // Até a revisão final de 10/09/2026, os dois testes desta planilha
+    // olhavam só `Object.keys` e `toHaveLength`: NENHUM valor era conferido.
+    // Trocar "Valor Total" por `p.valorMedio`, ou o "Código" pela descrição,
+    // ou os dois valores entre si, passava verde na suíte inteira.
+    //
+    // Cenário: a pessoa filtra o trimestre, exporta, abre o `.xlsx` e manda
+    // para a chefia. A coluna "Valor Total" traz o preço unitário médio —
+    // números 5 a 200 vezes menores que o faturamento real, com o cabeçalho
+    // certo por cima. A tela na frente dela mostra os valores corretos, então
+    // nada denuncia a divergência.
+    //
+    // `toEqual` sobre o objeto inteiro, e não campo a campo: a troca simétrica
+    // entre duas colunas mantém o conjunto de valores e só a comparação do
+    // objeto todo a pega.
+    expect(linhasDaPlanilha(UMA_LINHA)[0]).toEqual({
+      Código: "P1",
+      Produto: "Produto A",
+      "Quantidade Vendida": 3,
+      "Valor Total": 300,
+      "Valor Médio": 100,
+      "Número de Vendas": 2,
+    });
   });
 
   it("exporta o recorte inteiro, nao so uma pagina", () => {
