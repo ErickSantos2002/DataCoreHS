@@ -185,6 +185,18 @@ function celula(linha: HTMLElement, rotulo: string): HTMLElement {
   return within(linha).getAllByRole("cell")[indiceDaColuna(rotulo)];
 }
 
+/**
+ * O botão que ordena por esta coluna.
+ *
+ * O clique de ordenação mora num `<button>` dentro do `<th>`, e não no `<th>`
+ * (`TabelaDeServicos.tsx`, símbolo `TabelaDeServicos`): um `<th>` sozinho não
+ * entra na ordem de tabulação. `aria-label="Ordenar por ..."` é o nome
+ * acessível do botão, mesmo molde de `Produtos.tabela.test.tsx`.
+ */
+function botaoDeOrdenar(rotulo: string): HTMLElement {
+  return screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
+}
+
 /** A `<tr>` que contém o texto dado, procurado só dentro do `<tbody>`. */
 function linhaContendo(texto: string): HTMLElement {
   const alvo = within(corpoDaTabela()).getByText(texto);
@@ -296,13 +308,11 @@ describe("tabela de Serviços", () => {
   it.each(ORDENACAO_POR_COLUNA)(
     "clicar no cabecalho %s faz a tela pedir a ordem por %s",
     (rotulo, campo) => {
-      // O clique mora no próprio `<th>` (`Servicos.tsx`, símbolo
-      // `alternarOrdenacao`): não há botão nem `aria-label` nesta versão da
-      // tela. Prende rótulo do cabeçalho ao campo pedido — trocar dois
-      // `alternarOrdenacao` de lugar derruba dois casos.
+      // Prende rótulo do cabeçalho ao campo pedido — trocar dois `campo` de
+      // lugar em `COLUNAS` (`TabelaDeServicos.tsx`) derruba dois casos.
       render(<Servicos />);
 
-      fireEvent.click(screen.getByRole("columnheader", { name: rotulo }));
+      fireEvent.click(botaoDeOrdenar(rotulo));
 
       expect(ultimoPedido().ordenarPor).toBe(campo);
     },
@@ -311,15 +321,14 @@ describe("tabela de Serviços", () => {
   it("clicar duas vezes na mesma coluna inverte a direcao pedida", () => {
     render(<Servicos />);
 
-    const cabecalho = screen.getByRole("columnheader", { name: "Número NFS-e" });
-
     // Primeiro clique: troca de campo, e `alternarOrdenacao` começa em desc.
-    fireEvent.click(cabecalho);
+    fireEvent.click(botaoDeOrdenar("Número NFS-e"));
     expect(ultimoPedido().ordenarPor).toBe("numero");
     expect(ultimoPedido().direcao).toBe("desc");
 
-    // Segundo clique: mesmo campo, inverte para asc.
-    fireEvent.click(cabecalho);
+    // Segundo clique: mesmo campo, inverte para asc. O botão é buscado de
+    // novo porque o primeiro clique remonta o cabeçalho (a seta entra).
+    fireEvent.click(botaoDeOrdenar("Número NFS-e"));
     expect(ultimoPedido().ordenarPor).toBe("numero");
     expect(ultimoPedido().direcao).toBe("asc");
   });
@@ -339,11 +348,29 @@ describe("tabela de Serviços", () => {
     expect(svgsDe("Data Emissão")).toBe(2);
     expect(svgsDe("Número NFS-e")).toBe(1);
 
-    fireEvent.click(screen.getByRole("columnheader", { name: "Número NFS-e" }));
+    fireEvent.click(botaoDeOrdenar("Número NFS-e"));
 
     expect(svgsDe("Número NFS-e")).toBe(2);
     expect(svgsDe("Data Emissão")).toBe(1);
   });
+
+  it.each(ORDENACAO_POR_COLUNA.map(([rotulo]) => rotulo))(
+    "o cabecalho %s recebe foco de teclado",
+    (rotulo) => {
+      // `getByRole("button", ...)` sozinho NÃO prova acessibilidade de
+      // teclado: um `<th role="button" aria-label="...">` satisfaria a busca
+      // e continuaria fora da ordem de tabulação. Quem prova é o foco — o
+      // `focus()` do jsdom só muda `document.activeElement` para elemento
+      // que de fato é focável, então um `<th>` disfarçado deixa o foco no
+      // `<body>` e derruba esta asserção.
+      render(<Servicos />);
+
+      const botao = botaoDeOrdenar(rotulo);
+      botao.focus();
+
+      expect(document.activeElement).toBe(botao);
+    },
+  );
 
   it("o estado vazio aparece com frase completa quando o filtro de data nao acha nada", () => {
     render(<Servicos />);

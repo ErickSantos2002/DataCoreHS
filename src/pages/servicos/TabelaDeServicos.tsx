@@ -76,11 +76,8 @@ const COLUNAS: ColunaDeServicos[] = [
  * `<div>` não é filho válido de `<tbody>`) para irmão da tabela, sem mudar
  * nada visível, porque o modal é `position: fixed`.
  *
- * **Dois defeitos conhecidos, preservados de propósito** (quem corrige é a
- * task dos consertos, cada um com plantação própria):
- * - o `onClick` de ordenação mora direto no `<th>` (via `TableHeaderCell`,
- *   sem `sortable`), e não num `<button>` filho como `TabelaDeContas.tsx` e
- *   `TabelaDeProdutos.tsx` já fazem — um `<th>` não recebe foco de teclado.
+ * **Um defeito conhecido, preservado de propósito** (quem corrige é a task
+ * dos consertos, com plantação própria):
  * - os botões de exportar não desabilitam com `total === 0` — falta o mesmo
  *   `disabled={total === 0}` que `TabelaDeContas.tsx` já tem no símbolo
  *   `TabelaDeContas`.
@@ -206,18 +203,25 @@ export function TabelaDeServicos({
             <TableRow>
               {COLUNAS.map(({ chave, rotulo, campo, Icone }) =>
                 campo ? (
-                  // Sem `sortable`: o clique fica no `<th>` mesmo, não num
-                  // `<button>` filho — defeito conhecido, preservado.
-                  <TableHeaderCell
-                    key={chave}
-                    onClick={() => onOrdenar(campo)}
-                    className="cursor-pointer select-none hover:bg-surface-elevated"
-                  >
-                    <span className="inline-flex items-center gap-1">
+                  // O clique mora num `<button>` filho, e não no `<th>`: um
+                  // `<th>` sozinho não entra na ordem de tabulação nem
+                  // responde a Enter, então ordenar era ação só de mouse.
+                  // O evento de clique borbulha do alvo para os ancestrais —
+                  // por isso mover o `onClick` para dentro preserva o clique
+                  // do mouse enquanto ganha o teclado; o inverso (`onClick`
+                  // no `<th>`) é que não alcançaria o botão. Mesmo molde de
+                  // `TabelaDeContas.tsx` e `TabelaDeProdutos.tsx`.
+                  <TableHeaderCell key={chave}>
+                    <button
+                      type="button"
+                      onClick={() => onOrdenar(campo)}
+                      aria-label={`Ordenar por ${rotulo}`}
+                      className="inline-flex select-none items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    >
                       {Icone ? (
                         <Icone className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                       ) : null}
-                      {rotulo}
+                      <span>{rotulo}</span>
                       {ordenacao.campo === campo ? (
                         ordenacao.direcao === "desc" ? (
                           <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
@@ -225,7 +229,7 @@ export function TabelaDeServicos({
                           <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                         )
                       ) : null}
-                    </span>
+                    </button>
                   </TableHeaderCell>
                 ) : (
                   <TableHeaderCell key={chave}>{rotulo}</TableHeaderCell>
