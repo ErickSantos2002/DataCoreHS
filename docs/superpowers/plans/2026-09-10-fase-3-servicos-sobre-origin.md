@@ -205,10 +205,17 @@ Referência: `91bb7412:src/pages/Servicos.tsx` (227 linhas).
 - o estado `exportando` e o comentário que explica por que a exportação leva o
   recorte todo.
 
-**O `TabelaDeServicos` ganha uma prop `exportando`** e desabilita os dois botões
-enquanto ela é verdadeira. Isso **não** é conserto: é preservar, através do
-movimento, um comportamento que a versão dela já tinha. Sem a prop, o movimento
-seria uma regressão.
+⚠️ **O `exportando` é estado MORTO na versão dela, e continua morto aqui.**
+Verificado no `origin/main`: `const [exportando, setExportando] = useState(false)`
+é declarado e escrito em quatro pontos, e **nunca lido** — não há feedback de
+"Exportando…" nem proteção contra clique duplo enquanto o recorte inteiro é
+buscado. Mover é mover: preserve o estado morto como está, com um comentário
+`Achado ao mover (não corrigido)`. **Não** acrescente a prop `exportando` ao
+`TabelaDeServicos` aqui — dar vida a ele é conserto, e conserto é da Task 3.
+
+(Uma versão anterior deste plano mandava o contrário, dizendo que a prop era
+preservação. Estava errado: a Task 1 verificou que não há comportamento a
+preservar.)
 
 - [ ] **Passo 5: Ajustar `servicos.test.ts` ao que sobrou**
 
@@ -239,7 +246,7 @@ git commit -m "refactor(servicos): a tela vira casca sobre pages/servicos, lendo
 
 ---
 
-### Task 3: Os três consertos, um commit cada
+### Task 3: Os quatro consertos, um commit cada
 
 **Arquivos:** `src/pages/servicos/TabelaDeServicos.tsx`, `src/pages/servicos/servicos.ts`
 
@@ -288,6 +295,20 @@ hora local e escolha uma data cuja virada atravesse o fuso — meio-dia não tes
 nada.
 
 Commit: `fix(servicos): data de emissao sai do defeito de fuso, em dois lugares`
+
+- [ ] **3.4 — O `exportando` não faz nada**
+
+Achado na Task 1. Na versão dela o estado é escrito e nunca lido: quem clica em
+"Exportar Excel" num recorte grande fica sem retorno nenhum enquanto todas as
+páginas são buscadas do servidor, e pode clicar de novo, disparando a busca
+inteira outra vez.
+
+Dar vida a ele: `TabelaDeServicos` ganha a prop `exportando`, os dois botões
+desabilitam enquanto ela é verdadeira, e o rótulo diz que está exportando.
+Interface em português, sentence case, sem emoji.
+
+Plantar: devolver a prop a `false` fixo. Ver falhar. Reverter.
+Commit: `fix(servicos): exportar da retorno e nao aceita clique duplo`
 
 - [ ] **Passo final: `tsc`, suíte nos dois fusos, lint**
 
