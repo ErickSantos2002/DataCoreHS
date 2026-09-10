@@ -19,6 +19,17 @@
  * O único defeito que a lógica movida trazia — a data de emissão passando por
  * `new Date` nas duas exportações — está corrigido; o docblock de
  * `linhasDaPlanilha` conta qual era.
+ *
+ * ⚠️ **`converterParaNumero` no valor é rede, e não conserto.** Os três
+ * lugares que lêem `valor_servico` (`linhasDaPlanilha`, `linhasDoPdf` e a
+ * célula de valor em `TabelaDeServicos.tsx`) passam o campo por
+ * `converterParaNumero` (`lib/dinheiro.ts`); o `origin/main` usava o campo
+ * cru. Com `valor_servico: number`, como `services/notasapi.ts` o declara, a
+ * função é **identidade** — nenhuma mudança de comportamento, e foi por isso
+ * que entrou no commit que só move sem disparar o portão. O que ela protege é
+ * o dia em que a API do Tiny devolver `"1.234,56"` como texto: `Number` puro
+ * leria 1,23. Está aqui registrado porque a revisão final o apontou como o
+ * único desvio daquele commit sem linha no ledger.
  */
 
 import type { ResumoDeServicos } from "../../services/notasapi";
@@ -262,6 +273,12 @@ export function proximaOrdenacao(
  * instante e sem fuso, e `dataDeCalendario` (`lib/datas.ts`) lê o dia certo
  * direto da string, sem `Date` nenhum. Mesmo defeito e mesma correção de
  * `notasDeLocacao.ts`.
+ *
+ * A correção mudou também o caso da data AUSENTE, e de propósito:
+ * `new Date(undefined).toLocaleDateString("pt-BR")` imprimia `Invalid Date`
+ * na planilha, e `dataDeCalendario` devolve `—`. `Servico` declara
+ * `data_emissao: string`, então a nota sem data é dado fora do contrato —
+ * mas ela chega, e um travessão numa célula diz o que "Invalid Date" não diz.
  */
 export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[] {
   return servicos.map((s) => ({
@@ -295,7 +312,9 @@ export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[]
  * Mesmo defeito de fuso de `linhasDaPlanilha` acima, e mesma correção: a data
  * passa por `dataDeCalendario` (`lib/datas.ts`) em vez de `new Date`, que lia
  * "AAAA-MM-DD" como meia-noite UTC e imprimia o dia anterior a partir de
- * `TZ=America/Sao_Paulo`.
+ * `TZ=America/Sao_Paulo`. Com ela veio também a troca de `Invalid Date` por
+ * `—` na nota sem data, pelo mesmo motivo que o docblock de `linhasDaPlanilha`
+ * registra.
  */
 export function linhasDoPdf(servicos: Servico[]): (string | number)[][] {
   return servicos.slice(0, 30).map((s) => [

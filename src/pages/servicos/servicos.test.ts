@@ -313,6 +313,17 @@ describe("linhasDaPlanilha", () => {
     // uma vez em vez de parar na primeira.
     expect(datas).toEqual(["10/01/2026", "01/01/2026"]);
   });
+
+  it("nota sem data sai com travessao, e nao com Invalid Date", () => {
+    // O conserto de fuso mudou também este caso, e sem menção nenhuma:
+    // `new Date("").toLocaleDateString("pt-BR")` imprimia `Invalid Date` na
+    // célula, e `dataDeCalendario` devolve `—`. É melhoria, e a certa — um
+    // travessão diz "não tem" e "Invalid Date" diz "o programa se perdeu" —,
+    // mas era mudança de comportamento sem prova. Fica aqui.
+    const [linha] = linhasDaPlanilha([{ ...SERVICO_BASE, data_emissao: "" }]);
+
+    expect(linha["Data Emissão"]).toBe("—");
+  });
 });
 
 /**
