@@ -194,7 +194,12 @@ export function TabelaDeProdutos({
             <TableEmpty colSpan={COLUNAS.length} />
           ) : (
             produtos.map((produto) => (
-              <TableRow key={produto.codigo}>
+              // `chave`, e não `codigo`: item sem código vira `codigo: ""`, e
+              // dois deles davam `key=""` na mesma tabela — o React avisava no
+              // console e passava a reconciliar as duas linhas como se fossem
+              // a mesma. A `chave` do resumo já os distingue, e não é mostrada
+              // em coluna nenhuma: é dado interno.
+              <TableRow key={produto.chave}>
                 {COLUNAS.map(({ chave }) => celula(produto, chave))}
               </TableRow>
             ))

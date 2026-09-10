@@ -25,6 +25,15 @@ import type { FiltrosComerciais, ResumoComercial } from "../../services/notasapi
 
 /** Um produto agregado a partir dos itens das notas filtradas. */
 export interface ProdutoAgregado {
+  /**
+   * A identidade da linha, e o que o React usa de `key` na tabela.
+   *
+   * Vem do `por_produto` do resumo, onde é o código quando ele existe e
+   * `'#' + descricao` quando não existe. É dado INTERNO: não aparece em coluna
+   * nenhuma. O `codigo` não serve de identidade porque item sem código vira
+   * `""`, e dois deles colidiriam na mesma `key`.
+   */
+  chave: string;
   codigo: string;
   descricao: string;
   quantidadeVendida: number;
@@ -147,16 +156,16 @@ export function recorteDeProdutos(
  * ⚠️ A agregação passou a incluir item SEM código (36 itens, 0,12% do valor),
  * que a versão anterior descartava com um `if (!item.codigo) return`.
  *
- * Achado ao mover (não corrigido): item sem código vira `codigo: ""`, e
- * `TabelaDeProdutos` usa `key={produto.codigo}` — dois itens sem código
- * colidem na mesma key do React. A chave que os distingue existe no resumo
- * (`p.chave`, que é `'#' + descricao` nesse caso), mas esta conversão a joga
- * fora.
+ * A `chave` do resumo vem junto de propósito: item sem código vira
+ * `codigo: ""`, e dois deles colidiriam na mesma `key` do React em
+ * `TabelaDeProdutos`. A `chave` já distingue os dois (`'#' + descricao` quando
+ * não há código) e antes era jogada fora aqui.
  */
 export function produtosDoResumo(
   porProduto: ResumoComercial["por_produto"],
 ): ProdutoAgregado[] {
   return porProduto.map((p) => ({
+    chave: p.chave,
     codigo: p.codigo ?? "",
     descricao: p.descricao ?? "",
     quantidadeVendida: p.quantidade,

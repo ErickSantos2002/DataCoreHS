@@ -38,6 +38,7 @@ vi.mock("recharts", () => {
 
 const RANKING: ProdutoAgregado[] = [
   {
+    chave: "P1",
     codigo: "P1",
     descricao: "Bafômetro Digital",
     quantidadeVendida: 10,

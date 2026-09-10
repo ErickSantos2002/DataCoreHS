@@ -134,6 +134,7 @@ describe("produtosDoResumo", () => {
 
     expect(agregados).toEqual([
       {
+        chave: "P1",
         codigo: "P1",
         descricao: "Bafômetro Phoebus",
         quantidadeVendida: 5,
@@ -152,17 +153,19 @@ describe("produtosDoResumo", () => {
     expect(agregado.valorMedio).toBe(0);
   });
 
-  it("item sem código vira código vazio — e é isso que colide na key da tabela", () => {
-    // Achado ao mover (não corrigido): a fonte nova inclui item sem código
-    // (36 itens, 0,12% do valor), que a agregação antiga descartava. Aqui ele
-    // perde a `chave` que o distinguiria (`'#' + descricao`) e fica com
-    // `codigo: ""` — que `TabelaDeProdutos` usa como `key` do React.
+  it("item sem código fica com código vazio, mas guarda a chave que o distingue", () => {
+    // A fonte nova inclui item sem código (36 itens, 0,12% do valor), que a
+    // agregação antiga descartava. Os dois ficam com `codigo: ""` — e era só
+    // isso que a conversão devolvia, então `TabelaDeProdutos` os renderizava
+    // com a mesma `key` do React. A `chave` do resumo vem junto agora, e é
+    // ela que os separa.
     const agregados = produtosDoResumo([
       { chave: "#Tubo", codigo: null, descricao: "Tubo", quantidade: 1, valor: 10, notas: 1 },
       { chave: "#Filtro", codigo: null, descricao: null, quantidade: 2, valor: 20, notas: 1 },
     ]);
 
     expect(agregados.map((p) => p.codigo)).toEqual(["", ""]);
+    expect(agregados.map((p) => p.chave)).toEqual(["#Tubo", "#Filtro"]);
     expect(agregados[1].descricao).toBe("");
   });
 });
@@ -189,6 +192,7 @@ describe("calcularKpis", () => {
     // empate — não é o de maior valorTotal nem o de menor código.
     const agregados: ProdutoAgregado[] = [
       {
+        chave: "P1",
         codigo: "P1",
         descricao: "Primeiro no empate",
         quantidadeVendida: 5,
@@ -197,6 +201,7 @@ describe("calcularKpis", () => {
         numeroVendas: 1,
       },
       {
+        chave: "P2",
         codigo: "P2",
         descricao: "Segundo no empate",
         quantidadeVendida: 5,
@@ -276,6 +281,7 @@ describe("rankingPorValor", () => {
    */
   const CATALOGO: ProdutoAgregado[] = [
     {
+      chave: "P1",
       codigo: "P1",
       descricao: "Bafômetro Digital",
       quantidadeVendida: 10,
@@ -284,6 +290,7 @@ describe("rankingPorValor", () => {
       numeroVendas: 3,
     },
     {
+      chave: "P2",
       codigo: "P2",
       descricao: "Tubo Coletor de Amostra",
       quantidadeVendida: 2,
@@ -292,6 +299,7 @@ describe("rankingPorValor", () => {
       numeroVendas: 1,
     },
     {
+      chave: "P3",
       codigo: "P3",
       descricao: "Detector de Gás Portátil",
       quantidadeVendida: 30,
@@ -337,6 +345,7 @@ describe("ordenarEBuscar", () => {
    */
   const CATALOGO: ProdutoAgregado[] = [
     {
+      chave: "P1",
       codigo: "P1",
       descricao: "Bafômetro Digital",
       quantidadeVendida: 10,
@@ -345,6 +354,7 @@ describe("ordenarEBuscar", () => {
       numeroVendas: 4,
     },
     {
+      chave: "P2",
       codigo: "P2",
       descricao: "Tubo Coletor de Amostra",
       quantidadeVendida: 20,
@@ -353,6 +363,7 @@ describe("ordenarEBuscar", () => {
       numeroVendas: 2,
     },
     {
+      chave: "P3",
       codigo: "P3",
       descricao: "Máscara de Solda",
       quantidadeVendida: 5,
@@ -401,6 +412,7 @@ describe("ordenarEBuscar", () => {
   it("com pesquisa que não acha nada devolve lista vazia", () => {
     const agregados: ProdutoAgregado[] = [
       {
+        chave: "P1",
         codigo: "P1",
         descricao: "Bafômetro Phoebus",
         quantidadeVendida: 5,
