@@ -323,14 +323,28 @@ começa em `desc`) sai da casca para `servicos.ts`, com teste e plantação.
 
 Commit: `refactor(servicos): a regra de alternar ordenacao vira conta pura`
 
-- [ ] **Passo 2: Conferir que não sobrou paleta crua nem `dark:`**
+- [ ] **Passo 2: Limpar a paleta crua que sobrou na casca**
+
+⚠️ **Este passo é trabalho, não conferência** — uma versão anterior deste plano
+dizia que o `grep` viria vazio, e estava errada. O motivo: `91bb7412` é
+justamente o commit que adota os tokens na casca **e** tira a tela do
+`PENDENTES_FASE_3`, no mesmo commit. A Task 2 não podia usar a casca dele (o
+arquivo ficaria limpo enquanto ainda listado, e a armadilha reversa do guarda
+derruba a suíte), então trouxe o bloco de `91bb7412^` — idêntico ao do
+`origin/main`, com a paleta crua.
 
 ```bash
 grep -n "dark:\|text-gray-\|bg-gray-\|text-slate-\|bg-slate-\|text-blue-\|bg-blue-" \
   src/pages/Servicos.tsx src/pages/servicos/*.tsx
 ```
 
-Os componentes de `91bb7412` já adotaram os tokens — isto deve vir vazio.
+Sobraram três linhas na casca: o `<div>` do estado de carregando, o `<p>` da
+frase dentro dele, e o `<div>` raiz. Trocar por classe de token
+(`bg-surface-base`, `text-conteudo-muted`), **sem** modificador de opacidade —
+`bg-surface/40` não gera regra e há guarda para isso.
+
+`git show 91bb7412 -- src/pages/Servicos.tsx` mostra como aquela migração fez,
+inclusive a troca do spinner cru pelo `Spinner` do design system.
 
 - [ ] **Passo 3: Tirar da lista**
 
