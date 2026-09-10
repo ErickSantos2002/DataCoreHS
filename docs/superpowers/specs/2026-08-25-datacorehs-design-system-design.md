@@ -910,3 +910,167 @@ deu em nada.
     para as telas restantes.
 11. **Checkpoint humano de permissões da Fase 2** nunca foi feito.
 12. **`docs/DataCoreHS.html`** segue fora do versionamento, sem decisão.
+
+---
+
+## Estado em 10/09/2026 — a colisão, e o que ela ensinou
+
+**Fase 4 fechada em 6/6. Fase 3 em 8 das 12 telas. E, pela primeira vez desde
+agosto, o `origin/main` está em dia.**
+
+Suíte **1625 testes / 123 arquivos**, verdes em `TZ=UTC` e
+`TZ=America/Sao_Paulo`, zero pulados. Lint **49** (baseline original 192),
+`tsc` limpo, prettier limpo.
+
+### O que aconteceu: 79 commits represados encontraram outra frente de trabalho
+
+O repositório vinha **79 commits à frente do `origin/main`**, de propósito — o
+merge é checkpoint humano e não tinha sido pedido. Nesse intervalo, uma segunda
+frente de trabalho, partindo de um `origin/main` que nunca viu esse trabalho,
+**reescreveu a fonte de dados** de Clientes, Produtos, Serviços e Vendas: as
+telas deixaram de carregar as notas inteiras no navegador e passaram a ler
+resumos já agregados pelo Postgres, com Serviços paginando no servidor.
+
+O resultado foi **45 arquivos em conflito real contra 26 que sobreviveram**. As
+migrações de Produtos e Serviços não podiam ser mergeadas: tinham de ser
+**refeitas** sobre o código novo.
+
+**A decisão que governou o resgate:** preservar o que já estava empurrado. Nada
+de `revert`, nada de "a versão antiga era melhor". Cada leva nasceu de uma
+branch criada a partir do `origin/main` e subiu em **fast-forward**.
+
+| Branch | O que levou |
+|---|---|
+| `fase-4-hooks-sobre-origin` | `useCliqueFora` e `useIsMobile`, os dois guardas, e Clientes/Produtos/Vendas consumindo o hook |
+| `fase-3-produtos-sobre-origin` | Produtos reaplicado — 16 commits, casca 920 → 239 linhas |
+| `fase-4-testes-mobile-sobre-origin` | as specs e planos da Fase 4, e os testes `Clientes.mobile` e `Vendas.mobile`, que tinham ficado para trás |
+| `fase-3-servicos-sobre-origin` | Serviços reaplicado — 16 commits, casca 909 → 277 linhas |
+
+**O `main` local está esgotado.** O que resta nele e não está no `origin/main`
+são três contexts (`DataContext`, `ServicosContext`, `ContasReceberContext`) que
+a outra frente apagou de propósito ao trocar a fonte de dados.
+
+### A lição de processo: segurar `push` não é neutro
+
+A regra "não empurrar sem o Erick pedir" está certa como checkpoint. Mas o custo
+de segurar **não aparece no dia em que se segura** — aparece semanas depois,
+inteiro de uma vez, quando outra frente reescreve os mesmos arquivos.
+
+**A partir de agora:** quando o contador de commits à frente do `origin/main`
+passar de algumas dezenas, isso vira assunto, em vez de acumular em silêncio.
+
+### O que a reaplicação acrescentou à receita
+
+A receita de sete passos continua valendo. O que a colisão acrescentou:
+
+1. **A decomposição vem do commit anterior aos consertos.** As branches de
+   migração terminam com os defeitos já corrigidos dentro dos componentes.
+   Trazê-los inteiros faz o commit que move **mover e consertar ao mesmo tempo**,
+   e aí um teste vermelho não diz qual dos dois quebrou. Em Produtos o ponto
+   limpo foi `79954c07`; em Serviços, `91bb7412` — com a ressalva de que aquele
+   commit também adotava os tokens, então a casca teve de vir de `91bb7412^`.
+2. **Preservar é diferente de acrescentar.** Restaurar os ícones de seta que o
+   ponto limpo não tinha é preservação, porque o `origin/main` os tem; dar vida a
+   um estado morto (`exportando`) é conserto, e conserto não entra no commit que
+   move.
+3. **Citação em comentário vai por arquivo + símbolo, sem número de linha.** Um
+   conserto que acrescenta um `case` desloca tudo abaixo, e a citação apodrece.
+4. **O portão de cada migração é a rede passar sem uma edição.** Nas duas telas
+   isso valeu: os cinco arquivos de teste de tela ficaram byte a byte iguais
+   através do commit que move.
+
+### A lição de teste: a plantação é hipótese, não fato
+
+Este é o achado mais caro do período. Ao longo de três dias, **cinco plantações
+escritas nos planos não derrubavam o que os planos afirmavam que derrubariam** —
+e em dois casos foi o implementador que descobriu.
+
+E o inverso, medido: a revisão final de **Produtos plantou 67 quebras e 19
+passaram verdes**. Dezenove maneiras de a tela ficar errada sem nenhum teste
+reclamar. Nenhuma era defeito de conta; eram todas buracos de cobertura.
+
+Os padrões que enganam, todos encontrados aqui:
+
+- **`within(linha).getByText(valor)`** prova que o valor está na linha, não na
+  célula certa. Trocar duas colunas de lugar passava verde.
+- **Troca simétrica entre dois campos** escapa de qualquer asserção que só olhe
+  o *conjunto* de valores presentes. Mexer num lado falha; trocar os dois, não.
+- **Exportação verificada por `Object.keys` e `toHaveLength`** não verifica nada.
+- **Gráfico testado pelo que recebe** não prova o que desenha.
+- **`getByRole("button")` aceita um `<th role="button">`**, que continua
+  inalcançável por teclado — o defeito exato volta verde. Só um teste que chama
+  `focus()` e olha o `document.activeElement` pega.
+- **Comentário que promete cobertura inexistente é pior que ausência de
+  cobertura**, porque é o que faz o próximo revisor não plantar ali. Havia um em
+  `Produtos.kpis.test.tsx` afirmando cobrir justamente a troca que não cobria.
+- **Plantação que quebra a compilação não prova nada.** O teste não roda, e
+  "nenhum teste" se parece com falha.
+
+Embutir esses padrões no plano de Serviços **desde a primeira task** derrubou o
+placar de 19 plantações verdes para 6.
+
+### Os defeitos consertados na reaplicação
+
+Além de restaurar a decomposição, as duas telas saíram melhores do que entraram:
+
+| Tela | Defeito | Consequência |
+|---|---|---|
+| Produtos | item sem código colidia na `key` do React | duas linhas reconciliadas como uma; reordenar embaralhava o conteúdo |
+| Produtos | eixo Y do ranking em 11px | abaixo do mínimo do checklist — e era **incoberto por construção**, porque o dublê de recharts descartava a render-prop |
+| Serviços | **data de emissão um dia atrás na planilha e no PDF** | a tela mostrava 15/03 e o documento exportado, 14/03 — em Brasília. Em `TZ=UTC` o defeito **some**, e foi assim que atravessou meses |
+| Serviços | a tela não tinha estado de erro | API caída = KPIs zerados e "Nenhum resultado encontrado.", sem dizer que a rede falhou |
+| Ambas | cabeçalho ordenável inalcançável por teclado, exportar habilitado com tabela vazia | |
+
+O defeito de fuso merece nota: `new Date("2026-03-15")` é lido como meia-noite em
+**UTC**, e a oeste de Greenwich isso ainda é o dia anterior. `dataDeCalendario`
+(`src/lib/datas.ts`) existe exatamente para isso. **O teste que o trava passa em
+`TZ=UTC` mesmo com o defeito presente** — não há fixture que mude isso, porque o
+erro não existe em UTC. É a justificativa concreta da regra de rodar a suíte nos
+dois fusos.
+
+### Telas da Fase 3 — 8 de 12
+
+| # | Tela | Estado |
+|---|---|---|
+| 1–5 | Dashboard · Locação · Usuários · ContasReceber · ContasPagar | **feitas** (agosto) |
+| 6 | Financeiro + CentroCustoTab + MetaTab | **feita** — a única com abas |
+| 7 | Produtos | **feita**, e **reaplicada** sobre a fonte agregada |
+| 8 | Serviços | **feita**, e **reaplicada** sobre a fonte agregada e paginada |
+| 9 | Vendedores | próxima |
+| 10 | Estoque | |
+| 11 | Clientes | dado enriquecido; já consome o `useIsMobile` |
+| 12 | Vendas | maior e mais crítica, por último |
+
+`PENDENTES_FASE_3` tem hoje quatro entradas: `Clientes`, `Estoque`, `Vendas`,
+`Vendedores`.
+
+### Dívida aberta: a conferência no navegador
+
+**Nada foi conferido no navegador desde a Fase 4.** É o passo 6 da receita, e é
+insubstituível — nenhum teste responde por ele. Acumulado:
+
+1. Os três gráficos de Serviços, nos dois temas.
+2. **Abrir a planilha exportada** de Serviços com um período estreito: as colunas
+   e o número de linhas têm de bater com a tela. A rede prende o *pedido*, não a
+   contagem — o falso é da outra frente e não se toca.
+3. **Abrir o PDF**, conferindo o cabeçalho contra o corpo.
+4. Derrubar a API e ver o aviso novo de Serviços aparecer.
+5. Toque fora de um filtro no celular; `Escape` nos dois popovers de Estoque.
+6. Cores de eixo e grade nos dois temas; a pizza de 8 → 6 cores, repetindo da 7ª
+   cidade.
+7. **Duas mudanças visuais deliberadas:** o primeiro paint em tela estreita
+   (Clientes e Vendas agora nascem no tamanho de celular em vez de nascerem
+   desktop e corrigirem depois do mount), e as barras do "Top 10" de Produtos,
+   que saíram do laranja para a cor de ação do `chartTheme` — os dois gráficos
+   ficaram do mesmo tom.
+8. Um período de mais de 24 meses, para ver a escala anual.
+9. A frase do estado de carregando de Serviços mudou e **não tem teste em tela
+   nenhuma**.
+
+### Achados registrados e não corrigidos
+
+- `ordenarEBuscar` (Produtos) nunca devolve `0`: ordenação instável em empate.
+- O cabeçalho ordenável não emite `aria-sort` — a direção é informação só visual.
+- Exportar com a tabela vazia gera planilha e PDF só com cabeçalho.
+- Os `<label>` dos filtros de Serviços seguem sem `htmlFor`.
+- "NFS-e Emitidas" sem separador de milhar, com 5.004 notas na base.
