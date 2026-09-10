@@ -52,13 +52,16 @@ const COLUNAS: ColunaDeProdutos[] = [
  * A tabela de produtos: busca, seis colunas — cinco ordenáveis — exportação
  * para Excel e paginação de 15 em 15.
  *
- * O `onClick` de ordenação fica no próprio `<TableHeaderCell>` (o `<th>`), e
- * não num `<button>` por dentro dele como em `TabelaDeContas.tsx`: achado ao
- * limpar, não corrigido — o cabeçalho já nascia sem foco de teclado
- * (`Produtos.tsx` original também tinha o clique só no `<th>`), e
- * `Produtos.tabela.test.tsx` dispara o clique no `<th>` que encontra por
- * `closest("th")`. Trocar para o botão do primitivo exigiria reescrever esse
- * teste, e a task pede para ele passar sem edição.
+ * O `onClick` de ordenação mora num `<button>` dentro do `<TableHeaderCell>`
+ * (o `<th>`), e não no `<th>` em si: um `<th>` não entra na ordem de tabulação
+ * e não dispara clique com Enter nem Espaço, então quem navega por teclado
+ * simplesmente não conseguia reordenar a tabela. Mesmo padrão de
+ * `TabelaDeContas.tsx` (procurar pelo `aria-label={`Ordenar por ...`}`), com
+ * `focus-visible:ring-2` — item 9 do checklist de tela migrada.
+ *
+ * O botão é nosso, e não o `sortable` do `TableHeaderCell`: aquele desenha a
+ * direção com as setas de texto `↑ ↓ ↕`, e esta tela usa os ícones
+ * `ChevronUp`/`ChevronDown`, como a tela irmã de Contas.
  */
 export function TabelaDeProdutos({
   produtos,
@@ -150,13 +153,14 @@ export function TabelaDeProdutos({
           <TableRow>
             {COLUNAS.map(({ chave, rotulo, campo }) =>
               campo ? (
-                <TableHeaderCell
-                  key={chave}
-                  onClick={() => onOrdenar(campo)}
-                  className="cursor-pointer"
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {rotulo}
+                <TableHeaderCell key={chave}>
+                  <button
+                    type="button"
+                    onClick={() => onOrdenar(campo)}
+                    aria-label={`Ordenar por ${rotulo}`}
+                    className="inline-flex select-none items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  >
+                    <span>{rotulo}</span>
                     {ordenacao.campo === campo ? (
                       ordenacao.direcao === "desc" ? (
                         <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
@@ -164,7 +168,7 @@ export function TabelaDeProdutos({
                         <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                       )
                     ) : null}
-                  </span>
+                  </button>
                 </TableHeaderCell>
               ) : (
                 <TableHeaderCell key={chave}>{rotulo}</TableHeaderCell>

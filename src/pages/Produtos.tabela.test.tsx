@@ -206,22 +206,17 @@ function escolherNoFiltro(rotulo: string, placeholder: string, opcao: RegExp) {
 }
 
 /**
- * O `<th>` de uma coluna ordenável, achado pelo texto do rótulo.
+ * O botão de ordenação de uma coluna, achado pelo nome acessível.
  *
- * DIVERGÊNCIA (registrada no relatório): na versão decomposta em `main`, o
- * clique de ordenação mora num `<button>` dentro do `<th>` — daí o arquivo
- * original usar `getByRole("button", { name: "Ordenar por X" })`. Aqui o
- * `onClick` está no próprio `<th>`, no `TableHeaderCell` que
- * `produtos/TabelaDeProdutos.tsx` monta a partir de `COLUNAS`, e não existe
- * `<button>` nenhum ali — o docblock daquele componente registra por que ele
- * ficou assim. O que se prova — clicar no cabeçalho inverte a ordenação — é o
- * mesmo; só o alvo do clique muda.
+ * O clique mora num `<button>` dentro do `<th>`, e não no `<th>` em si (ver o
+ * docblock de `produtos/TabelaDeProdutos.tsx`): um `<th>` não recebe foco de
+ * teclado. Procurar pelo papel, e não por `closest("th")`, é o que amarra o
+ * conserto — o evento borbulha do alvo para os ancestrais e nunca desce para
+ * dentro de um filho, então um teste que clicasse no `<th>` deixaria de
+ * alcançar o `onClick` e o defeito não teria como voltar sem ninguém ver.
  */
-function cabecalho(rotulo: string): HTMLElement {
-  const texto = screen.getByText(rotulo);
-  const th = texto.closest("th");
-  if (!th) throw new Error(`cabecalho "${rotulo}" nao encontrado`);
-  return th as HTMLElement;
+function botaoDeOrdenar(rotulo: string): HTMLElement {
+  return screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
 }
 
 describe("tabela de Produtos", () => {
@@ -259,6 +254,22 @@ describe("tabela de Produtos", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("o cabecalho ordenavel alcanca o teclado", () => {
+    // O defeito: o `onClick` de ordenacao morava no `<th>`, que nao entra na
+    // ordem de tabulacao — quem navega por teclado nao conseguia reordenar a
+    // tabela de jeito nenhum. Chamar `focus()` num `<th>` deixa o
+    // `activeElement` no `<body>`; num `<button>`, nao.
+    //
+    // A asserção olha o foco, e nao so a existencia do botao: um `<th>` com
+    // `role="button"` satisfaria o `getByRole` e continuaria inalcancavel.
+    render(<Produtos />);
+
+    const botao = botaoDeOrdenar("Quantidade");
+    botao.focus();
+
+    expect(document.activeElement).toBe(botao);
+  });
+
   it("clicar no cabecalho de quantidade ordena, e clicar de novo inverte", () => {
     render(<Produtos />);
 
@@ -267,9 +278,7 @@ describe("tabela de Produtos", () => {
     expect(within(linhas[0]).getByText("P2")).toBeInTheDocument();
     expect(within(linhas[2]).getByText("P3")).toBeInTheDocument();
 
-    // Nesta branch o clique de ordenacao mora no <th> em si (ver o docblock
-    // de `cabecalho()`), nao num <button> filho.
-    const colQuantidade = cabecalho("Quantidade");
+    const colQuantidade = botaoDeOrdenar("Quantidade");
 
     // Primeiro clique: a tabela ja estava ordenada por quantidadeVendida
     // desc, entao alternarOrdenacao inverte para asc.
@@ -299,7 +308,7 @@ describe("tabela de Produtos", () => {
     // pode passar por acidente.
     render(<Produtos />);
 
-    const colCodigo = cabecalho("Código");
+    const colCodigo = botaoDeOrdenar("Código");
 
     // Primeiro clique num campo novo: `alternarOrdenacao` (`Produtos.tsx`)
     // sempre comeca em desc.
