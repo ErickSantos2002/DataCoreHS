@@ -1,8 +1,13 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useServicos } from "../context/ServicosContext";
+import {
+  usePaginaDeServicos,
+  useResumoDeServicos,
+  todosOsServicos,
+  type PedidoDaTabelaDeServicos,
+  type RecorteDeServicos,
+} from "./servicos/useServicos";
 import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
-import { usePaginacao } from "../hooks/usePaginacao";
 import ModalObservacoes from "../components/ModalObservacoes";
 import {
   MultiSelect,
@@ -69,7 +74,6 @@ const CORES_GRAFICO = [
 
 const Servicos: React.FC = () => {
   const { user } = useAuth();
-  const { servicos, servicosEnriquecidos, carregando } = useServicos();
 
   // Estados dos filtros
   const [filtroCliente, setFiltroCliente] = useState<string[]>([]);
@@ -81,20 +85,12 @@ const Servicos: React.FC = () => {
   const [observacoesSelecionadas, setObservacoesSelecionadas] = useState<string | null>(null);
 
   // Estados da tabela
-  const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
-    campo: 'data_emissao',
-    direcao: 'desc'
-  });
+  const [ordenacao, setOrdenacao] = useState<{
+    campo: PedidoDaTabelaDeServicos["ordenarPor"];
+    direcao: "asc" | "desc";
+  }>({ campo: "data_emissao", direcao: "desc" });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
-
-  // Função para converter valor para número
-  const converterParaNumero = (valor: string | number | undefined): number => {
-    if (typeof valor === 'number') return valor;
-    if (!valor) return 0;
-    const s = valor.toString().replace(/R\$/g, '').replace(/\s/g, '');
-    if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
-    return parseFloat(s) || 0;
-  };
+  const [paginaAtual, setPaginaAtual] = useState(1);
 
   // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
   // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
@@ -107,127 +103,67 @@ const Servicos: React.FC = () => {
     setDataFim(periodo.fim);
   }, [presetPeriodo]);
 
-  // Listas únicas para filtros
-  const clientesUnicos = useMemo(() =>
-    Array.from(
-      new Set(
-        servicosEnriquecidos.map(s => 
-          `${s.razao_social_tomador} (${s.cpf_cnpj_tomador})`
-        )
-      )
-    ).sort(),
-    [servicosEnriquecidos]
+  const recorte: RecorteDeServicos = useMemo(
+    () => ({
+      clientes: filtroCliente,
+      cidades: filtroCidade,
+      tipos: filtroTipoServico,
+      dataInicio,
+      dataFim,
+    }),
+    [filtroCliente, filtroCidade, filtroTipoServico, dataInicio, dataFim],
   );
 
-  const cidadesUnicas = useMemo(() =>
-    Array.from(
-      new Set(
-        servicosEnriquecidos.map(s => `${s.cidade_tomador}/${s.uf_tomador}`)
-      )
-    ).sort(),
-    [servicosEnriquecidos]
-  );
+  const { resumo, carregando } = useResumoDeServicos(recorte);
 
-  const tiposServicoUnicos = useMemo(() => {
-    const tipos = new Set<string>();
-    servicosEnriquecidos.forEach(s => {
-      // Pega os primeiros 50 caracteres da discriminação como "tipo"
-      const tipo = s.discriminacao_servico?.substring(0, 50) || "Não especificado";
-      tipos.add(tipo);
-    });
-    return Array.from(tipos).sort();
-  }, [servicosEnriquecidos]);
+  // Voltar para a página 1 quando o recorte, a busca ou a ordem mudam: quem
+  // estava na página 12 de um filtro amplo ficaria olhando página vazia.
+  const chaveDoRecorte =
+    JSON.stringify(recorte) + pesquisaTabela + JSON.stringify(ordenacao);
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [chaveDoRecorte]);
 
-  // Serviços filtrados
-  const servicosFiltrados = useMemo(() => {
-    return servicosEnriquecidos.filter(s => {
-      const clienteFormatado = `${s.razao_social_tomador} (${s.cpf_cnpj_tomador})`;
-      const clienteOk = filtroCliente.length === 0 || filtroCliente.includes(clienteFormatado);
+  const { pagina } = usePaginaDeServicos(recorte, {
+    busca: pesquisaTabela,
+    ordenarPor: ordenacao.campo,
+    direcao: ordenacao.direcao,
+    pagina: paginaAtual,
+    porPagina: 15,
+  });
 
-      const cidadeFormatada = `${s.cidade_tomador}/${s.uf_tomador}`;
-      const cidadeOk = filtroCidade.length === 0 || filtroCidade.includes(cidadeFormatada);
+  const servicosPaginados = pagina.itens;
+  const totalDeServicos = pagina.total;
 
-      const tipoServico = s.discriminacao_servico?.substring(0, 50) || "Não especificado";
-      const tipoOk = filtroTipoServico.length === 0 || filtroTipoServico.includes(tipoServico);
+  // As opções dos multiselects vêm do banco, e não de percorrer as notas.
+  const clientesUnicos = useMemo(() => resumo.opcoes.clientes, [resumo.opcoes.clientes]);
+  const cidadesUnicas = useMemo(() => resumo.opcoes.cidades, [resumo.opcoes.cidades]);
+  const tiposServicoUnicos = useMemo(() => resumo.opcoes.tipos, [resumo.opcoes.tipos]);
 
-      const dataOk = (() => {
-        if (!dataInicio && !dataFim) return true;
-
-        // Converte tudo para Date com segurança
-        const dataEmissao = new Date(s.data_emissao + "T00:00:00");
-        const inicio = dataInicio ? new Date(dataInicio + "T00:00:00") : new Date("0000-01-01");
-        const fim = dataFim ? new Date(dataFim + "T23:59:59") : new Date("9999-12-31");
-
-        return dataEmissao >= inicio && dataEmissao <= fim;
-      })();
-
-      return clienteOk && cidadeOk && tipoOk && dataOk;
-    });
-  }, [servicosEnriquecidos, filtroCliente, filtroCidade, filtroTipoServico, dataInicio, dataFim]);
-
-  // KPIs
+  // KPIs — somados pelo banco sobre o recorte inteiro.
   const kpis = useMemo(() => {
-    const totalFaturado = servicosFiltrados.reduce(
-      (acc, s) => acc + converterParaNumero(s.valor_servico),
-      0
-    );
-
-    const totalServicos = servicosFiltrados.length;
-    const ticketMedio = totalServicos > 0 ? totalFaturado / totalServicos : 0;
-
-    // Cliente com maior consumo
-    const clientesAgrupados = servicosFiltrados.reduce((acc: any, s) => {
-      const cliente = s.razao_social_tomador;
-      if (!acc[cliente]) acc[cliente] = 0;
-      acc[cliente] += converterParaNumero(s.valor_servico);
-      return acc;
-    }, {});
-
-    const topCliente = Object.entries(clientesAgrupados)
-      .sort(([,a]: any, [,b]: any) => b - a)[0];
-
+    const topo = resumo.por_cliente[0];
     return {
-      totalFaturado,
-      totalServicos,
-      ticketMedio,
-      topCliente: topCliente ? {
-        nome: topCliente[0],
-        valor: topCliente[1] as number
-      } : null
+      totalFaturado: resumo.kpis.faturamento,
+      totalServicos: resumo.kpis.notas,
+      ticketMedio: resumo.kpis.ticket_medio,
+      topCliente: topo ? { nome: topo.nome, valor: topo.valor } : null,
     };
-  }, [servicosFiltrados]);
+  }, [resumo]);
 
-  // Dados para evolução mensal
+  // Evolução: o banco devolve uma linha por mês com nota; o rótulo e a troca
+  // para escala anual acima de 24 meses continuam sendo decisão da tela.
   const evolucaoMensal = useMemo(() => {
-    // Primeiro agrupa por mês
-    const agrupadoMensal = servicosFiltrados.reduce((acc: Record<string, number>, s) => {
-      // 🔹 Cria a data local sem UTC
-      const [anoStr, mesStr, diaStr] = s.data_emissao.split("-");
-      const data = new Date(Number(anoStr), Number(mesStr) - 1, Number(diaStr));
+    const dadosMensais = resumo.evolucao_mensal.map((m) => {
+      const data = new Date(m.ano, m.mes - 1);
+      return {
+        mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+        total: m.total,
+        ordem: data.getTime(),
+        ano: m.ano,
+      };
+    });
 
-      const ano = data.getFullYear();
-      const mes = data.getMonth();
-      const chave = `${ano}-${mes}`;
-      if (!acc[chave]) acc[chave] = 0;
-      acc[chave] += converterParaNumero(s.valor_servico);
-      return acc;
-    }, {});
-
-    const dadosMensais = Object.entries(agrupadoMensal)
-      .map(([chave, total]) => {
-        const [ano, mes] = chave.split("-");
-        // 🔹 Cria data novamente de forma local
-        const data = new Date(Number(ano), Number(mes));
-        return {
-          mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
-          total,
-          ordem: data.getTime(),
-          ano: Number(ano),
-        };
-      })
-      .sort((a, b) => a.ordem - b.ordem);
-
-    // Se tiver mais de 24 meses, agrupa por ano
     if (dadosMensais.length > 24) {
       const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
         if (!acc[item.ano]) acc[item.ano] = 0;
@@ -244,121 +180,27 @@ const Servicos: React.FC = () => {
         .sort((a, b) => a.ordem - b.ordem);
     }
 
-    // Se tiver 24 meses ou menos, retorna os dados mensais
     return dadosMensais;
-  }, [servicosFiltrados]);
+  }, [resumo.evolucao_mensal]);
+
+  // Ranking de clientes (Top 10) — já vem ordenado por valor do banco.
+  const rankingClientes = useMemo(
+    () =>
+      resumo.por_cliente.slice(0, 10).map((c) => ({
+        cliente: c.nome.length > 20 ? c.nome.substring(0, 20) + "..." : c.nome,
+        clienteCompleto: c.nome,
+        valor: c.valor,
+      })),
+    [resumo.por_cliente],
+  );
+
+  // Distribuição por cidade — as dez maiores.
+  const distribuicaoCidades = useMemo(
+    () => resumo.por_cidade.slice(0, 10).map((c) => ({ name: c.nome, value: c.valor })),
+    [resumo.por_cidade],
+  );
 
 
-  // Ranking de clientes (Top 10)
-  const rankingClientes = useMemo(() => {
-    const agrupado = servicosFiltrados.reduce((acc: any, s) => {
-      const cliente = s.razao_social_tomador;
-      if (!acc[cliente]) acc[cliente] = 0;
-      acc[cliente] += converterParaNumero(s.valor_servico);
-      return acc;
-    }, {});
-
-    return Object.entries(agrupado)
-      .map(([cliente, valor]) => ({ 
-        cliente: cliente.length > 20 ? cliente.substring(0, 20) + "..." : cliente, 
-        clienteCompleto: cliente,
-        valor 
-      }))
-      .sort((a: any, b: any) => b.valor - a.valor)
-      .slice(0, 10);
-  }, [servicosFiltrados]);
-
-  // Distribuição por cidade
-  const distribuicaoCidades = useMemo(() => {
-    const agrupado = servicosFiltrados.reduce((acc: any, s) => {
-      const cidade = `${s.cidade_tomador}/${s.uf_tomador}`;
-      if (!acc[cidade]) acc[cidade] = 0;
-      acc[cidade] += converterParaNumero(s.valor_servico);
-      return acc;
-    }, {});
-
-    return Object.entries(agrupado)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a: any, b: any) => b.value - a.value)
-      .slice(0, 10); // 🔹 agora só mostra as 10 maiores
-  }, [servicosFiltrados]);
-
-  // Tabela com pesquisa e ordenação
-  const servicosTabela = useMemo(() => {
-    let filtrados = [...servicosFiltrados];
-
-    // Aplicar pesquisa
-    if (pesquisaTabela) {
-      const termoLower = pesquisaTabela.toLowerCase();
-      const termoNumerico = pesquisaTabela.replace(/\D/g, ""); // 🔹 só dígitos
-
-      filtrados = filtrados.filter((s) => {
-        const numero = s.numero_nfse?.toString().toLowerCase() || "";
-        const cliente = s.razao_social_tomador?.toLowerCase() || "";
-        const cnpj = s.cpf_cnpj_tomador?.toLowerCase() || "";
-        const cnpjNumerico = s.cpf_cnpj_tomador?.replace(/\D/g, "") || ""; // 🔹 só dígitos
-        const cidade = s.cidade_tomador?.toLowerCase() || "";
-        const descricao = s.discriminacao_servico?.toLowerCase() || "";
-
-        return (
-          numero.includes(termoLower) ||
-          cliente.includes(termoLower) ||
-          cnpj.includes(termoLower) ||
-          (termoNumerico && cnpjNumerico.includes(termoNumerico)) || // 🔹 compara sem máscara
-          cidade.includes(termoLower) ||
-          descricao.includes(termoLower)
-        );
-      });
-    }
-
-    // Aplicar ordenação
-    filtrados.sort((a, b) => {
-      let aVal: any, bVal: any;
-      
-      switch(ordenacao.campo) {
-        case 'numero':
-          aVal = a.numero_nfse;
-          bVal = b.numero_nfse;
-          break;
-        case 'data_emissao':
-          aVal = new Date(a.data_emissao);
-          bVal = new Date(b.data_emissao);
-          break;
-        case 'cliente':
-          aVal = a.razao_social_tomador.toLowerCase();
-          bVal = b.razao_social_tomador.toLowerCase();
-          break;
-        case 'valor':
-          aVal = converterParaNumero(a.valor_servico);
-          bVal = converterParaNumero(b.valor_servico);
-          break;
-        case 'cidade':
-          aVal = a.cidade_tomador.toLowerCase();
-          bVal = b.cidade_tomador.toLowerCase();
-          break;
-        default:
-          return 0;
-      }
-
-      if (ordenacao.direcao === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    return filtrados;
-  }, [servicosFiltrados, pesquisaTabela, ordenacao]);
-
-  // Paginacao: usePaginacao volta para a pagina 1 quando servicosTabela muda
-  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
-  // pagina 2 ficava com slice fora da lista e o rodape invertido.
-  const {
-    pagina: paginaAtual,
-    setPagina: setPaginaAtual,
-    itensDaPagina: servicosPaginados,
-    total: totalDeServicos,
-  } = usePaginacao(servicosTabela, 15);
 
 
   // Formatação de valores
@@ -372,22 +214,38 @@ const Servicos: React.FC = () => {
   };
 
   // Função para alternar ordenação
-  const alternarOrdenacao = (campo: string) => {
+  const alternarOrdenacao = (campo: PedidoDaTabelaDeServicos["ordenarPor"]) => {
     setOrdenacao(prev => ({
       campo,
       direcao: prev.campo === campo && prev.direcao === 'desc' ? 'asc' : 'desc'
     }));
   };
 
+  const [exportando, setExportando] = useState(false);
+
+  /** O recorte inteiro, e não a página visível — a planilha e o PDF sempre
+   *  levaram a lista filtrada toda. */
+  const buscarTudo = useCallback(
+    () =>
+      todosOsServicos(recorte, {
+        busca: pesquisaTabela,
+        ordenarPor: ordenacao.campo,
+        direcao: ordenacao.direcao,
+      }),
+    [recorte, pesquisaTabela, ordenacao],
+  );
+
   // Exportação para Excel
-  const exportarExcel = useCallback(() => {
-    const dadosExport = servicosTabela.map(s => ({
+  const exportarExcel = useCallback(async () => {
+    setExportando(true);
+    try {
+    const dadosExport = (await buscarTudo()).map(s => ({
       'Número NFS-e': s.numero_nfse,
       'Cliente': s.razao_social_tomador,
       'CNPJ/CPF': s.cpf_cnpj_tomador,
       'Data Emissão': new Date(s.data_emissao).toLocaleDateString('pt-BR'),
       'Cidade': `${s.cidade_tomador}/${s.uf_tomador}`,
-      'Valor': converterParaNumero(s.valor_servico),
+      'Valor': s.valor_servico,
       'Descrição': s.discriminacao_servico
     }));
 
@@ -395,10 +253,17 @@ const Servicos: React.FC = () => {
       [{ nome: "Serviços", linhas: dadosExport }],
       `servicos_${diaLocal(new Date())}.xlsx`,
     );
-  }, [servicosTabela]);
+    } catch (falha) {
+      console.error("Erro ao exportar os serviços:", falha);
+    } finally {
+      setExportando(false);
+    }
+  }, [buscarTudo]);
 
   // Exportação para PDF
-  const exportarPDF = useCallback(() => {
+  const exportarPDF = useCallback(async () => {
+    setExportando(true);
+    try {
     const doc = new jsPDF();
     
     // Cabeçalho
@@ -409,11 +274,11 @@ const Servicos: React.FC = () => {
     doc.text(`Usuário: ${user?.username}`, 14, 34);
 
     // Dados para tabela
-    const dadosTabela = servicosTabela.slice(0, 30).map(s => [
+    const dadosTabela = (await buscarTudo()).slice(0, 30).map(s => [
       s.numero_nfse,
       s.razao_social_tomador.substring(0, 25),
       new Date(s.data_emissao).toLocaleDateString('pt-BR'),
-      `R$ ${converterParaNumero(s.valor_servico).toFixed(2)}`,
+      `R$ ${s.valor_servico.toFixed(2)}`,
       `${s.cidade_tomador}/${s.uf_tomador}`
     ]);
 
@@ -424,7 +289,12 @@ const Servicos: React.FC = () => {
     });
 
     doc.save(`servicos_${diaLocal(new Date())}.pdf`);
-  }, [servicosTabela, user]);
+    } catch (falha) {
+      console.error("Erro ao exportar o PDF dos serviços:", falha);
+    } finally {
+      setExportando(false);
+    }
+  }, [buscarTudo, user]);
 
   if (carregando) {
     return (
@@ -979,7 +849,7 @@ const Servicos: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                          R$ {converterParaNumero(servico.valor_servico).toLocaleString("pt-BR", {
+                          R$ {servico.valor_servico.toLocaleString("pt-BR", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}

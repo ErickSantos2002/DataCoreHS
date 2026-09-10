@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ContasReceber from "./ContasReceber";
 import { AuthContext } from "../context/AuthContext";
-import type { ContaReceber } from "../context/ContasReceberContext";
+import type { ContaReceber } from "../services/notasapi";
 
 /**
  * Teste de caracterização da tela de Contas a Receber.

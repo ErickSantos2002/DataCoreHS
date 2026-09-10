@@ -20,7 +20,8 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-const SERVICOS_ENRIQUECIDOS = [
+const { SERVICOS_ENRIQUECIDOS } = vi.hoisted(() => ({
+  SERVICOS_ENRIQUECIDOS: [
   {
     id: 1,
     numero_nfse: "1001",
@@ -52,17 +53,16 @@ const SERVICOS_ENRIQUECIDOS = [
     mes: "fevereiro",
     ano: 2026,
   },
-];
-
-vi.mock("../context/ServicosContext", () => ({
-  useServicos: () => ({
-    servicos: SERVICOS_ENRIQUECIDOS,
-    servicosEnriquecidos: SERVICOS_ENRIQUECIDOS,
-    carregando: false,
-    erro: null,
-    atualizarServicos: vi.fn(),
-  }),
+],
 }));
+
+// A tela deixou de ler o `ServicosContext` (item 9.4): os agregados vêm somados
+// do banco e a tabela vem paginada. O falso mora em `servicos/hooksFalsos`.
+vi.mock("./servicos/useServicos", async (original) => {
+  const real = await original<typeof import("./servicos/useServicos")>();
+  const { criarHooksFalsosDeServicos } = await import("./servicos/hooksFalsos");
+  return { ...real, ...criarHooksFalsosDeServicos(SERVICOS_ENRIQUECIDOS) };
+});
 
 /**
  * Dublê do recharts.

@@ -48,9 +48,6 @@ function espiao(nome: string) {
 vi.mock("./context/EstoqueContext", () => ({
   EstoqueProvider: espiao("Estoque"),
 }));
-vi.mock("./context/ServicosContext", () => ({
-  ServicosProvider: espiao("Servicos"),
-}));
 vi.mock("./context/ContasPagarContext", () => ({
   ContasPagarProvider: espiao("ContasPagar"),
 }));
@@ -130,7 +127,7 @@ const ESPERADO: ReadonlyArray<readonly [string, readonly string[]]> = [
   ["/vendas", []],
   ["/produtos", []],
   ["/vendedores", []],
-  ["/servicos", ["Servicos"]],
+  ["/servicos", []],
   ["/contas-pagar", []],
   ["/contas-receber", []],
   ["/configuracoes", ["Configuracoes"]],

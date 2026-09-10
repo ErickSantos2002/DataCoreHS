@@ -453,10 +453,42 @@ export const fetchLocacao = async (
 // escreveria uma tela em cima de um contrato que nao existe mais.
 
 // Notas Fiscais de Serviço
+export interface PaginaDeServicos {
+  itens: NotaServico[];
+  /** Do FILTRO, nao da pagina. */
+  total: number;
+  valor_total: number;
+  limite: number;
+  offset: number;
+}
+
 export const fetchNotasServico = async (
   params: Params = {},
-): Promise<NotaServico[]> => {
-  const response = await api.get<NotaServico[]>("/faturamento/servicos", {
+): Promise<PaginaDeServicos> => {
+  const response = await api.get<PaginaDeServicos>("/faturamento/servicos", {
+    params,
+  });
+  return response.data;
+};
+
+/**
+ * O que a tela de Servicos desenha, somado pelo banco (item 9.4).
+ *
+ * A tela baixava as 5.004 notas para calcular KPI, evolucao mensal, ranking de
+ * cliente e distribuicao por cidade no navegador.
+ */
+export interface ResumoDeServicos {
+  kpis: { faturamento: number; notas: number; ticket_medio: number };
+  evolucao_mensal: { ano: number; mes: number; total: number; notas: number }[];
+  por_cliente: { nome: string; valor: number; notas: number }[];
+  por_cidade: { nome: string; valor: number; notas: number }[];
+  opcoes: { clientes: string[]; cidades: string[]; tipos: string[] };
+}
+
+export const fetchResumoDeServicos = async (
+  params: Params = {},
+): Promise<ResumoDeServicos> => {
+  const response = await api.get<ResumoDeServicos>("/faturamento/servicos/resumo", {
     params,
   });
   return response.data;

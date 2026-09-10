@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthContext } from "./AuthContext";
 import { ContasPagarProvider, useContasPagar } from "./ContasPagarContext";
-import { ContasReceberProvider, useContasReceber } from "./ContasReceberContext";
-import { ServicosProvider, useServicos } from "./ServicosContext";
+import { useResumoDeContas } from "../pages/contas/useContas";
+import { useResumoDeServicos, RECORTE_VAZIO } from "../pages/servicos/useServicos";
 import { useFaturamento } from "../pages/financeiro/useFaturamento";
 
 /**
- * As quatro fontes que alimentam o Financeiro contam quando a busca falha.
+ * As quatro fontes de dado das telas de dinheiro contam quando a busca falha.
  *
  * Sem isso a tela abre inteira em "Sem dados" com a API caída, e quem olha
  * não distingue "a API caiu" de "a empresa não faturou" — foi o que a
@@ -23,17 +23,17 @@ import { useFaturamento } from "../pages/financeiro/useFaturamento";
  */
 
 const fetchFaturamentoMensal = vi.hoisted(() => vi.fn());
-const fetchNotasServico = vi.hoisted(() => vi.fn());
+const fetchResumoDeServicos = vi.hoisted(() => vi.fn());
 const fetchContasPagar = vi.hoisted(() => vi.fn());
-const fetchContasReceber = vi.hoisted(() => vi.fn());
+const fetchResumoDeContas = vi.hoisted(() => vi.fn());
 vi.mock("../services/notasapi", () => ({
   fetchFaturamentoMensal,
-  fetchNotasServico,
+  fetchResumoDeServicos,
   fetchContasPagar,
-  fetchContasReceber,
+  fetchResumoDeContas,
 }));
 
-/** O `ServicosProvider` lê o usuário da sessão; os outros três não. */
+/** O interceptor de token do axios lê a sessão; por isso todos entram aqui. */
 function ComSessao({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
@@ -57,7 +57,7 @@ function EspiaoDeFaturamento() {
 }
 
 function EspiaoDeServicos() {
-  const { erro, carregando } = useServicos();
+  const { erro, carregando } = useResumoDeServicos(RECORTE_VAZIO);
   return <p>{carregando ? "carregando" : (erro ?? "sem erro")}</p>;
 }
 
@@ -66,8 +66,16 @@ function EspiaoDePagar() {
   return <p>{carregando ? "carregando" : (erro ?? "sem erro")}</p>;
 }
 
+const SEM_FILTRO = {
+  situacao: [],
+  categoria: [],
+  contraparte: [],
+  dataInicio: "",
+  dataFim: "",
+};
+
 function EspiaoDeReceber() {
-  const { erro, carregando } = useContasReceber();
+  const { erro, carregando } = useResumoDeContas("contas_receber", SEM_FILTRO);
   return <p>{carregando ? "carregando" : (erro ?? "sem erro")}</p>;
 }
 
@@ -87,13 +95,14 @@ const CONTEXTOS = [
   },
   {
     nome: "serviços",
-    busca: fetchNotasServico,
+    busca: fetchResumoDeServicos,
     frase: "Não foi possível carregar as notas de serviço.",
+    // Virou HOOK, como o faturamento: o `ServicosProvider` existia para as
+    // 5.004 notas ficarem em memória, e desde o item 9.4 a tela pede o recorte
+    // que desenha.
     montar: () => (
       <ComSessao>
-        <ServicosProvider>
-          <EspiaoDeServicos />
-        </ServicosProvider>
+        <EspiaoDeServicos />
       </ComSessao>
     ),
   },
@@ -111,13 +120,13 @@ const CONTEXTOS = [
   },
   {
     nome: "contas a receber",
-    busca: fetchContasReceber,
+    busca: fetchResumoDeContas,
     frase: "Não foi possível carregar as contas a receber.",
+    // Também virou hook. E saiu da tela de Financeiro junto: ela nunca leu os
+    // dados, e o provider era montado só para propagar esta falha.
     montar: () => (
       <ComSessao>
-        <ContasReceberProvider>
-          <EspiaoDeReceber />
-        </ContasReceberProvider>
+        <EspiaoDeReceber />
       </ComSessao>
     ),
   },

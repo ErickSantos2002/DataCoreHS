@@ -9,7 +9,6 @@ import { ConfiguracoesProvider } from "./context/ConfiguracoesContext";
 import { ContasPagarProvider } from "./context/ContasPagarContext";
 import { DashboardProvider } from "./context/DashboardContext";
 import { EstoqueProvider } from "./context/EstoqueContext";
-import { ServicosProvider } from "./context/ServicosContext";
 
 const Login = lazy(() => import("./pages/Login"));
 const Home = lazy(() => import("./pages/Home"));
@@ -112,9 +111,7 @@ const AppRoutes: React.FC = () => (
         element={
           <ProtectedRoute>
             <RequirePermissao rota="/servicos">
-              <ServicosProvider>
-                <Servicos />
-              </ServicosProvider>
+              <Servicos />
             </RequirePermissao>
           </ProtectedRoute>
         }
