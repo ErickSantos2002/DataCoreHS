@@ -21,6 +21,7 @@ import {
   evolucaoDoResumo,
   rankingPorValor,
   ordenarEBuscar,
+  linhasDaPlanilha,
   type OrdenacaoDeProdutos,
 } from "./produtos/produtos";
 import { CabecalhoProdutos } from "./produtos/CabecalhoProdutos";
@@ -164,19 +165,10 @@ const Produtos: React.FC = () => {
     }));
   };
 
-  // Exportação para Excel
+  // Exportação para Excel — a modelagem da linha mora em produtos.ts.
   const exportarExcel = useCallback(() => {
-    const dadosExport = produtosTabela.map(p => ({
-      'Código': p.codigo,
-      'Produto': p.descricao,
-      'Quantidade Vendida': p.quantidadeVendida,
-      'Valor Total': p.valorTotal,
-      'Valor Médio': p.valorMedio,
-      'Número de Vendas': p.numeroVendas,
-    }));
-
     baixarPlanilha(
-      [{ nome: "Produtos", linhas: dadosExport }],
+      [{ nome: "Produtos", linhas: linhasDaPlanilha(produtosTabela) }],
       `produtos_${diaLocal(new Date())}.xlsx`,
     );
   }, [produtosTabela]);

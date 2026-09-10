@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { baixarPlanilha } from "../lib/planilha";
 import Produtos from "./Produtos";
 
 /**
@@ -27,6 +28,12 @@ import Produtos from "./Produtos";
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
+}));
+
+/** Dublê de `baixarPlanilha` — o teste de exportação olha só para as linhas
+ * que chegam nela, sem gerar `.xlsx` de verdade. */
+vi.mock("../lib/planilha", () => ({
+  baixarPlanilha: vi.fn(),
 }));
 
 
@@ -172,5 +179,22 @@ describe("paginacao em Produtos", () => {
 
     expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 1 a ");
     expect(linhasDaTabela().length).toBeGreaterThan(0);
+  });
+
+  it("exportar leva o recorte inteiro, nao so a pagina visivel", () => {
+    // A versao classica desse defeito: exportar `produtosPaginados` (a
+    // pagina que a pessoa esta olhando) em vez de `produtosTabela` (o
+    // filtrado/ordenado inteiro que `linhasDaPlanilha`, em produtos.ts,
+    // recebe). Com 17 produtos e pagina de 15, a diferenca so aparece com
+    // mais de uma pagina — por isso este teste mora aqui, e nao em
+    // produtos.test.ts, que testa a conta pura isolada da tela e nao
+    // alcancaria o fio entre os dois.
+    render(<Produtos />);
+
+    fireEvent.click(screen.getByRole("button", { name: /exportar excel/i }));
+
+    expect(baixarPlanilha).toHaveBeenCalledTimes(1);
+    const [abas] = vi.mocked(baixarPlanilha).mock.calls[0];
+    expect(abas[0].linhas).toHaveLength(17);
   });
 });

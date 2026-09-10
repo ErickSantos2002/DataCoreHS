@@ -320,3 +320,27 @@ export function ordenarEBuscar(
 
   return filtrados;
 }
+
+// ── Planilha ─────────────────────────────────────────────────────────────
+
+/**
+ * As linhas que vão para o Excel — a modelagem sai de `Produtos.tsx` (era
+ * `.map()` solto dentro de `exportarExcel`) para virar conta pura, igual às
+ * gêmeas de Contas e Locação.
+ *
+ * Recebe o resultado de `ordenarEBuscar` INTEIRO, não `produtosPaginados`: a
+ * paginação de 15 linhas é só da tabela em tela, e quem clica em exportar
+ * espera o recorte filtrado/ordenado completo — não a página em que estava.
+ */
+export function linhasDaPlanilha(
+  agregados: ProdutoAgregado[],
+): Record<string, unknown>[] {
+  return agregados.map((p) => ({
+    Código: p.codigo,
+    Produto: p.descricao,
+    "Quantidade Vendida": p.quantidadeVendida,
+    "Valor Total": p.valorTotal,
+    "Valor Médio": p.valorMedio,
+    "Número de Vendas": p.numeroVendas,
+  }));
+}

@@ -4,6 +4,7 @@ import {
   calcularKpis,
   evolucaoDoResumo,
   indicesDeRotulo,
+  linhasDaPlanilha,
   ordenarEBuscar,
   produtosDoResumo,
   rankingPorValor,
@@ -428,5 +429,48 @@ describe("ordenarEBuscar", () => {
     });
 
     expect(resultado).toEqual([]);
+  });
+});
+
+describe("linhasDaPlanilha", () => {
+  it("exporta as seis colunas na ordem em que a tabela mostra", () => {
+    const agregados: ProdutoAgregado[] = [
+      {
+        chave: "P1",
+        codigo: "P1",
+        descricao: "Produto A",
+        quantidadeVendida: 3,
+        valorTotal: 300,
+        valorMedio: 100,
+        numeroVendas: 2,
+      },
+    ];
+
+    expect(Object.keys(linhasDaPlanilha(agregados)[0])).toEqual([
+      "Código",
+      "Produto",
+      "Quantidade Vendida",
+      "Valor Total",
+      "Valor Médio",
+      "Número de Vendas",
+    ]);
+  });
+
+  it("exporta o recorte inteiro, nao so uma pagina", () => {
+    // A versao classica desse defeito: trocar o recorte completo (o que
+    // `ordenarEBuscar` devolve) pela pagina que `usePaginacao` recorta para
+    // a tabela. Aqui o recorte tem mais itens do que cabe numa pagina de 15
+    // para provar que nada corta a lista antes de exportar.
+    const agregados: ProdutoAgregado[] = Array.from({ length: 20 }, (_, i) => ({
+      chave: `P${i + 1}`,
+      codigo: `P${i + 1}`,
+      descricao: `Produto ${i + 1}`,
+      quantidadeVendida: 1,
+      valorTotal: 1,
+      valorMedio: 1,
+      numeroVendas: 1,
+    }));
+
+    expect(linhasDaPlanilha(agregados)).toHaveLength(20);
   });
 });
