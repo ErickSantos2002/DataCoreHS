@@ -59,11 +59,17 @@ interface NotaDoFixture {
 }
 
 /**
- * O `por_produto` de um fixture, agregado por codigo.
+ * O `por_produto` e a `evolucao_mensal` de um fixture.
  *
  * A tela de Produtos NAO tem tabela de notas: a tabela dela é este agregado.
  * Sem ele o falso devolveria lista vazia e os testes de paginacao dessa tela
  * não teriam o que paginar.
+ *
+ * A `evolucao_mensal` entrou depois, na Task 3 de 2026-09-10: ela vinha sempre
+ * vazia, e por isso trocar a evolução da tela por `[]` deixava os 45 testes de
+ * Produtos verdes — o gráfico de linha não tinha como estar errado, porque
+ * nunca tinha ponto nenhum. A soma aqui é a `quantidade` de itens do mês, que
+ * é o que aquela tela desenha.
  *
  * Isto é a única parte da agregação refeita em TypeScript, e é de propósito
  * mínima — a conta de verdade é do Postgres, conferida recorte por recorte
@@ -95,12 +101,31 @@ export function resumoDeProdutos(notas: NotaDoFixture[]): ResumoComercial {
     }
   }
 
+  const porMes = new Map<string, ResumoComercial["evolucao_mensal"][number]>();
+  for (const nota of notas) {
+    const [ano, mes] = (nota.data_emissao ?? "").split("-").map(Number);
+    if (!ano) continue;
+    const chave = `${ano}-${mes}`;
+    const atual =
+      porMes.get(chave) ??
+      { ano, mes, total: 0, total_produtos: 0, notas: 0, quantidade: 0 };
+    atual.total += nota.valor_nota;
+    atual.total_produtos += nota.valor_produtos ?? nota.valor_nota;
+    atual.notas += 1;
+    atual.quantidade += (nota.itens ?? []).reduce(
+      (soma, item) => soma + Number(item.quantidade ?? 0),
+      0,
+    );
+    porMes.set(chave, atual);
+  }
+
   return {
     ...RESUMO_FALSO,
     kpis: { ...RESUMO_FALSO.kpis, notas: notas.length },
     por_produto: [...porChave.values()]
       .map(({ notas: ids, ...resto }) => ({ ...resto, notas: ids.size }))
       .sort((a, b) => b.valor - a.valor),
+    evolucao_mensal: [...porMes.values()].sort((a, b) => a.ano - b.ano || a.mes - b.mes),
   };
 }
 

@@ -9,13 +9,14 @@ import Produtos from "./Produtos";
  * pelo Postgres via `useComercial`. O falso mora em `comercial/hooksFalsos`
  * (ver o docblock de lá para o porquê de mocar o hook, e não a rede). Este
  * arquivo nasceu contra a fonte antiga; a Task 1 de 2026-09-10 trocou a
- * falsificação e, onde a decomposição que existe em `main` ainda não chegou
- * a esta branch, adaptou a forma de interagir com a tela — nunca o que ela
- * está provando. Ver o relatório da task para as duas divergências.
+ * falsificação e, onde a decomposição de `main` ainda não tinha chegado
+ * aqui, adaptou a forma de interagir com a tela — nunca o que ela está
+ * provando. A decomposição chegou na Task 2, e a tela é hoje uma casca sobre
+ * `pages/produtos/`. Ver o relatório da task para as duas divergências.
  *
  * A paginação já tem cobertura própria em `Produtos.paginacao.test.tsx` — este
- * arquivo cobre o que falta: as seis colunas, a pesquisa, a ordenação e o
- * estado vazio.
+ * arquivo cobre o que falta: as seis colunas, a pesquisa, a ordenação, o
+ * estado vazio e o recorte que a tela manda para o servidor.
  *
  * Os mocks de `useAuth` e `recharts` vêm do mesmo molde da Task 1
  * (`Produtos.kpis.test.tsx` / `Produtos.multiselect.test.tsx`).
@@ -193,15 +194,28 @@ function linhaContendo(texto: string): HTMLElement {
 }
 
 /**
+ * Escolhe uma opção num dos três multi-selects do topo.
+ *
+ * `rotulo` + `placeholder` formam o nome acessível do botão fechado (o
+ * `aria-labelledby` do rótulo mais o valor), e `opcao` casa com o texto do
+ * checkbox dentro do painel. Mesmo caminho de `Produtos.multiselect.test.tsx`.
+ */
+function escolherNoFiltro(rotulo: string, placeholder: string, opcao: RegExp) {
+  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${placeholder}` }));
+  fireEvent.click(screen.getByRole("checkbox", { name: opcao }));
+}
+
+/**
  * O `<th>` de uma coluna ordenável, achado pelo texto do rótulo.
  *
  * DIVERGÊNCIA (registrada no relatório): na versão decomposta em `main`, o
  * clique de ordenação mora num `<button>` dentro do `<th>` — daí o arquivo
- * original usar `getByRole("button", { name: "Ordenar por X" })`. Nesta
- * branch a decomposição ainda não chegou: `Produtos.tsx` é a casca antiga, o
- * `onClick` está no próprio `<th>` (`Produtos.tsx:740-833`), e não existe
- * `<button>` nenhum ali. O que se prova — clicar no cabeçalho inverte a
- * ordenação — é o mesmo; só o alvo do clique muda.
+ * original usar `getByRole("button", { name: "Ordenar por X" })`. Aqui o
+ * `onClick` está no próprio `<th>`, no `TableHeaderCell` que
+ * `produtos/TabelaDeProdutos.tsx` monta a partir de `COLUNAS`, e não existe
+ * `<button>` nenhum ali — o docblock daquele componente registra por que ele
+ * ficou assim. O que se prova — clicar no cabeçalho inverte a ordenação — é o
+ * mesmo; só o alvo do clique muda.
  */
 function cabecalho(rotulo: string): HTMLElement {
   const texto = screen.getByText(rotulo);
@@ -274,9 +288,9 @@ describe("tabela de Produtos", () => {
   // DIVERGÊNCIA (registrada no relatório, e não é a do item sem código):
   // o teste original (escrito contra a versão decomposta de `main`) esperava
   // que clicar em "Código" ordenasse a tabela — lá o defeito já tinha sido
-  // corrigido (item 2 da Task 11 de lá). Nesta branch `Produtos.tsx` é a
-  // casca antiga (Produtos.tsx:270-317): o `switch` de `ordenarEBuscar` não
-  // tem `case "codigo"`, cai no `default: return 0`, e a ordem não muda —
+  // corrigido (item 2 da Task 11 de lá). Aqui o `switch` de `ordenarEBuscar`
+  // (`produtos/produtos.ts`) não tem `case "codigo"`, cai no
+  // `default: return 0`, e a ordem não muda —
   // nem a seta de direção aparece (o cabeçalho de Código também não tem o
   // bloco condicional do `ChevronUp`/`ChevronDown` que os outros têm). Achado
   // ao mover (não corrigido): fica caracterizado como está, no mesmo espírito
@@ -288,7 +302,9 @@ describe("tabela de Produtos", () => {
     // só bateria com "depois" se a ordenação vigente coincidisse por acaso
     // com essa ordem — o que aconteceria neste fixture, mas por coincidência.
     // A prova robusta é outra: alternar a DIREÇÃO não muda nada, porque o
-    // `switch` de `ordenarEBuscar` (Produtos.tsx:288-307) não tem
+    // `switch` de `ordenarEBuscar` (`produtos/produtos.ts`, procurar pelo
+    // `case "descricao"` — sem número de linha de propósito, porque a task que
+    // acrescentar o `case "codigo"` desloca tudo abaixo dele) não tem
     // `case "codigo"` e cai no `default: return 0` nos dois sentidos.
     render(<Produtos />);
 
@@ -306,11 +322,13 @@ describe("tabela de Produtos", () => {
   it("o estado vazio aparece com frase completa quando o filtro nao acha nada", () => {
     render(<Produtos />);
 
-    // Esvazia a tabela pelo filtro de PERIODO, nao pela busca: `notasFiltradas`
-    // (Produtos.tsx:60-70, que chama `filtrarNotas` de produtos.ts) filtra por
-    // empresa, vendedor, produto e data — quatro mecanismos independentes de
-    // `pesquisaTabela`, que so entra depois, no `ordenarEBuscar` da tabela
-    // (Produtos.tsx:100). Um intervalo fora do range das notas (2026-01-10 a
+    // Esvazia a tabela pelo filtro de PERIODO, nao pela busca: empresa,
+    // vendedor, produto e data viram o recorte que vai para o servidor
+    // (`recorteDeProdutos`, em `produtos/produtos.ts`) — quatro mecanismos
+    // independentes de `pesquisaTabela`, que so entra depois, no
+    // `ordenarEBuscar` da tabela. A citação anterior falava de `notasFiltradas`
+    // e `filtrarNotas`, que morreram quando a fonte virou o resumo agregado.
+    // Um intervalo fora do range das notas (2026-01-10 a
     // 2026-04-10) esvazia `produtosAgregados` sem tocar no campo de pesquisa,
     // o que mantem este teste desacoplado da plantacao de "pesquisa filtra".
     const [dataInicio, dataFim] = inputsDeData();
@@ -326,9 +344,9 @@ describe("tabela de Produtos", () => {
   // DIVERGÊNCIA (registrada no relatório, não é a do item sem código): em
   // `main`, a versão decomposta desabilita "Exportar Excel" com a tabela
   // vazia (`TabelaDeProdutos.tsx`, `disabled={total === 0}` — fix do item 3
-  // da Task 11 de lá). Nesta branch `Produtos.tsx` ainda é a casca antiga
-  // (Produtos.tsx:721-730): o botão nunca leva `disabled`, com tabela vazia
-  // ou não. O teste original caracterizava o comportamento CORRIGIDO; este
+  // da Task 11 de lá). Aqui o `Button` de "Exportar Excel" daquele mesmo
+  // componente nunca leva `disabled`, com tabela vazia ou não. O teste
+  // original caracterizava o comportamento CORRIGIDO; este
   // caracteriza o que a tela FAZ hoje aqui — exportar continua clicável.
   it("com a tabela vazia, o botao de exportar continua habilitado (defeito preservado: falta o fix do item 3 da task 11)", () => {
     render(<Produtos />);
@@ -347,5 +365,95 @@ describe("tabela de Produtos", () => {
     expect(
       screen.getByRole("button", { name: /exportar excel/i }),
     ).toBeEnabled();
+  });
+});
+
+/**
+ * O recorte que a tela manda para o servidor.
+ *
+ * Estes cinco casos existem porque a revisão da Task 2 plantou `vendedor: []`,
+ * `produto: []` e `dataFim: ""` no recorte de `Produtos.tsx` e os 45 testes
+ * ficaram verdes: nada observava o que sai daqui. Cenário do pior deles — a
+ * pessoa escolhe um fim de período, o campo mostra a data, e a query vai sem
+ * `data_fim`: o Postgres devolve tudo até o fim do histórico e os KPIs incham,
+ * com a suíte verde.
+ *
+ * Por que pela TELA, e não por um teste de `recorteDeProdutos`: a conta pura já
+ * está coberta em `produtos/produtos.test.ts`, e o buraco não estava nela — era
+ * a chamada em `Produtos.tsx` que podia passar o campo errado. Quem enxerga
+ * isso é o falso de `comercial/hooksFalsos`, que APLICA o recorte antes de
+ * montar o resumo: se o recorte sai capenga, sobram notas que deviam ter ficado
+ * de fora, e isso aparece nas linhas da tabela. Também por isso as asserções
+ * olham a quantidade somada, e não só quais linhas ficaram — o filtro tem de
+ * chegar ao agregado, não apenas esconder linha.
+ *
+ * As datas são digitadas em vez de vir de um preset: as quatro notas do fixture
+ * são todas de 2026, então "Ano atual" não cortaria nada e o teste não veria
+ * diferença nenhuma entre mandar e não mandar a data.
+ */
+describe("recorte de Produtos", () => {
+  it("escolher a empresa recorta o agregado por cliente", () => {
+    render(<Produtos />);
+    expect(linhasDaTabela()).toHaveLength(3);
+
+    escolherNoFiltro("Empresas", "Todas as empresas", /Alfa Mineração/);
+
+    const linhas = linhasDaTabela();
+    expect(linhas).toHaveLength(1);
+    expect(within(linhas[0]).getByText("P1")).toBeInTheDocument();
+    // 3 un., e não as 5 das duas notas de P1: a nota de Beta ficou fora.
+    expect(within(linhas[0]).getByText("3")).toBeInTheDocument();
+  });
+
+  it("escolher o vendedor recorta o agregado por vendedor", () => {
+    render(<Produtos />);
+
+    escolherNoFiltro("Vendedores", "Todos os vendedores", /Vendedor A/);
+
+    // Vendedor A vendeu as notas 1 (P1, 3 un.) e 3 (P2); P3 é do Vendedor B.
+    expect(linhasDaTabela()).toHaveLength(2);
+    expect(
+      within(corpoDaTabela()).queryByText("Detector de Gás Portátil"),
+    ).not.toBeInTheDocument();
+    expect(within(linhaContendo("P1")).getByText("3")).toBeInTheDocument();
+  });
+
+  it("escolher o produto recorta o agregado por produto", () => {
+    render(<Produtos />);
+
+    escolherNoFiltro("Produtos", "Todos os produtos", /Tubo Coletor de Amostra/);
+
+    const linhas = linhasDaTabela();
+    expect(linhas).toHaveLength(1);
+    expect(within(linhas[0]).getByText("P2")).toBeInTheDocument();
+  });
+
+  it("a data de início corta as notas anteriores a ela", () => {
+    render(<Produtos />);
+
+    const [dataInicio] = inputsDeData();
+    fireEvent.change(dataInicio, { target: { value: "2026-03-01" } });
+
+    // Sobram as notas 3 (10/03) e 4 (10/04); as de janeiro e fevereiro saem.
+    expect(linhasDaTabela()).toHaveLength(2);
+    expect(
+      within(corpoDaTabela()).queryByText("Bafômetro Digital"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("a data de fim corta as notas posteriores a ela", () => {
+    render(<Produtos />);
+
+    const [, dataFim] = inputsDeData();
+    fireEvent.change(dataFim, { target: { value: "2026-02-28" } });
+
+    // Sobram as notas 1 (10/01) e 2 (10/02), as duas de P1 — 3 + 2 = 5 un.
+    const linhas = linhasDaTabela();
+    expect(linhas).toHaveLength(1);
+    expect(within(linhas[0]).getByText("P1")).toBeInTheDocument();
+    expect(within(linhas[0]).getByText("5")).toBeInTheDocument();
+    expect(
+      within(corpoDaTabela()).queryByText("Tubo Coletor de Amostra"),
+    ).not.toBeInTheDocument();
   });
 });

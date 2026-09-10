@@ -6,6 +6,7 @@ import {
   indicesDeRotulo,
   ordenarEBuscar,
   produtosDoResumo,
+  rankingPorValor,
   recorteDeProdutos,
   rotuloDoCliente,
   rotuloDoProduto,
@@ -264,7 +265,123 @@ describe("evolucaoDoResumo", () => {
   });
 });
 
+describe("rankingPorValor", () => {
+  /**
+   * Três produtos em que a ordem por VALOR é o inverso da ordem por
+   * QUANTIDADE, e nenhuma das duas é a ordem de entrada.
+   *
+   * Sem esse cuidado o teste passaria lendo o campo errado: com um catálogo em
+   * que quem mais fatura também é quem mais sai, ordenar por quantidade daria
+   * o mesmo resultado.
+   */
+  const CATALOGO: ProdutoAgregado[] = [
+    {
+      codigo: "P1",
+      descricao: "Bafômetro Digital",
+      quantidadeVendida: 10,
+      valorTotal: 400,
+      valorMedio: 40,
+      numeroVendas: 3,
+    },
+    {
+      codigo: "P2",
+      descricao: "Tubo Coletor de Amostra",
+      quantidadeVendida: 2,
+      valorTotal: 1500,
+      valorMedio: 750,
+      numeroVendas: 1,
+    },
+    {
+      codigo: "P3",
+      descricao: "Detector de Gás Portátil",
+      quantidadeVendida: 30,
+      valorTotal: 12,
+      valorMedio: 0.4,
+      numeroVendas: 1,
+    },
+  ];
+
+  it("põe na frente quem mais faturou, e não quem faturou menos", () => {
+    // A revisão da Task 2 inverteu o `sort` para ascendente e os 45 testes
+    // continuaram verdes: o gráfico "Top 10 Produtos (Valor)" passaria a
+    // desenhar os dez produtos MAIS BARATOS com o título intacto — a primeira
+    // barra viraria o item de R$ 12,00 no lugar do de R$ 1.500,00.
+    expect(rankingPorValor(CATALOGO, 10).map((p) => p.codigo)).toEqual(["P2", "P1", "P3"]);
+  });
+
+  it("corta no limite pedido, ficando com os de maior valor", () => {
+    // Trocar `.slice(0, limite)` por `.slice(0, 1)` também passava verde. O
+    // limite é o "10" do título do gráfico: se ele não for respeitado, o
+    // rótulo mente sobre quantas barras estão ali.
+    expect(rankingPorValor(CATALOGO, 2).map((p) => p.codigo)).toEqual(["P2", "P1"]);
+  });
+});
+
 describe("ordenarEBuscar", () => {
+  /**
+   * Três produtos em que os quatro campos ordenáveis dão quatro ordens
+   * DIFERENTES entre si, e nenhuma delas é a ordem de entrada.
+   *
+   * É o que faz cada `case` do `switch` ser observável: a revisão da Task 2
+   * trocou o `case "valorTotal"` para ler `valorMedio` e os 45 testes ficaram
+   * verdes, porque só o ramo `quantidadeVendida` era exercitado. Com um
+   * catálogo em que dois campos concordassem na ordem, a plantação voltaria a
+   * passar.
+   *
+   *   descrição ↓ P2, P3, P1  ·  quantidade ↓ P2, P1, P3
+   *   valor total ↓ P1, P3, P2  ·  valor médio ↓ P3, P1, P2
+   */
+  const CATALOGO: ProdutoAgregado[] = [
+    {
+      codigo: "P1",
+      descricao: "Bafômetro Digital",
+      quantidadeVendida: 10,
+      valorTotal: 1000,
+      valorMedio: 100,
+      numeroVendas: 4,
+    },
+    {
+      codigo: "P2",
+      descricao: "Tubo Coletor de Amostra",
+      quantidadeVendida: 20,
+      valorTotal: 800,
+      valorMedio: 40,
+      numeroVendas: 2,
+    },
+    {
+      codigo: "P3",
+      descricao: "Máscara de Solda",
+      quantidadeVendida: 5,
+      valorTotal: 900,
+      valorMedio: 180,
+      numeroVendas: 1,
+    },
+  ];
+
+  /** Os códigos na ordem em que a tabela os mostraria. */
+  function ordemPor(campo: string): string[] {
+    return ordenarEBuscar(CATALOGO, "", { campo, direcao: "desc" }).map((p) => p.codigo);
+  }
+
+  it("ordena por descrição, de Z para A", () => {
+    expect(ordemPor("descricao")).toEqual(["P2", "P3", "P1"]);
+  });
+
+  it("ordena por quantidade vendida, da maior para a menor", () => {
+    expect(ordemPor("quantidadeVendida")).toEqual(["P2", "P1", "P3"]);
+  });
+
+  it("ordena por valor total, e não pelo preço unitário médio", () => {
+    // Cenário do defeito: a pessoa clica em "Valor Total" esperando ver
+    // primeiro quem mais faturou, e sobe ao topo um item de baixo giro e alto
+    // preço unitário (aqui, P3 — R$ 180 a unidade, R$ 900 no total).
+    expect(ordemPor("valorTotal")).toEqual(["P1", "P3", "P2"]);
+  });
+
+  it("ordena por valor médio, e não pelo faturamento", () => {
+    expect(ordemPor("valorMedio")).toEqual(["P3", "P1", "P2"]);
+  });
+
   it("com pesquisa que não acha nada devolve lista vazia", () => {
     const agregados: ProdutoAgregado[] = [
       {

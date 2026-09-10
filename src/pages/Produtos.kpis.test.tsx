@@ -4,8 +4,17 @@ import { describe, expect, it, vi } from "vitest";
 import Produtos from "./Produtos";
 
 /**
- * Caracterização dos quatro KPIs de Produtos (Produtos.tsx:551-625), antes de
- * qualquer refatoração da tela.
+ * Caracterização dos quatro KPIs de Produtos e dos dois gráficos.
+ *
+ * Os KPIs saem de `calcularKpis` (`produtos/produtos.ts`) e são desenhados por
+ * `produtos/KpisDeProdutos.tsx`; a evolução e o ranking saem de
+ * `evolucaoDoResumo` e `rankingPorValor` (mesmo arquivo) e chegam a
+ * `produtos/GraficosDeProdutos.tsx`. A citação anterior era a
+ * `Produtos.tsx:551-625` da tela pré-decomposição — hoje o arquivo tem 247
+ * linhas e nada disso mora mais lá.
+ *
+ * Os gráficos entraram na Task 3 de 2026-09-10: eram o maior buraco da rede
+ * junto do recorte — plantar `dadosEvolucao → []` deixava os 45 testes verdes.
  *
  * Os mocks de `useAuth` e `recharts` vêm de `Produtos.multiselect.test.tsx` —
  * molde que já monta a tela com sucesso. O mock de dados é o da fonte NOVA:
@@ -79,22 +88,28 @@ vi.mock("./comercial/useComercial", async (original) => {
  *
  * Em jsdom o `ResponsiveContainer` mede 0x0 e o recharts de verdade não
  * desenha nada — os gráficos de Produtos ficariam invisíveis ao teste sem
- * quebrar (recharts engole a falta de tamanho em silêncio). Como este teste
- * não olha para gráfico nenhum, o dublê só precisa devolver algo renderizável
- * para cada peça importada, sem reproduzir o comportamento real delas.
+ * quebrar (recharts engole a falta de tamanho em silêncio). Por isso o dublê
+ * dos dois gráficos desta tela ESCREVE a série que recebeu num atributo: sem
+ * isso não há como afirmar o que chegou até eles, e a revisão da Task 2
+ * mostrou o preço disso — trocar a evolução da tela por `[]` deixava os 45
+ * testes verdes. As peças de dentro (eixos, barras, linha) continuam mudas,
+ * porque o que se prova aqui é o dado, não o desenho.
  */
 vi.mock("recharts", () => {
   const semDesenho = () => null;
+  const comSerie =
+    (id: string) =>
+    ({ data, children }: { data?: unknown[]; children?: React.ReactNode }) => (
+      <div data-testid={id} data-serie={JSON.stringify(data ?? [])}>
+        {children}
+      </div>
+    );
   return {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
-    LineChart: ({ children }: { children?: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
+    BarChart: comSerie("grafico-ranking"),
+    LineChart: comSerie("grafico-evolucao"),
     PieChart: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
@@ -108,6 +123,42 @@ vi.mock("recharts", () => {
     CartesianGrid: semDesenho,
     Legend: semDesenho,
   };
+});
+
+/**
+ * A série que chegou a um dos dois gráficos, lida do dublê do recharts.
+ *
+ * Ler o atributo (e não uma exportação da tela) é o que mantém o teste sobre a
+ * tela renderizada: o caminho percorrido é o mesmo da pessoa que abre a página
+ * — resumo do servidor, conta pura, componente de gráfico.
+ */
+function serieDoGrafico(id: string): Record<string, unknown>[] {
+  return JSON.parse(screen.getByTestId(id).dataset.serie ?? "[]");
+}
+
+describe("gráficos de Produtos", () => {
+  it("a evolução recebe um ponto por mês, com a quantidade de itens do mês", () => {
+    render(<Produtos />);
+
+    // Janeiro tem as 3 unidades da nota 1 e fevereiro as 5 da nota 2 — os
+    // mesmos números do KPI de quantidade, separados por mês.
+    const serie = serieDoGrafico("grafico-evolucao");
+    expect(serie.map((ponto) => ponto.total)).toEqual([3, 5]);
+    expect(String(serie[0].mes)).toMatch(/jan/i);
+    expect(String(serie[1].mes)).toMatch(/fev/i);
+  });
+
+  it("o ranking recebe os produtos do maior valor para o menor", () => {
+    render(<Produtos />);
+
+    // O card se chama "Top 10 Produtos (Valor)": a primeira barra tem de ser a
+    // de quem mais faturou. Com o `sort` invertido, seria o item mais barato
+    // com o título intacto.
+    expect(serieDoGrafico("grafico-ranking")).toEqual([
+      { produto: "Tubo descartável", valor: 1000 },
+      { produto: "Bafômetro Phoebus", valor: 300 },
+    ]);
+  });
 });
 
 describe("KPIs de Produtos", () => {
