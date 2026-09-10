@@ -21,9 +21,17 @@ import Produtos from "./Produtos";
  * Os mocks de `useAuth` e `recharts` vêm do mesmo molde da Task 1
  * (`Produtos.kpis.test.tsx` / `Produtos.multiselect.test.tsx`).
  *
- * Fixture: três produtos com quantidade, valor total e valor médio todos
- * distintos entre si, para que nenhuma coluna incorreta passe por acidente
- * batendo com o valor de outra:
+ * Fixture: três produtos, com os seis números de P1 distintos entre si — é
+ * P1 que o teste das colunas afirma célula a célula, e valor repetido dentro
+ * da linha deixaria uma troca de coluna passar. P3 não serve para isso: com
+ * uma unidade vendida o valor total e o valor médio dele são os mesmos
+ * R$ 50,00.
+ *
+ * O que este fixture NÃO discrimina é a ordenação por valor: `valorTotal` e
+ * `valorMedio` decrescentes dão os dois a mesma ordem P2, P1, P3, que ainda
+ * por cima é a ordem inicial da tabela. Os cliques nesses dois cabeçalhos
+ * moram em `Produtos.ordenacao.test.tsx`, com um catálogo em que os cinco
+ * campos ordenáveis dão cinco ordens diferentes.
  *   - P1 "Bafômetro Digital": duas notas (3 + 2 = 5 un., R$ 300 + R$ 200 =
  *     R$ 500,00), valor médio R$ 100,00, 2 vendas (notas distintas).
  *   - P2 "Tubo Coletor de Amostra": uma nota, 10 un., R$ 1.500,00, valor
@@ -164,6 +172,22 @@ function linhasDaTabela(): HTMLElement[] {
   return within(corpoDaTabela()).queryAllByRole("row");
 }
 
+/** Os rótulos das colunas, na ordem em que o `<thead>` os desenha. */
+function cabecalhosDaTabela(): string[] {
+  const cabecalho = document.querySelector("thead");
+  if (!cabecalho) throw new Error("thead nao encontrado");
+  return within(cabecalho as HTMLElement)
+    .getAllByRole("columnheader")
+    .map((celula) => celula.textContent?.trim() ?? "");
+}
+
+/** O texto de cada célula de uma linha, na ordem das colunas. */
+function celulasDaLinha(linha: HTMLElement): string[] {
+  return within(linha)
+    .getAllByRole("cell")
+    .map((celula) => celula.textContent?.trim() ?? "");
+}
+
 /**
  * Os dois campos `input[type="date"]` do filtro de período (Data Início e
  * Data Fim), na ordem em que aparecem no DOM.
@@ -185,6 +209,11 @@ function inputsDeData(): HTMLInputElement[] {
  * tabela de componente, mas "a linha que tem P1" continua sendo a linha que
  * tem P1 — um índice numérico quebraria a cada reordenação, mesmo sem bug
  * nenhum na tela.
+ *
+ * Isso vale para achar a LINHA. Dentro dela, o teste das seis colunas afirma
+ * por índice de propósito: é a ordem das células que prova a associação com o
+ * cabeçalho, e reordenar coluna é mudança de tela que deve mesmo aparecer no
+ * diff do teste.
  */
 function linhaContendo(texto: string): HTMLElement {
   const celula = within(corpoDaTabela()).getByText(texto);
@@ -221,16 +250,40 @@ function botaoDeOrdenar(rotulo: string): HTMLElement {
 
 describe("tabela de Produtos", () => {
   it("as seis colunas mostram o valor certo para um produto conhecido", () => {
+    // Até a revisão final de 10/09/2026 este teste fazia
+    // `within(linha).getByText("R$ 500,00")` seis vezes. Isso prova que os
+    // seis valores estão EM ALGUM LUGAR da linha, não que cada um está na sua
+    // célula: trocar "Valor Total" com "Valor Médio" (e "Quantidade" com
+    // "Nº Vendas") em `produtos/TabelaDeProdutos.tsx` — procurar por `celula`
+    // — passava verde nas oito suítes de Produtos. Quem abrisse a tela para
+    // saber quanto o produto faturou leria R$ 100,00 em vez de R$ 500,00 e
+    // decidiria sobre isso, com o cabeçalho certo por cima.
+    //
+    // A associação é entre CABEÇALHO e CÉLULA, então são duas afirmações: a
+    // ordem dos rótulos e o conteúdo das células nessa mesma ordem. Uma sem a
+    // outra ainda deixa passar — só as células deixa escapar a troca dos
+    // rótulos, só os rótulos deixa escapar a troca dos valores. Comparar o
+    // array inteiro com `toEqual`, e não valor a valor, é o que fecha a troca
+    // simétrica: mexer nos dois lados mantém o conjunto e muda a ordem.
     render(<Produtos />);
 
-    const linha = within(linhaContendo("P1"));
+    expect(cabecalhosDaTabela()).toEqual([
+      "Código",
+      "Produto",
+      "Quantidade",
+      "Valor Total",
+      "Valor Médio",
+      "Nº Vendas",
+    ]);
 
-    expect(linha.getByText("P1")).toBeInTheDocument();
-    expect(linha.getByText("Bafômetro Digital")).toBeInTheDocument();
-    expect(linha.getByText("5")).toBeInTheDocument();
-    expect(linha.getByText("R$ 500,00")).toBeInTheDocument();
-    expect(linha.getByText("R$ 100,00")).toBeInTheDocument();
-    expect(linha.getByText("2")).toBeInTheDocument();
+    expect(celulasDaLinha(linhaContendo("P1"))).toEqual([
+      "P1",
+      "Bafômetro Digital",
+      "5",
+      "R$ 500,00",
+      "R$ 100,00",
+      "2",
+    ]);
   });
 
   it("a pesquisa filtra pela descricao, reduzindo as linhas", () => {
@@ -346,6 +399,15 @@ describe("tabela de Produtos", () => {
     expect(
       screen.getByText("Nenhum resultado encontrado."),
     ).toBeInTheDocument();
+
+    // A frase tem de abranger as SEIS colunas. Com `colSpan` menor ela
+    // encolhe para debaixo das primeiras e o resto da largura fica em branco,
+    // como se a tabela tivesse uma linha cortada pela metade — cosmético, mas
+    // nada via, porque o `getByText` acima passa com qualquer `colSpan`.
+    expect(within(corpoDaTabela()).getByRole("cell")).toHaveAttribute(
+      "colspan",
+      "6",
+    );
   });
 
   // Este teste era, ate a Task 4, a caracterizacao de um DEFEITO: o `Button`

@@ -32,8 +32,20 @@ import Produtos from "./Produtos";
  *   - faturamento total: 300 + 1000 = R$ 1.300,00
  *   - ticket médio: 1300 / 8 = R$ 162,50
  *   - produto mais vendido: P2 "Tubo descartável" (5 > 3), Qtd: 5
- * Nenhum dos quatro coincide com outro — uma troca entre eles (por exemplo,
- * faturamento e ticket médio) faria pelo menos um teste falhar.
+ *
+ * Nenhum dos quatro coincide com outro — e isso NÃO é suficiente. Até a
+ * revisão final de 10/09/2026 este docblock afirmava que uma troca entre eles
+ * "faria pelo menos um teste falhar", e escolhia como exemplo justamente o
+ * caso que não funcionava: trocar `totalFaturado` e `ticketMedio` entre si no
+ * retorno de `calcularKpis` (`produtos/produtos.ts`) deixava os 1524 testes
+ * verdes, com o card "Faturamento Total" informando R$ 162,50.
+ *
+ * A assimetria explica. Mexer em UM lado derruba, porque `getByText` passa a
+ * achar duas ocorrências de um número e nenhuma do outro; a troca SIMÉTRICA —
+ * que é o que um refactor desatento produz — sobrevive a qualquer asserção que
+ * só pergunte se o número está na página, porque o CONJUNTO de valores
+ * continua o mesmo. Por isso os quatro testes abaixo leem pelo `valorDoKpi`:
+ * o que se afirma é o par rótulo→valor, não a presença do valor.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
@@ -136,6 +148,39 @@ function serieDoGrafico(id: string): Record<string, unknown>[] {
   return JSON.parse(screen.getByTestId(id).dataset.serie ?? "[]");
 }
 
+/**
+ * Os três `<p>` de um card de KPI, achados A PARTIR do rótulo.
+ *
+ * A anatomia do `KpiCard` (`design-system/ui/data/KpiCard.tsx`) é fixa e está
+ * documentada lá: rótulo, valor e nota são irmãos, nessa ordem. Andar do
+ * rótulo para o irmão seguinte é o que amarra um ao outro — perguntar
+ * `getByText("R$ 1.300,00")` prova só que o número está em algum lugar da
+ * página, e foi por isso que a troca simétrica entre faturamento e ticket
+ * médio atravessou a suíte inteira sem um vermelho.
+ */
+function paragrafosDoKpi(rotulo: string): Element[] {
+  const etiqueta = screen.getByText(rotulo);
+  const cartao = etiqueta.parentElement;
+  if (!cartao) throw new Error(`o rotulo "${rotulo}" nao esta dentro de um card`);
+  return Array.from(cartao.querySelectorAll("p"));
+}
+
+/** O valor do card — o `<p>` logo abaixo do rótulo. */
+function valorDoKpi(rotulo: string): string {
+  const [etiqueta, valor] = paragrafosDoKpi(rotulo);
+  if (etiqueta.textContent !== rotulo || !valor) {
+    throw new Error(`o card "${rotulo}" nao tem valor logo abaixo do rotulo`);
+  }
+  return valor.textContent ?? "";
+}
+
+/** A nota de rodapé do card — o terceiro `<p>`, quando existe. */
+function notaDoKpi(rotulo: string): string {
+  const nota = paragrafosDoKpi(rotulo)[2];
+  if (!nota) throw new Error(`o card "${rotulo}" nao tem nota`);
+  return nota.textContent ?? "";
+}
+
 describe("gráficos de Produtos", () => {
   it("a evolução recebe um ponto por mês, com a quantidade de itens do mês", () => {
     render(<Produtos />);
@@ -165,32 +210,31 @@ describe("KPIs de Produtos", () => {
   it("quantidade total vendida soma as quantidades dos itens", () => {
     render(<Produtos />);
 
-    expect(screen.getByText("Quantidade Total Vendida")).toBeInTheDocument();
-    expect(screen.getByText("8")).toBeInTheDocument();
+    expect(valorDoKpi("Quantidade Total Vendida")).toBe("8");
   });
 
-  it("faturamento total soma o valor dos itens", () => {
+  it("faturamento total soma o valor dos itens, e nao mostra o ticket medio", () => {
     render(<Produtos />);
 
-    expect(screen.getByText("Faturamento Total")).toBeInTheDocument();
-    expect(screen.getByText("R$ 1.300,00")).toBeInTheDocument();
+    // Ler pelo rótulo, e não `getByText("R$ 1.300,00")`: os dois cards de
+    // dinheiro trocados entre si mantêm os mesmos dois números na página, e a
+    // pessoa passa a ler que a empresa faturou R$ 162,50 no período.
+    expect(valorDoKpi("Faturamento Total")).toBe("R$ 1.300,00");
   });
 
   it("ticket médio por produto divide faturamento pela quantidade", () => {
     render(<Produtos />);
 
-    expect(screen.getByText("Ticket Médio por Produto")).toBeInTheDocument();
-    expect(screen.getByText("R$ 162,50")).toBeInTheDocument();
+    expect(valorDoKpi("Ticket Médio por Produto")).toBe("R$ 162,50");
   });
 
   it("produto mais vendido é o de maior quantidade, com a quantidade dele", () => {
     render(<Produtos />);
 
-    // A tabela também lista "Tubo descartável" (é um dos dois produtos), por
-    // isso a busca usa o `title` do card do KPI — só ele carrega o atributo
-    // — em vez de `getByText`, que acharia as duas ocorrências.
-    expect(screen.getByText("Produto Mais Vendido")).toBeInTheDocument();
-    expect(screen.getByTitle("Tubo descartável")).toBeInTheDocument();
-    expect(screen.getByText("Qtd: 5")).toBeInTheDocument();
+    // A tabela também lista "Tubo descartável" (é um dos dois produtos), então
+    // `getByText` acharia as duas ocorrências. Partir do rótulo do card
+    // resolve a ambiguidade e, de quebra, prende o nome ao card certo.
+    expect(valorDoKpi("Produto Mais Vendido")).toBe("Tubo descartável");
+    expect(notaDoKpi("Produto Mais Vendido")).toBe("Qtd: 5");
   });
 });
