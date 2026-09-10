@@ -218,6 +218,32 @@ export function formatarValorAbreviado(valor: number): string {
   return `R$ ${valor.toFixed(2)}`;
 }
 
+// ── Ordenação ──────────────────────────────────────────────────────────────
+
+/**
+ * O próximo estado da ordenação ao clicar num cabeçalho: o primeiro clique
+ * numa coluna é sempre decrescente, inclusive quando a coluna anterior estava
+ * crescente; só clicar de novo na MESMA coluna alterna a direção.
+ *
+ * Contas (`contas.ts`, `proximaOrdenacao`) e Locação (`notasDeLocacao.ts`,
+ * `proximaOrdenacao`) já tinham essa mesma regra extraída como conta pura;
+ * Produtos deixou inline e Serviços seguiu Produtos — este era o último bloco
+ * de decisão que sobrava na casca com precedente para morar aqui.
+ *
+ * `campo` é `OrdenacaoDeServicos["campo"]`, e não `string`: quem ordena é o
+ * Postgres, e o retorno precisa continuar atribuível ao estado da tela — com
+ * `string` o `setOrdenacao` de `Servicos.tsx` deixaria de aceitar o resultado.
+ */
+export function proximaOrdenacao(
+  atual: OrdenacaoDeServicos,
+  campo: OrdenacaoDeServicos["campo"],
+): OrdenacaoDeServicos {
+  return {
+    campo,
+    direcao: atual.campo === campo && atual.direcao === "desc" ? "asc" : "desc",
+  };
+}
+
 // ── Planilha ───────────────────────────────────────────────────────────────
 
 /**

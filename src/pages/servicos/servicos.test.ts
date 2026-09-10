@@ -7,6 +7,7 @@ import {
   kpisDoResumo,
   linhasDaPlanilha,
   linhasDoPdf,
+  proximaOrdenacao,
   rankingDoResumo,
   recorteDeServicos,
   type Servico,
@@ -219,6 +220,46 @@ describe("cidadesDoResumo", () => {
     expect(fatias).toHaveLength(10);
     expect(fatias[0]).toEqual({ name: "Cidade 01/PE", value: 1100 });
     expect(fatias[9]).toEqual({ name: "Cidade 10/PE", value: 200 });
+  });
+});
+
+describe("proximaOrdenacao", () => {
+  // Quatro casos, e não dois, porque as duas quebras plausíveis são
+  // diferentes: "campo novo começa em asc" só aparece quando o campo muda, e
+  // "o mesmo campo não inverte" só aparece quando o campo se repete. Um teste
+  // que exercitasse apenas a troca de campo passaria verde com a inversão
+  // quebrada, e vice-versa.
+
+  it("clicar num campo diferente comeca em desc, vindo de desc", () => {
+    expect(proximaOrdenacao({ campo: "data_emissao", direcao: "desc" }, "numero")).toEqual(
+      { campo: "numero", direcao: "desc" },
+    );
+  });
+
+  it("clicar num campo diferente comeca em desc tambem vindo de asc", () => {
+    // Sem este caso, uma implementação que sempre inverte a direção (ignorando
+    // qual campo estava ordenado) passaria pelo caso acima: `desc` invertido
+    // daria `asc`... e o caso acima morreria, mas este é o que prende a regra
+    // pelo outro lado — o primeiro clique numa coluna é SEMPRE decrescente,
+    // não importa como a coluna anterior estava.
+    expect(proximaOrdenacao({ campo: "data_emissao", direcao: "asc" }, "numero")).toEqual({
+      campo: "numero",
+      direcao: "desc",
+    });
+  });
+
+  it("clicar de novo no mesmo campo em desc inverte para asc", () => {
+    expect(proximaOrdenacao({ campo: "numero", direcao: "desc" }, "numero")).toEqual({
+      campo: "numero",
+      direcao: "asc",
+    });
+  });
+
+  it("clicar de novo no mesmo campo em asc volta para desc", () => {
+    expect(proximaOrdenacao({ campo: "numero", direcao: "asc" }, "numero")).toEqual({
+      campo: "numero",
+      direcao: "desc",
+    });
   });
 });
 

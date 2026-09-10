@@ -17,6 +17,7 @@ import {
   kpisDoResumo,
   linhasDaPlanilha,
   linhasDoPdf,
+  proximaOrdenacao,
   rankingDoResumo,
   recorteDeServicos,
   type OrdenacaoDeServicos,
@@ -123,12 +124,10 @@ const Servicos: React.FC = () => {
     [resumo.por_cidade],
   );
 
-  // Função para alternar ordenação
+  // A regra de alternar (campo novo comeca em desc, mesmo campo inverte) mora
+  // em `servicos.ts`, `proximaOrdenacao` — o mesmo molde de Contas e Locacao.
   const alternarOrdenacao = (campo: OrdenacaoDeServicos["campo"]) => {
-    setOrdenacao((prev) => ({
-      campo,
-      direcao: prev.campo === campo && prev.direcao === "desc" ? "asc" : "desc",
-    }));
+    setOrdenacao((prev) => proximaOrdenacao(prev, campo));
   };
 
   // Qual exportação está em curso — vai para os dois botões, que desabilitam
