@@ -147,29 +147,34 @@ git commit -m "test(produtos): caracterizacao dos kpis e da tabela sobre a fonte
 ### Task 2: Mover — a decomposição em cima da fonte nova
 
 **Arquivos:**
-- Criar: `src/pages/produtos/CabecalhoProdutos.tsx`, `FiltrosDeProdutos.tsx`,
-  `KpisDeProdutos.tsx`, `GraficosDeProdutos.tsx`, `TabelaDeProdutos.tsx`
-- Criar: `src/pages/produtos/produtos.ts`, `src/pages/produtos/produtos.test.ts`
-- Modificar: `src/pages/Produtos.tsx` (920 linhas → casca)
+- Criar: `src/pages/produtos/` (cinco componentes + `produtos.ts` + `produtos.test.ts`)
+- Modificar: `src/pages/Produtos.tsx` (920 linhas → casca de ~200)
 
 **Interfaces:**
 - Consome: `useFiltrosComerciais`, `useResumoComercial`, `RecorteComercial` de
   `./comercial/useComercial`; `useIsMobile` de `../hooks/useIsMobile`
-- Produz: `src/pages/produtos/produtos.ts` com os tipos e funções abaixo
+- Produz: `src/pages/produtos/produtos.ts` com as funções listadas no Passo 3
 
-- [ ] **Passo 1: Trazer a decomposição como ela ficou**
+> **De onde vem a decomposição — leia isto antes de digitar `git checkout`.**
+> A pasta `src/pages/produtos/` existe na branch `main` em duas versões: a final,
+> que **já tem quatro consertos embutidos**, e a de `79954c07`, imediatamente
+> anterior a eles. **Use a de `79954c07`.** Trazer a final faria este commit
+> mover e consertar ao mesmo tempo, e aí um teste vermelho não diria qual dos
+> dois quebrou. Os consertos voltam na Task 3, um commit cada.
+
+- [ ] **Passo 1: Trazer a decomposição no estado anterior aos consertos**
 
 ```bash
-git checkout main -- src/pages/produtos/
+git checkout 79954c07 -- src/pages/produtos/
 ```
 
-Isso traz os cinco componentes, o `produtos.ts` e o `produtos.test.ts`. Os
-**cinco componentes não precisam de mudança** — eles recebem tudo por prop e não
-sabem de onde o dado veio. Confirme isso lendo-os antes de assumir.
+Traz os cinco componentes, o `produtos.ts` e o `produtos.test.ts`. Os cinco
+componentes **não precisam de mudança**: recebem tudo por prop e não sabem de
+onde o dado veio. Confirme lendo-os antes de assumir.
 
 - [ ] **Passo 2: Podar de `produtos.ts` o que o banco passou a fazer**
 
-Estas funções **morrem**, porque o Postgres passou a fazer a conta:
+Estas morrem, porque o Postgres passou a fazer a conta:
 
 | Função | Quem faz agora |
 |---|---|
@@ -177,19 +182,20 @@ Estas funções **morrem**, porque o Postgres passou a fazer a conta:
 | `filtrarNotas(...)` | o `recorte` que vai para o servidor |
 | `agregarProdutos(...)` | `resumo.por_produto` |
 
-A interface `Nota` morre junto, se ninguém mais a usar — confira com `grep`
-antes de apagar.
+A interface `Nota` morre junto se ninguém mais a usar — confira com `grep` antes
+de apagar.
 
-`evolucaoPorMes` **não morre inteira**: ela tem duas metades. A primeira
-percorre as notas somando por mês — essa morre. A segunda agrupa por ano quando
-passa de 24 meses (`if (dadosMensais.length > 24)`) — **essa fica**, porque o
-banco devolve mês a mês e o agrupamento anual continua sendo da tela.
+`evolucaoPorMes` **não morre inteira**. Ela tem duas metades: a que percorre as
+notas somando por mês morre; a que agrupa por ano acima de 24 meses
+(`if (dadosMensais.length > 24)`) **fica**, porque o banco devolve mês a mês e o
+agrupamento anual continua sendo decisão da tela.
 
-- [ ] **Passo 3: Escrever em `produtos.ts` as funções puras que nasceram na versão dela**
+- [ ] **Passo 3: Mover para `produtos.ts` as contas puras que nasceram na versão dela**
 
-Ela colocou estas contas soltas dentro do componente. Pela receita da Fase 3 elas
-são conta pura e moram no `.ts`. Ler `origin/main:src/pages/Produtos.tsx`
-linhas 124-200 e mover de lá — **movendo, não reescrevendo**:
+Ela escreveu estas contas soltas dentro do componente. Pela receita da Fase 3
+elas são conta pura e moram no `.ts`. Ler `src/pages/Produtos.tsx` linhas
+124-200 **na versão atual desta branch** e mover de lá — movendo, não
+reescrevendo:
 
 - `rotuloDoCliente(c)` e `rotuloDoProduto(p)` — os rótulos que o `MultiSelect`
   mostra e devolve.
@@ -199,36 +205,36 @@ linhas 124-200 e mover de lá — **movendo, não reescrevendo**:
 - `produtosDoResumo(porProduto)` — converte `resumo.por_produto` em
   `ProdutoAgregado[]`.
 - `evolucaoDoResumo(evolucaoMensal)` — converte `resumo.evolucao_mensal` em
-  `PontoDeEvolucao[]` **e aplica o agrupamento anual acima de 24 meses** que
-  sobreviveu do passo anterior.
+  `PontoDeEvolucao[]` **e aplica o agrupamento anual** que sobreviveu do Passo 2.
 
-Estas **sobrevivem sem uma edição** (ela não mexeu nelas): `calcularKpis`,
-`rankingPorValor`, `ordenarEBuscar`, `linhasDaPlanilha`, e os tipos
-`ProdutoAgregado`, `KpisDeProduto`, `PontoDeEvolucao`, `OrdenacaoDeProdutos`.
+Sobrevivem sem uma edição: `calcularKpis`, `rankingPorValor`, `ordenarEBuscar`,
+e os tipos `ProdutoAgregado`, `KpisDeProduto`, `PontoDeEvolucao`,
+`OrdenacaoDeProdutos`.
 
 - [ ] **Passo 4: Reescrever `Produtos.tsx` como casca**
 
-A casca de referência é `main:src/pages/Produtos.tsx` (196 linhas). A diferença:
-onde ela lia `useData()` e chamava `opcoesDeFiltro`/`filtrarNotas`/
+A casca de referência é `79954c07:src/pages/Produtos.tsx` (198 linhas). A
+diferença: onde ela lia `useData()` e chamava `opcoesDeFiltro`/`filtrarNotas`/
 `agregarProdutos`, agora chama os hooks do Comercial e as funções do Passo 3.
 
-Preservar, da versão dela, **sem reescrever**:
+Preservar, da versão atual desta branch, **sem reescrever**:
 - os comentários que explicam por que a tabela pagina no navegador e por que a
   agregação passou a incluir item sem código;
 - `const isMobile = useIsMobile()` e todos os consumos dele;
-- o `carregando` — agora vem de `useResumoComercial`, não do `DataContext`.
+- o `carregando`, que agora vem de `useResumoComercial`.
 
 Manter os `useMemo` na casca em volta das funções puras. O motivo está no
 docblock de `src/hooks/usePaginacao.ts`: a lista precisa manter identidade entre
-renders, senão a paginação estoura em "Too many re-renders".
+renders com os mesmos parâmetros, senão a paginação estoura em
+"Too many re-renders".
 
 - [ ] **Passo 5: Ajustar `produtos.test.ts` ao que sobrou**
 
 Apagar os testes das funções que morreram; manter os das que sobreviveram;
-escrever teste para as cinco que nasceram no Passo 3. Cada função nova precisa
-de um teste que **falhe** se ela for quebrada — plantar e ver.
+escrever teste para as cinco que nasceram no Passo 3. **Cada função nova precisa
+de um teste que falhe se ela for quebrada — plante e veja falhar.**
 
-- [ ] **Passo 6: Os cinco arquivos de teste da tela, verdes**
+- [ ] **Passo 6: O portão desta task**
 
 ```bash
 npx vitest run src/pages/Produtos.kpis.test.tsx src/pages/Produtos.tabela.test.tsx \
@@ -236,8 +242,13 @@ npx vitest run src/pages/Produtos.kpis.test.tsx src/pages/Produtos.tabela.test.t
   src/pages/Produtos.multiselect.test.tsx src/pages/produtos/produtos.test.ts
 ```
 
-**Os três dela têm de passar sem uma edição.** Se um deles precisar de mudança,
-a decomposição mudou comportamento — pare e reporte antes de editar o teste.
+**Os cinco arquivos de teste de tela têm de passar sem uma única edição.** Três
+são da outra frente e dois são a rede que a Task 1 acabou de construir. Se algum
+precisar de mudança para passar, a decomposição mudou comportamento — **pare e
+reporte BLOCKED** em vez de editar o teste.
+
+Em particular: os testes clicam no `<th>` para ordenar, porque é onde o
+`onClick` mora nesta versão. Isso é o certo aqui e muda na Task 3.
 
 - [ ] **Passo 7: `tsc` e a suíte inteira**
 
@@ -256,34 +267,101 @@ git commit -m "refactor(produtos): a tela vira casca sobre pages/produtos, lendo
 
 ---
 
-### Task 3: Limpar — tokens e a saída de `PENDENTES_FASE_3`
+### Task 3: Os quatro consertos, um commit cada
 
 **Arquivos:**
-- Modificar: `src/pages/Produtos.tsx` e os cinco de `src/pages/produtos/`
+- Modificar: `src/pages/produtos/TabelaDeProdutos.tsx`,
+  `src/pages/produtos/GraficosDeProdutos.tsx`
+- Modificar: `src/pages/Produtos.tabela.test.tsx` (as asserções de defeito preservado)
+
+A migração original consertou quatro defeitos **depois** de mover, cada um em
+commit próprio. Estamos refazendo isso. Os originais estão em
+`92768748`, `4f5662fc`, `b8aa8f3b` e `7e32a2cf` — leia cada um com
+`git show <hash>` antes de reimplementar, e reimplemente, não faça
+`cherry-pick`: o arquivo em volta mudou.
+
+Dois destes defeitos foram redescobertos e caracterizados como "defeito
+preservado" pela Task 1 — as asserções que os fixam estão em
+`Produtos.tabela.test.tsx`, e **é nesta task que elas viram asserções do
+conserto**. Isso é legítimo aqui e só aqui.
+
+**Para cada um dos quatro, nesta ordem:**
+
+- [ ] **3.1 — A coluna "Código" não reordena** (original: `92768748`)
+
+Falta o `case "codigo"` no `switch` de `ordenarEBuscar`. Corrigir, virar a
+asserção de defeito preservado, plantar (tirar o `case` de novo), ver falhar,
+reverter a plantação. Commit: `fix(produtos): coluna codigo agora reordena`
+
+- [ ] **3.2 — O cabeçalho ordenável não alcança o teclado** (original: `4f5662fc`)
+
+O `onClick` sai do `<TableHeaderCell>` e vai para um `<button type="button">`
+por dentro, com `aria-label={`Ordenar por ${rotulo}`}` e `focus-visible:ring-2`
+(nunca `focus:`). É o padrão de `TabelaDeContas.tsx:257-260` — leia lá.
+
+**Este conserto muda a mecânica dos testes:** os cliques passam de
+`<th>` para `getByRole("button", { name: "Ordenar por ..." })`. Ajustar os
+testes é parte do conserto. O que eles **afirmam** não muda.
+
+Plantar: devolver o `onClick` ao `<th>`. Ver falhar. Reverter.
+Commit: `fix(produtos): cabecalho ordenavel ganha foco de teclado`
+
+- [ ] **3.3 — "Exportar Excel" não desabilita com tabela vazia** (original: `b8aa8f3b`)
+
+Corrigir, virar a asserção de defeito preservado, plantar, ver falhar, reverter.
+Commit: `fix(produtos): exportar desabilita com tabela vazia`
+
+- [ ] **3.4 — O eixo Y do ranking está em 11px** (original: `7e32a2cf`)
+
+Sobe para 12px — item 5 do checklist de tela migrada (tamanho mínimo de fonte).
+Em `GraficosDeProdutos.tsx`. Commit:
+`fix(produtos): eixo Y do ranking sobe de 11px para 12px`
+
+- [ ] **Passo final: suíte nos dois fusos, `tsc`, lint**
+
+```bash
+npx tsc --noEmit
+TZ=UTC npm test 2>&1 | tail -4
+TZ=America/Sao_Paulo npm test 2>&1 | tail -4
+npm run lint 2>&1 | grep problems
+```
+
+---
+
+### Task 4: A planilha vira conta pura, e a tela sai de `PENDENTES_FASE_3`
+
+**Arquivos:**
+- Modificar: `src/pages/produtos/produtos.ts`, `src/pages/Produtos.tsx`
 - Modificar: `src/test/guarda-cores.test.ts`
 
-Separado da Task 2 de propósito: se um teste ficar vermelho, o commit diz qual
-dos dois passos quebrou.
+- [ ] **Passo 1: `linhasDaPlanilha` vira conta pura** (original: `12c7f6a2`)
 
-- [ ] **Passo 1: Achar o que ainda é paleta crua ou `dark:`**
+Hoje a modelagem da linha do Excel está solta na casca. Ela é conta pura e vai
+para `produtos.ts`. Recebe o resultado de `ordenarEBuscar` **inteiro**, não a
+página exibida: a paginação é só da tabela na tela, e quem exporta espera o
+recorte filtrado e ordenado completo. Teste próprio, com plantação.
+
+Commit: `refactor(produtos): a modelagem da planilha vira conta pura`
+
+- [ ] **Passo 2: Conferir que não sobrou paleta crua nem `dark:`**
 
 ```bash
 grep -n "dark:\|text-gray-\|bg-gray-\|text-slate-\|bg-slate-\|text-blue-\|bg-blue-" \
   src/pages/Produtos.tsx src/pages/produtos/*.tsx
 ```
 
-- [ ] **Passo 2: Trocar por classe de token**
-
-`bg-surface`, `bg-surface-base`, `text-conteudo`, `text-conteudo-muted`,
-`border-borda`, `text-action`. **Sem modificador de opacidade** em classe de
-token (`bg-surface/40` não gera regra — há guarda para isso). Sem hexadecimal
-cravado. Cor de gráfico vai por prop, via `src/design-system/chartTheme.ts`.
+Os componentes de `79954c07` já adotaram os tokens, então isto deve vir vazio.
+Se não vier, trocar por classe de token (`bg-surface`, `text-conteudo`,
+`text-conteudo-muted`, `border-borda`, `text-action`), **sem modificador de
+opacidade** — `bg-surface/40` não gera regra e há guarda para isso. Sem
+hexadecimal cravado; cor de gráfico vai por prop, via `chartTheme.ts`.
 
 - [ ] **Passo 3: Tirar a linha da lista**
 
 Em `src/test/guarda-cores.test.ts`, apagar `"src/pages/Produtos.tsx"` de
 `PENDENTES_FASE_3`. A lista **só encolhe**. O guarda tem armadilha reversa:
-arquivo listado que já está limpo **falha** a suíte.
+arquivo listado que já está limpo **falha** a suíte — então esta é a prova de
+que o Passo 2 deu certo.
 
 - [ ] **Passo 4: Suíte e commit**
 
@@ -295,10 +373,10 @@ git add -A && git commit -m "refactor(produtos): a tela sai de PENDENTES_FASE_3"
 
 ---
 
-### Task 4: O prettier, em commit próprio
+### Task 5: O prettier, em commit próprio
 
-A receita manda formatar em commit separado — misturado com mudança de conteúdo,
-o diff fica ilegível.
+Misturado com mudança de conteúdo, o diff fica ilegível — por isso é commit só
+dele.
 
 - [ ] **Passo 1: Tirar do `.prettierignore`**
 
@@ -312,7 +390,7 @@ npx prettier --write src/pages/Produtos.tsx src/pages/produtos/ \
   src/pages/Produtos.kpis.test.tsx src/pages/Produtos.tabela.test.tsx
 ```
 
-- [ ] **Passo 3: Conferir que só mudou espaço em branco**
+- [ ] **Passo 3: Provar que só mudou espaço em branco**
 
 ```bash
 git diff --stat
@@ -321,7 +399,7 @@ git diff -w --stat
 O segundo tem de vir **vazio**. Se não vier, o prettier mudou conteúdo — pare e
 reporte.
 
-- [ ] **Passo 4: Suíte, e commit**
+- [ ] **Passo 4: Suíte, lint, commit**
 
 ```bash
 TZ=UTC npm test 2>&1 | tail -4
