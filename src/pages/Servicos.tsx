@@ -7,6 +7,7 @@ import {
   type RecorteDeServicos,
 } from "./servicos/useServicos";
 import { periodoDoPreset } from "../lib/periodo";
+import { Spinner } from "../design-system/ui";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import jsPDF from "jspdf";
@@ -193,21 +194,22 @@ const Servicos: React.FC = () => {
     }
   }, [buscarTudo, user]);
 
+  // O estado de carregando era o unico bloco de cor que sobrava na casca:
+  // `bg-gray-50` com `dark:` por cima, e um spinner cru de `<div>` girando com
+  // `border-blue-600`. Token nao precisa de `dark:` — `bg-surface-base` e
+  // `text-conteudo-muted` ja saem de `var(--...)` e viram sozinhos com o tema,
+  // e o `Spinner` do design system e o mesmo anel de Produtos.tsx.
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Carregando dados de serviços...
-          </p>
-        </div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted">
+        <Spinner size="lg" />
+        <p>Carregando dados de serviços.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
+    <div className="min-h-screen bg-surface-base transition-colors">
       <div className="p-6">
         {/* Cabeçalho */}
         <CabecalhoServicos usuario={user} />
