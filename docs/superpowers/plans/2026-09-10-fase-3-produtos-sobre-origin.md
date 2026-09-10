@@ -317,6 +317,27 @@ Sobe para 12px — item 5 do checklist de tela migrada (tamanho mínimo de fonte
 Em `GraficosDeProdutos.tsx`. Commit:
 `fix(produtos): eixo Y do ranking sobe de 11px para 12px`
 
+- [ ] **3.5 — Dois produtos sem código colidem na mesma `key` do React**
+
+Achado novo, levantado na Task 2. **Não é defeito da nossa decomposição:** a
+versão dela no `origin/main` tem exatamente o mesmo `key={produto.codigo}`
+(linha 844) e o mesmo `codigo: p.codigo ?? ""` (linha 185). O defeito ficou
+*vivo* quando a agregação dela passou a incluir item sem código — que a versão
+anterior descartava, e que ela documentou como 36 itens, 0,12% do valor.
+
+O que acontece: todo item sem código vira `codigo: ""`, e o React recebe duas
+linhas com `key=""`. Ele avisa no console e passa a reconciliar as duas linhas
+como se fossem a mesma — reordenar a tabela pode embaralhar o conteúdo delas.
+
+A chave que os distingue já existe e está sendo jogada fora: `p.chave` no
+`resumo.por_produto` (é `'#' + descricao` quando não há código). Levar `chave`
+para dentro de `ProdutoAgregado` e usá-la como `key` da `TableRow` — **sem**
+mostrá-la em coluna nenhuma, que é dado interno.
+
+Plantar: dois produtos sem código no fixture, e afirmar que as duas linhas
+existem com o conteúdo certo depois de reordenar. Ver falhar com a `key` antiga.
+Commit: `fix(produtos): produto sem codigo ganha key propria na tabela`
+
 - [ ] **Passo final: suíte nos dois fusos, `tsc`, lint**
 
 ```bash
@@ -356,12 +377,13 @@ Se não vier, trocar por classe de token (`bg-surface`, `text-conteudo`,
 opacidade** — `bg-surface/40` não gera regra e há guarda para isso. Sem
 hexadecimal cravado; cor de gráfico vai por prop, via `chartTheme.ts`.
 
-- [ ] **Passo 3: Tirar a linha da lista**
+- [ ] **Passo 3: Conferir que a saída de `PENDENTES_FASE_3` já aconteceu**
 
-Em `src/test/guarda-cores.test.ts`, apagar `"src/pages/Produtos.tsx"` de
-`PENDENTES_FASE_3`. A lista **só encolhe**. O guarda tem armadilha reversa:
-arquivo listado que já está limpo **falha** a suíte — então esta é a prova de
-que o Passo 2 deu certo.
+A Task 2 **já apagou** `"src/pages/Produtos.tsx"` da lista em
+`src/test/guarda-cores.test.ts` — não por escolha, mas porque o guarda tem
+armadilha reversa e falha quando um arquivo listado já está limpo. Aqui é só
+conferir que a linha não voltou e que a lista só encolheu. **Não acrescente
+linha nenhuma** para calar guarda.
 
 - [ ] **Passo 4: Suíte e commit**
 
