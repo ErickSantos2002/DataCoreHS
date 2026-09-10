@@ -141,6 +141,13 @@ export function TabelaDeProdutos({
           <Button
             variant="success"
             onClick={onExportar}
+            // Sem nenhuma linha o clique gerava uma planilha com cabeçalho e
+            // zero registros — a pessoa filtra, não acha nada, exporta assim
+            // mesmo e leva um arquivo vazio achando que é o recorte. Mesmo
+            // defeito 1.9 que `TabelaDeContas.tsx` já corrige. `total` é o
+            // recorte inteiro (filtro + busca), e não a página: uma busca sem
+            // resultado também desabilita.
+            disabled={total === 0}
             icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
           >
             Exportar Excel

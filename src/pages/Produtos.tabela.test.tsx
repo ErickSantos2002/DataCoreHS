@@ -348,16 +348,16 @@ describe("tabela de Produtos", () => {
     ).toBeInTheDocument();
   });
 
-  // DIVERGÊNCIA (registrada no relatório, não é a do item sem código): em
-  // `main`, a versão decomposta desabilita "Exportar Excel" com a tabela
-  // vazia (`TabelaDeProdutos.tsx`, `disabled={total === 0}` — fix do item 3
-  // da Task 11 de lá). Aqui o `Button` de "Exportar Excel" daquele mesmo
-  // componente nunca leva `disabled`, com tabela vazia ou não. O teste
-  // original caracterizava o comportamento CORRIGIDO; este
-  // caracteriza o que a tela FAZ hoje aqui — exportar continua clicável.
-  it("com a tabela vazia, o botao de exportar continua habilitado (defeito preservado: falta o fix do item 3 da task 11)", () => {
+  // Este teste era, ate a Task 4, a caracterizacao de um DEFEITO: o `Button`
+  // de "Exportar Excel" em `produtos/TabelaDeProdutos.tsx` nunca levava
+  // `disabled`, e um clique com a tabela vazia gerava uma planilha so com
+  // cabecalho. O `disabled={total === 0}` entrou, e a asserção virou a do
+  // conserto.
+  it("com a tabela vazia, o botao de exportar fica desabilitado", () => {
     render(<Produtos />);
 
+    // Com as tres linhas do fixture ele continua clicavel — sem esta primeira
+    // asserção, um `disabled` cravado em `true` passaria no teste inteiro.
     expect(
       screen.getByRole("button", { name: /exportar excel/i }),
     ).toBeEnabled();
@@ -371,7 +371,24 @@ describe("tabela de Produtos", () => {
     expect(linhasDaTabela()).toHaveLength(1);
     expect(
       screen.getByRole("button", { name: /exportar excel/i }),
-    ).toBeEnabled();
+    ).toBeDisabled();
+  });
+
+  it("com a busca sem resultado, o botao de exportar tambem desabilita", () => {
+    // `total` e o recorte inteiro (filtro + busca), e nao a pagina. Trocar
+    // por `produtos.length === 0` daria o mesmo resultado aqui, mas trocar
+    // por uma leitura do filtro de periodo nao — este caso e o que separa os
+    // dois caminhos que esvaziam a tabela.
+    render(<Produtos />);
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
+      target: { value: "termo que nao existe em produto nenhum" },
+    });
+
+    expect(linhasDaTabela()).toHaveLength(1);
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeDisabled();
   });
 });
 
