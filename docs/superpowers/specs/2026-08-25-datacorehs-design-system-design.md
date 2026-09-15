@@ -1179,3 +1179,88 @@ conteúdo com `p-4`, o `--content-padding-mobile`.
 
 Menor, visto na conferência e não desta mudança: o tooltip "Recolher menu" do
 botão focado sai cortado no topo da janela.
+
+## Estado em 15/09/2026 (tarde) — Vendedores migrada, Fase 3 em 9 de 12
+
+Branch `fase-3-vendedores`, nascida do `origin/main` `0c5fed35`, treze commits.
+Suíte em **1712 testes / 131 arquivos**, verde nos dois fusos; lint **47** (era
+49 — saíram o ícone `Save` importado sem uso e o `exportando` que ninguém lia);
+`tsc` limpo. `PENDENTES_FASE_3` tem três entradas: Clientes, Estoque, Vendas.
+**Próxima tela: Estoque.**
+
+### Como foi
+
+1. **Caracterização antes de mover** — quatro arquivos novos (KPIs e cabeçalho,
+   gráficos, tabela, exportação), 68 testes com os três que já existiam.
+   **22 plantações** na tela antiga, uma por vez: todas derrubaram ao menos um
+   teste.
+2. **Decompor em três commits**, e os 68 passaram **sem uma edição** em cada um.
+   A ordem foi imposta pelo guarda de cores: componente novo fora de
+   `PENDENTES_FASE_3` não pode ter paleta crua, então cada peça nasceu limpa
+   ("cada task limpa o que extrai"), e a casca antiga ficou na lista até a
+   última peça sair.
+3. **Sete consertos, um commit cada, teste vermelho antes e plantação depois.**
+
+### Os consertos
+
+| Commit | Defeito |
+|---|---|
+| `150fabb0` | **O filtro de produto mandava o rótulo** ("Kit (K1)") onde o servidor filtra pela chave ("K1") — escolher qualquer produto zerava a tela. O comentário ao lado dizia que o multiselect "já guarda a chave". Conferido contra a API real: 4336 → 627 notas com um produto escolhido. |
+| `4035d3a2` | Falha de rede silenciosa — mesmo defeito e mesmo conserto de Serviços. A frase é da tela: a do hook (`useComercial.ts`, da outra frente) vem sem acento. |
+| `e06dfe11` | Ordenar era só de mouse (`onClick` no `<th>`); agora botão com nome e `aria-sort`. |
+| `d9df17bf` | Abrir a edição do tipo era `<div onClick>`; salvar e cancelar eram só ícone. |
+| `756c9d74` | Exportar não desabilitava durante a busca nem com a tabela vazia. |
+| `953417ed` | "Carregando suas vendas..." → frase com ponto. |
+| `66539a53` | Gráfico sem dado era moldura muda → `ChartEmpty`. |
+
+E um de apresentação, visto só no navegador (`ffd9a9cb`): a tabela media 1192px
+numa caixa de 1080, e a coluna **Tipo da Nota — a de ação — ficava atrás da
+rolagem**. E os cabeçalhos ordenáveis saíam em caixa normal: o preflight do
+Tailwind zera `text-transform` em `button`. **Serviços tem o mesmo defeito de
+caixa** ("Número NFS-e" ao lado de "DESCRIÇÃO") e não foi mexido.
+
+### Duas lições de verificação
+
+- **Uma plantação não derrubou nada** (`756c9d74`): tirar o `|| exportando` do
+  `disabled` não muda o que a pessoa vê, porque o `loading` do `Button` já
+  desabilita. O commit saiu dizendo que derrubava; a mensagem foi corrigida antes
+  do push. A plantação que conta tira os dois mecanismos. É a lição de 10/09 de
+  novo: a plantação é hipótese — e **uma plantação que deixa o JSX inválido
+  também não prova nada**: o arquivo não compila, "no tests", e parece vermelho.
+- **`prettier --check` num arquivo ignorado responde "formatado".** Os checks dos
+  commits de Vendedores passavam porque `src/pages/*` está no `.prettierignore`;
+  ao sair de lá, eram 15 arquivos fora do padrão.
+
+### Checklist de tela migrada — Vendedores
+
+1. Hexadecimal cravado: **nenhum** (as oito cores de `CORES` saíram).
+2. `dark:` onde há token: **nenhum**.
+3. Azul de ação: **sim** — `tone="acao"` no faturamento, `text-action` no valor.
+4. Um botão primário por bloco: **sim** — só o "Exportar Excel", em `success`.
+5. Texto abaixo de 12px: **só o rótulo do `KpiCard`** (11px), que é do primitivo e
+   vale para todas as telas; os eixos subiram de 11 para 12px.
+6. Estado vazio com frase completa: **sim** — `TableEmpty` e, depois de
+   `66539a53`, `ChartEmpty` nos três gráficos.
+7. Ícone é componente: **sim** (lucide). O "-" de "sem observação" é texto.
+8. Contagem de paginação em frase: **sim** — "Mostrando 1 a 15 de 4336 notas".
+9. `focus-visible` com anel de 2px: **sim**, nos botões novos e nos primitivos.
+10. Nada animando em laço fora spinner: **sim** — o único `animate-spin` é o de
+    salvar o tipo.
+
+### Conferência no navegador (15/09)
+
+Claro e escuro, filtro de produto contra a API real, vazio (período em 2031:
+três `ChartEmpty`, `TableEmpty`, exportar desabilitado), erro (API bloqueada: o
+`Alert`), carregando (resposta segurada: a frase), e a edição do tipo aberta e
+**cancelada** — salvar grava em produção e não foi dirigido.
+
+### Achados registrados e não corrigidos
+
+- **A coluna "Numero" da planilha corta os dois primeiros dígitos** do número da
+  nota (`substring(2)`: 991001 sai 1001). Sem comentário dizendo por quê, e
+  nenhuma outra exportação faz isso. Pode ser regra do Tiny (prefixo de série) —
+  **pergunta para o Erick**, não para o código.
+- O "Produto Top" mostra o valor sem casas fixas ("R$ 15.684.661,84" e
+  "R$ 5.000" convivem).
+- Falha ao salvar o tipo e ao exportar continuam em toast: são retorno de ação
+  que a pessoa acabou de tomar, que é o uso certo.
