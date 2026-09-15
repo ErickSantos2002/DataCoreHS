@@ -316,7 +316,9 @@ export function proximaOrdenacao(
   };
 }
 
-/** "R$ 1.2M", "R$ 3.4K", "R$ 12.50" — o eixo do Top 10 e o Top Cliente. */
+/** "R$ 1.2M", "R$ 3.4K", "R$ 12.50" — o eixo do Top 10.
+ *
+ *  Achado (não corrigido, é o mesmo de Estoque e Vendedores): ponto decimal. */
 export function formatarValorAbreviado(valor: number): string {
   if (valor >= 1_000_000) {
     return `R$ ${(valor / 1_000_000).toFixed(1)}M`;

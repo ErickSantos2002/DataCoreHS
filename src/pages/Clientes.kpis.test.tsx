@@ -107,12 +107,14 @@ describe("KPIs de Clientes", () => {
     expect(cartao("Inativos (90 dias)")).toHaveTextContent("3");
   });
 
-  it("Top Cliente e o primeiro do ranking, com o valor abreviado", () => {
+  it("Top Cliente e o primeiro do ranking, com o valor em reais", () => {
+    // A nota era o valor abreviado do eixo, "R$ 50.0K", com ponto — o único
+    // dinheiro do topo fora do formato brasileiro.
     render(<Clientes />);
 
     const topo = cartao("Top Cliente");
     expect(topo).toHaveTextContent("Alfa Mineração Recife Ltda");
-    expect(topo).toHaveTextContent("R$ 50.0K");
+    expect(topo).toHaveTextContent("R$ 50.000,50");
     expect(topo).not.toHaveTextContent("Beta Logística");
   });
 
@@ -130,6 +132,8 @@ describe("KPIs de Clientes", () => {
     expect(cartao("Clientes Ativos")).toHaveTextContent("0");
     expect(cartao("Inativos (90 dias)")).toHaveTextContent("0");
     expect(cartao("Top Cliente")).toHaveTextContent("N/A");
+    // Sem cliente não há valor: a nota dizia "R$ 0".
+    expect(cartao("Top Cliente")).not.toHaveTextContent("R$");
     expect(cartao("Ticket Médio/Cliente")).toHaveTextContent("R$ 0,00");
   });
 });

@@ -1,5 +1,5 @@
 import { KpiCard } from "../../design-system/ui";
-import { formatarValorAbreviado, type KpisDeClientes as Kpis } from "./clientes";
+import type { KpisDeClientes as Kpis } from "./clientes";
 
 export interface KpisDeClientesProps {
   kpis: Kpis;
@@ -34,10 +34,12 @@ export function KpisDeClientes({ kpis }: KpisDeClientesProps) {
         label="Top Cliente"
         value={kpis.topCliente?.nome || "N/A"}
         valorEhTexto
+        // A nota era o valor abreviado do eixo, "R$ 50.0K", com ponto; e sem
+        // cliente dizia "R$ 0". Agora o valor inteiro, e sem cliente não há nota.
         note={
           kpis.topCliente
-            ? formatarValorAbreviado(kpis.topCliente.totalCompradoPeriodo)
-            : "R$ 0"
+            ? `R$ ${kpis.topCliente.totalCompradoPeriodo.toLocaleString("pt-BR", DINHEIRO)}`
+            : undefined
         }
       />
 
