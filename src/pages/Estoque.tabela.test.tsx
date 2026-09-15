@@ -1,0 +1,294 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import Estoque from "./Estoque";
+import { baixarPlanilha } from "../lib/planilha";
+
+/**
+ * Caracterização da tabela "Detalhamento do Estoque", antes de decompor a tela:
+ * as sete colunas, a ordem (que aqui é do NAVEGADOR, então a ordem das linhas
+ * é observável), a pesquisa, a exportação e o botão da solicitação de compras.
+ *
+ * A paginação tem arquivo próprio (`Estoque.paginacao.test.tsx`) e o
+ * multiselect de produto também (`Estoque.multiselect.test.tsx`).
+ *
+ * Fixture: os seis produtos de `estoque/produtosFalsos.ts` — cabem numa página.
+ *
+ * ⚠️ O código ordena como TEXTO: "900" vem antes de "4" na ordem decrescente
+ * porque "9" > "4", e "P2" vem antes de todos. Preso como está; não é endosso.
+ */
+
+vi.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
+}));
+
+vi.mock("../context/EstoqueContext", async () => {
+  const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
+  return {
+    useEstoque: () => ({ produtos: PRODUTOS_ESTOQUE, carregando: false, atualizarProdutos: vi.fn() }),
+  };
+});
+
+vi.mock("../lib/planilha", () => ({ baixarPlanilha: vi.fn() }));
+
+/** Dublê do modal: o assunto aqui é se a tela o abre, com quais produtos e
+ *  quem solicita, e se o fechar volta. O modal tem testes próprios. */
+vi.mock("../components/SolicitacaoComprasModal", () => ({
+  default: ({
+    aberto,
+    fechar,
+    produtos,
+    solicitante,
+  }: {
+    aberto: boolean;
+    fechar: () => void;
+    produtos: unknown[];
+    solicitante: string;
+  }) =>
+    aberto ? (
+      <div role="dialog" aria-label="Solicitação de compras">
+        <p>
+          {produtos.length} produtos · solicitante {solicitante}
+        </p>
+        <button onClick={fechar}>Fechar solicitação</button>
+      </div>
+    ) : null,
+}));
+
+vi.mock("recharts", () => {
+  const semDesenho = () => null;
+  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  return {
+    ResponsiveContainer: caixa,
+    BarChart: caixa,
+    PieChart: caixa,
+    Bar: semDesenho,
+    Pie: semDesenho,
+    Cell: semDesenho,
+    XAxis: semDesenho,
+    YAxis: semDesenho,
+    Tooltip: semDesenho,
+    CartesianGrid: semDesenho,
+    Legend: semDesenho,
+  };
+});
+
+beforeEach(() => {
+  vi.mocked(baixarPlanilha).mockReset();
+});
+
+function linhas(): HTMLElement[] {
+  const corpo = document.querySelector("tbody") as HTMLElement;
+  return within(corpo).getAllByRole("row");
+}
+
+function nomes(): string[] {
+  return linhas().map((l) => l.querySelector("td")?.textContent ?? "");
+}
+
+function linhaCom(texto: string): HTMLElement {
+  const linha = linhas().find((l) => l.textContent?.includes(texto));
+  if (!linha) throw new Error(`linha com "${texto}" nao encontrada`);
+  return linha;
+}
+
+function celula(linha: HTMLElement, rotulo: string): HTMLElement {
+  const cabecalhos = Array.from(document.querySelectorAll("thead th"));
+  const indice = cabecalhos.findIndex((th) => th.textContent?.trim() === rotulo);
+  if (indice < 0) throw new Error(`coluna "${rotulo}" nao encontrada`);
+  return linha.querySelectorAll("td")[indice] as HTMLElement;
+}
+
+function clicarNoCabecalho(rotulo: string) {
+  fireEvent.click(screen.getByRole("columnheader", { name: rotulo }));
+}
+
+describe("colunas da tabela de Estoque", () => {
+  it("o cabecalho traz as sete colunas, nesta ordem", () => {
+    render(<Estoque />);
+
+    expect(
+      Array.from(document.querySelectorAll("thead th")).map((th) => th.textContent?.trim()),
+    ).toEqual(["Nome", "Código-SKU", "Unidade", "Preço", "Saldo", "Situação", "Valor Total"]);
+  });
+
+  it.each([
+    ["Nome", "Sensor antigo"],
+    ["Código-SKU", "900"],
+    ["Unidade", "PC"],
+    ["Preço", "R$ 80,00"],
+    ["Saldo", "-2"],
+    ["Situação", "Inativo"],
+    ["Valor Total", "R$ -160,00"],
+  ])("na linha do Sensor antigo, a coluna %s mostra %s", (rotulo, esperado) => {
+    render(<Estoque />);
+
+    expect(celula(linhaCom("Sensor antigo"), rotulo)).toHaveTextContent(esperado);
+  });
+
+  it("preco com centavos e saldo com milhar saem no formato brasileiro", () => {
+    render(<Estoque />);
+
+    expect(celula(linhaCom("Bocal"), "Preço")).toHaveTextContent("R$ 3,50");
+    expect(celula(linhaCom("Kit calibração"), "Valor Total")).toHaveTextContent("R$ 3.600,00");
+    expect(celula(linhaCom("Kit calibração"), "Situação")).toHaveTextContent("Inativo");
+    expect(celula(linhaCom("Brinde"), "Situação")).toHaveTextContent("Ativo");
+  });
+});
+
+describe("ordem da tabela de Estoque", () => {
+  it("a tela abre em ordem alfabetica de nome, sem diferenciar caixa", () => {
+    render(<Estoque />);
+
+    expect(nomes()).toEqual([
+      "Bafômetro Phoebus Premium Edition XL",
+      "Bocal",
+      "Brinde",
+      "Kit calibração",
+      "Sensor antigo",
+      "Tubo descartável",
+    ]);
+  });
+
+  it("clicar em Nome, que ja esta crescente, inverte", () => {
+    render(<Estoque />);
+
+    clicarNoCabecalho("Nome");
+
+    expect(nomes()[0]).toBe("Tubo descartável");
+    expect(nomes()[5]).toBe("Bafômetro Phoebus Premium Edition XL");
+  });
+
+  it("o primeiro clique em Preco ordena do maior ao menor, o segundo inverte", () => {
+    render(<Estoque />);
+
+    clicarNoCabecalho("Preço");
+    expect(nomes()).toEqual([
+      "Kit calibração",
+      "Bafômetro Phoebus Premium Edition XL",
+      "Sensor antigo",
+      "Tubo descartável",
+      "Bocal",
+      "Brinde",
+    ]);
+
+    clicarNoCabecalho("Preço");
+    expect(nomes()[0]).toBe("Brinde");
+    expect(nomes()[5]).toBe("Kit calibração");
+  });
+
+  it("Saldo ordena pelo numero, com o negativo por ultimo no decrescente", () => {
+    render(<Estoque />);
+
+    clicarNoCabecalho("Saldo");
+
+    expect(nomes()).toEqual([
+      "Tubo descartável",
+      "Brinde",
+      "Bafômetro Phoebus Premium Edition XL",
+      "Kit calibração",
+      "Bocal",
+      "Sensor antigo",
+    ]);
+  });
+
+  it("Codigo-SKU ordena como texto", () => {
+    render(<Estoque />);
+
+    clicarNoCabecalho("Código-SKU");
+
+    expect(linhas().map((l) => celula(l, "Código-SKU").textContent)).toEqual([
+      "P2",
+      "900",
+      "77",
+      "4",
+      "163",
+      "1",
+    ]);
+  });
+
+  it("Situacao decrescente poe os inativos primeiro", () => {
+    render(<Estoque />);
+
+    clicarNoCabecalho("Situação");
+
+    expect(linhas().slice(0, 2).map((l) => celula(l, "Situação").textContent)).toEqual([
+      "Inativo",
+      "Inativo",
+    ]);
+  });
+
+  it("Unidade e Valor Total nao ordenam", () => {
+    render(<Estoque />);
+    const antes = nomes();
+
+    clicarNoCabecalho("Unidade");
+    clicarNoCabecalho("Valor Total");
+
+    expect(nomes()).toEqual(antes);
+  });
+});
+
+describe("pesquisa da tabela de Estoque", () => {
+  it.each([
+    ["nome, sem caixa", "SENSOR", ["Sensor antigo"]],
+    ["codigo", "163", ["Bocal"]],
+    ["unidade", "cx", ["Tubo descartável"]],
+  ])("acha pelo %s", (_caso, termo, esperados) => {
+    render(<Estoque />);
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: termo } });
+
+    expect(nomes()).toEqual(esperados);
+  });
+});
+
+describe("exportacao de Estoque", () => {
+  it("exporta a tabela como esta — filtrada, pesquisada e na ordem — com as sete colunas", () => {
+    render(<Estoque />);
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "o" } });
+    clicarNoCabecalho("Preço");
+    fireEvent.click(screen.getByRole("button", { name: /Exportar Excel/ }));
+
+    const [abas, arquivo] = vi.mocked(baixarPlanilha).mock.calls[0];
+    expect(arquivo).toMatch(/^estoque_\d{4}-\d{2}-\d{2}\.xlsx$/);
+    expect(abas[0].nome).toBe("Estoque");
+    expect(abas[0].linhas.map((l) => l.Nome)).toEqual(nomes());
+    expect(abas[0].linhas.find((l) => l.Nome === "Sensor antigo")).toEqual({
+      Nome: "Sensor antigo",
+      "Código-SKU": "900",
+      Unidade: "PC",
+      Preço: 80,
+      Saldo: -2,
+      Situação: "Inativo",
+      "Valor Total": -160,
+    });
+  });
+});
+
+describe("solicitacao de compras em Estoque", () => {
+  it("o botao abre o modal com o estoque inteiro e o usuario como solicitante, e fechar o tira", () => {
+    render(<Estoque />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Solicitação de Compras" }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("6 produtos · solicitante erick");
+
+    fireEvent.click(screen.getByRole("button", { name: "Fechar solicitação" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("o modal recebe o estoque inteiro, e nao o filtrado", () => {
+    // Pelo FILTRO de situação, e não pela pesquisa: a pesquisa só age sobre a
+    // tabela, e com ela este teste passava mesmo se o modal recebesse a lista
+    // filtrada (plantação cega na primeira versão).
+    render(<Estoque />);
+
+    const bloco = screen.getByText("Situação", { selector: "label" }).parentElement as HTMLElement;
+    fireEvent.change(bloco.querySelector("select") as HTMLSelectElement, { target: { value: "I" } });
+    fireEvent.click(screen.getByRole("button", { name: "Solicitação de Compras" }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent("6 produtos");
+  });
+});
