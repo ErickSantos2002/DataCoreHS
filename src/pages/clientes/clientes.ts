@@ -195,8 +195,8 @@ const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 /**
  * As quatro linhas de "Estatísticas do Período", já como texto.
  *
- * Achado ao mover (não corrigido): a taxa sai com `toFixed` — "75.0%", com
- * ponto, ao lado de "R$ 123.456,78" com vírgula.
+ * A taxa no formato brasileiro: saía com `toFixed` — "75.0%", com ponto, ao
+ * lado de "R$ 123.456,78" com vírgula.
  */
 export function estatisticasDaCarteira(
   carteira: ClienteDaCarteira[],
@@ -209,7 +209,10 @@ export function estatisticasDaCarteira(
       label: "Taxa de Ativação",
       value:
         carteira.length > 0
-          ? ((kpis.clientesAtivos / carteira.length) * 100).toFixed(1) + "%"
+          ? `${((kpis.clientesAtivos / carteira.length) * 100).toLocaleString(
+              "pt-BR",
+              { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+            )}%`
           : "0%",
     },
     {

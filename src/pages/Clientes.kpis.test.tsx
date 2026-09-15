@@ -142,7 +142,8 @@ describe("estatisticas do periodo em Clientes", () => {
 
   it("Taxa de Ativacao divide ativos pelo total", () => {
     render(<Clientes />);
-    expect(estatistica("Taxa de Ativação")).toHaveTextContent("75.0%");
+    // No formato brasileiro, como o faturamento ao lado: saía "75.0%".
+    expect(estatistica("Taxa de Ativação")).toHaveTextContent("75,0%");
   });
 
   it("Faturamento Total le o KPI do resumo, e nao a soma dos clientes", () => {
