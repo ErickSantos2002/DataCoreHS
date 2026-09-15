@@ -36,6 +36,17 @@ import Vendas from "./Vendas";
  * sucesso — só o dublê de recharts muda, porque aqui o que interessa é o
  * `YAxis`, e o dublê comum (`() => null`) o descartaria.
  */
+// A tela pede o toast para avisar falha de exportação; o assunto deste
+// arquivo é outro, então o dublê só precisa existir.
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));

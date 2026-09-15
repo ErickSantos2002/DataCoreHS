@@ -15,6 +15,17 @@ import {
  * O resumo é o de `vendas/vendasFalsas.ts`, que traz as contas esperadas.
  */
 
+// A tela pede o toast para avisar falha de exportação; o assunto deste
+// arquivo é outro, então o dublê só precisa existir.
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));

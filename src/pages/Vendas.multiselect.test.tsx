@@ -24,6 +24,17 @@ import Vendas from "./Vendas";
  * normalização do termo digitado só roda quando ele é **todo dígito**
  * (`/^\d+$/.test(searchTerm)`) — por isso "a11" não vira busca numérica.
  */
+// A tela pede o toast para avisar falha de exportação; o assunto deste
+// arquivo é outro, então o dublê só precisa existir.
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));

@@ -17,6 +17,17 @@ import Vendas from "./Vendas";
  *
  * Página de 15 itens, 17 notas: duas páginas, a segunda com 2.
  */
+// A tela pede o toast para avisar falha de exportação; o assunto deste
+// arquivo é outro, então o dublê só precisa existir.
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));

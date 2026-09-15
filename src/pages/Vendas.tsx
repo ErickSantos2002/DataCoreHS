@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../components/ToastProvider";
 import { diaLocal } from "../lib/datas";
 import { periodoDoPreset } from "../lib/periodo";
 import { baixarPlanilha } from "../lib/planilha";
@@ -44,6 +45,7 @@ import { EstatisticasDeVendas } from "./vendas/EstatisticasDeVendas";
  */
 const Vendas: React.FC = () => {
   const { user } = useAuth();
+  const { erro: avisarErro } = useToast();
 
   // Os filtros guardam o RÓTULO que o multiselect mostra; o id do cliente e a
   // chave do produto saem dos mapas montados a partir das opções.
@@ -196,10 +198,13 @@ const Vendas: React.FC = () => {
       );
     } catch (falha) {
       console.error("Erro ao exportar as vendas:", falha);
+      // Só escrevia no console: o botão girava e nada acontecia. Toast, e não
+      // Alert, porque é retorno de uma ação que a pessoa acabou de tomar.
+      avisarErro("Não foi possível exportar as vendas.");
     } finally {
       setExportando(false);
     }
-  }, [recorte, pesquisaTabela, ordenacao]);
+  }, [recorte, pesquisaTabela, ordenacao, avisarErro]);
 
   if (carregando) {
     return (

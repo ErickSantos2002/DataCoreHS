@@ -25,6 +25,19 @@ import {
  * suíte roda nos dois fusos.
  */
 
+const { TOAST } = vi.hoisted(() => ({
+  TOAST: { erro: null as null | ReturnType<typeof vi.fn> },
+}));
+
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: TOAST.erro,
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
@@ -107,6 +120,7 @@ const resposta = (itens: NotaVenda[], total: number) => ({
 });
 
 beforeEach(() => {
+  TOAST.erro = vi.fn();
   reiniciarEstadoDeVendas();
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(2026, 8, 15, 15, 0, 0));
@@ -225,7 +239,7 @@ describe("exportacao de Vendas", () => {
     });
   });
 
-  it("a falha da busca nao gera planilha e nao derruba a tela", async () => {
+  it("a falha da busca nao gera planilha, nao derruba a tela e avisa", async () => {
     const console = vi.spyOn(globalThis.console, "error").mockImplementation(
       () => {},
     );
@@ -235,6 +249,11 @@ describe("exportacao de Vendas", () => {
 
     expect(baixarPlanilha).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    // Só escrevia no console: a pessoa clicava, o botão girava e nada
+    // acontecia. Toast, porque é retorno de uma ação que ela acabou de tomar.
+    expect(TOAST.erro).toHaveBeenCalledWith(
+      "Não foi possível exportar as vendas.",
+    );
     console.mockRestore();
   });
   it("durante a exportacao o botao desabilita, e volta quando termina", async () => {

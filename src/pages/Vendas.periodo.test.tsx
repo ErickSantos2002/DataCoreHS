@@ -17,6 +17,17 @@ import Vendas from "./Vendas";
  * O relógio é fixado em 15/03/2026: as asserções falam de "mês atual" e "ano
  * atual", e sem relógio fixo o teste passaria hoje e falharia em abril.
  */
+// A tela pede o toast para avisar falha de exportação; o assunto deste
+// arquivo é outro, então o dublê só precisa existir.
+vi.mock("../components/ToastProvider", () => ({
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
+}));
+
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
