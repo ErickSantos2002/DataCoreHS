@@ -1259,7 +1259,8 @@ três `ChartEmpty`, `TableEmpty`, exportar desabilitado), erro (API bloqueada: o
 - **A coluna "Numero" da planilha corta os dois primeiros dígitos** do número da
   nota (`substring(2)`: 991001 sai 1001). Sem comentário dizendo por quê, e
   nenhuma outra exportação faz isso. Pode ser regra do Tiny (prefixo de série) —
-  **pergunta para o Erick**, não para o código.
+  **Decisão do Erick (15/09): fica como pendência para o futuro** — não mexer sem
+  ele pedir.
 - O "Produto Top" mostra o valor sem casas fixas ("R$ 15.684.661,84" e
   "R$ 5.000" convivem).
 - Falha ao salvar o tipo e ao exportar continuam em toast: são retorno de ação
