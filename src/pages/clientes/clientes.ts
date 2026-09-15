@@ -362,8 +362,10 @@ export const CABECALHO_DO_PDF = [
 /**
  * As linhas do PDF.
  *
- * Achados ao mover (não corrigidos): corta em 30 clientes sem avisar, e o
- * total sai com `toFixed` — "R$ 50000.50", sem milhar e com ponto.
+ * O total no formato brasileiro, como a tabela: saía com `toFixed` —
+ * "R$ 50000.50", sem milhar e com ponto.
+ *
+ * Achado ao mover (não corrigido): corta em 30 clientes sem avisar.
  */
 export function linhasDoPdf(carteira: ClienteDaCarteira[]): string[][] {
   return carteira
@@ -372,7 +374,7 @@ export function linhasDoPdf(carteira: ClienteDaCarteira[]): string[][] {
       c.nome.substring(0, 25),
       c.cpf_cnpj,
       c.ultimaCompra ? c.ultimaCompra.toLocaleDateString("pt-BR") : "Nunca",
-      `R$ ${c.totalCompradoPeriodo.toFixed(2)}`,
+      `R$ ${c.totalCompradoPeriodo.toLocaleString("pt-BR", DINHEIRO)}`,
       c.status === "ativo" ? "Ativo" : "Inativo",
     ]);
 }

@@ -178,7 +178,8 @@ describe("PDF de Clientes", () => {
     expect(PDF.arquivo).toBe("clientes_2026-09-15.pdf");
   });
 
-  it("cinco colunas, e o nome cortado em 25 caracteres", () => {
+  it("cinco colunas, o nome cortado em 25 caracteres e o total em reais", () => {
+    // O total saía com `toFixed`: "R$ 50000.50", sem milhar e com ponto.
     render(<Clientes />);
     exportar("PDF");
 
@@ -190,14 +191,14 @@ describe("PDF de Clientes", () => {
       "Alfa Mineração Recife Ltd",
       "11.222.333/0001-44",
       "10/09/2026",
-      "R$ 50000.50",
+      "R$ 50.000,50",
       "Ativo",
     ]);
     expect(body[11]).toEqual([
       "Delta Engenharia",
       "44.333.222/0001-11",
       "Nunca",
-      "R$ 9000.00",
+      "R$ 9.000,00",
       "Inativo",
     ]);
   });
