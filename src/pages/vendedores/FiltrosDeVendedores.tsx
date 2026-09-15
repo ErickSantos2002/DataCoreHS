@@ -8,13 +8,15 @@ import {
   buscaPorCnpjEntreParenteses,
   deTextos,
 } from "../../design-system/ui";
+import type { OpcaoDeMultiSelect } from "../../design-system/ui/forms/buscaDeMultiSelect";
 import { PRESETS_DE_PERIODO } from "../../lib/periodo";
 
 export interface FiltrosDeVendedoresProps {
   opcoes: {
     clientes: string[];
-    /** Rótulos de produto, como o multiselect os mostra. */
-    produtos: string[];
+    /** Chave de produto como valor, rótulo como texto: o que o multiselect
+     *  devolve vai direto para o recorte, e o servidor filtra pela chave. */
+    produtos: OpcaoDeMultiSelect[];
   };
   valores: {
     cliente: string[];
@@ -71,7 +73,7 @@ export function FiltrosDeVendedores({
 
         <MultiSelect
           rotulo="Produtos"
-          opcoes={deTextos(opcoes.produtos)}
+          opcoes={opcoes.produtos}
           selecionados={valores.produto}
           onChange={onProduto}
           placeholder="Todos os produtos"

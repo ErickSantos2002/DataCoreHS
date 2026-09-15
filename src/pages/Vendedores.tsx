@@ -88,9 +88,8 @@ const Vendedores: React.FC = () => {
         .map((r) => idPorRotulo.get(r))
         .filter((id): id is number => id !== undefined),
       vendedores: vendedoresDoRecorte,
-      // Achado ao mover (não corrigido): o comentário que estava aqui dizia
-      // que o multiselect de produto "já guarda a CHAVE". Não guarda — ver
-      // `opcoesDeProduto` em vendedores.ts.
+      // O multiselect de produto devolve a CHAVE (o `valor` de
+      // `opcoesDeProduto`), que é o que o servidor filtra.
       produtos: filtroProduto,
       dataInicio,
       dataFim,
@@ -215,7 +214,7 @@ const Vendedores: React.FC = () => {
 
       <div className="mt-6 overflow-x-hidden">
         <FiltrosDeVendedores
-          opcoes={{ clientes: clientesUnicos, produtos: produtosUnicos.map((p) => p.label) }}
+          opcoes={{ clientes: clientesUnicos, produtos: produtosUnicos }}
           valores={{
             cliente: filtroCliente,
             produto: filtroProduto,

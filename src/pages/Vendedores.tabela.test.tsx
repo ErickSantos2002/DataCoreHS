@@ -318,6 +318,23 @@ describe("pesquisa da tabela de Vendedores", () => {
   });
 });
 
+describe("filtro de produto em Vendedores", () => {
+  it("escolher um produto deixa na tabela so as notas que tem aquele item", () => {
+    // O multiselect recebia só os RÓTULOS ("Kit (K1)") e devolvia o rótulo,
+    // que ia direto para `recorte.produtos` — onde o servidor espera a CHAVE
+    // ("K1"). O filtro não casava nada: escolher qualquer produto zerava a
+    // tabela. O falso do Comercial filtra pela chave, como o banco.
+    render(<Vendedores />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Produtos Todos os produtos" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Kit (K1)" }));
+
+    const corpo = document.querySelector("tbody") as HTMLElement;
+    expect(within(corpo).getAllByRole("row")).toHaveLength(1);
+    expect(corpo).toHaveTextContent("Beta Logística");
+  });
+});
+
 describe("observacoes na tabela de Vendedores", () => {
   it("Ver Observacoes abre o modal da nota daquela linha, e fechar o tira", () => {
     render(<Vendedores />);

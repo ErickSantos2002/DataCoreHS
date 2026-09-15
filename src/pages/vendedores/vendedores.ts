@@ -1,6 +1,7 @@
 import type { WorkSheet } from "xlsx";
 
 import type { CampoDeOrdenacao } from "../comercial/useComercial";
+import type { OpcaoDeMultiSelect } from "../../design-system/ui/forms/buscaDeMultiSelect";
 import type { FiltrosComerciais, NotaVenda, ResumoComercial } from "../../services/notasapi";
 
 /**
@@ -29,18 +30,19 @@ export function rotuloDoCliente(c: { nome: string | null; cpf_cnpj: string | nul
 }
 
 /**
- * As opções do filtro de produto, como `{ value, label }`.
+ * As opções do filtro de produto, como `{ valor, rotulo }` — e é o par inteiro
+ * que vai para o `MultiSelect`.
  *
- * Achado ao mover (não corrigido): o `MultiSelect` recebe só os RÓTULOS
- * (`deTextos(produtos.map(p => p.label))`), e o que ele devolve vai direto para
- * `recorte.produtos`, que o servidor espera como CHAVE. O comentário antigo
- * dizia que o multiselect "já guarda a chave"; não guarda — escolher um produto
- * manda o rótulo inteiro, e o filtro não casa nada no banco.
+ * A tela passava só os rótulos (`deTextos(produtos.map(p => p.label))`), e o
+ * que o multiselect devolvia ia direto para `recorte.produtos`, que o servidor
+ * espera como CHAVE. Escolher qualquer produto mandava "Kit (K1)" onde o banco
+ * procura "K1", e a tela zerava. O comentário ao lado dizia que o multiselect
+ * "já guarda a chave"; não guardava.
  */
-export function opcoesDeProduto(produtos: Opcoes["produtos"]): { value: string; label: string }[] {
+export function opcoesDeProduto(produtos: Opcoes["produtos"]): OpcaoDeMultiSelect[] {
   return produtos.map((p) => ({
-    value: p.chave,
-    label: `${p.descricao} (${p.codigo ?? "sem código"})`,
+    valor: p.chave,
+    rotulo: `${p.descricao} (${p.codigo ?? "sem código"})`,
   }));
 }
 
