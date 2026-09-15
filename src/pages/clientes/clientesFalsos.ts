@@ -120,7 +120,11 @@ export const RESUMO_CLIENTES: ResumoComercial = {
  */
 export const OPCOES_CLIENTES: FiltrosComerciais = {
   clientes: [
-    { id: 1, nome: "Alfa Mineração Recife Ltda", cpf_cnpj: "11.222.333/0001-44" },
+    {
+      id: 1,
+      nome: "Alfa Mineração Recife Ltda",
+      cpf_cnpj: "11.222.333/0001-44",
+    },
     { id: 2, nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
     { id: 7, nome: "ALFA MINERACAO", cpf_cnpj: "11.222.333/0001-44" },
   ],

@@ -152,9 +152,7 @@ describe("estatisticas do periodo em Clientes", () => {
 
   it("Faturamento Total le o KPI do resumo, e nao a soma dos clientes", () => {
     render(<Clientes />);
-    expect(estatistica("Faturamento Total")).toHaveTextContent(
-      "R$ 123.456,78",
-    );
+    expect(estatistica("Faturamento Total")).toHaveTextContent("R$ 123.456,78");
   });
 
   it("Notas no Periodo soma as notas de cada cliente", () => {
@@ -249,9 +247,9 @@ describe("recorte que os filtros de Clientes mandam", () => {
   it("o preset escreve as duas datas no recorte", () => {
     render(<Clientes />);
 
-    const preset = screen.getByText("Período").parentElement!.querySelector(
-      "select",
-    )!;
+    const preset = screen
+      .getByText("Período")
+      .parentElement!.querySelector("select")!;
     fireEvent.change(preset, { target: { value: "mesAtual" } });
 
     expect(ultimoRecorte().dataInicio).toBe("2026-09-01");

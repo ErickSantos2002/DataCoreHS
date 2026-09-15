@@ -42,11 +42,20 @@ const { CADASTROS, NOTAS } = vi.hoisted(() => ({
       data_emissao: "2026-01-10",
       valor_nota: 1000,
       valor_produtos: 1000,
-      cliente: { id: 1, nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
+      cliente: {
+        id: 1,
+        nome: "Alfa Mineração",
+        cpf_cnpj: "11.222.333/0001-44",
+      },
       nome_vendedor: "Vendedor A",
       tipo: null,
       itens: [
-        { codigo: "P1", descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
+        {
+          codigo: "P1",
+          descricao: "Bafômetro Phoebus",
+          quantidade: "2",
+          valor_total: "1000",
+        },
       ],
       tem_observacoes: false,
     },
@@ -61,7 +70,9 @@ const { CADASTROS, NOTAS } = vi.hoisted(() => ({
 // dado veio.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeClientes } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeClientes } = await import(
+    "./comercial/hooksFalsos"
+  );
   return {
     ...real,
     ...criarHooksFalsos(NOTAS, (ns) => resumoDeClientes(ns, CADASTROS)),
@@ -73,13 +84,21 @@ vi.mock("recharts", () => {
   return {
     // Expõe `height` — é a prop que `isMobile` controla, e o dublê dos outros
     // arquivos a descartaria.
-    ResponsiveContainer: ({ children, height }: { children?: ReactNode; height?: number }) => (
+    ResponsiveContainer: ({
+      children,
+      height,
+    }: {
+      children?: ReactNode;
+      height?: number;
+    }) => (
       <div data-testid="grafico" data-height={String(height)}>
         {children}
       </div>
     ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
     Line: semDesenho,
@@ -93,7 +112,9 @@ vi.mock("recharts", () => {
       content
         ? content({
             active: true,
-            payload: [{ payload: { nomeCompleto: "Alfa Mineração", valor: 1000 } }],
+            payload: [
+              { payload: { nomeCompleto: "Alfa Mineração", valor: 1000 } },
+            ],
           } as never)
         : null,
     CartesianGrid: semDesenho,
@@ -128,31 +149,49 @@ describe("Clientes — o que muda em tela pequena", () => {
   it("o grafico e mais alto em celular do que no desktop", () => {
     render(<Clientes />);
     // 1024 na jsdom: desktop.
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
 
     redimensionarPara(375);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
   });
 
   it("voltar para o desktop devolve a altura menor", () => {
     render(<Clientes />);
     redimensionarPara(375);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(1024);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 
   it("639 e celular e 640 nao — o limite e exclusivo", () => {
     render(<Clientes />);
 
     redimensionarPara(639);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(640);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 
   it("a largura do tooltip acompanha o resize, como o resto da tela", () => {

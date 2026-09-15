@@ -69,7 +69,10 @@ const NOMES = [
   "Não informado",
   "Gama Saúde",
   "Delta Engenharia",
-  ...Array.from({ length: 7 }, (_, i) => `Cliente ${String(i + 6).padStart(2, "0")}`),
+  ...Array.from(
+    { length: 7 },
+    (_, i) => `Cliente ${String(i + 6).padStart(2, "0")}`,
+  ),
 ];
 
 function linhas(): HTMLElement[] {
@@ -122,7 +125,13 @@ describe("linhas do Detalhamento de Clientes", () => {
     ).toBeInTheDocument();
     expect(
       screen.getAllByRole("columnheader").map((c) => c.textContent?.trim()),
-    ).toEqual(["Cliente", "Última Compra", "Valor Total", "Nº Compras", "Status"]);
+    ).toEqual([
+      "Cliente",
+      "Última Compra",
+      "Valor Total",
+      "Nº Compras",
+      "Status",
+    ]);
   });
 
   it("uma linha completa: nome, documento, e-mail, telefone, data, valor, notas e status", () => {
@@ -175,7 +184,9 @@ describe("linhas do Detalhamento de Clientes", () => {
     render(<Clientes />);
 
     expect(linhas()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 });
 
@@ -250,7 +261,9 @@ describe("ordem do Detalhamento de Clientes", () => {
     render(<Clientes />);
 
     ordenarPor("Status");
-    let status = linhas().map((l) => within(l).getAllByRole("cell")[4].textContent);
+    let status = linhas().map(
+      (l) => within(l).getAllByRole("cell")[4].textContent,
+    );
     expect(status.slice(0, 3)).toEqual(["Inativo", "Inativo", "Inativo"]);
     expect(status[3]).toBe("Ativo");
 
@@ -301,7 +314,13 @@ describe("ordenar pelo teclado no Detalhamento de Clientes", () => {
   // O clique morava no `<th>`, que não entra na ordem de tabulação nem
   // responde a Enter: ordenar era ação só de mouse, e o leitor de tela não
   // sabia qual coluna estava ordenada.
-  const ROTULOS = ["Cliente", "Última Compra", "Valor Total", "Nº Compras", "Status"];
+  const ROTULOS = [
+    "Cliente",
+    "Última Compra",
+    "Valor Total",
+    "Nº Compras",
+    "Status",
+  ];
 
   it("cada coluna ordenavel e um botao com nome", () => {
     render(<Clientes />);
@@ -322,14 +341,21 @@ describe("ordenar pelo teclado no Detalhamento de Clientes", () => {
         .getByRole("button", { name: `Ordenar por ${rotulo}` })
         .closest("th") as HTMLElement;
 
-    expect(cabecalho("Última Compra")).toHaveAttribute("aria-sort", "descending");
+    expect(cabecalho("Última Compra")).toHaveAttribute(
+      "aria-sort",
+      "descending",
+    );
     expect(cabecalho("Cliente")).toHaveAttribute("aria-sort", "none");
 
-    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Cliente" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ordenar por Cliente" }),
+    );
     expect(cabecalho("Cliente")).toHaveAttribute("aria-sort", "descending");
     expect(cabecalho("Última Compra")).toHaveAttribute("aria-sort", "none");
 
-    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Cliente" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ordenar por Cliente" }),
+    );
     expect(cabecalho("Cliente")).toHaveAttribute("aria-sort", "ascending");
   });
 });
@@ -385,7 +411,12 @@ describe("ordem estavel e natural no Detalhamento de Clientes", () => {
     const primeiras = linhas().map(
       (l) => within(l).getAllByRole("cell")[0].querySelector("p")?.textContent,
     );
-    expect(primeiras).toEqual(["Ágil Serviços", "beta minúscula", "Bravo", " Zeta"]);
+    expect(primeiras).toEqual([
+      "Ágil Serviços",
+      "beta minúscula",
+      "Bravo",
+      " Zeta",
+    ]);
   });
 });
 

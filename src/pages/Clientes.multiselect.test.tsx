@@ -28,68 +28,85 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-
 // Uma nota por cliente, para que os dois apareçam na tabela (só entra na
 // tabela quem tem `numeroComprasPeriodo > 0`, ~linha 257) — é o que dá à
 // asserção forte do `value` algo visível para diferenciar.
 
 const { CLIENTES_ENRIQUECIDOS, NOTAS } = vi.hoisted(() => {
   const CLIENTES_ENRIQUECIDOS = [
-  {
-    id: 1,
-    nome: "Alfa Mineração",
-    cpf_cnpj: "11.222.333/0001-44",
-    email: "contato@alfa.com",
-    fone: "81999990000",
-    totalComprado: 1000,
-    numeroCompras: 1,
-    ultimaCompra: new Date("2026-01-10"),
-    status: "ativo" as const,
-    ticketMedio: 1000,
-  },
-  {
-    id: 2,
-    nome: "Beta Logística",
-    cpf_cnpj: "55.666.777/0001-88",
-    email: "contato@beta.com",
-    fone: "81888880000",
-    totalComprado: 500,
-    numeroCompras: 1,
-    ultimaCompra: new Date("2026-02-10"),
-    status: "ativo" as const,
-    ticketMedio: 500,
-  },
-];
+    {
+      id: 1,
+      nome: "Alfa Mineração",
+      cpf_cnpj: "11.222.333/0001-44",
+      email: "contato@alfa.com",
+      fone: "81999990000",
+      totalComprado: 1000,
+      numeroCompras: 1,
+      ultimaCompra: new Date("2026-01-10"),
+      status: "ativo" as const,
+      ticketMedio: 1000,
+    },
+    {
+      id: 2,
+      nome: "Beta Logística",
+      cpf_cnpj: "55.666.777/0001-88",
+      email: "contato@beta.com",
+      fone: "81888880000",
+      totalComprado: 500,
+      numeroCompras: 1,
+      ultimaCompra: new Date("2026-02-10"),
+      status: "ativo" as const,
+      ticketMedio: 500,
+    },
+  ];
   const NOTAS = [
-  {
-    id: 1,
-    numero: 1001,
-    data_emissao: "2026-01-10",
-    valor_nota: 1000,
-    valor_produtos: 1000,
-    cliente: { id: 1, nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
-    nome_vendedor: "Vendedor A",
-    tipo: null,
-    itens: [
-      { codigo: "P1", descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
-    ],
-    tem_observacoes: false,
-  },
-  {
-    id: 2,
-    numero: 1002,
-    data_emissao: "2026-02-10",
-    valor_nota: 500,
-    valor_produtos: 500,
-    cliente: { id: 2, nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
-    nome_vendedor: "Vendedor B",
-    tipo: null,
-    itens: [
-      { codigo: "P2", descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
-    ],
-    tem_observacoes: false,
-  },
-];
+    {
+      id: 1,
+      numero: 1001,
+      data_emissao: "2026-01-10",
+      valor_nota: 1000,
+      valor_produtos: 1000,
+      cliente: {
+        id: 1,
+        nome: "Alfa Mineração",
+        cpf_cnpj: "11.222.333/0001-44",
+      },
+      nome_vendedor: "Vendedor A",
+      tipo: null,
+      itens: [
+        {
+          codigo: "P1",
+          descricao: "Bafômetro Phoebus",
+          quantidade: "2",
+          valor_total: "1000",
+        },
+      ],
+      tem_observacoes: false,
+    },
+    {
+      id: 2,
+      numero: 1002,
+      data_emissao: "2026-02-10",
+      valor_nota: 500,
+      valor_produtos: 500,
+      cliente: {
+        id: 2,
+        nome: "Beta Logística",
+        cpf_cnpj: "55.666.777/0001-88",
+      },
+      nome_vendedor: "Vendedor B",
+      tipo: null,
+      itens: [
+        {
+          codigo: "P2",
+          descricao: "Tubo descartável",
+          quantidade: "10",
+          valor_total: "500",
+        },
+      ],
+      tem_observacoes: false,
+    },
+  ];
   return { CLIENTES_ENRIQUECIDOS, NOTAS };
 });
 
@@ -97,10 +114,14 @@ const { CLIENTES_ENRIQUECIDOS, NOTAS } = vi.hoisted(() => {
 // somada do banco. O falso mora em `comercial/hooksFalsos`.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeClientes } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeClientes } = await import(
+    "./comercial/hooksFalsos"
+  );
   return {
     ...real,
-    ...criarHooksFalsos(NOTAS, (ns) => resumoDeClientes(ns, CLIENTES_ENRIQUECIDOS)),
+    ...criarHooksFalsos(NOTAS, (ns) =>
+      resumoDeClientes(ns, CLIENTES_ENRIQUECIDOS),
+    ),
   };
 });
 
@@ -119,9 +140,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -168,7 +195,9 @@ function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
  * testando a coisa errada.
  */
 function campoDeBusca(rotulo: string, valor: string): HTMLElement {
-  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText(
+    "Pesquisar...",
+  );
 }
 
 describe("MultiSelect em Clientes", () => {
@@ -191,8 +220,12 @@ describe("MultiSelect em Clientes", () => {
       target: { value: "beta" },
     });
 
-    expect(screen.getByRole("checkbox", { name: /Beta Logística/ })).toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: /Alfa/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Beta Logística/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Alfa/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -289,7 +322,9 @@ describe("MultiSelect em Clientes", () => {
 
     const tabela = screen.getByRole("table");
     expect(within(tabela).getByText("Alfa Mineração")).toBeInTheDocument();
-    expect(within(tabela).queryByText("Beta Logística")).not.toBeInTheDocument();
+    expect(
+      within(tabela).queryByText("Beta Logística"),
+    ).not.toBeInTheDocument();
   });
 
   // A cópia fechava o dropdown ao marcar por acidente: era declarada DENTRO
@@ -329,12 +364,16 @@ describe("MultiSelect em Clientes", () => {
     render(<Clientes />);
     abrir("Cliente", "Todos os clientes");
     const container = containerDoFiltro("Cliente", "Todos os clientes");
-    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+    expect(
+      within(container).getByPlaceholderText("Pesquisar..."),
+    ).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
     // O container do filtro continua no DOM (o botão vive nele); o que some
     // ao fechar é só o painel do dropdown, filho dele.
-    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      within(container).queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 });

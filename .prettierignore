@@ -23,6 +23,9 @@ src/pages/*
 !src/pages/estoque
 !src/pages/Estoque.tsx
 !src/pages/Estoque.*.test.tsx
+!src/pages/clientes
+!src/pages/Clientes.tsx
+!src/pages/Clientes.*.test.tsx
 src/components
 src/context
 src/services

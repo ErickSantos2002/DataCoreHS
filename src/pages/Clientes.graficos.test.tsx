@@ -56,11 +56,7 @@ vi.mock("recharts", () => {
     Bar: ({ dataKey }: { dataKey?: string }) => (
       <div data-grafico="Bar" data-serie={dataKey} />
     ),
-    XAxis: ({
-      tickFormatter,
-    }: {
-      tickFormatter?: (v: number) => string;
-    }) => (
+    XAxis: ({ tickFormatter }: { tickFormatter?: (v: number) => string }) => (
       <div
         data-grafico="XAxis"
         data-rotulos={JSON.stringify(
@@ -143,20 +139,18 @@ describe("Top 10 Clientes", () => {
 
     const dados = JSON.parse(atributo(cartao, "BarChart", "data-dados"));
     expect(dados).toHaveLength(10);
-    expect(dados.map((d: { nomeCompleto: string }) => d.nomeCompleto)).toEqual(
-      [
-        "Alfa Mineração Recife Ltda",
-        "Beta Logística",
-        "Não informado",
-        "Gama Saúde",
-        "Delta Engenharia",
-        "Cliente 06",
-        "Cliente 07",
-        "Cliente 08",
-        "Cliente 09",
-        "Cliente 10",
-      ],
-    );
+    expect(dados.map((d: { nomeCompleto: string }) => d.nomeCompleto)).toEqual([
+      "Alfa Mineração Recife Ltda",
+      "Beta Logística",
+      "Não informado",
+      "Gama Saúde",
+      "Delta Engenharia",
+      "Cliente 06",
+      "Cliente 07",
+      "Cliente 08",
+      "Cliente 09",
+      "Cliente 10",
+    ]);
     expect(dados.map((d: { valor: number }) => d.valor)).toEqual([
       50000.5, 30000, 20000, 15000, 9000, 940, 930, 920, 910, 900,
     ]);

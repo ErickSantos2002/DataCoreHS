@@ -100,7 +100,11 @@ export function TabelaDeClientes({
         <span>{rotulo}</span>
         {ordenacao.campo === campo ? (
           ordenacao.direcao === "desc" ? (
-            <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            <ChevronDown
+              className="h-4 w-4"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           ) : (
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           )
@@ -126,7 +130,11 @@ export function TabelaDeClientes({
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
               icon={
-                <Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
               }
             />
           </div>
@@ -137,7 +145,11 @@ export function TabelaDeClientes({
             // tabela vazia. `total` é o que a pesquisa deixou, e não a página.
             disabled={total === 0}
             icon={
-              <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             }
           >
             Excel
@@ -147,7 +159,11 @@ export function TabelaDeClientes({
             onClick={onExportarPdf}
             disabled={total === 0}
             icon={
-              <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             }
           >
             PDF
@@ -184,13 +200,21 @@ export function TabelaDeClientes({
                   <div className="mt-1 flex flex-wrap gap-3">
                     {cliente.email ? (
                       <span className="flex items-center gap-1 text-xs text-conteudo-muted">
-                        <Mail className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
+                        <Mail
+                          className="h-3 w-3"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
                         {cliente.email}
                       </span>
                     ) : null}
                     {cliente.fone ? (
                       <span className="flex items-center gap-1 text-xs text-conteudo-muted">
-                        <Phone className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
+                        <Phone
+                          className="h-3 w-3"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
                         {cliente.fone}
                       </span>
                     ) : null}
@@ -201,7 +225,10 @@ export function TabelaDeClientes({
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-sm font-semibold text-action">
                   R${" "}
-                  {cliente.totalCompradoPeriodo.toLocaleString("pt-BR", DINHEIRO)}
+                  {cliente.totalCompradoPeriodo.toLocaleString(
+                    "pt-BR",
+                    DINHEIRO,
+                  )}
                 </TableCell>
                 <TableCell className="text-sm font-semibold">
                   {cliente.numeroComprasPeriodo}
