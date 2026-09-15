@@ -47,7 +47,11 @@ export function EstatisticasDeVendas({
               {
                 key: "variacao",
                 label: `Variação ${unidade.ultimo}`,
-                value: `${comparativo.variacao >= 0 ? "+" : ""}${comparativo.variacao.toFixed(1)}%`,
+                // Com vírgula, como a média ao lado: saía "-20.0%".
+                value: `${comparativo.variacao >= 0 ? "+" : ""}${comparativo.variacao.toLocaleString(
+                  "pt-BR",
+                  { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+                )}%`,
               },
               {
                 key: "melhor",

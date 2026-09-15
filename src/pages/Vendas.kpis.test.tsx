@@ -161,9 +161,10 @@ describe("Resumo do Periodo em Vendas", () => {
 
 describe("Comparativo Mensal em Vendas", () => {
   it("variacao do ultimo mes, melhor mes e media mensal", () => {
+    // A variação no formato brasileiro: saía "-20.0%", com ponto.
     render(<Vendas />);
 
-    expect(estatistica("Variação último mês")).toHaveTextContent("-20.0%");
+    expect(estatistica("Variação último mês")).toHaveTextContent("-20,0%");
     expect(estatistica("Melhor mês")).toHaveTextContent("jul. de 2026");
     expect(estatistica("Média mensal")).toHaveTextContent("R$ 2.133,33");
   });
@@ -177,7 +178,7 @@ describe("Comparativo Mensal em Vendas", () => {
 
     const cartao = screen.getByRole("heading", { name: "Comparativo Anual" })
       .parentElement as HTMLElement;
-    expect(estatistica("Variação último ano")).toHaveTextContent("-82.3%");
+    expect(estatistica("Variação último ano")).toHaveTextContent("-82,3%");
     expect(estatistica("Melhor ano")).toHaveTextContent("2025");
     expect(estatistica("Média anual")).toHaveTextContent("R$ 975,00");
     // Só no cartão: o seletor de período tem "Mês atual".
