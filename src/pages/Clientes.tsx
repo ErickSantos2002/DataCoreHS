@@ -1016,8 +1016,12 @@ const Clientes: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                        {/* No fuso de quem olha, como a planilha e o PDF. Passava
+                            por `toISOString`, que é o dia em UTC: a data é
+                            meia-noite local, e a leste de Greenwich a tabela
+                            mostrava um dia a menos que a planilha. */}
                         {cliente.ultimaCompra
-                          ? cliente.ultimaCompra.toISOString().split("T")[0].split("-").reverse().join("/")
+                          ? cliente.ultimaCompra.toLocaleDateString("pt-BR")
                           : "Nunca"}
                       </td>
                       <td className="px-4 py-3">

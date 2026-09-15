@@ -31,6 +31,11 @@ const arquivosDeCodigo = readdirSync("src", {
 // registrada no item 11 do documento de divergências, e por isso a tela
 // continua na lista.
 //
+// A lista ficou vazia em 15/09/2026, na migração de Clientes: a tabela
+// passou a mostrar a última compra no fuso de quem olha, como a planilha e o
+// PDF já faziam. O defeito só aparecia a leste de Greenwich — conferido com
+// `TZ=Asia/Tokyo`, onde a linha mostrava 09/09 para uma compra de 10/09.
+//
 // A lista SÓ ENCOLHE. Duas travas garantem isso:
 //   1. arquivo fora da lista que use `toISOString` faz o guarda falhar;
 //   2. arquivo NA lista que já não use `toISOString` TAMBÉM faz falhar,
@@ -39,7 +44,7 @@ const arquivosDeCodigo = readdirSync("src", {
 //
 // `src/pages/Estoque.tsx` não está na lista de propósito: ela exporta, mas não
 // tem preset de período, então saiu limpa já na Fase 4.
-const PENDENTES_UTC: string[] = ["src/pages/Clientes.tsx"];
+const PENDENTES_UTC: string[] = [];
 
 /** Linha que só CITA `toISOString` em comentário não é infração.
  *
