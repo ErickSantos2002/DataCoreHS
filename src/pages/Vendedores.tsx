@@ -11,20 +11,6 @@ import {
 import { fetchVendas, updateNotaTipo, type NotaVenda } from "../services/notasapi";
 import { Phone, Mail } from "lucide-react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  CartesianGrid,
-} from "recharts";
-import {
   Package,
   Users,
   Calendar,
@@ -45,7 +31,6 @@ import {
   ajustarFolhaDeVendas,
   distribuicaoDeClientes,
   evolucaoDoResumo,
-  formatarValorAbreviado,
   idsPorRotulo,
   kpisDoResumo,
   linhasDaPlanilha,
@@ -58,29 +43,7 @@ import {
 import { CabecalhoDeVendedores } from "./vendedores/CabecalhoDeVendedores";
 import { FiltrosDeVendedores } from "./vendedores/FiltrosDeVendedores";
 import { KpisDeVendedores } from "./vendedores/KpisDeVendedores";
-
-// Cores para gráficos
-const CORES = {
-  azul: "#2563eb",
-  verde: "#10b981",
-  roxo: "#8b5cf6",
-  laranja: "#f97316",
-  vermelho: "#ef4444",
-  amarelo: "#eab308",
-  rosa: "#ec4899",
-  cyan: "#06b6d4",
-};
-
-const CORES_GRAFICO = [
-  CORES.azul,
-  CORES.verde,
-  CORES.roxo,
-  CORES.laranja,
-  CORES.vermelho,
-  CORES.amarelo,
-  CORES.rosa,
-  CORES.cyan,
-];
+import { GraficosDeVendedores } from "./vendedores/GraficosDeVendedores";
 
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
@@ -305,176 +268,11 @@ const Vendedores: React.FC = () => {
 
         <KpisDeVendedores kpis={kpis} />
 
-        {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Evolução das Vendas */}
-          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Evolução das Vendas
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={dadosEvolucao}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis
-                  dataKey="mes"
-                  tick={{ fill: "#9ca3af", fontSize: 12 }}
-                  axisLine={{ stroke: "#374151" }}
-                />
-                <YAxis
-                  tickFormatter={(value) => formatarValorAbreviado(value)}
-                  tick={{ fill: "#9ca3af", fontSize: 12 }}
-                  axisLine={{ stroke: "#374151" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff", // 🔹 Sempre branco
-                    border: "1px solid #d1d5db", // 🔹 Borda clara
-                    borderRadius: "8px",
-                    color: "#111827", // 🔹 Texto escuro
-                  }}
-                  labelStyle={{ color: "#111827" }} // 🔹 Label sempre escura
-                  itemStyle={{ color: "#0284c7" }}  // 🔹 Valor em azul
-                  formatter={(value: number) => formatarValorAbreviado(value)}
-                />
-
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: "#60a5fa", r: 4 }}
-                  activeDot={{ r: 6, fill: "#2563eb" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Top Produtos Vendidos */}
-          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Top Produtos Vendidos
-            </h3>
-
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topProdutos} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                
-                <XAxis
-                  dataKey="produto"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  tickFormatter={(value: string) =>
-                    value.length > 12 ? `${value.substring(0, 12)}...` : value
-                  }
-                />
-
-                <YAxis
-                  tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  tickFormatter={(value: number) => formatarValorAbreviado(value)} // 🔹 só número abreviado
-                />
-
-                {/* Tooltip customizada */}
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const { produto, valor } = payload[0].payload;
-                      const isDark = document.documentElement.classList.contains("dark");
-
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                            border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
-                            borderRadius: "8px",
-                            padding: "8px 12px",
-                            maxWidth: "250px",
-                            whiteSpace: "normal",
-                            wordWrap: "break-word",
-                            overflow: "hidden",
-                            color: isDark ? "#f9fafb" : "#111827",
-                          }}
-                        >
-                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>
-                            {produto}
-                          </p>
-                          <p style={{ color: isDark ? "#38bdf8" : "#0284c7" }}>
-                            Valor:{" "}
-                            {typeof valor === "number"
-                              ? `R$ ${valor.toLocaleString("pt-BR", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}`
-                              : "N/A"}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="valor" fill={CORES.laranja} radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-
-          {/* Distribuição de Clientes */}
-          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              Distribuição de Clientes
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={distribuicaoClientes}
-                  cx="50%"
-                  cy="50%"
-                  label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {distribuicaoClientes.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={CORES_GRAFICO[index % CORES_GRAFICO.length]}
-                    />
-                  ))}
-                </Pie>
-
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const { name, value } = payload[0].payload;
-                      return (
-                        <div
-                          style={{
-                            backgroundColor: "#ffffff",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "8px",
-                            color: "#111827",
-                            padding: "8px 12px",
-                            maxWidth: "260px",
-                            whiteSpace: "normal",
-                            wordWrap: "break-word",
-                          }}
-                        >
-                          <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
-                          <p style={{ color: "#0284c7" }}>
-                            valor: {formatarValorAbreviado(value)}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <GraficosDeVendedores
+          evolucao={dadosEvolucao}
+          topProdutos={topProdutos}
+          distribuicaoClientes={distribuicaoClientes}
+        />
 
         {/* Tabela de Vendas */}
         <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
