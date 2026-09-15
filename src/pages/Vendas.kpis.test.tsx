@@ -145,7 +145,8 @@ describe("Resumo do Periodo em Vendas", () => {
     expect(estatistica("Total de Clientes")).toHaveTextContent("9");
     expect(estatistica("Total de Vendedores")).toHaveTextContent("5");
     expect(estatistica("Total de Produtos")).toHaveTextContent("6");
-    expect(estatistica("Média de Itens/Venda")).toHaveTextContent("2.6");
+    // No formato brasileiro: saía "2.6".
+    expect(estatistica("Média de Itens/Venda")).toHaveTextContent("2,6");
   });
 
   it("com resumo vazio, zera sem NaN", () => {

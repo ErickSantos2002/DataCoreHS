@@ -226,8 +226,8 @@ const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 /**
  * "Resumo do Período", já como texto.
  *
- * Achado ao mover (não corrigido): a média de itens sai com `toFixed` —
- * "2.6", com ponto.
+ * A média de itens no formato brasileiro: saía com `toFixed` — "2.6", com
+ * ponto, ao lado de valores com vírgula.
  */
 export function resumoDoPeriodo(
   resumo: ResumoComercial,
@@ -244,7 +244,10 @@ export function resumoDoPeriodo(
       label: "Média de Itens/Venda",
       value:
         resumo.kpis.notas > 0
-          ? (resumo.kpis.itens / resumo.kpis.notas).toFixed(1)
+          ? (resumo.kpis.itens / resumo.kpis.notas).toLocaleString("pt-BR", {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })
           : "0",
     },
   ];
