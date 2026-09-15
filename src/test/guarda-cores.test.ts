@@ -108,7 +108,6 @@ const PENDENTES_FASE_3: string[] = [
   "src/pages/Clientes.tsx",
   "src/pages/Estoque.tsx",
   "src/pages/Vendas.tsx",
-  "src/pages/Vendedores.tsx",
 ];
 
 /** Nomes de cor que o tailwind.config.js REMAPEIA com hexadecimal literal.

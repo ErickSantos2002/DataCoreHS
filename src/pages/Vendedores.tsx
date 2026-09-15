@@ -9,24 +9,11 @@ import {
   type RecorteComercial,
 } from "./comercial/useComercial";
 import { fetchVendas, updateNotaTipo, type NotaVenda } from "../services/notasapi";
-import { Phone, Mail } from "lucide-react";
-import {
-  Package,
-  Users,
-  Calendar,
-  Download,
-  Search,
-  ChevronUp,
-  ChevronDown,
-  Check,
-  X,
-} from "lucide-react";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import { periodoDoPreset } from "../lib/periodo";
-import ModalObservacoesDaNota from "../components/ModalObservacoesDaNota";
 import { useToast } from "../components/ToastProvider";
-import { Pagination, TableEmpty } from "../design-system/ui";
+import { Spinner } from "../design-system/ui";
 import {
   ajustarFolhaDeVendas,
   distribuicaoDeClientes,
@@ -44,6 +31,7 @@ import { CabecalhoDeVendedores } from "./vendedores/CabecalhoDeVendedores";
 import { FiltrosDeVendedores } from "./vendedores/FiltrosDeVendedores";
 import { KpisDeVendedores } from "./vendedores/KpisDeVendedores";
 import { GraficosDeVendedores } from "./vendedores/GraficosDeVendedores";
+import { TabelaDeVendedores } from "./vendedores/TabelaDeVendedores";
 
 const Vendedores: React.FC = () => {
   const { user } = useAuth();
@@ -64,14 +52,6 @@ const Vendedores: React.FC = () => {
   }>({ campo: "data_emissao", direcao: "desc" });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
   const [paginaAtual, setPaginaAtual] = useState(1);
-  const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
-  const [tipoTemp, setTipoTemp] = useState<string>("");
-  const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
-  // Guarda o ID, e não o texto: o texto é buscado pelo modal ao abrir.
-  const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(
-    null,
-  );
-
   // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
   // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
   // cinco montavam a data com `toISOString` (UTC) — a partir das 21h de
@@ -163,31 +143,22 @@ const Vendedores: React.FC = () => {
     setOrdenacao((prev) => proximaOrdenacao(prev, campo));
   };
 
-  // Funções de edição do tipo
-  const iniciarEdicaoTipo = (notaId: number, tipoAtual: string | null) => {
-    setEditandoTipo(notaId);
-    setTipoTemp(tipoAtual || "Outbound");
-  };
-
-  const cancelarEdicaoTipo = () => {
-    setEditandoTipo(null);
-    setTipoTemp("");
-  };
-
-  const salvarTipo = async (notaId: number) => {
-    try {
-      setSalvandoTipo(notaId);
-      await updateNotaTipo(notaId, tipoTemp as "Outbound" | "Inbound" | "ReCompra");
-      setTiposEditados((antes) => ({ ...antes, [notaId]: tipoTemp }));
-      setEditandoTipo(null);
-      setTipoTemp("");
-    } catch (error) {
-      console.error("Erro ao salvar tipo:", error);
-      erro("Não foi possível salvar o tipo da nota.");
-    } finally {
-      setSalvandoTipo(null);
-    }
-  };
+  // A gravação do tipo mora na casca, que é quem fala com a rede e com o
+  // toast; a tabela cuida do estado da edição. Rejeitar mantém a edição
+  // aberta com a escolha, como a tela fazia.
+  const salvarTipo = useCallback(
+    async (notaId: number, tipo: string) => {
+      try {
+        await updateNotaTipo(notaId, tipo as "Outbound" | "Inbound" | "ReCompra");
+        setTiposEditados((antes) => ({ ...antes, [notaId]: tipo }));
+      } catch (error) {
+        console.error("Erro ao salvar tipo:", error);
+        erro("Não foi possível salvar o tipo da nota.");
+        throw error;
+      }
+    },
+    [erro],
+  );
 
   const [exportando, setExportando] = useState(false);
 
@@ -226,21 +197,20 @@ const Vendedores: React.FC = () => {
     }
   }, [recorte, pesquisaTabela, ordenacao, vendedorLogado, erro]);
 
+  // Carregando e o invólucro eram o último `dark:` da casca: `bg-gray-50` com
+  // `dark:` por cima e um spinner cru de `<div>` com `border-blue-600`. O
+  // `Spinner` do design system é o mesmo anel de Produtos e Serviços.
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base transition-colors">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Carregando suas vendas...
-          </p>
-        </div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted">
+        <Spinner size="lg" />
+        <p>Carregando suas vendas...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
+    <div className="min-h-screen bg-surface-base p-6 transition-colors">
       <CabecalhoDeVendedores usuario={vendedorLogado} papel={user?.role} />
 
       <div className="mt-6 overflow-x-hidden">
@@ -274,332 +244,18 @@ const Vendedores: React.FC = () => {
           distribuicaoClientes={distribuicaoClientes}
         />
 
-        {/* Tabela de Vendas */}
-        <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
-              Minhas Vendas
-            </h3>
-
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-              <div className="relative flex-1 md:flex-initial">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-300" />
-                <input
-                  type="text"
-                  placeholder="Pesquisar..."
-                  value={pesquisaTabela}
-                  onChange={(e) => setPesquisaTabela(e.target.value)}
-                  className="pl-10 pr-3 py-2 border rounded-lg w-full md:w-64 
-                            bg-white dark:bg-slate-800 
-                            text-gray-800 dark:text-gray-200 
-                            border-gray-300 dark:border-gray-600
-                            focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <button
-                onClick={exportarExcel}
-                className="flex items-center justify-center px-4 py-2 
-                          bg-green-600 text-white rounded-lg 
-                          hover:bg-green-700 dark:hover:bg-green-500
-                          transition-colors"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exportar Excel
-              </button>
-            </div>
-          </div>
-
-          {/* Tabela */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => alternarOrdenacao("data_emissao")}
-                  >
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Data
-                      </span>
-                      {ordenacao.campo === "data_emissao" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ))}
-                    </div>
-                  </th>
-
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => alternarOrdenacao("cliente")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Cliente
-                      </span>
-                      {ordenacao.campo === "cliente" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ))}
-                    </div>
-                  </th>
-
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => alternarOrdenacao("valor_produtos")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Valor
-                      </span>
-                      {ordenacao.campo === "valor_produtos" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ))}
-                    </div>
-                  </th>
-
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center">
-                      <Package className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Produtos
-                      </span>
-                    </div>
-                  </th>
-
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Vendedor
-                      </span>
-                    </div>
-                  </th>
-
-                  <th className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Observações
-                      </span>
-                    </div>
-                  </th>
-
-                  <th
-                    className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => alternarOrdenacao("tipo")}
-                  >
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Tipo da Nota
-                      </span>
-                      {ordenacao.campo === "tipo" &&
-                        (ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ) : (
-                          <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-300" />
-                        ))}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {notasPaginadas.length === 0 ? (
-                  // Pagination some com total zero; sem isso a tabela ficava
-                  // muda no filtro sem resultado (defeito 2 do spec).
-                  <TableEmpty colSpan={7} />
-                ) : (
-                  notasPaginadas.map((nota, index) => (
-                  <tr
-                    key={nota.id}
-                    className={`border-b border-gray-100 dark:border-gray-700 transition-colors 
-                      ${
-                        index % 2 === 0
-                          ? "bg-white dark:bg-slate-800"
-                          : "bg-gray-50/50 dark:bg-slate-900"
-                      } hover:bg-gray-50 dark:hover:bg-slate-700`}
-                  >
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {nota.data_emissao.split("-").reverse().join("/")}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {nota.cliente?.nome || "Cliente não informado"}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {nota.cliente?.cpf_cnpj}
-                        </p>
-
-                        {/* E-mail e Telefone do cliente */}
-                        <div className="flex gap-3 mt-1 flex-wrap">
-                          {nota.cliente?.email && (
-                            <span className="flex items-center text-xs text-gray-400">
-                              <Mail className="w-3 h-3 mr-1" />
-                              {nota.cliente.email}
-                            </span>
-                          )}
-                          {nota.cliente?.fone && (
-                            <span className="flex items-center text-xs text-gray-400">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {nota.cliente.fone}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                        R${" "}
-                        {Number(nota.valor_produtos).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <div className="text-sm text-gray-600 dark:text-gray-300">
-                        {nota.itens?.length > 0 ? (
-                          <div>
-                            <p
-                              className="truncate max-w-xs"
-                              title={nota.itens.map((i) => i.descricao).join(", ")}
-                            >
-                              {nota.itens.map((i) => i.descricao).join(", ")}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {nota.itens.length}{" "}
-                              {nota.itens.length === 1 ? "item" : "itens"}
-                            </p>
-                          </div>
-                        ) : (
-                          "Sem itens"
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Vendedor */}
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {nota.nome_vendedor || "Não informado"}
-                    </td>
-
-                    {/* Observações */}
-                    <td className="px-4 py-3 text-center">
-                      {nota.tem_observacoes ? (
-                        <button
-                          onClick={() => setNotaDasObservacoes(nota.id)}
-                          className="px-3 py-1 text-sm font-medium rounded-full 
-                                    bg-blue-100 text-blue-700 
-                                    dark:bg-blue-900 dark:text-blue-300 
-                                    hover:bg-blue-200 dark:hover:bg-blue-800 
-                                    transition-colors whitespace-nowrap"
-                        >
-                          Ver Observações
-                        </button>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {editandoTipo === nota.id ? (
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={tipoTemp}
-                            onChange={(e) => setTipoTemp(e.target.value)}
-                            className="px-2 py-1 border rounded text-sm
-                                      bg-white dark:bg-slate-700 
-                                      border-gray-300 dark:border-gray-600
-                                      text-gray-700 dark:text-gray-200"
-                            disabled={salvandoTipo === nota.id}
-                          >
-                            <option value="Outbound">Outbound</option>
-                            <option value="Inbound">Inbound</option>
-                            <option value="ReCompra">ReCompra</option>
-                          </select>
-                          <button
-                            onClick={() => salvarTipo(nota.id)}
-                            disabled={salvandoTipo === nota.id}
-                            className="p-1 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded"
-                          >
-                            {salvandoTipo === nota.id ? (
-                              <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <Check className="w-4 h-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={cancelarEdicaoTipo}
-                            disabled={salvandoTipo === nota.id}
-                            className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo ?? null)}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 px-2 py-1 rounded"
-                        >
-                          <span
-                            className={`text-sm font-medium px-2 py-1 rounded-full whitespace-nowrap
-                              ${
-                                nota.tipo === "Outbound"
-                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                                  : nota.tipo === "Inbound"
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                                  : nota.tipo === "ReCompra"
-                                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                  : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                              }`}
-                          >
-                            {nota.tipo || "Não definido"}
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  ))
-                )}
-                {notaDasObservacoes !== null && (
-                  <ModalObservacoesDaNota
-                    idNota={notaDasObservacoes}
-                    onClose={() => setNotaDasObservacoes(null)}
-                  />
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/*
-            O `Pagination` do design system, e não as 99 linhas que estavam
-            aqui. As que saíram escondiam a frase de contagem dentro do
-            `{totalPaginas > 1 && ...}`: quem tinha 10 notas ou menos não
-            lia contagem nenhuma. É o mesmo defeito 1.7 que a Fase 1 corrigiu
-            em Contas, e ele morre junto com o bloco.
-          */}
-          <div className="mt-4">
-            <Pagination
-              page={paginaAtual}
-              pageSize={15}
-              total={totalDeNotas}
-              itemLabel="notas"
-              onPageChange={setPaginaAtual}
-            />
-          </div>
-        </div>
+        <TabelaDeVendedores
+          notas={notasPaginadas}
+          total={totalDeNotas}
+          pagina={paginaAtual}
+          onPagina={setPaginaAtual}
+          pesquisa={pesquisaTabela}
+          onPesquisar={setPesquisaTabela}
+          ordenacao={ordenacao}
+          onOrdenar={alternarOrdenacao}
+          onExportar={exportarExcel}
+          onSalvarTipo={salvarTipo}
+        />
       </div>
     </div>
   );
