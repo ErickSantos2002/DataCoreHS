@@ -399,6 +399,29 @@ describe("edicao do tipo da nota em Vendedores", () => {
     ]);
   });
 
+  it("abrir a edicao e um botao com nome, que o teclado alcanca", () => {
+    // Era um `<div onClick>`: fora da ordem de tabulação, sem Enter, e sem
+    // nada dizendo a leitor de tela que o selo abre uma edição.
+    render(<Vendedores />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Editar tipo da nota: Inbound" }));
+
+    expect(edicaoNa(linhaCom("Alfa Mineração")).select.value).toBe("Inbound");
+  });
+
+  it("na edicao, o seletor, salvar e cancelar tem nome acessivel", () => {
+    // Salvar e cancelar eram só ícone (um check e um X), sem nome: um leitor
+    // de tela lia "botão, botão".
+    render(<Vendedores />);
+
+    fireEvent.click(screen.getByText("Inbound"));
+    const { cel } = edicaoNa(linhaCom("Alfa Mineração"));
+
+    expect(within(cel).getByRole("combobox", { name: "Tipo da nota" })).toBeInTheDocument();
+    expect(within(cel).getByRole("button", { name: "Salvar tipo" })).toBeInTheDocument();
+    expect(within(cel).getByRole("button", { name: "Cancelar edição do tipo" })).toBeInTheDocument();
+  });
+
   it("nota sem tipo abre a edicao em Outbound", () => {
     render(<Vendedores />);
 

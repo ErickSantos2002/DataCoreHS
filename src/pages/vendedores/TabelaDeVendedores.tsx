@@ -57,10 +57,7 @@ export interface TabelaDeVendedoresProps {
  *
  * O modal de observações sai de dentro do `<tbody>` — onde era HTML inválido —
  * para irmão do `Card`, sem mudar nada visível: ele é `position: fixed`.
- *
- * Achados ao mover (não corrigidos):
- *   - abrir a edição do tipo é um `<div>` com `onClick`, também só de mouse;
- *   - os botões de salvar e cancelar a edição são só ícone, sem nome acessível.
+
  */
 export function TabelaDeVendedores({
   notas,
@@ -274,6 +271,7 @@ export function TabelaDeVendedores({
                     {editandoTipo === nota.id ? (
                       <div className="flex items-center gap-2">
                         <select
+                          aria-label="Tipo da nota"
                           value={tipoTemp}
                           onChange={(e) => setTipoTemp(e.target.value)}
                           className="rounded-lg border border-borda bg-surface px-2 py-1 text-sm text-conteudo focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -288,6 +286,7 @@ export function TabelaDeVendedores({
                         <button
                           type="button"
                           onClick={() => salvarTipo(nota.id)}
+                          aria-label="Salvar tipo"
                           disabled={salvandoTipo === nota.id}
                           className="rounded p-1 text-success transition-colors hover:bg-tint-success focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                         >
@@ -300,6 +299,7 @@ export function TabelaDeVendedores({
                         <button
                           type="button"
                           onClick={cancelarEdicaoTipo}
+                          aria-label="Cancelar edição do tipo"
                           disabled={salvandoTipo === nota.id}
                           className="rounded p-1 text-danger transition-colors hover:bg-tint-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                         >
@@ -307,14 +307,19 @@ export function TabelaDeVendedores({
                         </button>
                       </div>
                     ) : (
-                      <div
+                      // Botão, e não `<div onClick>`: o selo abre uma edição, e
+                      // o `<div>` ficava fora da ordem de tabulação e mudo para
+                      // leitor de tela.
+                      <button
+                        type="button"
                         onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo ?? null)}
-                        className="cursor-pointer rounded px-2 py-1 transition-colors hover:bg-surface-elevated"
+                        aria-label={`Editar tipo da nota: ${nota.tipo || "Não definido"}`}
+                        className="rounded px-2 py-1 transition-colors hover:bg-surface-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                       >
                         <Badge variant={(nota.tipo && VARIANTE_DO_TIPO[nota.tipo]) || "secondary"}>
                           {nota.tipo || "Não definido"}
                         </Badge>
-                      </div>
+                      </button>
                     )}
                   </TableCell>
                 </TableRow>
