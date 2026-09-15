@@ -142,6 +142,18 @@ describe("estatisticas de Estoque", () => {
   });
 });
 
+describe("Produto Top sem produto", () => {
+  it("diz N/A, sem valor nem parenteses soltos", () => {
+    // Saía "R$ ()": valor e unidade vazios, e os parênteses sozinhos.
+    ESTADO.vazio = true;
+    render(<Estoque />);
+
+    const topo = cartao("Produto Top");
+    expect(topo).toHaveTextContent("N/A");
+    expect(topo).not.toHaveTextContent("()");
+  });
+});
+
 describe("estatisticas de Estoque sem produto", () => {
   it("zeram no mesmo formato, e sem NaN nem -Infinity", () => {
     ESTADO.vazio = true;

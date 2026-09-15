@@ -13,10 +13,6 @@ const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
  * Nasce limpa, sobre o `KpiCard`. Saem os ícones em círculo colorido, como em
  * Vendedores. "Produtos sem Saldo" ganha `tone="perigo"`, que é o que o
  * vermelho cru queria dizer.
- *
- * Achado ao mover (não corrigido): sem produto nenhum, a nota do "Produto Top"
- * sai "R$ ()" — valor e unidade vazios, parênteses sozinhos. A tela antiga
- * fazia o mesmo.
  */
 export function KpisDeEstoque({ kpis }: KpisDeEstoqueProps) {
   return (
@@ -35,7 +31,12 @@ export function KpisDeEstoque({ kpis }: KpisDeEstoqueProps) {
         label="Produto Top"
         value={kpis.produtoTop?.nome || "N/A"}
         valorEhTexto
-        note={`R$ ${kpis.produtoTop?.valor.toLocaleString("pt-BR", DINHEIRO) ?? ""} (${kpis.produtoTop?.unidade ?? ""})`}
+        // Sem produto não há nota: saía "R$ ()", parênteses sozinhos.
+        note={
+          kpis.produtoTop
+            ? `R$ ${kpis.produtoTop.valor.toLocaleString("pt-BR", DINHEIRO)} (${kpis.produtoTop.unidade})`
+            : undefined
+        }
       />
     </div>
   );
