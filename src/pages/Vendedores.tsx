@@ -8,7 +8,11 @@ import {
   type CampoDeOrdenacao,
   type RecorteComercial,
 } from "./comercial/useComercial";
-import { fetchVendas, updateNotaTipo, type NotaVenda } from "../services/notasapi";
+import {
+  fetchVendas,
+  updateNotaTipo,
+  type NotaVenda,
+} from "../services/notasapi";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import { periodoDoPreset } from "../lib/periodo";
@@ -76,11 +80,20 @@ const Vendedores: React.FC = () => {
     [user?.role, vendedorLogado, opcoes.vendedores],
   );
 
-  const clientesUnicos = useMemo(() => opcoes.clientes.map(rotuloDoCliente), [opcoes.clientes]);
+  const clientesUnicos = useMemo(
+    () => opcoes.clientes.map(rotuloDoCliente),
+    [opcoes.clientes],
+  );
 
-  const produtosUnicos = useMemo(() => opcoesDeProduto(opcoes.produtos), [opcoes.produtos]);
+  const produtosUnicos = useMemo(
+    () => opcoesDeProduto(opcoes.produtos),
+    [opcoes.produtos],
+  );
 
-  const idPorRotulo = useMemo(() => idsPorRotulo(opcoes.clientes), [opcoes.clientes]);
+  const idPorRotulo = useMemo(
+    () => idsPorRotulo(opcoes.clientes),
+    [opcoes.clientes],
+  );
 
   const recorte: RecorteComercial = useMemo(
     () => ({
@@ -94,10 +107,21 @@ const Vendedores: React.FC = () => {
       dataInicio,
       dataFim,
     }),
-    [filtroCliente, vendedoresDoRecorte, filtroProduto, dataInicio, dataFim, idPorRotulo],
+    [
+      filtroCliente,
+      vendedoresDoRecorte,
+      filtroProduto,
+      dataInicio,
+      dataFim,
+      idPorRotulo,
+    ],
   );
 
-  const { resumo, carregando, erro: erroDoResumo } = useResumoComercial(recorte);
+  const {
+    resumo,
+    carregando,
+    erro: erroDoResumo,
+  } = useResumoComercial(recorte);
 
   const chaveDoRecorte =
     JSON.stringify(recorte) + pesquisaTabela + JSON.stringify(ordenacao);
@@ -116,11 +140,15 @@ const Vendedores: React.FC = () => {
   // A edição do tipo é otimista sobre a página em memória: recarregar a
   // listagem inteira para mudar uma célula faria a tabela piscar e devolveria
   // a pessoa para o topo.
-  const [tiposEditados, setTiposEditados] = useState<Record<number, string>>({});
+  const [tiposEditados, setTiposEditados] = useState<Record<number, string>>(
+    {},
+  );
   const notasPaginadas = useMemo(
     () =>
       pagina.itens.map((n) =>
-        tiposEditados[n.id] ? { ...n, tipo: tiposEditados[n.id] as typeof n.tipo } : n,
+        tiposEditados[n.id]
+          ? { ...n, tipo: tiposEditados[n.id] as typeof n.tipo }
+          : n,
       ),
     [pagina.itens, tiposEditados],
   );
@@ -132,7 +160,10 @@ const Vendedores: React.FC = () => {
     () => evolucaoDoResumo(resumo.evolucao_mensal),
     [resumo.evolucao_mensal],
   );
-  const topProdutos = useMemo(() => topProdutosDoResumo(resumo.por_produto), [resumo.por_produto]);
+  const topProdutos = useMemo(
+    () => topProdutosDoResumo(resumo.por_produto),
+    [resumo.por_produto],
+  );
   const distribuicaoClientes = useMemo(
     () => distribuicaoDeClientes(resumo.por_cliente),
     [resumo.por_cliente],
@@ -148,7 +179,10 @@ const Vendedores: React.FC = () => {
   const salvarTipo = useCallback(
     async (notaId: number, tipo: string) => {
       try {
-        await updateNotaTipo(notaId, tipo as "Outbound" | "Inbound" | "ReCompra");
+        await updateNotaTipo(
+          notaId,
+          tipo as "Outbound" | "Inbound" | "ReCompra",
+        );
         setTiposEditados((antes) => ({ ...antes, [notaId]: tipo }));
       } catch (error) {
         console.error("Erro ao salvar tipo:", error);
@@ -167,27 +201,33 @@ const Vendedores: React.FC = () => {
   const exportarExcel = useCallback(async () => {
     setExportando(true);
     try {
-    const porPagina = 500;
-    const todas: NotaVenda[] = [];
-    let offset = 0;
-    for (;;) {
-      const resposta = await fetchVendas({
-        ...paramsDoRecorte(recorte),
-        busca: pesquisaTabela.trim() || undefined,
-        ordenar_por: ordenacao.campo,
-        direcao: ordenacao.direcao,
-        limite: porPagina,
-        offset,
-      });
-      todas.push(...resposta.itens);
-      offset += porPagina;
-      if (offset >= resposta.total) break;
-    }
+      const porPagina = 500;
+      const todas: NotaVenda[] = [];
+      let offset = 0;
+      for (;;) {
+        const resposta = await fetchVendas({
+          ...paramsDoRecorte(recorte),
+          busca: pesquisaTabela.trim() || undefined,
+          ordenar_por: ordenacao.campo,
+          direcao: ordenacao.direcao,
+          limite: porPagina,
+          offset,
+        });
+        todas.push(...resposta.itens);
+        offset += porPagina;
+        if (offset >= resposta.total) break;
+      }
 
-    baixarPlanilha(
-      [{ nome: "Minhas Vendas", linhas: linhasDaPlanilha(todas), ajustar: ajustarFolhaDeVendas }],
-      `vendas_${vendedorLogado}_${diaLocal(new Date())}.xlsx`,
-    );
+      baixarPlanilha(
+        [
+          {
+            nome: "Minhas Vendas",
+            linhas: linhasDaPlanilha(todas),
+            ajustar: ajustarFolhaDeVendas,
+          },
+        ],
+        `vendas_${vendedorLogado}_${diaLocal(new Date())}.xlsx`,
+      );
     } catch (falha) {
       console.error("Erro ao exportar as vendas:", falha);
       erro("Não foi possível exportar as vendas.");
@@ -222,7 +262,8 @@ const Vendedores: React.FC = () => {
       {erroDoResumo || erroDaTabela ? (
         <div className="mt-6">
           <Alert variant="danger">
-            Não foi possível carregar as vendas. Confira a conexão e recarregue a página.
+            Não foi possível carregar as vendas. Confira a conexão e recarregue
+            a página.
           </Alert>
         </div>
       ) : null}

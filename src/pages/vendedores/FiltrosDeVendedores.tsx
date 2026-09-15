@@ -57,8 +57,14 @@ export function FiltrosDeVendedores({
   return (
     <FilterBar className="mb-6">
       <div className="flex w-full items-center gap-2">
-        <Filter className="h-4 w-4 text-conteudo-muted" strokeWidth={2} aria-hidden="true" />
-        <h2 className="text-base font-semibold text-conteudo-heading">Filtros</h2>
+        <Filter
+          className="h-4 w-4 text-conteudo-muted"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
+        <h2 className="text-base font-semibold text-conteudo-heading">
+          Filtros
+        </h2>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">

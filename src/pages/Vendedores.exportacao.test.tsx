@@ -57,14 +57,23 @@ vi.mock("../services/notasapi", async (original) => {
 vi.mock("../lib/planilha", () => ({ baixarPlanilha: vi.fn() }));
 
 vi.mock("../components/ToastProvider", () => ({
-  useToast: () => ({ sucesso: vi.fn(), erro: ESTADO.toastErro, aviso: vi.fn(), info: vi.fn() }),
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: ESTADO.toastErro,
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
 
-vi.mock("../components/ModalObservacoesDaNota", () => ({ default: () => null }));
+vi.mock("../components/ModalObservacoesDaNota", () => ({
+  default: () => null,
+}));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -93,7 +102,12 @@ const NOTA_COMPLETA: NotaVenda = {
   tipo: "Inbound",
   itens: [
     { codigo: "B1", descricao: "Bocal", quantidade: "10", valor_total: "100" },
-    { codigo: "F1", descricao: "Bafômetro", quantidade: "1", valor_total: "1134.5" },
+    {
+      codigo: "F1",
+      descricao: "Bafômetro",
+      quantidade: "1",
+      valor_total: "1134.5",
+    },
   ] as NotaVenda["itens"],
   tem_observacoes: false,
 };
@@ -132,11 +146,25 @@ function folhas() {
 describe("exportacao de Vendedores", () => {
   it("percorre as paginas de 500 em 500 ate o total, com recorte, busca e ordem da tela", async () => {
     vi.mocked(fetchVendas)
-      .mockResolvedValueOnce({ itens: [NOTA_COMPLETA], total: 700, valor_total: 0, limite: 500, offset: 0 })
-      .mockResolvedValueOnce({ itens: [NOTA_VAZIA], total: 700, valor_total: 0, limite: 500, offset: 500 });
+      .mockResolvedValueOnce({
+        itens: [NOTA_COMPLETA],
+        total: 700,
+        valor_total: 0,
+        limite: 500,
+        offset: 0,
+      })
+      .mockResolvedValueOnce({
+        itens: [NOTA_VAZIA],
+        total: 700,
+        valor_total: 0,
+        limite: 500,
+        offset: 500,
+      });
     render(<Vendedores />);
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "  Alfa  " } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "  Alfa  " },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Ordenar por Valor" }));
     await exportar();
 
@@ -148,7 +176,9 @@ describe("exportacao de Vendedores", () => {
       limite: 500,
       offset: 0,
     });
-    expect(vi.mocked(fetchVendas).mock.calls[1][0]).toMatchObject({ offset: 500 });
+    expect(vi.mocked(fetchVendas).mock.calls[1][0]).toMatchObject({
+      offset: 500,
+    });
     expect(folhas().folhas[0].linhas).toHaveLength(2);
   });
 
@@ -219,7 +249,10 @@ describe("exportacao de Vendedores", () => {
     await exportar();
     vi.useRealTimers();
 
-    const { folhas: [folha], nome } = folhas();
+    const {
+      folhas: [folha],
+      nome,
+    } = folhas();
     expect(nome).toBe("vendas_erick_2026-09-15.xlsx");
 
     const planilha: WorkSheet = {
@@ -255,7 +288,13 @@ describe("exportacao de Vendedores", () => {
       () =>
         new Promise((resolver) => {
           liberar = () =>
-            resolver({ itens: [NOTA_COMPLETA], total: 1, valor_total: 0, limite: 500, offset: 0 });
+            resolver({
+              itens: [NOTA_COMPLETA],
+              total: 1,
+              valor_total: 0,
+              limite: 500,
+              offset: 0,
+            });
         }),
     );
     render(<Vendedores />);
@@ -269,7 +308,9 @@ describe("exportacao de Vendedores", () => {
     await act(async () => {
       liberar();
     });
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeEnabled();
     expect(baixarPlanilha).toHaveBeenCalledTimes(1);
   });
 
@@ -282,7 +323,9 @@ describe("exportacao de Vendedores", () => {
       target: { value: "zzz-nao-existe" },
     });
 
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeDisabled();
   });
 
   it("se a busca falha, o toast avisa e nenhuma planilha sai", async () => {
@@ -292,7 +335,9 @@ describe("exportacao de Vendedores", () => {
 
     await exportar();
 
-    expect(ESTADO.toastErro).toHaveBeenCalledWith("Não foi possível exportar as vendas.");
+    expect(ESTADO.toastErro).toHaveBeenCalledWith(
+      "Não foi possível exportar as vendas.",
+    );
     expect(baixarPlanilha).not.toHaveBeenCalled();
   });
 });

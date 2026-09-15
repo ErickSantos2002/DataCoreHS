@@ -1,5 +1,17 @@
 import { useState } from "react";
-import { Calendar, Check, ChevronDown, ChevronUp, Download, Mail, Package, Phone, Search, Users, X } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Mail,
+  Package,
+  Phone,
+  Search,
+  Users,
+  X,
+} from "lucide-react";
 
 import ModalObservacoesDaNota from "../../components/ModalObservacoesDaNota";
 import {
@@ -79,7 +91,9 @@ export function TabelaDeVendedores({
   const [tipoTemp, setTipoTemp] = useState<string>("");
   const [salvandoTipo, setSalvandoTipo] = useState<number | null>(null);
   // Guarda o ID, e não o texto: o texto é buscado pelo modal ao abrir.
-  const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(null);
+  const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(
+    null,
+  );
 
   const iniciarEdicaoTipo = (notaId: number, tipoAtual: string | null) => {
     setEditandoTipo(notaId);
@@ -118,7 +132,11 @@ export function TabelaDeVendedores({
   // só de mouse. Não é o `sortable` do primitivo porque ele acrescenta as
   // setas "↑ ↓ ↕" como TEXTO no cabeçalho; aqui fica o chevron, como em
   // `servicos/TabelaDeServicos.tsx`. `aria-sort` conta a direção a quem não vê.
-  const ordenavel = (campo: CampoDeOrdenacao, rotulo: string, icone?: React.ReactNode) => (
+  const ordenavel = (
+    campo: CampoDeOrdenacao,
+    rotulo: string,
+    icone?: React.ReactNode,
+  ) => (
     <TableHeaderCell
       aria-sort={
         ordenacao.campo !== campo
@@ -154,7 +172,13 @@ export function TabelaDeVendedores({
                 aria-label="Pesquisar vendas"
                 value={pesquisa}
                 onChange={(evento) => onPesquisar(evento.target.value)}
-                icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+                icon={
+                  <Search
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
               />
             </div>
             <Button
@@ -167,7 +191,13 @@ export function TabelaDeVendedores({
               // `total` é o recorte com a busca, e não a página.
               disabled={total === 0 || exportando}
               loading={exportando}
-              icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Download
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             >
               {exportando ? "Exportando..." : "Exportar Excel"}
             </Button>
@@ -180,23 +210,37 @@ export function TabelaDeVendedores({
               {ordenavel(
                 "data_emissao",
                 "Data",
-                <Calendar className="h-4 w-4" strokeWidth={2} aria-hidden="true" />,
+                <Calendar
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />,
               )}
               {ordenavel("cliente", "Cliente")}
               {ordenavel("valor_produtos", "Valor")}
               <TableHeaderCell>
                 <span className="inline-flex items-center gap-1">
-                  <Package className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  <Package
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                   <span>Produtos</span>
                 </span>
               </TableHeaderCell>
               <TableHeaderCell>
                 <span className="inline-flex items-center gap-1">
-                  <Users className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  <Users
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                   <span>Vendedor</span>
                 </span>
               </TableHeaderCell>
-              <TableHeaderCell className="text-center">Observações</TableHeaderCell>
+              <TableHeaderCell className="text-center">
+                Observações
+              </TableHeaderCell>
               {ordenavel("tipo", "Tipo da Nota")}
             </TableRow>
           </TableHead>
@@ -217,7 +261,9 @@ export function TabelaDeVendedores({
                     <p className="text-sm font-medium">
                       {nota.cliente?.nome || "Cliente não informado"}
                     </p>
-                    <p className="text-xs text-conteudo-muted">{nota.cliente?.cpf_cnpj}</p>
+                    <p className="text-xs text-conteudo-muted">
+                      {nota.cliente?.cpf_cnpj}
+                    </p>
                     <div className="mt-1 flex flex-wrap gap-3">
                       {nota.cliente?.email && (
                         <span className="flex items-center text-xs text-conteudo-faint">
@@ -252,7 +298,8 @@ export function TabelaDeVendedores({
                           {nota.itens.map((i) => i.descricao).join(", ")}
                         </p>
                         <p className="mt-1 text-xs text-conteudo-faint">
-                          {nota.itens.length} {nota.itens.length === 1 ? "item" : "itens"}
+                          {nota.itens.length}{" "}
+                          {nota.itens.length === 1 ? "item" : "itens"}
                         </p>
                       </div>
                     ) : (
@@ -323,11 +370,18 @@ export function TabelaDeVendedores({
                       // leitor de tela.
                       <button
                         type="button"
-                        onClick={() => iniciarEdicaoTipo(nota.id, nota.tipo ?? null)}
+                        onClick={() =>
+                          iniciarEdicaoTipo(nota.id, nota.tipo ?? null)
+                        }
                         aria-label={`Editar tipo da nota: ${nota.tipo || "Não definido"}`}
                         className="rounded px-2 py-1 transition-colors hover:bg-surface-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                       >
-                        <Badge variant={(nota.tipo && VARIANTE_DO_TIPO[nota.tipo]) || "secondary"}>
+                        <Badge
+                          variant={
+                            (nota.tipo && VARIANTE_DO_TIPO[nota.tipo]) ||
+                            "secondary"
+                          }
+                        >
                           {nota.tipo || "Não definido"}
                         </Badge>
                       </button>

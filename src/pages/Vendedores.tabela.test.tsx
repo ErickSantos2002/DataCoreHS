@@ -48,8 +48,18 @@ const { NOTAS, ESTADO } = vi.hoisted(() => ({
       nome_vendedor: "Vendedor A",
       tipo: "Inbound",
       itens: [
-        { codigo: "B1", descricao: "Bocal", quantidade: "10", valor_total: "100" },
-        { codigo: "F1", descricao: "Bafômetro", quantidade: "1", valor_total: "1134.5" },
+        {
+          codigo: "B1",
+          descricao: "Bocal",
+          quantidade: "10",
+          valor_total: "100",
+        },
+        {
+          codigo: "F1",
+          descricao: "Bafômetro",
+          quantidade: "1",
+          valor_total: "1134.5",
+        },
       ],
       tem_observacoes: true,
     },
@@ -71,10 +81,16 @@ const { NOTAS, ESTADO } = vi.hoisted(() => ({
       data_emissao: "2026-01-20",
       valor_nota: 800,
       valor_produtos: 700,
-      cliente: { id: 2, nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
+      cliente: {
+        id: 2,
+        nome: "Beta Logística",
+        cpf_cnpj: "55.666.777/0001-88",
+      },
       nome_vendedor: "Vendedor B",
       tipo: "ReCompra",
-      itens: [{ codigo: "K1", descricao: "Kit", quantidade: "1", valor_total: "700" }],
+      itens: [
+        { codigo: "K1", descricao: "Kit", quantidade: "1", valor_total: "700" },
+      ],
       tem_observacoes: false,
     },
   ],
@@ -132,7 +148,9 @@ vi.mock("../components/ModalObservacoesDaNota", () => ({
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -175,7 +193,9 @@ function linhaCom(texto: string): HTMLElement {
 /** A célula da coluna `rotulo` numa linha, pelo índice do cabeçalho. */
 function celula(linha: HTMLElement, rotulo: string): HTMLElement {
   const cabecalhos = Array.from(document.querySelectorAll("thead th"));
-  const indice = cabecalhos.findIndex((th) => th.textContent?.trim() === rotulo);
+  const indice = cabecalhos.findIndex(
+    (th) => th.textContent?.trim() === rotulo,
+  );
   if (indice < 0) throw new Error(`coluna "${rotulo}" nao encontrada`);
   return linha.querySelectorAll("td")[indice] as HTMLElement;
 }
@@ -184,8 +204,8 @@ describe("colunas da tabela de Vendedores", () => {
   it("o cabecalho traz as sete colunas, nesta ordem", () => {
     render(<Vendedores />);
 
-    const rotulos = Array.from(document.querySelectorAll("thead th")).map((th) =>
-      th.textContent?.trim(),
+    const rotulos = Array.from(document.querySelectorAll("thead th")).map(
+      (th) => th.textContent?.trim(),
     );
     expect(rotulos).toEqual([
       "Data",
@@ -206,7 +226,9 @@ describe("colunas da tabela de Vendedores", () => {
   ])("na nota completa, a coluna %s mostra %s", (rotulo, esperado) => {
     render(<Vendedores />);
 
-    expect(celula(linhaCom("Alfa Mineração"), rotulo)).toHaveTextContent(esperado);
+    expect(celula(linhaCom("Alfa Mineração"), rotulo)).toHaveTextContent(
+      esperado,
+    );
   });
 
   it("a celula de cliente traz nome, documento, e-mail e telefone", () => {
@@ -230,14 +252,18 @@ describe("colunas da tabela de Vendedores", () => {
   it("com um item so, a contagem vai no singular", () => {
     render(<Vendedores />);
 
-    expect(celula(linhaCom("Beta Logística"), "Produtos")).toHaveTextContent("1 item");
+    expect(celula(linhaCom("Beta Logística"), "Produtos")).toHaveTextContent(
+      "1 item",
+    );
   });
 
   it("a celula de observacoes da nota com observacao e um botao", () => {
     render(<Vendedores />);
 
     const cel = celula(linhaCom("Alfa Mineração"), "Observações");
-    expect(within(cel).getByRole("button", { name: "Ver Observações" })).toBeInTheDocument();
+    expect(
+      within(cel).getByRole("button", { name: "Ver Observações" }),
+    ).toBeInTheDocument();
   });
 
   it.each([
@@ -257,29 +283,48 @@ describe("pedido de ordenacao da tabela de Vendedores", () => {
   it("a tela abre pedindo data de emissao decrescente", () => {
     render(<Vendedores />);
 
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: "data_emissao", direcao: "desc" });
+    expect(ultimoPedido()).toMatchObject({
+      ordenarPor: "data_emissao",
+      direcao: "desc",
+    });
   });
 
   it.each([
     ["Cliente", "cliente"],
     ["Valor", "valor_produtos"],
     ["Tipo da Nota", "tipo"],
-  ])("o primeiro clique em %s pede %s decrescente, o segundo crescente", (rotulo, campo) => {
-    render(<Vendedores />);
+  ])(
+    "o primeiro clique em %s pede %s decrescente, o segundo crescente",
+    (rotulo, campo) => {
+      render(<Vendedores />);
 
-    fireEvent.click(screen.getByRole("button", { name: `Ordenar por ${rotulo}` }));
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "desc" });
+      fireEvent.click(
+        screen.getByRole("button", { name: `Ordenar por ${rotulo}` }),
+      );
+      expect(ultimoPedido()).toMatchObject({
+        ordenarPor: campo,
+        direcao: "desc",
+      });
 
-    fireEvent.click(screen.getByRole("button", { name: `Ordenar por ${rotulo}` }));
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "asc" });
-  });
+      fireEvent.click(
+        screen.getByRole("button", { name: `Ordenar por ${rotulo}` }),
+      );
+      expect(ultimoPedido()).toMatchObject({
+        ordenarPor: campo,
+        direcao: "asc",
+      });
+    },
+  );
 
   it("clicar em Data, que ja e a ordem decrescente, inverte para crescente", () => {
     render(<Vendedores />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ordenar por Data" }));
 
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: "data_emissao", direcao: "asc" });
+    expect(ultimoPedido()).toMatchObject({
+      ordenarPor: "data_emissao",
+      direcao: "asc",
+    });
   });
 
   it("Produtos, Vendedor e Observacoes nao ordenam", () => {
@@ -301,20 +346,25 @@ describe("pedido de ordenacao da tabela de Vendedores", () => {
     ["Cliente", "cliente"],
     ["Valor", "valor_produtos"],
     ["Tipo da Nota", "tipo"],
-  ])("a coluna %s ordena por um botao, que o teclado alcanca, e o th diz a direcao", (rotulo) => {
-    // O clique morava no `<th>`, que não entra na ordem de tabulação nem
-    // responde a Enter: ordenar era ação só de mouse. `aria-sort` conta o
-    // estado para leitor de tela, que antes só tinha o chevron para ver.
-    render(<Vendedores />);
+  ])(
+    "a coluna %s ordena por um botao, que o teclado alcanca, e o th diz a direcao",
+    (rotulo) => {
+      // O clique morava no `<th>`, que não entra na ordem de tabulação nem
+      // responde a Enter: ordenar era ação só de mouse. `aria-sort` conta o
+      // estado para leitor de tela, que antes só tinha o chevron para ver.
+      render(<Vendedores />);
 
-    const botao = screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
-    fireEvent.click(botao);
+      const botao = screen.getByRole("button", {
+        name: `Ordenar por ${rotulo}`,
+      });
+      fireEvent.click(botao);
 
-    expect(botao.closest("th")).toHaveAttribute(
-      "aria-sort",
-      ultimoPedido().direcao === "asc" ? "ascending" : "descending",
-    );
-  });
+      expect(botao.closest("th")).toHaveAttribute(
+        "aria-sort",
+        ultimoPedido().direcao === "asc" ? "ascending" : "descending",
+      );
+    },
+  );
 
   it("coluna que nao e a da ordem atual diz aria-sort none", () => {
     render(<Vendedores />);
@@ -354,7 +404,9 @@ describe("filtro de produto em Vendedores", () => {
     // tabela. O falso do Comercial filtra pela chave, como o banco.
     render(<Vendedores />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Produtos Todos os produtos" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Produtos Todos os produtos" }),
+    );
     fireEvent.click(screen.getByRole("checkbox", { name: "Kit (K1)" }));
 
     const corpo = document.querySelector("tbody") as HTMLElement;
@@ -369,7 +421,9 @@ describe("observacoes na tabela de Vendedores", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Ver Observações" }));
-    expect(screen.getByRole("dialog")).toHaveTextContent("observações da nota 11");
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "observações da nota 11",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Fechar observações" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -404,7 +458,9 @@ describe("edicao do tipo da nota em Vendedores", () => {
     // nada dizendo a leitor de tela que o selo abre uma edição.
     render(<Vendedores />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Editar tipo da nota: Inbound" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Editar tipo da nota: Inbound" }),
+    );
 
     expect(edicaoNa(linhaCom("Alfa Mineração")).select.value).toBe("Inbound");
   });
@@ -417,9 +473,15 @@ describe("edicao do tipo da nota em Vendedores", () => {
     fireEvent.click(screen.getByText("Inbound"));
     const { cel } = edicaoNa(linhaCom("Alfa Mineração"));
 
-    expect(within(cel).getByRole("combobox", { name: "Tipo da nota" })).toBeInTheDocument();
-    expect(within(cel).getByRole("button", { name: "Salvar tipo" })).toBeInTheDocument();
-    expect(within(cel).getByRole("button", { name: "Cancelar edição do tipo" })).toBeInTheDocument();
+    expect(
+      within(cel).getByRole("combobox", { name: "Tipo da nota" }),
+    ).toBeInTheDocument();
+    expect(
+      within(cel).getByRole("button", { name: "Salvar tipo" }),
+    ).toBeInTheDocument();
+    expect(
+      within(cel).getByRole("button", { name: "Cancelar edição do tipo" }),
+    ).toBeInTheDocument();
   });
 
   it("nota sem tipo abre a edicao em Outbound", () => {
@@ -473,7 +535,9 @@ describe("edicao do tipo da nota em Vendedores", () => {
       fireEvent.click(salvar);
     });
 
-    expect(ESTADO.toastErro).toHaveBeenCalledWith("Não foi possível salvar o tipo da nota.");
+    expect(ESTADO.toastErro).toHaveBeenCalledWith(
+      "Não foi possível salvar o tipo da nota.",
+    );
     expect(edicaoNa(linhaCom("Alfa Mineração")).select.value).toBe("ReCompra");
   });
 });

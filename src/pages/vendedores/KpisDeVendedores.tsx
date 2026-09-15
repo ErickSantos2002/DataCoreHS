@@ -30,7 +30,11 @@ export function KpisDeVendedores({ kpis }: KpisDeVendedoresProps) {
         tone="acao"
       />
 
-      <KpiCard label="Número de Vendas" value={kpis.totalVendas} tone="positivo" />
+      <KpiCard
+        label="Número de Vendas"
+        value={kpis.totalVendas}
+        tone="positivo"
+      />
 
       <KpiCard
         label="Ticket Médio"

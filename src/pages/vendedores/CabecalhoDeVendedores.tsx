@@ -12,10 +12,15 @@ export interface CabecalhoDeVendedoresProps {
  * `dark:text-yellow-400`, amarelo só no tema escuro e sem par no claro —
  * `text-conteudo-heading` sai do token e vira sozinho com o tema.
  */
-export function CabecalhoDeVendedores({ usuario, papel }: CabecalhoDeVendedoresProps) {
+export function CabecalhoDeVendedores({
+  usuario,
+  papel,
+}: CabecalhoDeVendedoresProps) {
   return (
     <Card padding="lg">
-      <h1 className="text-3xl font-bold text-conteudo-heading">Vendedores - Dashboard</h1>
+      <h1 className="text-3xl font-bold text-conteudo-heading">
+        Vendedores - Dashboard
+      </h1>
       <p className="mt-1 text-sm text-conteudo">
         Bem-vindo, <span className="font-semibold">{usuario}</span> ({papel})
       </p>

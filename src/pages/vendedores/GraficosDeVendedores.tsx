@@ -13,7 +13,11 @@ import {
   YAxis,
 } from "recharts";
 
-import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import { Card, CardTitle } from "../../design-system/ui";
 import { formatarValorAbreviado, type PontoDeEvolucao } from "./vendedores";
 
@@ -52,7 +56,10 @@ export function GraficosDeVendedores({
         <CardTitle className="mb-4">Evolução das Vendas</CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={evolucao}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               dataKey="mes"
               tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }}
@@ -84,7 +91,10 @@ export function GraficosDeVendedores({
         <CardTitle className="mb-4">Top Produtos Vendidos</CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={topProdutos} layout="horizontal">
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               dataKey="produto"
               angle={-45}
@@ -114,7 +124,9 @@ export function GraficosDeVendedores({
                         overflow: "hidden",
                       }}
                     >
-                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>{produto}</p>
+                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                        {produto}
+                      </p>
                       <p style={{ color: corDaSerie(SERIE_ACAO) }}>
                         Valor:{" "}
                         {typeof valor === "number"
@@ -130,7 +142,11 @@ export function GraficosDeVendedores({
                 return null;
               }}
             />
-            <Bar dataKey="valor" fill={corDaSerie(SERIE_ACAO)} radius={[6, 6, 0, 0]} />
+            <Bar
+              dataKey="valor"
+              fill={corDaSerie(SERIE_ACAO)}
+              radius={[6, 6, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -166,7 +182,9 @@ export function GraficosDeVendedores({
                         wordWrap: "break-word",
                       }}
                     >
-                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>{name}</p>
+                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                        {name}
+                      </p>
                       <p style={{ color: corDaSerie(SERIE_ACAO) }}>
                         valor: {formatarValorAbreviado(value)}
                       </p>

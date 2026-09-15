@@ -32,7 +32,9 @@ vi.mock("../hooks/useAuth", () => ({
 
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, RESUMO_FALSO } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, RESUMO_FALSO } = await import(
+    "./comercial/hooksFalsos"
+  );
 
   const resumo = () => ({
     ...RESUMO_FALSO,
@@ -69,14 +71,27 @@ vi.mock("./comercial/useComercial", async (original) => {
 });
 
 vi.mock("../components/ToastProvider", () => ({
-  useToast: () => ({ sucesso: vi.fn(), erro: vi.fn(), aviso: vi.fn(), info: vi.fn() }),
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   const comDados =
     (nome: string) =>
-    ({ data, dataKey, children }: { data?: unknown[]; dataKey?: string; children?: React.ReactNode }) => (
+    ({
+      data,
+      dataKey,
+      children,
+    }: {
+      data?: unknown[];
+      dataKey?: string;
+      children?: React.ReactNode;
+    }) => (
       <div
         data-grafico={nome}
         {...(data ? { "data-dados": JSON.stringify(data) } : {})}
@@ -86,7 +101,9 @@ vi.mock("recharts", () => {
       </div>
     );
   return {
-    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     LineChart: comDados("LineChart"),
     BarChart: comDados("BarChart"),
     PieChart: comDados("PieChart"),
@@ -121,7 +138,9 @@ function dadosEm(cartao: HTMLElement, nome: string): Record<string, unknown>[] {
 }
 
 function serieEm(cartao: HTMLElement): string | null {
-  return cartao.querySelector("[data-serie]")?.getAttribute("data-serie") ?? null;
+  return (
+    cartao.querySelector("[data-serie]")?.getAttribute("data-serie") ?? null
+  );
 }
 
 describe("graficos de Vendedores", () => {
@@ -145,7 +164,10 @@ describe("graficos de Vendedores", () => {
     const dados = dadosEm(cartaoDoGrafico("Evolução das Vendas"), "LineChart");
 
     const soma = (de: number, ate: number) =>
-      Array.from({ length: ate - de }, (_, i) => 10 + de + i).reduce((a, b) => a + b, 0);
+      Array.from({ length: ate - de }, (_, i) => 10 + de + i).reduce(
+        (a, b) => a + b,
+        0,
+      );
     expect(dados.map((d) => [d.mes, d.total])).toEqual([
       ["2024", soma(0, 12)],
       ["2025", soma(12, 24)],
@@ -157,7 +179,9 @@ describe("graficos de Vendedores", () => {
     ESTADO.meses = 24;
     render(<Vendedores />);
 
-    expect(dadosEm(cartaoDoGrafico("Evolução das Vendas"), "LineChart")).toHaveLength(24);
+    expect(
+      dadosEm(cartaoDoGrafico("Evolução das Vendas"), "LineChart"),
+    ).toHaveLength(24);
   });
 
   it("Top Produtos Vendidos recebe so os cinco primeiros, e nomeia o produto sem descricao", () => {

@@ -2,7 +2,11 @@ import type { WorkSheet } from "xlsx";
 
 import type { CampoDeOrdenacao } from "../comercial/useComercial";
 import type { OpcaoDeMultiSelect } from "../../design-system/ui/forms/buscaDeMultiSelect";
-import type { FiltrosComerciais, NotaVenda, ResumoComercial } from "../../services/notasapi";
+import type {
+  FiltrosComerciais,
+  NotaVenda,
+  ResumoComercial,
+} from "../../services/notasapi";
 
 /**
  * A conta pura da tela de Vendedores, separada de `Vendedores.tsx`.
@@ -25,7 +29,10 @@ type Opcoes = FiltrosComerciais;
 
 /** O rótulo de um cliente no filtro: nome e documento entre parênteses, que é
  *  o formato que `buscaPorCnpjEntreParenteses` sabe procurar. */
-export function rotuloDoCliente(c: { nome: string | null; cpf_cnpj: string | null }): string {
+export function rotuloDoCliente(c: {
+  nome: string | null;
+  cpf_cnpj: string | null;
+}): string {
   return `${c.nome || "Não informado"} (${c.cpf_cnpj || ""})`;
 }
 
@@ -39,7 +46,9 @@ export function rotuloDoCliente(c: { nome: string | null; cpf_cnpj: string | nul
  * procura "K1", e a tela zerava. O comentário ao lado dizia que o multiselect
  * "já guarda a chave"; não guardava.
  */
-export function opcoesDeProduto(produtos: Opcoes["produtos"]): OpcaoDeMultiSelect[] {
+export function opcoesDeProduto(
+  produtos: Opcoes["produtos"],
+): OpcaoDeMultiSelect[] {
   return produtos.map((p) => ({
     valor: p.chave,
     rotulo: `${p.descricao} (${p.codigo ?? "sem código"})`,
@@ -47,7 +56,9 @@ export function opcoesDeProduto(produtos: Opcoes["produtos"]): OpcaoDeMultiSelec
 }
 
 /** Do rótulo que a pessoa escolheu de volta ao id que o servidor filtra. */
-export function idsPorRotulo(clientes: Opcoes["clientes"]): Map<string, number> {
+export function idsPorRotulo(
+  clientes: Opcoes["clientes"],
+): Map<string, number> {
   const mapa = new Map<string, number>();
   clientes.forEach((c) => mapa.set(rotuloDoCliente(c), c.id));
   return mapa;
@@ -86,7 +97,9 @@ export function kpisDoResumo(resumo: ResumoComercial): KpisDeVendedor {
     totalFaturado: resumo.kpis.faturamento_produtos,
     totalVendas: notas,
     ticketMedio: notas > 0 ? resumo.kpis.faturamento_produtos / notas : 0,
-    produtoMaisVendido: topo ? { nome: topo.descricao ?? "N/A", valor: topo.valor } : null,
+    produtoMaisVendido: topo
+      ? { nome: topo.descricao ?? "N/A", valor: topo.valor }
+      : null,
   };
 }
 
@@ -104,11 +117,16 @@ export interface PontoDeEvolucao {
  * ⚠️ `new Date(ano, mes - 1)` é hora LOCAL, meia-noite do dia 1 — não passa
  * pelo defeito de fuso de `lib/datas.ts`, que é o de ler "AAAA-MM-DD" em UTC.
  */
-export function evolucaoDoResumo(evolucao: ResumoComercial["evolucao_mensal"]): PontoDeEvolucao[] {
+export function evolucaoDoResumo(
+  evolucao: ResumoComercial["evolucao_mensal"],
+): PontoDeEvolucao[] {
   const dadosMensais = evolucao.map((m) => {
     const data = new Date(m.ano, m.mes - 1);
     return {
-      mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+      mes: data.toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "numeric",
+      }),
       total: m.total_produtos,
       ordem: data.getTime(),
       ano: m.ano,
@@ -116,11 +134,14 @@ export function evolucaoDoResumo(evolucao: ResumoComercial["evolucao_mensal"]): 
   });
 
   if (dadosMensais.length > 24) {
-    const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
-      if (!acc[item.ano]) acc[item.ano] = 0;
-      acc[item.ano] += item.total;
-      return acc;
-    }, {});
+    const agrupadoAnual = dadosMensais.reduce(
+      (acc: Record<number, number>, item) => {
+        if (!acc[item.ano]) acc[item.ano] = 0;
+        acc[item.ano] += item.total;
+        return acc;
+      },
+      {},
+    );
 
     return Object.entries(agrupadoAnual)
       .map(([ano, total]) => ({
@@ -188,11 +209,17 @@ export function proximaOrdenacao(
  * número da nota (`substring(2)`) — 991001 sai 1001. Não há comentário dizendo
  * por quê, e nenhuma outra exportação faz isso.
  */
-export function linhasDaPlanilha(notas: NotaVenda[]): Record<string, unknown>[] {
+export function linhasDaPlanilha(
+  notas: NotaVenda[],
+): Record<string, unknown>[] {
   return notas.map((n) => {
-    const dataFormatada = n.data_emissao ? n.data_emissao.split("-").reverse().join("/") : "";
+    const dataFormatada = n.data_emissao
+      ? n.data_emissao.split("-").reverse().join("/")
+      : "";
 
-    const numeroFormatado = n.numero ? Number(n.numero.toString().substring(2)) : "";
+    const numeroFormatado = n.numero
+      ? Number(n.numero.toString().substring(2))
+      : "";
 
     return {
       Numero: numeroFormatado,

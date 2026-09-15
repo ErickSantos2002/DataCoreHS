@@ -40,22 +40,58 @@ vi.mock("../hooks/useAuth", () => ({
 
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, RESUMO_FALSO } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, RESUMO_FALSO } = await import(
+    "./comercial/hooksFalsos"
+  );
   const cheio = {
     ...RESUMO_FALSO,
-    kpis: { ...RESUMO_FALSO.kpis, faturamento_produtos: 12345.67, faturamento: 99999, notas: 7 },
+    kpis: {
+      ...RESUMO_FALSO.kpis,
+      faturamento_produtos: 12345.67,
+      faturamento: 99999,
+      notas: 7,
+    },
     por_produto: [
-      { chave: "A1", codigo: "A1", descricao: "Bocal Alfa", quantidade: 10, valor: 5000, notas: 3 },
-      { chave: "B2", codigo: "B2", descricao: "Bocal Beta", quantidade: 4, valor: 900, notas: 2 },
+      {
+        chave: "A1",
+        codigo: "A1",
+        descricao: "Bocal Alfa",
+        quantidade: 10,
+        valor: 5000,
+        notas: 3,
+      },
+      {
+        chave: "B2",
+        codigo: "B2",
+        descricao: "Bocal Beta",
+        quantidade: 4,
+        valor: 900,
+        notas: 2,
+      },
     ],
   };
   // Dois vendedores com "erick" no nome e um sem — o papel "vendas" filtra
   // por continência do username, e não por igualdade.
   const falsos = criarHooksFalsos(
     [
-      { id: 1, valor_nota: 1, nome_vendedor: "Erick Santos", data_emissao: "2026-01-01" },
-      { id: 2, valor_nota: 1, nome_vendedor: "ERICK S.", data_emissao: "2026-01-02" },
-      { id: 3, valor_nota: 1, nome_vendedor: "Maria Lima", data_emissao: "2026-01-03" },
+      {
+        id: 1,
+        valor_nota: 1,
+        nome_vendedor: "Erick Santos",
+        data_emissao: "2026-01-01",
+      },
+      {
+        id: 2,
+        valor_nota: 1,
+        nome_vendedor: "ERICK S.",
+        data_emissao: "2026-01-02",
+      },
+      {
+        id: 3,
+        valor_nota: 1,
+        nome_vendedor: "Maria Lima",
+        data_emissao: "2026-01-03",
+      },
     ],
     () => (ESTADO.vazio ? RESUMO_FALSO : cheio),
   );
@@ -71,12 +107,19 @@ vi.mock("./comercial/useComercial", async (original) => {
 });
 
 vi.mock("../components/ToastProvider", () => ({
-  useToast: () => ({ sucesso: vi.fn(), erro: vi.fn(), aviso: vi.fn(), info: vi.fn() }),
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -103,7 +146,9 @@ beforeEach(() => {
 
 /** O cartão de KPI cujo rótulo é `rotulo` — escopa a busca do valor. */
 function cartao(rotulo: string): HTMLElement {
-  const alvo = screen.getByText(rotulo).closest("div.rounded-xl") as HTMLElement | null;
+  const alvo = screen
+    .getByText(rotulo)
+    .closest("div.rounded-xl") as HTMLElement | null;
   if (!alvo) throw new Error(`cartao de KPI "${rotulo}" nao encontrado`);
   return alvo;
 }
@@ -112,10 +157,16 @@ describe("cabecalho de Vendedores", () => {
   it("mostra o titulo, o usuario logado com o papel e a frase de apoio", () => {
     render(<Vendedores />);
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Vendedores - Dashboard");
-    expect(screen.getByText("erick").parentElement).toHaveTextContent("Bem-vindo, erick (admin)");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Vendedores - Dashboard",
+    );
+    expect(screen.getByText("erick").parentElement).toHaveTextContent(
+      "Bem-vindo, erick (admin)",
+    );
     expect(
-      screen.getByText("Acompanhe suas métricas de vendas, evolução e gerencie suas notas."),
+      screen.getByText(
+        "Acompanhe suas métricas de vendas, evolução e gerencie suas notas.",
+      ),
     ).toBeInTheDocument();
   });
 });

@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vendedores from "./Vendedores";
-import type { PedidoDaTabela, RecorteComercial } from "./comercial/useComercial";
+import type {
+  PedidoDaTabela,
+  RecorteComercial,
+} from "./comercial/useComercial";
 
 /**
  * O que a tela de Vendedores diz quando a busca falha.
@@ -24,7 +27,8 @@ import type { PedidoDaTabela, RecorteComercial } from "./comercial/useComercial"
 
 const { FALHA, FRASE } = vi.hoisted(() => ({
   FALHA: { resumo: false, pagina: false },
-  FRASE: "Não foi possível carregar as vendas. Confira a conexão e recarregue a página.",
+  FRASE:
+    "Não foi possível carregar as vendas. Confira a conexão e recarregue a página.",
 }));
 
 vi.mock("../hooks/useAuth", () => ({
@@ -33,7 +37,9 @@ vi.mock("../hooks/useAuth", () => ({
 
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, RESUMO_FALSO } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, RESUMO_FALSO } = await import(
+    "./comercial/hooksFalsos"
+  );
   const falsos = criarHooksFalsos([
     {
       id: 1,
@@ -45,30 +51,51 @@ vi.mock("./comercial/useComercial", async (original) => {
       itens: [],
     },
   ]);
-  const PAGINA_VAZIA = { itens: [], total: 0, valor_total: 0, limite: 15, offset: 0 };
+  const PAGINA_VAZIA = {
+    itens: [],
+    total: 0,
+    valor_total: 0,
+    limite: 15,
+    offset: 0,
+  };
   return {
     ...real,
     ...falsos,
     useResumoComercial: (recorte: RecorteComercial) => {
       const bom = falsos.useResumoComercial(recorte);
       if (!FALHA.resumo) return bom;
-      return { ...bom, resumo: RESUMO_FALSO, erro: "Nao foi possivel carregar os dados do periodo." };
+      return {
+        ...bom,
+        resumo: RESUMO_FALSO,
+        erro: "Nao foi possivel carregar os dados do periodo.",
+      };
     },
     useVendasPaginadas: (recorte: RecorteComercial, pedido: PedidoDaTabela) => {
       const bom = falsos.useVendasPaginadas(recorte, pedido);
       if (!FALHA.pagina) return bom;
-      return { ...bom, pagina: PAGINA_VAZIA, erro: "Nao foi possivel carregar as notas." };
+      return {
+        ...bom,
+        pagina: PAGINA_VAZIA,
+        erro: "Nao foi possivel carregar as notas.",
+      };
     },
   };
 });
 
 vi.mock("../components/ToastProvider", () => ({
-  useToast: () => ({ sucesso: vi.fn(), erro: vi.fn(), aviso: vi.fn(), info: vi.fn() }),
+  useToast: () => ({
+    sucesso: vi.fn(),
+    erro: vi.fn(),
+    aviso: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,

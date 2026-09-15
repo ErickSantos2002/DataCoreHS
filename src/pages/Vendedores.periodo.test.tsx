@@ -23,23 +23,28 @@ vi.mock("../hooks/useAuth", () => ({
 
 const { NOTAS_VENDEDOR } = vi.hoisted(() => ({
   NOTAS_VENDEDOR: Array.from({ length: 17 }, (_, i) => ({
-  id: i + 1,
-  numero: 1000 + i + 1,
-  data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
-  valor_nota: 100 + i,
-  valor_produtos: 100 + i,
-  cliente: {
     id: i + 1,
-    nome: `Cliente ${String(i + 1).padStart(2, "0")}`,
-    cpf_cnpj: `11.111.111/0001-${String(i + 1).padStart(2, "0")}`,
-  },
-  nome_vendedor: "Vendedor A",
-  tipo: null,
-  itens: [
-    { codigo: "P1", descricao: "Item", quantidade: "1", valor_total: String(100 + i) },
-  ],
-  tem_observacoes: false,
-})),
+    numero: 1000 + i + 1,
+    data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
+    valor_nota: 100 + i,
+    valor_produtos: 100 + i,
+    cliente: {
+      id: i + 1,
+      nome: `Cliente ${String(i + 1).padStart(2, "0")}`,
+      cpf_cnpj: `11.111.111/0001-${String(i + 1).padStart(2, "0")}`,
+    },
+    nome_vendedor: "Vendedor A",
+    tipo: null,
+    itens: [
+      {
+        codigo: "P1",
+        descricao: "Item",
+        quantidade: "1",
+        valor_total: String(100 + i),
+      },
+    ],
+    tem_observacoes: false,
+  })),
 }));
 
 // A tela deixou de ler o `DataContext` (item 9.4): os agregados vêm somados do
@@ -66,9 +71,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,

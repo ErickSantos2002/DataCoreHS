@@ -17,6 +17,9 @@ src/pages/*
 !src/pages/financeiro
 !src/pages/GerenciamentoFinanceiro.tsx
 !src/pages/GerenciamentoFinanceiro.test.tsx
+!src/pages/vendedores
+!src/pages/Vendedores.tsx
+!src/pages/Vendedores.*.test.tsx
 src/components
 src/context
 src/services
