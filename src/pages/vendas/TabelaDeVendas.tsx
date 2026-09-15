@@ -41,6 +41,8 @@ export interface TabelaDeVendasProps {
   ordenacao: OrdenacaoDeVendas;
   onOrdenar: (campo: CampoDeOrdenacao) => void;
   onExportar: () => void;
+  /** O laço de exportação está correndo. */
+  exportando: boolean;
 }
 
 /**
@@ -61,6 +63,7 @@ export function TabelaDeVendas({
   ordenacao,
   onOrdenar,
   onExportar,
+  exportando,
 }: TabelaDeVendasProps) {
   // O ID basta: o texto das observações é buscado pelo modal ao abrir.
   const [notaDasObservacoes, setNotaDasObservacoes] = useState<number | null>(
@@ -131,6 +134,11 @@ export function TabelaDeVendas({
           <Button
             variant="success"
             onClick={onExportar}
+            // Nada impedia o segundo clique durante o laço — saíam duas
+            // planilhas —, e sem nota saía planilha só com o cabeçalho. `loading`
+            // já desabilita; `total` é o do recorte, e não o da página.
+            loading={exportando}
+            disabled={total === 0}
             icon={
               <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
             }

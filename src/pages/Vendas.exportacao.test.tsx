@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Vendas from "./Vendas";
 import { fetchVendas, type NotaVenda } from "../services/notasapi";
 import { baixarPlanilha } from "../lib/planilha";
-import { reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
+import {
+  ESTADO_VENDAS,
+  reiniciarEstadoDeVendas,
+} from "./vendas/vendasFalsas";
 
 /**
  * Caracterização da exportação de Vendas, antes de decompor a tela.
@@ -162,14 +165,16 @@ describe("exportacao de Vendas", () => {
     // Fecha o dropdown: ele tem o próprio "Pesquisar...".
     fireEvent.mouseDown(document.body);
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-      target: { value: "  bocal  " },
+      // "kit" casa com a nota do Vendedor B no fixture: um recorte sem nota
+      // deixaria o botão desabilitado, e o clique não exportaria.
+      target: { value: "  kit  " },
     });
     fireEvent.click(screen.getByText("Valor"));
     await exportar();
 
     expect(parametros(0)).toMatchObject({
       vendedor: ["Vendedor B"],
-      busca: "bocal",
+      busca: "kit",
       ordenar_por: "valor",
       direcao: "desc",
     });
@@ -231,5 +236,36 @@ describe("exportacao de Vendas", () => {
     expect(baixarPlanilha).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
     console.mockRestore();
+  });
+  it("durante a exportacao o botao desabilita, e volta quando termina", async () => {
+    // Nada impedia o segundo clique: cada um disparava o laço inteiro de novo,
+    // e saíam duas planilhas.
+    let terminar: (valor: ReturnType<typeof resposta>) => void = () => {};
+    vi.mocked(fetchVendas).mockReturnValue(
+      new Promise((resolver) => {
+        terminar = resolver;
+      }),
+    );
+    render(<Vendas />);
+    await exportar();
+
+    const botao = screen.getByRole("button", { name: /Exportar Excel/ });
+    expect(botao).toBeDisabled();
+    fireEvent.click(botao);
+    expect(fetchVendas).toHaveBeenCalledTimes(1);
+
+    await act(async () => terminar(resposta([NOTA_COMPLETA], 1)));
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(baixarPlanilha).toHaveBeenCalledTimes(1);
+  });
+
+  it("sem nota no recorte, o botao desabilita e nada sai", async () => {
+    // Saía planilha só com o cabeçalho.
+    ESTADO_VENDAS.vazio = true;
+    render(<Vendas />);
+
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+    await exportar();
+    expect(fetchVendas).not.toHaveBeenCalled();
   });
 });

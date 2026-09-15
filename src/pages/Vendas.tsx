@@ -168,7 +168,10 @@ const Vendas: React.FC = () => {
   // na tela — exportar só a página visível seria o mesmo erro de ler a
   // primeira página como se fosse o total, só que num arquivo que alguém manda
   // por e-mail.
+  const [exportando, setExportando] = useState(false);
+
   const exportarExcel = useCallback(async () => {
+    setExportando(true);
     try {
       const porPagina = 500;
       const todas: NotaVenda[] = [];
@@ -193,6 +196,8 @@ const Vendas: React.FC = () => {
       );
     } catch (falha) {
       console.error("Erro ao exportar as vendas:", falha);
+    } finally {
+      setExportando(false);
     }
   }, [recorte, pesquisaTabela, ordenacao]);
 
@@ -273,6 +278,7 @@ const Vendas: React.FC = () => {
           ordenacao={ordenacao}
           onOrdenar={alternarOrdenacao}
           onExportar={exportarExcel}
+          exportando={exportando}
         />
 
         <EstatisticasDeVendas
