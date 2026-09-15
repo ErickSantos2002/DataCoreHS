@@ -171,7 +171,9 @@ describe("carregando em Estoque", () => {
     ESTADO.carregando = true;
     render(<Estoque />);
 
-    expect(screen.getByText("Carregando dados do estoque...")).toBeInTheDocument();
+    // Frase completa com ponto, e não reticências — a mesma troca de Serviços e
+    // Vendedores.
+    expect(screen.getByText("Carregando dados do estoque.")).toBeInTheDocument();
     expect(screen.queryByText("Produtos Ativos")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
