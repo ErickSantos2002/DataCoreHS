@@ -1341,3 +1341,101 @@ celular em 390px com as pizzas renderizando.
 - O eixo do Top 10 escreve "R$ 0.00" / "R$ 2.0M" com ponto (`formatarValorAbreviado`).
 - O dublê de `Estoque.popover.test.tsx` segue pondo `percent` no dado da fatia; hoje
   inofensivo (a tela não lê mais), mas é o mesmo tipo de dublê que escondeu o NaN.
+
+## Estado em 15/09/2026 (fim de tarde) — Clientes migrada, Fase 3 em 11 de 12
+
+Branch `fase-3-clientes`, catorze commits sobre `45503de5`. Suíte em **1828 testes /
+142 arquivos**, verde nos dois fusos; lint **27** (era 39 — saíram os imports sem uso,
+os dois gráficos que ninguém desenhava e os `any` do comparador); `tsc` limpo.
+`PENDENTES_FASE_3`: **só Vendas**. `PENDENTES_UTC` do guarda de planilha: **vazia**.
+**Próxima e última: Vendas.**
+
+### Como foi
+
+Clientes lê o resumo agregado do banco (`comercial/useComercial.ts`, da outra frente),
+mas ordena e pesquisa a carteira **no navegador** — então a ordem das linhas é
+observável de ponta a ponta, sobre uma carteira falsa de doze clientes
+(`clientes/clientesFalsos.ts`) com o relógio fixado em 15/09/2026.
+
+1. **Caracterização**: quatro arquivos novos (topo e recorte, Top 10, tabela,
+   exportação), 72 testes com os quatro que existiam. **32 plantações**, todas
+   derrubaram — e nenhuma deixou o arquivo sem compilar (contagem de falhas
+   específica em cada uma).
+2. **Um conserto antes de decompor** (`68b4b50c`): mover o `toISOString` da última
+   compra para `clientes.ts` o tirava de `PENDENTES_UTC`, e o guarda de planilha
+   caiu. O conserto foi feito na tela antiga, em commit próprio.
+3. **Decompor num commit** (`99b9cb01`), 72 testes sem uma edição.
+4. **Dez consertos**, um commit cada, teste vermelho antes, plantação depois.
+
+### Os consertos
+
+| Commit | Defeito |
+|---|---|
+| `68b4b50c` | **Última compra da tabela em UTC**: a leste de Greenwich mostrava um dia a menos que a planilha (`TZ=Asia/Tokyo`: 09/09 para 10/09). Em Brasília não aparece, então a suíte não fica vermelha; quem trava é o guarda de planilha, cuja lista ficou vazia. |
+| `bb7eea14` | Falha de rede silenciosa — mesmo defeito e conserto de Serviços e Vendedores. |
+| `84f06e14` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta. |
+| `622700fc` | Exportar (Excel e PDF) não desabilitava com a tabela vazia. |
+| `871e908d` | Top 10 sem cliente era grade e eixos em branco → `ChartEmpty`. |
+| `a0381fa2` | Frase de carregando com reticências. |
+| `139c5911` | Comparador que nunca devolvia 0, e nome por `toLowerCase`: "Ágil" ia para depois de "Zeta", e o espaço da frente abria a tabela. As regras de Estoque. |
+| `dc99b08c` | Taxa de ativação "75.0%" ao lado de "R$ 123.456,78". |
+| `5a0e4338` | Total do PDF "R$ 50000.50". |
+| `ee69ab69` | Nota do Top Cliente era o valor abreviado do eixo ("R$ 50.0K"), e "R$ 0" sem cliente. |
+| `01817b69` | **Visto só no navegador**: seis colunas de filtro em ~1080px quebravam "Todos os vendedores" em duas linhas. Duas colunas em `md`, três em `lg`, seis em `2xl`; conferido de 800 a 1920px. |
+
+### Decisão tomada na decomposição
+
+A tela **calculava e não desenhava** dois gráficos: a distribuição de faturamento
+(top 8 + "Outros") e a evolução mensal dos cinco maiores clientes — esta sobre
+`evolucao_por_cliente`, que a outra frente pôs na API para esta tela. Os dois saíram
+como código morto (ficam no histórico). **Erick (15/09): manter a decisão.** Se o
+gráfico de evolução for querido um dia, o dado já vem do banco.
+
+### Duas lições de verificação
+
+- **Uma plantação saiu cega** (`139c5911`): trocar `sensitivity: "base"` por
+  `"variant"` não muda a ordem — só o desempate de acento e caixa. Quem põe "Ágil"
+  junto do "A" é o `localeCompare` em si; a plantação que conta volta ao
+  `toLowerCase`. Mais uma vez: a plantação é hipótese sobre o mecanismo.
+- **O teste de `aria-sort` nasceu errado**: procurava o `columnheader` pelo
+  `aria-label` do botão, e no jsdom daqui o nome do cabeçalho sai do texto visível.
+  Falhava com e sem o conserto — vermelho pelo motivo errado. Corrigido para subir do
+  botão ao `<th>`, e conferido vermelho sem o conserto e verde com ele.
+
+### Checklist de tela migrada — Clientes
+
+1. Hexadecimal cravado: **nenhum** (saíram as oito de `CORES` e as seis do balão).
+2. `dark:` onde há token: **nenhum**.
+3. Azul de ação: **sim** — ticket em `tone="acao"`, valor total em `text-action`.
+4. Um botão primário por bloco: **sim** — nenhum `primary`; Excel é `success` e PDF
+   `secondary`.
+5. Texto abaixo de 12px: **só o rótulo do `KpiCard`** (11px, do primitivo); os eixos
+   subiram de 11 para 12px.
+6. Estado vazio com frase: **sim** — `TableEmpty` e `ChartEmpty`.
+7. Ícone é componente: **sim**.
+8. Contagem de paginação em frase: **sim** — "Mostrando 1 a 15 de 1817 clientes".
+9. `focus-visible` com anel de 2px: **sim** — conferido no navegador no botão de
+   ordenar (anel de 2px na cor de foco).
+10. Nada animando em laço fora spinner: **sim**.
+
+### Conferência no navegador (15/09)
+
+Claro e escuro, contra a API real (1817 clientes, 158 ativos); ordenar por Enter no
+teclado com `aria-sort` mudando; pesquisa sem resultado (`TableEmpty`, Excel e PDF
+desabilitados); vazio (período em 2031: `ChartEmpty`, KPIs e estatísticas zerados sem
+"R$"); erro (resumo bloqueado: o `Alert`, com os filtros na tela); carregando
+(resposta segurada: a frase); celular em 400px sem rolagem lateral.
+
+### Achados registrados e não corrigidos
+
+- **O PDF corta em 30 clientes sem avisar** — o mesmo de Serviços. Decisão de produto
+  (exportar tudo ou avisar), melhor tomada para as duas telas juntas.
+- **A borda dos 90 dias**: o limite é "agora menos 90 dias" com hora, e a compra é
+  meia-noite — quem comprou exatamente há 90 dias sai inativo.
+- **"Ticket Médio/Cliente" é a média das médias** de cada cliente, e não o ticket da
+  carteira (valor total sobre notas). O rótulo não diz qual; decisão de produto.
+- O eixo do Top 10 escreve "R$ 0.00" / "R$ 2.6M" com ponto — o mesmo de Estoque e
+  Vendedores, em `formatarValorAbreviado`.
+- O "Top Cliente" com o período "Todos" é um cliente **inativo** (última compra em
+  2021): o ranking é por valor do recorte, e não por atividade. Não é defeito, mas
+  vale saber ao ler o cartão.
