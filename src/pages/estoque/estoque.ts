@@ -167,33 +167,34 @@ export function situacaoDosProdutos(produtos: ProdutoEstoque[]): { name: string;
   ].filter((item) => item.value > 0);
 }
 
+const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+
 /**
  * As quatro linhas de "Estatísticas do Estoque", já como texto.
  *
- * Achado ao mover (não corrigido): Preço Médio e Maior Preço saem com
- * `toFixed(2)` — PONTO decimal, "R$ 256.42", ao lado de cartões em
- * `toLocaleString` ("R$ 6.440,00"); e o vazio é "0,00" com vírgula. Mesma
- * tela, dois formatos de dinheiro.
+ * No formato brasileiro, como os cartões ao lado. Saíam com `toFixed` — ponto
+ * decimal, "R$ 256.42" e "R$ 1200.00" ao lado de "R$ 6.440,00" —, e o vazio
+ * era "0,00" com vírgula: dois formatos de dinheiro na mesma tela.
  */
 export function estatisticasDoEstoque(
   produtos: ProdutoEstoque[],
-): { label: string; value: string | number; destaque?: boolean }[] {
+): { label: string; value: string | number }[] {
   const n = produtos.length;
+  const precoMedio = n > 0 ? produtos.reduce((acc, p) => acc + p.preco, 0) / n : 0;
+  const saldoMedio = n > 0 ? produtos.reduce((acc, p) => acc + p.saldo, 0) / n : 0;
+  // `Math.max()` sem argumento é -Infinity: o vazio tem de ser tratado antes.
+  const maiorPreco = n > 0 ? Math.max(...produtos.map((p) => p.preco)) : 0;
   return [
     { label: "Total de Produtos", value: n },
-    {
-      label: "Preço Médio",
-      value: `R$ ${n > 0 ? (produtos.reduce((acc, p) => acc + p.preco, 0) / n).toFixed(2) : "0,00"}`,
-    },
+    { label: "Preço Médio", value: `R$ ${precoMedio.toLocaleString("pt-BR", DINHEIRO)}` },
     {
       label: "Saldo Médio",
-      value: n > 0 ? (produtos.reduce((acc, p) => acc + p.saldo, 0) / n).toFixed(1) : "0",
+      value: saldoMedio.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
     },
-    {
-      label: "Maior Preço",
-      value: `R$ ${n > 0 ? Math.max(...produtos.map((p) => p.preco)).toFixed(2) : "0,00"}`,
-      destaque: true,
-    },
+    { label: "Maior Preço", value: `R$ ${maiorPreco.toLocaleString("pt-BR", DINHEIRO)}` },
   ];
 }
 

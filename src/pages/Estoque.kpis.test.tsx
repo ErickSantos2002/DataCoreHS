@@ -15,7 +15,7 @@ import Estoque from "./Estoque";
  */
 
 const { ESTADO } = vi.hoisted(() => ({
-  ESTADO: { carregando: false },
+  ESTADO: { carregando: false, vazio: false },
 }));
 
 vi.mock("../hooks/useAuth", () => ({
@@ -26,7 +26,7 @@ vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
   return {
     useEstoque: () => ({
-      produtos: PRODUTOS_ESTOQUE,
+      produtos: ESTADO.vazio ? [] : PRODUTOS_ESTOQUE,
       carregando: ESTADO.carregando,
       atualizarProdutos: vi.fn(),
     }),
@@ -55,6 +55,7 @@ vi.mock("recharts", () => {
 
 beforeEach(() => {
   ESTADO.carregando = false;
+  ESTADO.vazio = false;
 });
 
 /** O cartão cujo rótulo é `rotulo` — escopa a busca do valor. */
@@ -128,16 +129,28 @@ describe("KPIs de Estoque", () => {
 describe("estatisticas de Estoque", () => {
   it.each([
     ["Total de Produtos", "6"],
-    // (250 + 5 + 3,5 + 80 + 1200 + 0) / 6 = 256,4166… — com PONTO decimal,
-    // `toFixed`, e não `toLocaleString`.
-    ["Preço Médio", "R$ 256.42"],
+    // (250 + 5 + 3,5 + 80 + 1200 + 0) / 6 = 256,4166… — no formato brasileiro,
+    // como os cartões ao lado. Saía "R$ 256.42", com ponto, via `toFixed`.
+    ["Preço Médio", "R$ 256,42"],
     // (10 + 100 + 0 − 2 + 3 + 50) / 6 = 26,833…
-    ["Saldo Médio", "26.8"],
-    ["Maior Preço", "R$ 1200.00"],
+    ["Saldo Médio", "26,8"],
+    ["Maior Preço", "R$ 1.200,00"],
   ])("%s mostra %s", (rotulo, esperado) => {
     render(<Estoque />);
 
     expect(estatistica(rotulo)).toBe(esperado);
+  });
+});
+
+describe("estatisticas de Estoque sem produto", () => {
+  it("zeram no mesmo formato, e sem NaN nem -Infinity", () => {
+    ESTADO.vazio = true;
+    render(<Estoque />);
+
+    expect(estatistica("Total de Produtos")).toBe("0");
+    expect(estatistica("Preço Médio")).toBe("R$ 0,00");
+    expect(estatistica("Saldo Médio")).toBe("0,0");
+    expect(estatistica("Maior Preço")).toBe("R$ 0,00");
   });
 });
 
