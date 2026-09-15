@@ -13,7 +13,7 @@ import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
 import { periodoDoPreset } from "../lib/periodo";
 import { useToast } from "../components/ToastProvider";
-import { Spinner } from "../design-system/ui";
+import { Alert, Spinner } from "../design-system/ui";
 import {
   ajustarFolhaDeVendas,
   distribuicaoDeClientes,
@@ -97,7 +97,7 @@ const Vendedores: React.FC = () => {
     [filtroCliente, vendedoresDoRecorte, filtroProduto, dataInicio, dataFim, idPorRotulo],
   );
 
-  const { resumo, carregando } = useResumoComercial(recorte);
+  const { resumo, carregando, erro: erroDoResumo } = useResumoComercial(recorte);
 
   const chaveDoRecorte =
     JSON.stringify(recorte) + pesquisaTabela + JSON.stringify(ordenacao);
@@ -105,7 +105,7 @@ const Vendedores: React.FC = () => {
     setPaginaAtual(1);
   }, [chaveDoRecorte]);
 
-  const { pagina } = useVendasPaginadas(recorte, {
+  const { pagina, erro: erroDaTabela } = useVendasPaginadas(recorte, {
     busca: pesquisaTabela,
     ordenarPor: ordenacao.campo,
     direcao: ordenacao.direcao,
@@ -211,6 +211,21 @@ const Vendedores: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base p-6 transition-colors">
       <CabecalhoDeVendedores usuario={vendedorLogado} papel={user?.role} />
+
+      {/*
+        Os dois hooks já devolviam `erro` quando a rede caía, e a casca
+        descartava os dois: a pessoa via "R$ 0,00", "0" vendas e "Nenhum
+        resultado encontrado." e lia "não vendi nada". Alert no fluxo, e não
+        toast, porque o estado dura até recarregar. A frase é daqui: a do hook
+        (`comercial/useComercial.ts`, da outra frente) vem sem acento.
+      */}
+      {erroDoResumo || erroDaTabela ? (
+        <div className="mt-6">
+          <Alert variant="danger">
+            Não foi possível carregar as vendas. Confira a conexão e recarregue a página.
+          </Alert>
+        </div>
+      ) : null}
 
       <div className="mt-6 overflow-x-hidden">
         <FiltrosDeVendedores
