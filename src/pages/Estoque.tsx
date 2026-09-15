@@ -5,7 +5,7 @@ import { useEstoque } from "../context/EstoqueContext";
 import { usePaginacao } from "../hooks/usePaginacao";
 import { diaLocal } from "../lib/datas";
 import { baixarPlanilha } from "../lib/planilha";
-import { Spinner } from "../design-system/ui";
+import { Alert, Spinner } from "../design-system/ui";
 import {
   buscarEOrdenar,
   distribuicaoDeValor,
@@ -37,7 +37,7 @@ import { TabelaDeEstoque } from "./estoque/TabelaDeEstoque";
  */
 const Estoque: React.FC = () => {
   const { user } = useAuth();
-  const { produtos, carregando } = useEstoque();
+  const { produtos, carregando, erro } = useEstoque();
 
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
   const [filtroSituacao, setFiltroSituacao] = useState<string>("todos");
@@ -109,6 +109,13 @@ const Estoque: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base p-6 transition-colors">
       <CabecalhoDeEstoque usuario={user} />
+
+      {/* Falha de rede é aviso no fluxo, e não toast: dura até recarregar. */}
+      {erro ? (
+        <div className="mt-6">
+          <Alert variant="danger">{erro}</Alert>
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <FiltrosDeEstoque

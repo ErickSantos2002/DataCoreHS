@@ -16,6 +16,8 @@ interface ProdutoEstoque {
 interface EstoqueContextType {
   produtos: ProdutoEstoque[];
   carregando: boolean;
+  /** A frase para a tela quando a busca falha; `null` quando deu certo. */
+  erro: string | null;
   atualizarProdutos: () => Promise<void>;
 }
 
@@ -24,6 +26,9 @@ const EstoqueContext = createContext<EstoqueContextType | undefined>(undefined);
 export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [produtos, setProdutos] = useState<ProdutoEstoque[]>([]);
   const [carregando, setCarregando] = useState(true);
+  // Sem isto o `catch` só escrevia no console: com a API caída a tela abria com
+  // "0" produtos e "R$ 0,00", e lia-se "o estoque está zerado".
+  const [erro, setErro] = useState<string | null>(null);
 
   // Função para buscar e atualizar os produtos
   const atualizarProdutos = async () => {
@@ -31,8 +36,10 @@ export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCarregando(true);
       const data = await fetchEstoque();
       setProdutos(data);
+      setErro(null);
     } catch (error) {
       console.error("Erro ao buscar produtos do estoque:", error);
+      setErro("Não foi possível carregar o estoque.");
     } finally {
       setCarregando(false);
     }
@@ -44,7 +51,7 @@ export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <EstoqueContext.Provider value={{ produtos, carregando, atualizarProdutos }}>
+    <EstoqueContext.Provider value={{ produtos, carregando, erro, atualizarProdutos }}>
       {children}
     </EstoqueContext.Provider>
   );
