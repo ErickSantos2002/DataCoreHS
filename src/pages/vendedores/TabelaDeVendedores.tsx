@@ -42,6 +42,9 @@ export interface TabelaDeVendedoresProps {
   ordenacao: OrdenacaoDeVendedores;
   onOrdenar: (campo: CampoDeOrdenacao) => void;
   onExportar: () => void;
+  /** A exportação percorre todas as páginas do servidor e demora num recorte
+   *  grande: enquanto roda, o botão diz isso e não aceita outro clique. */
+  exportando: boolean;
   /** Grava o tipo. Rejeita quando falha — e aí a edição continua aberta. */
   onSalvarTipo: (idNota: number, tipo: string) => Promise<void>;
 }
@@ -69,6 +72,7 @@ export function TabelaDeVendedores({
   ordenacao,
   onOrdenar,
   onExportar,
+  exportando,
   onSalvarTipo,
 }: TabelaDeVendedoresProps) {
   const [editandoTipo, setEditandoTipo] = useState<number | null>(null);
@@ -156,9 +160,16 @@ export function TabelaDeVendedores({
             <Button
               variant="success"
               onClick={onExportar}
+              // Desabilita com a tabela vazia — o clique gerava planilha só
+              // com o cabeçalho, que sai por e-mail parecendo resultado — e
+              // enquanto exporta: o estado `exportando` existia na casca e
+              // ninguém lia, e o segundo clique recomeçava a busca inteira.
+              // `total` é o recorte com a busca, e não a página.
+              disabled={total === 0 || exportando}
+              loading={exportando}
               icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
             >
-              Exportar Excel
+              {exportando ? "Exportando..." : "Exportar Excel"}
             </Button>
           </div>
         </div>

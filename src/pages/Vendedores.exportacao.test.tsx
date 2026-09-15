@@ -246,6 +246,45 @@ describe("exportacao de Vendedores", () => {
     expect(planilha.G2.z).toBeUndefined();
   });
 
+  it("enquanto exporta, o botao diz que esta exportando, desabilita e nao dispara de novo", async () => {
+    // `exportando` existia na casca e ninguém lia: o botão seguia clicável
+    // durante a busca de todas as páginas, sem nada dizendo que algo
+    // acontecia — a pessoa clicava de novo e a busca inteira recomeçava.
+    let liberar: () => void = () => {};
+    vi.mocked(fetchVendas).mockImplementationOnce(
+      () =>
+        new Promise((resolver) => {
+          liberar = () =>
+            resolver({ itens: [NOTA_COMPLETA], total: 1, valor_total: 0, limite: 500, offset: 0 });
+        }),
+    );
+    render(<Vendedores />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Exportar Excel/ }));
+    const botao = screen.getByRole("button", { name: /Exportando/ });
+    expect(botao).toBeDisabled();
+    fireEvent.click(botao);
+    expect(fetchVendas).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      liberar();
+    });
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(baixarPlanilha).toHaveBeenCalledTimes(1);
+  });
+
+  it("com a tabela vazia, exportar fica desabilitado", () => {
+    // Sem nenhuma linha, o clique gerava uma planilha só com o cabeçalho —
+    // arquivo vazio que sai por e-mail parecendo resultado.
+    render(<Vendedores />);
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "zzz-nao-existe" },
+    });
+
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+  });
+
   it("se a busca falha, o toast avisa e nenhuma planilha sai", async () => {
     vi.mocked(fetchVendas).mockRejectedValueOnce(new Error("rede"));
     vi.spyOn(console, "error").mockImplementation(() => {});

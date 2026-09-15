@@ -268,6 +268,7 @@ const Vendedores: React.FC = () => {
           ordenacao={ordenacao}
           onOrdenar={alternarOrdenacao}
           onExportar={exportarExcel}
+          exportando={exportando}
           onSalvarTipo={salvarTipo}
         />
       </div>
