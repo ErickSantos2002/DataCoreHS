@@ -6,6 +6,8 @@ const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 export interface EstatisticasDeVendasProps {
   resumo: { label: string; value: string | number }[];
   comparativo: ComparativoMensal | null;
+  /** A evolução é por ano (mais de 24 meses): os rótulos falam de ano. */
+  porAno: boolean;
   performance: { label: string; value: string }[];
 }
 
@@ -21,8 +23,15 @@ export interface EstatisticasDeVendasProps {
 export function EstatisticasDeVendas({
   resumo,
   comparativo,
+  porAno,
   performance,
 }: EstatisticasDeVendasProps) {
+  // Acima de 24 meses a evolução é anual, e o cartão comparava ANOS sob
+  // "Variação último mês", "Melhor mês" e "Média mensal".
+  const unidade = porAno
+    ? { titulo: "Anual", ultimo: "último ano", melhor: "Melhor ano", media: "Média anual" }
+    : { titulo: "Mensal", ultimo: "último mês", melhor: "Melhor mês", media: "Média mensal" };
+
   return (
     <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
       <Card padding="lg">
@@ -31,28 +40,33 @@ export function EstatisticasDeVendas({
       </Card>
 
       <Card padding="lg">
-        <CardTitle className="mb-4">Comparativo Mensal</CardTitle>
+        <CardTitle className="mb-4">Comparativo {unidade.titulo}</CardTitle>
         {comparativo ? (
           <DataList
             items={[
               {
                 key: "variacao",
-                label: "Variação último mês",
+                label: `Variação ${unidade.ultimo}`,
                 value: `${comparativo.variacao >= 0 ? "+" : ""}${comparativo.variacao.toFixed(1)}%`,
               },
               {
                 key: "melhor",
-                label: "Melhor mês",
+                label: unidade.melhor,
                 value: comparativo.melhorMes,
               },
               {
                 key: "media",
-                label: "Média mensal",
+                label: unidade.media,
                 value: `R$ ${comparativo.mediaMensal.toLocaleString("pt-BR", DINHEIRO)}`,
               },
             ]}
           />
-        ) : null}
+        ) : (
+          // Com menos de dois pontos o cartão ficava só com o título.
+          <p className="text-sm text-conteudo-muted">
+            É preciso de vendas em dois meses para comparar.
+          </p>
+        )}
       </Card>
 
       <Card padding="lg">

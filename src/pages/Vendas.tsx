@@ -19,6 +19,7 @@ import {
   comparativoMensal,
   distribuicaoDeEmpresas,
   evolucaoDoResumo,
+  evolucaoEhAnual,
   idPorRotulo,
   kpisDoResumo,
   linhasDaPlanilha,
@@ -289,6 +290,7 @@ const Vendas: React.FC = () => {
         <EstatisticasDeVendas
           resumo={resumoDoPeriodoItens}
           comparativo={comparativo}
+          porAno={evolucaoEhAnual(resumo.evolucao_mensal)}
           performance={performance}
         />
       </div>

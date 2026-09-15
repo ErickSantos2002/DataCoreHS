@@ -104,6 +104,16 @@ export interface PontoDeEvolucao {
   ordem: number;
 }
 
+/** Acima disto a evolução troca de escala: um ponto por ano. */
+const MESES_ANTES_DE_AGRUPAR_POR_ANO = 24;
+
+/** A evolução deste resumo é por ano? Quem rotula o comparativo precisa saber. */
+export function evolucaoEhAnual(
+  evolucao: ResumoComercial["evolucao_mensal"],
+): boolean {
+  return evolucao.length > MESES_ANTES_DE_AGRUPAR_POR_ANO;
+}
+
 /**
  * A evolução: um ponto por mês com venda, rotulado "jun. de 2026"; acima de 24
  * meses, um ponto por ano com a soma.
@@ -124,7 +134,7 @@ export function evolucaoDoResumo(
     };
   });
 
-  if (dadosMensais.length > 24) {
+  if (evolucaoEhAnual(evolucao)) {
     const porAno = dadosMensais.reduce((acc: Record<number, number>, item) => {
       acc[item.ano] = (acc[item.ano] ?? 0) + item.total;
       return acc;
@@ -251,12 +261,8 @@ export interface ComparativoMensal {
  * "Comparativo Mensal": variação do último ponto sobre o penúltimo, o melhor
  * ponto e a média. `null` com menos de dois pontos.
  *
- * Achados ao mover (não corrigidos):
- *   - acima de 24 meses a evolução é ANUAL, e o cartão compara anos sob os
- *     rótulos "Variação último mês", "Melhor mês" e "Média mensal";
- *   - o último ponto é o mês corrente, ainda aberto: no dia 3 a variação sai
- *     perto de −100%;
- *   - com menos de dois pontos o cartão fica só com o título, sem frase.
+ * Achado ao mover (não corrigido, decisão de produto): o último ponto é o
+ * mês corrente, ainda aberto — no dia 3 a variação sai perto de −100%.
  */
 export function comparativoMensal(
   evolucao: PontoDeEvolucao[],

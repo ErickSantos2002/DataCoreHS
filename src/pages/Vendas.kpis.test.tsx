@@ -167,24 +167,32 @@ describe("Comparativo Mensal em Vendas", () => {
     expect(estatistica("Média mensal")).toHaveTextContent("R$ 2.133,33");
   });
 
-  it("com mais de 24 meses, o comparativo compara ANOS, sob o mesmo rotulo", () => {
+  it("com mais de 24 meses a evolucao e anual, e o cartao fala de ano", () => {
     // Com 26 meses a evolução agrupa por ano: 2024 soma 1.266, 2025 soma
-    // 1.410 e 2026 (dois meses) 249.
+    // 1.410 e 2026 (dois meses) 249. O cartão comparava esses anos sob
+    // "Variação último mês", "Melhor mês" e "Média mensal".
     ESTADO_VENDAS.meses = 26;
     render(<Vendas />);
 
-    expect(estatistica("Variação último mês")).toHaveTextContent("-82.3%");
-    expect(estatistica("Melhor mês")).toHaveTextContent("2025");
-    expect(estatistica("Média mensal")).toHaveTextContent("R$ 975,00");
+    const cartao = screen.getByRole("heading", { name: "Comparativo Anual" })
+      .parentElement as HTMLElement;
+    expect(estatistica("Variação último ano")).toHaveTextContent("-82.3%");
+    expect(estatistica("Melhor ano")).toHaveTextContent("2025");
+    expect(estatistica("Média anual")).toHaveTextContent("R$ 975,00");
+    // Só no cartão: o seletor de período tem "Mês atual".
+    expect(cartao.textContent).not.toMatch(/mês|mensal/i);
   });
 
-  it("com menos de dois pontos, o cartao fica so com o titulo", () => {
+  it("com menos de dois pontos, o cartao diz por que nao compara", () => {
+    // Ficava só o título, sem frase nenhuma.
     ESTADO_VENDAS.meses = 1;
     render(<Vendas />);
 
-    expect(
-      screen.getByRole("heading", { name: "Comparativo Mensal" }),
-    ).toBeInTheDocument();
+    const cartao = screen.getByRole("heading", { name: "Comparativo Mensal" })
+      .parentElement as HTMLElement;
+    expect(cartao).toHaveTextContent(
+      "É preciso de vendas em dois meses para comparar.",
+    );
     expect(screen.queryByText("Variação último mês")).not.toBeInTheDocument();
   });
 });
