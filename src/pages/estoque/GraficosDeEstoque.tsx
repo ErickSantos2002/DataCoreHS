@@ -48,11 +48,6 @@ export interface GraficosDeEstoqueProps {
  * `Escape` no container e o modo toque (`trigger="click"`) em celular. A
  * estrutura `div.relative > ResponsiveContainer > PieChart` é a que
  * `Estoque.popover.test.tsx` percorre.
- *
- * Achado ao mover (não corrigido): o balão de "Situação dos Produtos" lê
- * `percent` do dado da fatia, onde o recharts não o põe — em produção sai
- * "NaN%" (conferido no navegador em 15/09). O dublê de
- * `Estoque.popover.test.tsx` põe `percent` lá, e é por isso que o teste passa.
  */
 export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosDeEstoqueProps) {
   useTemaDoGrafico();
@@ -285,7 +280,12 @@ export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosD
                 content={({ active, payload }) => {
                   if (!showPizzaSituacao) return null;
                   if (active && payload && payload.length) {
-                    const { name, value, percent } = payload[0].payload;
+                    const { name, value } = payload[0].payload;
+                    // A porcentagem sai do total das fatias, e não de
+                    // `payload[0].payload.percent`: o recharts entrega aqui o
+                    // DADO da fatia, sem `percent`, e o balão mostrava "NaN%".
+                    const total = situacao.reduce((soma, fatia) => soma + fatia.value, 0);
+                    const percent = total > 0 ? value / total : 0;
                     return (
                       <div style={{ ...balao, maxWidth: 240 }}>
                         <p style={{ fontWeight: 600, marginBottom: 4 }}>{name}</p>
