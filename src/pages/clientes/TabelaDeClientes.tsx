@@ -75,10 +75,27 @@ export function TabelaDeClientes({
     icone?: ReactNode,
   ) => (
     <TableHeaderCell
-      className="cursor-pointer"
-      onClick={() => onOrdenar(campo)}
+      aria-sort={
+        ordenacao.campo !== campo
+          ? "none"
+          : ordenacao.direcao === "asc"
+            ? "ascending"
+            : "descending"
+      }
     >
-      <span className="inline-flex select-none items-center gap-1">
+      {/*
+        O clique mora num `<button>` dentro do `<th>`: um `<th>` não entra na
+        ordem de tabulação nem responde a Enter, e ordenar era ação só de
+        mouse. Não é o `sortable` do primitivo, que põe as setas como TEXTO no
+        cabeçalho. `uppercase` de novo no botão porque o preflight do Tailwind
+        zera text-transform em `button` (a lição de Vendedores).
+      */}
+      <button
+        type="button"
+        onClick={() => onOrdenar(campo)}
+        aria-label={`Ordenar por ${rotulo}`}
+        className="inline-flex select-none items-center gap-1 uppercase tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
         {icone}
         <span>{rotulo}</span>
         {ordenacao.campo === campo ? (
@@ -88,7 +105,7 @@ export function TabelaDeClientes({
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           )
         ) : null}
-      </span>
+      </button>
     </TableHeaderCell>
   );
 
