@@ -1,83 +1,49 @@
-import React, { useMemo, useState, useCallback, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { useIsMobile } from "../hooks/useIsMobile";
-import {
-  useFiltrosComerciais,
-  useResumoComercial,
-  type RecorteComercial,
-} from "./comercial/useComercial";
-import { usePaginacao } from "../hooks/usePaginacao";
-import {
-  MultiSelect,
-  Pagination,
-  TableEmpty,
-  deTextos,
-  buscaPorRotuloValorOuNumero,
-} from "../design-system/ui";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  CartesianGrid,
-  Legend,
-} from "recharts";
-import {
-  Users,
-  UserX,
-  Star,
-  TrendingUp,
-  Filter,
-  Download,
-  Search,
-  ChevronUp,
-  ChevronDown,
-  Calendar,
-  DollarSign,
-  ShoppingBag,
-  Phone,
-  Mail,
-} from "lucide-react";
-import { dataDeCalendarioComoDate, diaLocal } from "../lib/datas";
-import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
-import { baixarPlanilha } from "../lib/planilha";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Cores para gráficos
-const CORES = {
-  azul: "#2563eb",
-  verde: "#10b981",
-  roxo: "#8b5cf6",
-  laranja: "#f97316",
-  vermelho: "#ef4444",
-  amarelo: "#eab308",
-  rosa: "#ec4899",
-  cyan: "#06b6d4",
-};
+import { useAuth } from "../hooks/useAuth";
+import { usePaginacao } from "../hooks/usePaginacao";
+import { diaLocal } from "../lib/datas";
+import { periodoDoPreset } from "../lib/periodo";
+import { baixarPlanilha } from "../lib/planilha";
+import { Spinner } from "../design-system/ui";
+import {
+  useFiltrosComerciais,
+  useResumoComercial,
+} from "./comercial/useComercial";
+import {
+  CABECALHO_DO_PDF,
+  buscarEOrdenar,
+  carteiraDoResumo,
+  chavePorRotulo,
+  estatisticasDaCarteira,
+  idsPorDocumento,
+  kpisDaCarteira,
+  linhasDaPlanilha,
+  linhasDoPdf,
+  opcoesDeCliente,
+  proximaOrdenacao,
+  rankingDeClientes,
+  recorteDosFiltros,
+  rotuloDoProduto,
+  type CampoDeOrdenacao,
+  type OrdenacaoDeClientes,
+} from "./clientes/clientes";
+import { CabecalhoDeClientes } from "./clientes/CabecalhoDeClientes";
+import { FiltrosDeClientes } from "./clientes/FiltrosDeClientes";
+import { KpisDeClientes } from "./clientes/KpisDeClientes";
+import { GraficoDeClientes } from "./clientes/GraficoDeClientes";
+import { EstatisticasDeClientes } from "./clientes/EstatisticasDeClientes";
+import { TabelaDeClientes } from "./clientes/TabelaDeClientes";
 
-const CORES_GRAFICO = [
-  CORES.azul,
-  CORES.verde,
-  CORES.roxo,
-  CORES.laranja,
-  CORES.vermelho,
-  CORES.amarelo,
-  CORES.rosa,
-  CORES.cyan,
-];
-
+/**
+ * A tela de Clientes, como casca: estado dos filtros e da tabela, os `useMemo`
+ * que chamam a conta pura de `clientes/clientes.ts`, e as seis peças.
+ */
 const Clientes: React.FC = () => {
   const { user } = useAuth();
 
-  // Estados dos filtros
   const [filtroCliente, setFiltroCliente] = useState<string[]>([]);
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
   const [filtroVendedor, setFiltroVendedor] = useState<string[]>([]);
@@ -85,14 +51,9 @@ const Clientes: React.FC = () => {
   const [dataFim, setDataFim] = useState("");
   const [presetPeriodo, setPresetPeriodo] = useState("todos");
 
-  const isMobile = useIsMobile();
-  const chartRef = React.useRef<HTMLDivElement>(null);
-  const [tooltipPos, setTooltipPos] = React.useState<{ x: number; y: number } | undefined>(undefined);
-
-  // Estados da tabela
-  const [ordenacao, setOrdenacao] = useState<{campo: string; direcao: 'asc' | 'desc'}>({
-    campo: 'ultimaCompra',
-    direcao: 'desc'
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoDeClientes>({
+    campo: "ultimaCompra",
+    direcao: "desc",
   });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
@@ -109,270 +70,72 @@ const Clientes: React.FC = () => {
 
   const { opcoes } = useFiltrosComerciais();
 
-  // O multiselect de cliente sempre trabalhou com o DOCUMENTO em dígitos como
-  // `value` — é ele que junta os cadastros repetidos do mesmo CNPJ. O recorte,
-  // porém, filtra por ID, então aqui se traduz um no outro: um documento pode
-  // corresponder a mais de um cadastro, e todos têm de entrar.
-  const idsPorDocumento = useMemo(() => {
-    const mapa = new Map<string, number[]>();
-    opcoes.clientes.forEach((c) => {
-      const doc = (c.cpf_cnpj ?? "").replace(/\D/g, "");
-      mapa.set(doc, [...(mapa.get(doc) ?? []), c.id]);
-    });
-    return mapa;
-  }, [opcoes.clientes]);
-
-  const clientesUnicos = useMemo(
-    () =>
-      Array.from(
-        new Map(
-          opcoes.clientes.map((c) => [
-            (c.cpf_cnpj ?? "").replace(/\D/g, ""),
-            {
-              value: (c.cpf_cnpj ?? "").replace(/\D/g, ""),
-              label: `${c.nome} (${c.cpf_cnpj})`,
-            },
-          ]),
-        ).values(),
-      ),
+  const opcoesDoCliente = useMemo(
+    () => opcoesDeCliente(opcoes.clientes),
     [opcoes.clientes],
   );
-
-  const vendedoresUnicos = useMemo(() => opcoes.vendedores, [opcoes.vendedores]);
-
-  const rotuloDoProduto = (p: { descricao: string | null; codigo: string | null }) =>
-    `${p.descricao} (${p.codigo ?? "sem código"})`;
-
-  const produtosUnicos = useMemo(
+  const idsDoDocumento = useMemo(
+    () => idsPorDocumento(opcoes.clientes),
+    [opcoes.clientes],
+  );
+  const rotulosDeProduto = useMemo(
     () => opcoes.produtos.map(rotuloDoProduto),
     [opcoes.produtos],
   );
+  const chaveDoRotulo = useMemo(
+    () => chavePorRotulo(opcoes.produtos),
+    [opcoes.produtos],
+  );
 
-  const chavePorRotulo = useMemo(() => {
-    const mapa = new Map<string, string>();
-    opcoes.produtos.forEach((p) => mapa.set(rotuloDoProduto(p), p.chave));
-    return mapa;
-  }, [opcoes.produtos]);
-
-  const recorte: RecorteComercial = useMemo(
-    () => ({
-      clientes: filtroCliente.flatMap((doc) => idsPorDocumento.get(doc) ?? []),
-      vendedores: filtroVendedor,
-      produtos: filtroProduto
-        .map((r) => chavePorRotulo.get(r))
-        .filter((c): c is string => c !== undefined),
+  const recorte = useMemo(
+    () =>
+      recorteDosFiltros(
+        {
+          cliente: filtroCliente,
+          vendedor: filtroVendedor,
+          produto: filtroProduto,
+          dataInicio,
+          dataFim,
+        },
+        idsDoDocumento,
+        chaveDoRotulo,
+      ),
+    [
+      filtroCliente,
+      filtroVendedor,
+      filtroProduto,
       dataInicio,
       dataFim,
-    }),
-    [filtroCliente, filtroVendedor, filtroProduto, dataInicio, dataFim, idsPorDocumento, chavePorRotulo],
+      idsDoDocumento,
+      chaveDoRotulo,
+    ],
   );
 
   const { resumo, carregando } = useResumoComercial(recorte);
 
-  const faturamentoTotalPeriodo = resumo.kpis.faturamento;
+  // Os clientes com compra no recorte, já consolidados por documento pelo
+  // banco. Isto era o `clientesEnriquecidos` do contexto cruzado com as notas
+  // no navegador: para cada um dos 2.084 cadastros, um `filter` sobre as 4.330
+  // notas.
+  const carteira = useMemo(
+    () => carteiraDoResumo(resumo.por_cliente, new Date()),
+    [resumo.por_cliente],
+  );
+  const kpis = useMemo(() => kpisDaCarteira(carteira), [carteira]);
+  const ranking = useMemo(() => rankingDeClientes(carteira), [carteira]);
+  const estatisticas = useMemo(
+    () => estatisticasDaCarteira(carteira, kpis, resumo.kpis.faturamento),
+    [carteira, kpis, resumo.kpis.faturamento],
+  );
 
-  // Os clientes com compra no recorte, já consolidados por documento pelo banco.
-  //
-  // Isto era o `clientesEnriquecidos` do contexto cruzado com as notas no
-  // navegador: para cada um dos 2.084 cadastros, um `filter` sobre as 4.330
-  // notas. O banco faz o mesmo agrupamento — pelo documento em dígitos, a mesma
-  // chave — e devolve só quem comprou, que é o que a tela mostra.
-  const clientesFiltrados = useMemo(() => {
-    const hoje = new Date();
-    const limite90 = new Date(hoje);
-    limite90.setDate(hoje.getDate() - 90);
-    const limiteTs = limite90.getTime();
+  const clientesTabela = useMemo(
+    () => buscarEOrdenar(carteira, pesquisaTabela, ordenacao),
+    [carteira, pesquisaTabela, ordenacao],
+  );
 
-    return resumo.por_cliente.map((c) => {
-      const ultimaCompra = c.ultima_compra ? dataDeCalendarioComoDate(c.ultima_compra) : null;
-      return {
-        nome: c.nome ?? "Não informado",
-        cpf_cnpj: c.cpf_cnpj ?? "",
-        cpfCnpjNormalizado: c.documento,
-        email: c.email ?? undefined,
-        fone: c.fone ?? undefined,
-        totalCompradoPeriodo: c.valor,
-        numeroComprasPeriodo: c.notas,
-        ticketMedioPeriodo: c.notas > 0 ? c.valor / c.notas : 0,
-        ultimaCompra,
-        status:
-          ultimaCompra && ultimaCompra.getTime() >= limiteTs ? "ativo" : "inativo",
-      };
-    });
-  }, [resumo.por_cliente]);
-
-  // KPIs: Ativos/Inativos por janelas de 90 dias (independente do período selecionado)
-  const kpis = useMemo(() => {
-    const hoje = new Date();
-    const limite90 = new Date(hoje);
-    limite90.setDate(hoje.getDate() - 90);
-    const limiteTs = limite90.getTime();
-
-    const ativos90 = clientesFiltrados.filter(
-      (c) => c.ultimaCompra && c.ultimaCompra.getTime() >= limiteTs,
-    ).length;
-    const inativos90 = clientesFiltrados.length - ativos90;
-
-    // O ranking já vem ordenado por valor: o topo é a primeira linha.
-    const topCliente = clientesFiltrados[0];
-
-    const clientesComCompras = clientesFiltrados.filter((c) => c.numeroComprasPeriodo > 0);
-    const ticketMedioPorCliente = clientesComCompras.length > 0
-      ? clientesComCompras.reduce((acc, c) => acc + c.ticketMedioPeriodo, 0) / clientesComCompras.length
-      : 0;
-
-    return {
-      clientesAtivos: ativos90,
-      clientesInativos: inativos90,
-      topCliente,
-      ticketMedioPorCliente
-    };
-  }, [clientesFiltrados]);
-
-  // Dados para ranking de clientes (Top 10)
-  const rankingClientes = useMemo(() => {
-    return clientesFiltrados
-      .slice(0, 10)
-      .map((c) => ({
-        nome: c.nome.length > 20 ? c.nome.substring(0, 20) + "..." : c.nome, // exibido no gráfico
-        nomeCompleto: c.nome, // 🔑 tooltip mostra inteiro
-        valor: c.totalCompradoPeriodo,
-      }));
-  }, [clientesFiltrados]);
-
-  // Evolução dos cinco maiores clientes, uma linha por cliente.
-  //
-  // A série vem do banco pronta (`evolucao_por_cliente`): é o cruzamento de mês
-  // com cliente, e cruzamento não se remonta a partir de dois agregados que
-  // somam por margens diferentes.
-  const evolucaoPorCliente = useMemo(() => {
-    const nomePorDocumento = new Map(
-      resumo.por_cliente.map((c) => [c.documento, c.nome ?? c.documento]),
-    );
-
-    const meses = new Map<string, Record<string, number | string>>();
-    for (const linha of resumo.evolucao_por_cliente) {
-      const mesAno = `${linha.mes}/${linha.ano}`;
-      const ponto = meses.get(mesAno) ?? { mes: mesAno };
-      const nome = nomePorDocumento.get(linha.documento) ?? linha.documento;
-      ponto[nome] = ((ponto[nome] as number) ?? 0) + linha.total;
-      meses.set(mesAno, ponto);
-    }
-
-    // Zero explícito onde o cliente não vendeu no mês: sem isso a linha do
-    // gráfico salta o ponto e liga dois meses distantes como se fossem vizinhos.
-    const nomes = Array.from(
-      new Set(
-        resumo.evolucao_por_cliente.map(
-          (l) => nomePorDocumento.get(l.documento) ?? l.documento,
-        ),
-      ),
-    );
-
-    return Array.from(meses.values())
-      .map((ponto) => {
-        nomes.forEach((nome) => {
-          if (ponto[nome] === undefined) ponto[nome] = 0;
-        });
-        return ponto;
-      })
-      .sort((a, b) => {
-        const [mesA, anoA] = String(a.mes).split("/").map(Number);
-        const [mesB, anoB] = String(b.mes).split("/").map(Number);
-        return anoA - anoB || mesA - mesB;
-      });
-  }, [resumo.evolucao_por_cliente, resumo.por_cliente]);
-
-  // Dados para distribuição de faturamento
-  const distribuicaoFaturamento = useMemo(() => {
-    const clientesComValor = clientesFiltrados
-      .filter(c => c.totalCompradoPeriodo > 0)
-      .sort((a, b) => b.totalCompradoPeriodo - a.totalCompradoPeriodo);
-
-    const top8 = clientesComValor.slice(0, 8);
-    const outros = clientesComValor.slice(8);
-
-    const dadosGrafico = top8.map(c => ({
-      name: c.nome.length > 15 ? c.nome.substring(0, 15) + "..." : c.nome,
-      value: c.totalCompradoPeriodo
-    }));
-
-    if (outros.length > 0) {
-      const valorOutros = outros.reduce((acc, c) => acc + c.totalCompradoPeriodo, 0);
-      dadosGrafico.push({ name: "Outros", value: valorOutros });
-    }
-
-    return dadosGrafico;
-  }, [clientesFiltrados]);
-
-  // Tabela com pesquisa e ordenação
-  const clientesTabela = useMemo(() => {
-    let filtrados = [...clientesFiltrados];
-
-    // Aplicar pesquisa
-    if (pesquisaTabela) {
-      const termoLower = pesquisaTabela.toLowerCase();
-      const termoNumerico = pesquisaTabela.replace(/\D/g, ""); // só números
-
-      filtrados = filtrados.filter(c => {
-        const nomeLower = c.nome?.toLowerCase() || "";
-        const cnpjLower = c.cpf_cnpj?.toLowerCase() || "";
-        const cnpjNumerico = c.cpf_cnpj?.replace(/\D/g, "") || "";
-        const emailLower = c.email?.toLowerCase() || "";
-        const fone = c.fone || "";
-
-        return (
-          nomeLower.includes(termoLower) ||   // letras -> nome
-          emailLower.includes(termoLower) ||  // letras -> email
-          fone.includes(termoLower) ||        // números/letras -> telefone
-          cnpjLower.includes(termoLower) ||   // letras/números -> CNPJ cru
-          (termoNumerico && cnpjNumerico.includes(termoNumerico)) // números -> CNPJ normalizado
-        );
-      });
-    }
-
-    // Aplicar ordenação
-    filtrados.sort((a, b) => {
-      let aVal: any, bVal: any;
-      
-      switch(ordenacao.campo) {
-        case 'nome':
-          aVal = a.nome.toLowerCase();
-          bVal = b.nome.toLowerCase();
-          break;
-        case 'ultimaCompra':
-          aVal = a.ultimaCompra?.getTime() || 0;
-          bVal = b.ultimaCompra?.getTime() || 0;
-          break;
-        case 'totalComprado':
-          aVal = a.totalCompradoPeriodo;
-          bVal = b.totalCompradoPeriodo;
-          break;
-        case 'numeroCompras':
-          aVal = a.numeroComprasPeriodo;
-          bVal = b.numeroComprasPeriodo;
-          break;
-        case 'status':
-          aVal = a.status;
-          bVal = b.status;
-          break;
-        default:
-          return 0;
-      }
-
-      if (ordenacao.direcao === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
-
-    return filtrados;
-  }, [clientesFiltrados, pesquisaTabela, ordenacao]);
-
-  // Paginacao: usePaginacao volta para a pagina 1 quando clientesTabela muda
-  // de identidade (filtro, busca ou ordenacao) — sem isso, quem filtrava na
-  // pagina 2 ficava com slice fora da lista e o rodape invertido.
+  // usePaginacao volta para a página 1 quando clientesTabela muda de
+  // identidade (filtro, busca ou ordenação) — sem isso, quem filtrava na
+  // página 2 ficava com slice fora da lista e o rodapé invertido.
   const {
     pagina: paginaAtual,
     setPagina: setPaginaAtual,
@@ -380,69 +143,30 @@ const Clientes: React.FC = () => {
     total: totalDeClientes,
   } = usePaginacao(clientesTabela, 15);
 
-
-  // Função para alternar ordenação
-  const alternarOrdenacao = (campo: string) => {
-    setOrdenacao(prev => ({
-      campo,
-      direcao: prev.campo === campo && prev.direcao === 'desc' ? 'asc' : 'desc'
-    }));
+  const alternarOrdenacao = (campo: CampoDeOrdenacao) => {
+    setOrdenacao((atual) => proximaOrdenacao(atual, campo));
   };
 
-  // Formatação de valores
-  const formatarValorAbreviado = (valor: number) => {
-    if (valor >= 1_000_000) {
-      return `R$ ${(valor / 1_000_000).toFixed(1)}M`;
-    } else if (valor >= 1_000) {
-      return `R$ ${(valor / 1_000).toFixed(1)}K`;
-    }
-    return `R$ ${valor.toFixed(2)}`;
-  };
-
-  // Exportação para Excel
   const exportarExcel = useCallback(() => {
-    const dadosExport = clientesTabela.map(c => ({
-      'Nome': c.nome,
-      'CPF/CNPJ': c.cpf_cnpj,
-      'Email': c.email || '',
-      'Telefone': c.fone || '',
-      'Última Compra': c.ultimaCompra ? c.ultimaCompra.toLocaleDateString('pt-BR') : 'Nunca',
-      'Total Comprado': c.totalCompradoPeriodo,
-      'Número de Compras': c.numeroComprasPeriodo,
-      'Ticket Médio': c.ticketMedioPeriodo,
-      'Status': c.status === 'ativo' ? 'Ativo' : 'Inativo'
-    }));
-
     baixarPlanilha(
-      [{ nome: "Clientes", linhas: dadosExport }],
+      [{ nome: "Clientes", linhas: linhasDaPlanilha(clientesTabela) }],
       `clientes_${diaLocal(new Date())}.xlsx`,
     );
   }, [clientesTabela]);
 
-  // Exportação para PDF
   const exportarPDF = useCallback(() => {
     const doc = new jsPDF();
-    
-    // Cabeçalho
+
     doc.setFontSize(16);
     doc.text("Relatório de Clientes", 14, 20);
     doc.setFontSize(10);
     doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 28);
     doc.text(`Usuário: ${user?.username}`, 14, 34);
 
-    // Dados para tabela
-    const dadosTabela = clientesTabela.slice(0, 30).map(c => [
-      c.nome.substring(0, 25),
-      c.cpf_cnpj,
-      c.ultimaCompra ? c.ultimaCompra.toLocaleDateString('pt-BR') : 'Nunca',
-      `R$ ${c.totalCompradoPeriodo.toFixed(2)}`,
-      c.status === 'ativo' ? 'Ativo' : 'Inativo'
-    ]);
-
     autoTable(doc, {
       startY: 40,
-      head: [["Nome", "CPF/CNPJ", "Última Compra", "Total", "Status"]],
-      body: dadosTabela,
+      head: [CABECALHO_DO_PDF],
+      body: linhasDoPdf(clientesTabela),
     });
 
     doc.save(`clientes_${diaLocal(new Date())}.pdf`);
@@ -450,629 +174,65 @@ const Clientes: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-surface-base">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Carregando dados dos clientes...
-          </p>
-        </div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted">
+        <Spinner size="lg" />
+        <p>Carregando dados dos clientes...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-surface-base transition-colors">
-      <div className="p-6">
-        {/* Cabeçalho */}
-        <div className="bg-white dark:bg-surface shadow-sm border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
-          <div className="px-6 py-4">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-yellow-400">
-              Clientes - Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Bem-vindo, <span className="font-semibold">{user?.username}</span> ({user?.role})
-            </p>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-              Visualize seus principais clientes e oportunidades de reativação.
-            </p>
-          </div>
+    <div className="min-h-screen bg-surface-base p-6 transition-colors">
+      <CabecalhoDeClientes usuario={user} />
+
+      <div className="mt-6">
+        <FiltrosDeClientes
+          opcoes={{
+            clientes: opcoesDoCliente,
+            vendedores: opcoes.vendedores,
+            produtos: rotulosDeProduto,
+          }}
+          valores={{
+            cliente: filtroCliente,
+            vendedor: filtroVendedor,
+            produto: filtroProduto,
+            presetPeriodo,
+            dataInicio,
+            dataFim,
+          }}
+          onCliente={setFiltroCliente}
+          onVendedor={setFiltroVendedor}
+          onProduto={setFiltroProduto}
+          onPreset={setPresetPeriodo}
+          onDataInicio={(data) => {
+            setDataInicio(data);
+            setPresetPeriodo("custom");
+          }}
+          onDataFim={(data) => {
+            setDataFim(data);
+            setPresetPeriodo("custom");
+          }}
+        />
+
+        <KpisDeClientes kpis={kpis} />
+
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <GraficoDeClientes ranking={ranking} />
+          <EstatisticasDeClientes itens={estatisticas} />
         </div>
 
-        <div className="mt-6">
-          {/* Filtros */}
-          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-4 mb-6 transition-colors">
-            <div className="flex items-center mb-4">
-              <Filter className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-300" />
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-yellow-400">
-                Filtros
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              {/* Cliente */}
-              <div>
-                <MultiSelect
-                  rotulo="Cliente"
-                  opcoes={clientesUnicos.map((o) => ({ valor: o.value, rotulo: o.label }))}
-                  selecionados={filtroCliente}
-                  onChange={setFiltroCliente}
-                  placeholder="Todos os clientes"
-                  buscarPor={buscaPorRotuloValorOuNumero}
-                />
-              </div>
-
-              {/* Vendedor */}
-              <div>
-                <MultiSelect
-                  rotulo="Vendedor"
-                  opcoes={deTextos(vendedoresUnicos)}
-                  selecionados={filtroVendedor}
-                  onChange={setFiltroVendedor}
-                  placeholder="Todos os vendedores"
-                  buscarPor={buscaPorRotuloValorOuNumero}
-                />
-              </div>
-
-              {/* Produto */}
-              <div>
-                <MultiSelect
-                  rotulo="Produto"
-                  opcoes={deTextos(produtosUnicos)}
-                  selecionados={filtroProduto}
-                  onChange={setFiltroProduto}
-                  placeholder="Todos os produtos"
-                  buscarPor={buscaPorRotuloValorOuNumero}
-                />
-              </div>
-
-              {/* Período */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Período
-                </label>
-                <select
-                  value={presetPeriodo}
-                  onChange={(e) => setPresetPeriodo(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg 
-                            bg-white text-gray-800
-                            dark:bg-surface dark:text-white
-                            border-gray-300 dark:border-gray-600
-                            focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {PRESETS_DE_PERIODO.map((preset) => (
-                    <option key={preset.value} value={preset.value}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Data Início */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Início
-                </label>
-                <input
-                  type="date"
-                  value={dataInicio}
-                  onChange={(e) => {
-                    setDataInicio(e.target.value);
-                    setPresetPeriodo("custom");
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg 
-                            bg-white text-gray-800
-                            dark:bg-surface dark:text-white
-                            border-gray-300 dark:border-gray-600
-                            focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Data Fim */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fim
-                </label>
-                <input
-                  type="date"
-                  value={dataFim}
-                  onChange={(e) => {
-                    setDataFim(e.target.value);
-                    setPresetPeriodo("custom");
-                  }}
-                  className="w-full px-3 py-2 border rounded-lg 
-                            bg-white text-gray-800
-                            dark:bg-surface dark:text-white
-                            border-gray-300 dark:border-gray-600
-                            focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {/* Clientes Ativos */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Clientes Ativos</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
-                    {kpis.clientesAtivos}
-                  </p>
-                </div>
-                <div className="bg-green-100 dark:bg-green-900/40 p-3 rounded-full">
-                  <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Clientes Inativos */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Inativos (90 dias)</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
-                    {kpis.clientesInativos}
-                  </p>
-                </div>
-                <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-full">
-                  <UserX className="w-6 h-6 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Top Cliente */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Top Cliente</p>
-                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2 truncate 
-                                max-w-[180px] overflow-hidden whitespace-nowrap"
-                     title={kpis.topCliente?.nome || "N/A"}>
-                    {kpis.topCliente?.nome || "N/A"}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {kpis.topCliente ? formatarValorAbreviado(kpis.topCliente.totalCompradoPeriodo) : "R$ 0"}
-                  </p>
-                </div>
-                <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full">
-                  <Star className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Ticket Médio */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Ticket Médio/Cliente</p>
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
-                    R$ {kpis.ticketMedioPorCliente.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </p>
-                </div>
-                <div className="bg-purple-100 dark:bg-purple-900/40 p-3 rounded-full">
-                  <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Ranking de Clientes */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors overflow-hidden">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                Top 10 Clientes
-              </h3>
-
-              {/* wrapper para medir a largura do gráfico */}
-              <div ref={chartRef} className="relative">
-                <ResponsiveContainer width="100%" height={isMobile ? 420 : 300}>
-                  <BarChart
-                    data={rankingClientes}
-                    layout="vertical"
-                    margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-                    barCategoryGap={2}
-                    onMouseMove={(state: any) => {
-                      if (!state?.isTooltipActive) {
-                        setTooltipPos(undefined);
-                        return;
-                      }
-                      const tooltipW = isMobile ? 220 : 280;     // mesma largura que usamos no conteúdo
-                      const padding = 16;                        // afastar do cursor/borda
-                      const chartX = state.chartX ?? 0;
-                      const chartY = state.chartY ?? 0;
-                      const containerW = chartRef.current?.getBoundingClientRect().width ?? 0;
-
-                      // Se estourar à direita, mostra à esquerda do cursor; senão, à direita
-                      const x =
-                        chartX + tooltipW + padding > containerW
-                          ? Math.max(8, chartX - tooltipW - padding)
-                          : chartX + padding;
-
-                      // Altura com pequeno deslocamento para não cobrir a barra
-                      const y = Math.max(8, chartY - 40);
-
-                      setTooltipPos({ x, y });
-                    }}
-                    onMouseLeave={() => setTooltipPos(undefined)}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-
-                    <XAxis
-                      type="number"
-                      tickFormatter={(v) => formatarValorAbreviado(v)}
-                      stroke="#9ca3af"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <YAxis
-                      type="category"
-                      dataKey="nomeCompleto"
-                      width={isMobile ? 130 : 160}
-                      tick={{ fontSize: isMobile ? 10 : 11 }}
-                      tickFormatter={(name: string) =>
-                        isMobile
-                          ? name.length > 12 ? `${name.substring(0, 12)}...` : name
-                          : name.length > 18 ? `${name.substring(0, 18)}...` : name
-                      }
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#9ca3af"
-                    />
-
-                    <Tooltip
-                      position={tooltipPos}     // 🔥 posição controlada
-                      offset={0}
-                      allowEscapeViewBox={{ x: true, y: true }}
-                      wrapperStyle={{ overflow: "visible", pointerEvents: "none" }}
-                      content={({ active, payload }) => {
-                        if (!(active && payload && payload.length)) return null;
-
-                        const { nomeCompleto, valor } = payload[0].payload;
-                        const isDark = document.documentElement.classList.contains("dark");
-
-                        return (
-                          <div
-                            style={{
-                              backgroundColor: isDark ? "#1e293b" : "#ffffff",
-                              border: `1px solid ${isDark ? "#374151" : "#d1d5db"}`,
-                              borderRadius: 8,
-                              padding: "8px 12px",
-                              maxWidth: isMobile ? 220 : 280,
-                              whiteSpace: "normal",
-                              wordBreak: "break-word",
-                              hyphens: "auto",
-                              color: isDark ? "#f9fafb" : "#111827",
-                              fontSize: isMobile ? "12px" : "13px",
-                              lineHeight: 1.35,
-                              boxShadow: "0 10px 20px rgba(0,0,0,.15)",
-                            }}
-                          >
-                            <p style={{ fontWeight: 600, marginBottom: 6 }}>{nomeCompleto}</p>
-                            <p style={{ color: isDark ? "#38bdf8" : "#0284c7" }}>
-                              valor:<br />
-                              {typeof valor === "number"
-                                ? `R$ ${valor.toLocaleString("pt-BR", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  })}`
-                                : "N/A"}
-                            </p>
-                          </div>
-                        );
-                      }}
-                    />
-
-                    <Bar dataKey="valor" fill="#2563eb" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Estatísticas */}
-            <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                Estatísticas do Período
-              </h3>
-
-              <div className="space-y-1">
-                {[
-                  {
-                    label: "Total de Clientes",
-                    value: clientesFiltrados.length,
-                    className: "text-gray-900 dark:text-gray-100",
-                  },
-                  {
-                    label: "Taxa de Ativação",
-                    value:
-                      clientesFiltrados.length > 0
-                        ? ((kpis.clientesAtivos / clientesFiltrados.length) * 100).toFixed(
-                            1
-                          ) + "%"
-                        : "0%",
-                    className: "text-green-600 dark:text-green-400",
-                  },
-                  {
-                    label: "Faturamento Total",
-                    value: `R$ ${faturamentoTotalPeriodo.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`,
-                    className: "text-blue-600 dark:text-blue-400",
-                  },
-                  {
-                    label: "Notas no Período",
-                    value: clientesFiltrados.reduce(
-                      (acc, c) => acc + c.numeroComprasPeriodo,
-                      0
-                    ),
-                    className: "text-purple-600 dark:text-purple-400",
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className={`flex justify-between px-3 py-2 rounded transition-colors ${
-                      i % 2 === 0 ? "bg-gray-50 dark:bg-surface" : ""
-                    }`}
-                  >
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.label}
-                    </span>
-                    <span className={`text-sm font-semibold ${item.className}`}>
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Tabela de Clientes */}
-          <div className="bg-white dark:bg-surface rounded-xl shadow-sm p-6 transition-colors">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2 md:mb-0">
-                Detalhamento de Clientes
-              </h3>
-
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                {/* Campo de pesquisa */}
-                <div className="relative flex-1 md:flex-initial">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 
-                                    w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Pesquisar..."
-                    value={pesquisaTabela}
-                    onChange={(e) => setPesquisaTabela(e.target.value)}
-                    className="pl-10 pr-3 py-2 w-full md:w-64 rounded-lg border 
-                              focus:outline-none focus:ring-2 focus:ring-blue-500
-                              bg-white dark:bg-surface
-                              text-gray-800 dark:text-gray-200
-                              border-gray-300 dark:border-gray-600
-                              placeholder-gray-400 dark:placeholder-gray-500
-                              transition-colors"
-                  />
-                </div>
-
-                {/* Botões de exportação */}
-                <button
-                  onClick={exportarExcel}
-                  className="flex items-center justify-center px-4 py-2 
-                            bg-green-600 text-white rounded-lg 
-                            hover:bg-green-700 dark:hover:bg-green-500 
-                            transition-colors"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Excel
-                </button>
-
-                <button
-                  onClick={exportarPDF}
-                  className="flex items-center justify-center px-4 py-2 
-                            bg-blue-600 text-white rounded-lg 
-                            hover:bg-blue-700 dark:hover:bg-blue-500 
-                            transition-colors"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  PDF
-                </button>
-              </div>
-            </div>
-
-            {/* Tabela */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
-                      onClick={() => alternarOrdenacao("nome")}
-                    >
-                      <div className="flex items-center">
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          Cliente
-                        </span>
-                        {ordenacao.campo === "nome" &&
-                          (ordenacao.direcao === "desc" ? (
-                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ))}
-                      </div>
-                    </th>
-                    <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
-                      onClick={() => alternarOrdenacao("ultimaCompra")}
-                    >
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          Última Compra
-                        </span>
-                        {ordenacao.campo === "ultimaCompra" &&
-                          (ordenacao.direcao === "desc" ? (
-                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ))}
-                      </div>
-                    </th>
-                    <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
-                      onClick={() => alternarOrdenacao("totalComprado")}
-                    >
-                      <div className="flex items-center">
-                        <DollarSign className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          Valor Total
-                        </span>
-                        {ordenacao.campo === "totalComprado" &&
-                          (ordenacao.direcao === "desc" ? (
-                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ))}
-                      </div>
-                    </th>
-                    <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
-                      onClick={() => alternarOrdenacao("numeroCompras")}
-                    >
-                      <div className="flex items-center">
-                        <ShoppingBag className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          Nº Compras
-                        </span>
-                        {ordenacao.campo === "numeroCompras" &&
-                          (ordenacao.direcao === "desc" ? (
-                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ))}
-                      </div>
-                    </th>
-                    <th
-                      className="px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-surface"
-                      onClick={() => alternarOrdenacao("status")}
-                    >
-                      <div className="flex items-center">
-                        <span className="font-medium text-gray-700 dark:text-gray-200">
-                          Status
-                        </span>
-                        {ordenacao.campo === "status" &&
-                          (ordenacao.direcao === "desc" ? (
-                            <ChevronDown className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4 ml-1 text-gray-600 dark:text-gray-400" />
-                          ))}
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clientesPaginados.length === 0 ? (
-                    // Pagination some com total zero; sem isso a tabela ficava
-                    // muda no filtro sem resultado (defeito 2 do spec).
-                    <TableEmpty colSpan={5} />
-                  ) : (
-                    clientesPaginados.map((cliente, index) => (
-                    <tr
-                      key={cliente.cpfCnpjNormalizado}
-                      className={`border-b border-gray-100 dark:border-gray-700 
-                                  hover:bg-gray-50 dark:hover:bg-surface transition-colors ${
-                                    index % 2 === 0
-                                      ? "bg-white dark:bg-surface"
-                                      : "bg-gray-50/50 dark:bg-surface"
-                                  }`}
-                    >
-                      <td className="px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {cliente.nome}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {cliente.cpf_cnpj}
-                          </p>
-                          <div className="flex gap-3 mt-1">
-                            {cliente.email && (
-                              <span className="flex items-center text-xs text-gray-400">
-                                <Mail className="w-3 h-3 mr-1" />
-                                {cliente.email}
-                              </span>
-                            )}
-                            {cliente.fone && (
-                              <span className="flex items-center text-xs text-gray-400">
-                                <Phone className="w-3 h-3 mr-1" />
-                                {cliente.fone}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {/* No fuso de quem olha, como a planilha e o PDF. Passava
-                            por `toISOString`, que é o dia em UTC: a data é
-                            meia-noite local, e a leste de Greenwich a tabela
-                            mostrava um dia a menos que a planilha. */}
-                        {cliente.ultimaCompra
-                          ? cliente.ultimaCompra.toLocaleDateString("pt-BR")
-                          : "Nunca"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                          R$ {cliente.totalCompradoPeriodo.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {cliente.numeroComprasPeriodo}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            cliente.status === "ativo"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400"
-                          }`}
-                        >
-                          {cliente.status === "ativo" ? "Ativo" : "Inativo"}
-                        </span>
-                      </td>
-                    </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/*
-              O `Pagination` do design system, e não as 105 linhas que estavam
-              aqui. As que saíram escondiam a frase de contagem dentro do
-              `{totalPaginas > 1 && ...}`: quem tinha 15 clientes ou menos não
-              lia contagem nenhuma. É o mesmo defeito 1.7 que a Fase 1 corrigiu
-              em Contas, e ele morre junto com o bloco.
-            */}
-            <div className="mt-4">
-              <Pagination
-                page={paginaAtual}
-                pageSize={15}
-                total={totalDeClientes}
-                itemLabel="clientes"
-                onPageChange={setPaginaAtual}
-              />
-            </div>
-          </div>
-        </div>
+        <TabelaDeClientes
+          clientes={clientesPaginados}
+          total={totalDeClientes}
+          pagina={paginaAtual}
+          onPagina={setPaginaAtual}
+          pesquisa={pesquisaTabela}
+          onPesquisar={setPesquisaTabela}
+          ordenacao={ordenacao}
+          onOrdenar={alternarOrdenacao}
+          onExportarExcel={exportarExcel}
+          onExportarPdf={exportarPDF}
+        />
       </div>
     </div>
   );
