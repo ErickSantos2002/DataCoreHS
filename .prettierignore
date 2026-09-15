@@ -20,6 +20,9 @@ src/pages/*
 !src/pages/vendedores
 !src/pages/Vendedores.tsx
 !src/pages/Vendedores.*.test.tsx
+!src/pages/estoque
+!src/pages/Estoque.tsx
+!src/pages/Estoque.*.test.tsx
 src/components
 src/context
 src/services

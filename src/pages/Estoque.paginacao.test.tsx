@@ -46,9 +46,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -116,7 +122,9 @@ describe("paginacao em Estoque", () => {
     });
 
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 
   it("filtrar volta para a primeira pagina", () => {
@@ -126,7 +134,9 @@ describe("paginacao em Estoque", () => {
     render(<Estoque />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 16 a 17");
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent(
+      "Mostrando 16 a 17",
+    );
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
       target: { value: "Produto 0" },

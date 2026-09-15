@@ -25,7 +25,11 @@ vi.mock("../hooks/useAuth", () => ({
 vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
   return {
-    useEstoque: () => ({ produtos: PRODUTOS_ESTOQUE, carregando: false, atualizarProdutos: vi.fn() }),
+    useEstoque: () => ({
+      produtos: PRODUTOS_ESTOQUE,
+      carregando: false,
+      atualizarProdutos: vi.fn(),
+    }),
   };
 });
 
@@ -57,7 +61,9 @@ vi.mock("../components/SolicitacaoComprasModal", () => ({
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -94,7 +100,9 @@ function linhaCom(texto: string): HTMLElement {
 
 function celula(linha: HTMLElement, rotulo: string): HTMLElement {
   const cabecalhos = Array.from(document.querySelectorAll("thead th"));
-  const indice = cabecalhos.findIndex((th) => th.textContent?.trim() === rotulo);
+  const indice = cabecalhos.findIndex(
+    (th) => th.textContent?.trim() === rotulo,
+  );
   if (indice < 0) throw new Error(`coluna "${rotulo}" nao encontrada`);
   return linha.querySelectorAll("td")[indice] as HTMLElement;
 }
@@ -111,8 +119,18 @@ describe("colunas da tabela de Estoque", () => {
     render(<Estoque />);
 
     expect(
-      Array.from(document.querySelectorAll("thead th")).map((th) => th.textContent?.trim()),
-    ).toEqual(["Nome", "Código-SKU", "Unidade", "Preço", "Saldo", "Situação", "Valor Total"]);
+      Array.from(document.querySelectorAll("thead th")).map((th) =>
+        th.textContent?.trim(),
+      ),
+    ).toEqual([
+      "Nome",
+      "Código-SKU",
+      "Unidade",
+      "Preço",
+      "Saldo",
+      "Situação",
+      "Valor Total",
+    ]);
   });
 
   it.each([
@@ -126,15 +144,21 @@ describe("colunas da tabela de Estoque", () => {
   ])("na linha do Sensor antigo, a coluna %s mostra %s", (rotulo, esperado) => {
     render(<Estoque />);
 
-    expect(celula(linhaCom("Sensor antigo"), rotulo)).toHaveTextContent(esperado);
+    expect(celula(linhaCom("Sensor antigo"), rotulo)).toHaveTextContent(
+      esperado,
+    );
   });
 
   it("preco com centavos e saldo com milhar saem no formato brasileiro", () => {
     render(<Estoque />);
 
     expect(celula(linhaCom("Bocal"), "Preço")).toHaveTextContent("R$ 3,50");
-    expect(celula(linhaCom("Kit calibração"), "Valor Total")).toHaveTextContent("R$ 3.600,00");
-    expect(celula(linhaCom("Kit calibração"), "Situação")).toHaveTextContent("Inativo");
+    expect(celula(linhaCom("Kit calibração"), "Valor Total")).toHaveTextContent(
+      "R$ 3.600,00",
+    );
+    expect(celula(linhaCom("Kit calibração"), "Situação")).toHaveTextContent(
+      "Inativo",
+    );
     expect(celula(linhaCom("Brinde"), "Situação")).toHaveTextContent("Ativo");
   });
 });
@@ -238,7 +262,9 @@ describe("ordem da tabela de Estoque", () => {
       // O clique morava no `<th>`, fora da ordem de tabulação e sem Enter.
       render(<Estoque />);
 
-      const botao = screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
+      const botao = screen.getByRole("button", {
+        name: `Ordenar por ${rotulo}`,
+      });
       expect(botao.closest("th")).toHaveAttribute(
         "aria-sort",
         rotulo === "Nome" ? "ascending" : "none",
@@ -271,7 +297,9 @@ describe("pesquisa da tabela de Estoque", () => {
   ])("acha pelo %s", (_caso, termo, esperados) => {
     render(<Estoque />);
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: termo } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: termo },
+    });
 
     expect(nomes()).toEqual(esperados);
   });
@@ -281,7 +309,9 @@ describe("exportacao de Estoque", () => {
   it("exporta a tabela como esta — filtrada, pesquisada e na ordem — com as sete colunas", () => {
     render(<Estoque />);
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "o" } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "o" },
+    });
     clicarNoCabecalho("Preço");
     fireEvent.click(screen.getByRole("button", { name: /Exportar Excel/ }));
 
@@ -309,10 +339,14 @@ describe("exportar com a tabela vazia em Estoque", () => {
     const campo = screen.getByPlaceholderText("Pesquisar...");
 
     fireEvent.change(campo, { target: { value: "zzz-nao-existe" } });
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeDisabled();
 
     fireEvent.change(campo, { target: { value: "" } });
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeEnabled();
   });
 });
 
@@ -321,8 +355,12 @@ describe("solicitacao de compras em Estoque", () => {
     render(<Estoque />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Solicitação de Compras" }));
-    expect(screen.getByRole("dialog")).toHaveTextContent("6 produtos · solicitante erick");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Solicitação de Compras" }),
+    );
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "6 produtos · solicitante erick",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Fechar solicitação" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -334,9 +372,14 @@ describe("solicitacao de compras em Estoque", () => {
     // filtrada (plantação cega na primeira versão).
     render(<Estoque />);
 
-    const bloco = screen.getByText("Situação", { selector: "label" }).parentElement as HTMLElement;
-    fireEvent.change(bloco.querySelector("select") as HTMLSelectElement, { target: { value: "I" } });
-    fireEvent.click(screen.getByRole("button", { name: "Solicitação de Compras" }));
+    const bloco = screen.getByText("Situação", { selector: "label" })
+      .parentElement as HTMLElement;
+    fireEvent.change(bloco.querySelector("select") as HTMLSelectElement, {
+      target: { value: "I" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Solicitação de Compras" }),
+    );
 
     expect(screen.getByRole("dialog")).toHaveTextContent("6 produtos");
   });

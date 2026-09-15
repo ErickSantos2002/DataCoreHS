@@ -25,11 +25,17 @@ vi.mock("../hooks/useAuth", () => ({
 vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
   return {
-    useEstoque: () => ({ produtos: PRODUTOS_ESTOQUE, carregando: false, atualizarProdutos: vi.fn() }),
+    useEstoque: () => ({
+      produtos: PRODUTOS_ESTOQUE,
+      carregando: false,
+      atualizarProdutos: vi.fn(),
+    }),
   };
 });
 
-vi.mock("../components/SolicitacaoComprasModal", () => ({ default: () => null }));
+vi.mock("../components/SolicitacaoComprasModal", () => ({
+  default: () => null,
+}));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
@@ -39,12 +45,20 @@ vi.mock("recharts", () => {
   // própria pizza.
   let dadoDaPizza: { name: string; value: number }[] | null = null;
   return {
-    ResponsiveContainer: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     BarChart: ({ children }: { children?: ReactNode }) => {
       dadoDaPizza = null;
       return <div>{children}</div>;
     },
-    PieChart: ({ children, onClick }: { children?: ReactNode; onClick?: () => void }) => {
+    PieChart: ({
+      children,
+      onClick,
+    }: {
+      children?: ReactNode;
+      onClick?: () => void;
+    }) => {
       dadoDaPizza = null;
       return (
         <div data-testid="pie-chart" onClick={onClick}>
@@ -66,7 +80,9 @@ vi.mock("recharts", () => {
             <div key={fatia.name} data-balao={fatia.name}>
               {content({
                 active: true,
-                payload: [{ name: fatia.name, value: fatia.value, payload: fatia }],
+                payload: [
+                  { name: fatia.name, value: fatia.value, payload: fatia },
+                ],
               })}
             </div>
           ))}
@@ -89,8 +105,12 @@ describe("balao da pizza de situacao em Estoque", () => {
     // A pizza de situação é a segunda; o clique abre o popover dela.
     fireEvent.click(screen.getAllByTestId("pie-chart")[1]);
 
-    const ativos = document.querySelector('[data-balao="Ativos"]') as HTMLElement;
-    const inativos = document.querySelector('[data-balao="Inativos"]') as HTMLElement;
+    const ativos = document.querySelector(
+      '[data-balao="Ativos"]',
+    ) as HTMLElement;
+    const inativos = document.querySelector(
+      '[data-balao="Inativos"]',
+    ) as HTMLElement;
     expect(ativos).toHaveTextContent("Quantidade: 4");
     expect(ativos).toHaveTextContent("67%");
     expect(inativos).toHaveTextContent("33%");

@@ -33,11 +33,15 @@ vi.mock("../context/EstoqueContext", async () => {
   };
 });
 
-vi.mock("../components/SolicitacaoComprasModal", () => ({ default: () => null }));
+vi.mock("../components/SolicitacaoComprasModal", () => ({
+  default: () => null,
+}));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -60,7 +64,9 @@ beforeEach(() => {
 
 /** O cartão cujo rótulo é `rotulo` — escopa a busca do valor. */
 function cartao(rotulo: string): HTMLElement {
-  const alvo = screen.getByText(rotulo).closest("div.rounded-xl") as HTMLElement | null;
+  const alvo = screen
+    .getByText(rotulo)
+    .closest("div.rounded-xl") as HTMLElement | null;
   if (!alvo) throw new Error(`cartao "${rotulo}" nao encontrado`);
   return alvo;
 }
@@ -74,7 +80,8 @@ function estatistica(rotulo: string): string {
 /** O `<select>` do filtro de rótulo `rotulo`, pelo bloco do rótulo — os
  *  `<label>` da tela não têm `htmlFor`. */
 function seletor(rotulo: string): HTMLSelectElement {
-  const bloco = screen.getByText(rotulo, { selector: "label" }).parentElement as HTMLElement;
+  const bloco = screen.getByText(rotulo, { selector: "label" })
+    .parentElement as HTMLElement;
   return bloco.querySelector("select") as HTMLSelectElement;
 }
 
@@ -89,10 +96,16 @@ describe("cabecalho de Estoque", () => {
   it("mostra o titulo, o usuario logado com o papel e a frase de apoio", () => {
     render(<Estoque />);
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Estoque - Dashboard");
-    expect(screen.getByText("erick").parentElement).toHaveTextContent("Bem-vindo, erick (admin)");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Estoque - Dashboard",
+    );
+    expect(screen.getByText("erick").parentElement).toHaveTextContent(
+      "Bem-vindo, erick (admin)",
+    );
     expect(
-      screen.getByText("Confira a posição atual do estoque e visualize os produtos disponíveis."),
+      screen.getByText(
+        "Confira a posição atual do estoque e visualize os produtos disponíveis.",
+      ),
     ).toBeInTheDocument();
   });
 });
@@ -173,7 +186,9 @@ describe("carregando em Estoque", () => {
 
     // Frase completa com ponto, e não reticências — a mesma troca de Serviços e
     // Vendedores.
-    expect(screen.getByText("Carregando dados do estoque.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Carregando dados do estoque."),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Produtos Ativos")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
@@ -204,7 +219,15 @@ describe("filtros de selecao em Estoque", () => {
   });
 
   it.each([
-    ["comSaldo", ["Bafômetro Phoebus Premium Edition XL", "Brinde", "Kit calibração", "Tubo descartável"]],
+    [
+      "comSaldo",
+      [
+        "Bafômetro Phoebus Premium Edition XL",
+        "Brinde",
+        "Kit calibração",
+        "Tubo descartável",
+      ],
+    ],
     ["semSaldo", ["Bocal"]],
     ["Negativo", ["Sensor antigo"]],
   ])("Saldo %s deixa so os produtos daquele saldo", (valor, esperados) => {
@@ -218,7 +241,9 @@ describe("filtros de selecao em Estoque", () => {
   it("Filtros Personalizados Principais deixa so os codigos da lista", () => {
     render(<Estoque />);
 
-    fireEvent.change(seletor("Filtros Personalizados"), { target: { value: "rapido" } });
+    fireEvent.change(seletor("Filtros Personalizados"), {
+      target: { value: "rapido" },
+    });
 
     expect(nomesNaTabela()).toEqual([
       "Bafômetro Phoebus Premium Edition XL",

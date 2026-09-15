@@ -50,13 +50,21 @@ let chamadasDoTrigger: Array<string | undefined> = [];
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   return {
-    ResponsiveContainer: ({ children, height }: { children?: ReactNode; height?: number }) => (
+    ResponsiveContainer: ({
+      children,
+      height,
+    }: {
+      children?: ReactNode;
+      height?: number;
+    }) => (
       <div data-testid="grafico" data-height={String(height)}>
         {children}
       </div>
     ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
     Line: semDesenho,
@@ -96,21 +104,33 @@ afterEach(() => {
 describe("Estoque — o que muda em tela pequena", () => {
   it("o grafico e mais alto em celular do que no desktop", () => {
     render(<Estoque />);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
 
     redimensionarPara(375);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
   });
 
   it("639 e celular e 640 nao — o limite e exclusivo", () => {
     render(<Estoque />);
 
     redimensionarPara(639);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(640);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 
   it("em celular o popover abre no toque; no desktop, no hover", () => {
@@ -121,11 +141,17 @@ describe("Estoque — o que muda em tela pequena", () => {
     // É o único uso de `isMobile` no projeto que muda INTERAÇÃO, e não
     // aparência: em tela pequena o popover do gráfico abre no toque, porque
     // hover não existe em celular.
-    expect(screen.getAllByTestId("tooltip")[1]).toHaveAttribute("data-trigger", "hover");
+    expect(screen.getAllByTestId("tooltip")[1]).toHaveAttribute(
+      "data-trigger",
+      "hover",
+    );
 
     redimensionarPara(375);
 
-    expect(screen.getAllByTestId("tooltip")[1]).toHaveAttribute("data-trigger", "click");
+    expect(screen.getAllByTestId("tooltip")[1]).toHaveAttribute(
+      "data-trigger",
+      "click",
+    );
   });
 
   it("montando ja estreito, o popover ja nasce no modo toque", () => {

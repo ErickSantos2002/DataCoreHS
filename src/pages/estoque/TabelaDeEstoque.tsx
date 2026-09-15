@@ -17,7 +17,11 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../design-system/ui";
-import type { CampoDeOrdenacao, OrdenacaoDeEstoque, ProdutoEstoque } from "./estoque";
+import type {
+  CampoDeOrdenacao,
+  OrdenacaoDeEstoque,
+  ProdutoEstoque,
+} from "./estoque";
 
 const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
@@ -84,7 +88,11 @@ export function TabelaDeEstoque({
         <span>{rotulo}</span>
         {ordenacao.campo === campo ? (
           ordenacao.direcao === "desc" ? (
-            <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            <ChevronDown
+              className="h-4 w-4"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           ) : (
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           )
@@ -105,7 +113,13 @@ export function TabelaDeEstoque({
               aria-label="Pesquisar produtos"
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
-              icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             />
           </div>
           <Button
@@ -114,7 +128,13 @@ export function TabelaDeEstoque({
             // Sem linha nenhuma saía planilha só com o cabeçalho. `total` é o
             // que filtro e pesquisa deixaram, e não a página.
             disabled={total === 0}
-            icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+            icon={
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            }
           >
             Exportar Excel
           </Button>
@@ -145,7 +165,9 @@ export function TabelaDeEstoque({
           ) : (
             produtos.map((produto) => (
               <TableRow key={produto.id}>
-                <TableCell className="text-sm font-medium">{produto.nome}</TableCell>
+                <TableCell className="text-sm font-medium">
+                  {produto.nome}
+                </TableCell>
                 <TableCell muted className="text-sm">
                   {produto.codigo}
                 </TableCell>
@@ -164,12 +186,18 @@ export function TabelaDeEstoque({
                   {produto.saldo.toLocaleString("pt-BR")}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={produto.situacao === "A" ? "success" : "danger"}>
+                  <Badge
+                    variant={produto.situacao === "A" ? "success" : "danger"}
+                  >
                     {produto.situacao === "A" ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-sm font-semibold">
-                  R$ {(produto.saldo * produto.preco).toLocaleString("pt-BR", DINHEIRO)}
+                  R${" "}
+                  {(produto.saldo * produto.preco).toLocaleString(
+                    "pt-BR",
+                    DINHEIRO,
+                  )}
                 </TableCell>
               </TableRow>
             ))

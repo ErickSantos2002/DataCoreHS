@@ -13,9 +13,12 @@ export interface CabecalhoDeEstoqueProps {
 export function CabecalhoDeEstoque({ usuario }: CabecalhoDeEstoqueProps) {
   return (
     <Card padding="lg">
-      <h1 className="text-3xl font-bold text-conteudo-heading">Estoque - Dashboard</h1>
+      <h1 className="text-3xl font-bold text-conteudo-heading">
+        Estoque - Dashboard
+      </h1>
       <p className="mt-1 text-sm text-conteudo">
-        Bem-vindo, <span className="font-semibold">{usuario?.username}</span> ({usuario?.role})
+        Bem-vindo, <span className="font-semibold">{usuario?.username}</span> (
+        {usuario?.role})
       </p>
       <p className="mt-2 text-sm text-conteudo-muted">
         Confira a posição atual do estoque e visualize os produtos disponíveis.

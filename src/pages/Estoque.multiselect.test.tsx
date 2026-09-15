@@ -74,9 +74,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -123,7 +129,9 @@ function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
  * testando a coisa errada.
  */
 function campoDeBusca(rotulo: string, valor: string): HTMLElement {
-  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText(
+    "Pesquisar...",
+  );
 }
 
 describe("MultiSelect em Estoque", () => {
@@ -131,7 +139,9 @@ describe("MultiSelect em Estoque", () => {
     render(<Estoque />);
 
     abrir("Produtos", "Todos os produtos");
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }),
+    );
 
     expect(
       screen.getByRole("button", { name: "Produtos 1 selecionado(s)" }),
@@ -146,8 +156,12 @@ describe("MultiSelect em Estoque", () => {
       target: { value: "tubo" },
     });
 
-    expect(screen.getByRole("checkbox", { name: /Tubo descartável/ })).toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: /Bafômetro/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Tubo descartável/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Bafômetro/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -179,11 +193,15 @@ describe("MultiSelect em Estoque", () => {
     render(<Estoque />);
     abrir("Produtos", "Todos os produtos");
 
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }),
+    );
 
     const tabela = screen.getByRole("table");
     expect(within(tabela).getByText("Bafômetro Phoebus")).toBeInTheDocument();
-    expect(within(tabela).queryByText("Tubo descartável")).not.toBeInTheDocument();
+    expect(
+      within(tabela).queryByText("Tubo descartável"),
+    ).not.toBeInTheDocument();
   });
 
   // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
@@ -222,19 +240,25 @@ describe("MultiSelect em Estoque", () => {
     render(<Estoque />);
 
     abrir("Produtos", "Todos os produtos");
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }),
+    );
     expect(
       screen.getByRole("button", { name: "Produtos 1 selecionado(s)" }),
     ).toBeInTheDocument();
 
     // Reclicar no MESMO checkbox desmarca — volta ao placeholder.
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }),
+    );
     expect(
       screen.getByRole("button", { name: "Produtos Todos os produtos" }),
     ).toBeInTheDocument();
 
     // Seleciona de novo para testar "Limpar seleção" isoladamente.
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
@@ -246,12 +270,16 @@ describe("MultiSelect em Estoque", () => {
     render(<Estoque />);
     abrir("Produtos", "Todos os produtos");
     const container = containerDoFiltro("Produtos", "Todos os produtos");
-    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+    expect(
+      within(container).getByPlaceholderText("Pesquisar..."),
+    ).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
     // O container do filtro continua no DOM (o botão vive nele); o que some
     // ao fechar é só o painel do dropdown, filho dele.
-    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      within(container).queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 });

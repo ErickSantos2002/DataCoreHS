@@ -42,20 +42,34 @@ vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
   return {
     useEstoque: () => ({
-      produtos: ESTADO.vazio ? [] : ESTADO.grande ? ESTOQUE_GRANDE : PRODUTOS_ESTOQUE,
+      produtos: ESTADO.vazio
+        ? []
+        : ESTADO.grande
+          ? ESTOQUE_GRANDE
+          : PRODUTOS_ESTOQUE,
       carregando: false,
       atualizarProdutos: vi.fn(),
     }),
   };
 });
 
-vi.mock("../components/SolicitacaoComprasModal", () => ({ default: () => null }));
+vi.mock("../components/SolicitacaoComprasModal", () => ({
+  default: () => null,
+}));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   const comDados =
     (nome: string) =>
-    ({ data, dataKey, children }: { data?: unknown[]; dataKey?: string; children?: React.ReactNode }) => (
+    ({
+      data,
+      dataKey,
+      children,
+    }: {
+      data?: unknown[];
+      dataKey?: string;
+      children?: React.ReactNode;
+    }) => (
       <div
         data-grafico={nome}
         {...(data ? { "data-dados": JSON.stringify(data) } : {})}
@@ -65,7 +79,9 @@ vi.mock("recharts", () => {
       </div>
     );
   return {
-    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     BarChart: comDados("BarChart"),
     PieChart: comDados("PieChart"),
     Bar: comDados("Bar"),
@@ -97,7 +113,9 @@ function dadosEm(cartao: HTMLElement, nome: string): Record<string, unknown>[] {
 }
 
 function serieEm(cartao: HTMLElement): string | null {
-  return cartao.querySelector("[data-serie]")?.getAttribute("data-serie") ?? null;
+  return (
+    cartao.querySelector("[data-serie]")?.getAttribute("data-serie") ?? null
+  );
 }
 
 describe("graficos de Estoque", () => {
@@ -108,14 +126,24 @@ describe("graficos de Estoque", () => {
 
     expect(serieEm(cartao)).toBe("valor");
     expect(dadosEm(cartao, "BarChart")).toEqual([
-      { nome: "Kit calibração", fullName: "Kit calibração", valor: 3600, unidade: "KT" },
+      {
+        nome: "Kit calibração",
+        fullName: "Kit calibração",
+        valor: 3600,
+        unidade: "KT",
+      },
       {
         nome: "Bafômetro Phoebus Pr...",
         fullName: "Bafômetro Phoebus Premium Edition XL",
         valor: 2500,
         unidade: "UN",
       },
-      { nome: "Tubo descartável", fullName: "Tubo descartável", valor: 500, unidade: "CX" },
+      {
+        nome: "Tubo descartável",
+        fullName: "Tubo descartável",
+        valor: 500,
+        unidade: "CX",
+      },
     ]);
   });
 
@@ -127,7 +155,11 @@ describe("graficos de Estoque", () => {
     expect(serieEm(cartao)).toBe("value");
     expect(dadosEm(cartao, "Pie")).toEqual([
       { name: "Kit calibração", fullName: "Kit calibração", value: 3600 },
-      { name: "Bafômetro Phoeb...", fullName: "Bafômetro Phoebus Premium Edition XL", value: 2500 },
+      {
+        name: "Bafômetro Phoeb...",
+        fullName: "Bafômetro Phoebus Premium Edition XL",
+        value: 2500,
+      },
       // "Tubo descartável" tem 16 caracteres: também passa de 15 e é cortado.
       { name: "Tubo descartáve...", fullName: "Tubo descartável", value: 500 },
     ]);
@@ -148,11 +180,20 @@ describe("graficos de Estoque", () => {
     ESTADO.grande = true;
     render(<Estoque />);
 
-    const barras = dadosEm(cartaoDoGrafico("Top 10 Produtos em Estoque"), "BarChart");
-    const fatias = dadosEm(cartaoDoGrafico("Distribuição de Valor em Estoque"), "Pie");
+    const barras = dadosEm(
+      cartaoDoGrafico("Top 10 Produtos em Estoque"),
+      "BarChart",
+    );
+    const fatias = dadosEm(
+      cartaoDoGrafico("Distribuição de Valor em Estoque"),
+      "Pie",
+    );
 
     expect(barras.map((b) => b.nome)).toEqual(
-      Array.from({ length: 10 }, (_, i) => `Item ${String(i).padStart(2, "0")}`),
+      Array.from(
+        { length: 10 },
+        (_, i) => `Item ${String(i).padStart(2, "0")}`,
+      ),
     );
     expect(fatias.map((f) => f.name)).toEqual(
       Array.from({ length: 8 }, (_, i) => `Item ${String(i).padStart(2, "0")}`),
@@ -172,14 +213,19 @@ describe("graficos de Estoque", () => {
     "Top 10 Produtos em Estoque",
     "Distribuição de Valor em Estoque",
     "Situação dos Produtos",
-  ])("sem produto, %s diz que nao ha o que mostrar, em vez de moldura muda", (titulo) => {
-    // Gráfico sem dado não desenha nada útil: as barras pintam um eixo em
-    // branco e as pizzas nada. Item 6 do checklist de tela migrada.
-    ESTADO.vazio = true;
-    render(<Estoque />);
+  ])(
+    "sem produto, %s diz que nao ha o que mostrar, em vez de moldura muda",
+    (titulo) => {
+      // Gráfico sem dado não desenha nada útil: as barras pintam um eixo em
+      // branco e as pizzas nada. Item 6 do checklist de tela migrada.
+      ESTADO.vazio = true;
+      render(<Estoque />);
 
-    const cartao = cartaoDoGrafico(titulo);
-    expect(cartao).toHaveTextContent("Nenhum produto para montar este gráfico.");
-    expect(cartao.querySelector("[data-grafico]")).toBeNull();
-  });
+      const cartao = cartaoDoGrafico(titulo);
+      expect(cartao).toHaveTextContent(
+        "Nenhum produto para montar este gráfico.",
+      );
+      expect(cartao.querySelector("[data-grafico]")).toBeNull();
+    },
+  );
 });

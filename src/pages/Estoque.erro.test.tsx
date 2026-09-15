@@ -27,11 +27,15 @@ vi.mock("../context/EstoqueContext", () => ({
   }),
 }));
 
-vi.mock("../components/SolicitacaoComprasModal", () => ({ default: () => null }));
+vi.mock("../components/SolicitacaoComprasModal", () => ({
+  default: () => null,
+}));
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const caixa = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: caixa,
     BarChart: caixa,
@@ -56,7 +60,9 @@ describe("falha de rede na tela de Estoque", () => {
     ESTADO.erro = "Não foi possível carregar o estoque.";
     render(<Estoque />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar o estoque.");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar o estoque.",
+    );
   });
 
   it("busca que da certo nao desenha aviso nenhum", () => {

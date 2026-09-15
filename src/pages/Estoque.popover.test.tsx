@@ -56,27 +56,47 @@ vi.mock("../context/EstoqueContext", () => ({
  *  `(percent * 100).toFixed(0)` estourar dentro do componente. */
 const FATIA = {
   payload: [
-    { payload: { fullName: "Bafômetro Phoebus", name: "Ativos", value: 2500, percent: 0.5 } },
+    {
+      payload: {
+        fullName: "Bafômetro Phoebus",
+        name: "Ativos",
+        value: 2500,
+        percent: 0.5,
+      },
+    },
   ],
 };
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   return {
-    ResponsiveContainer: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     // Expõe o `onClick` que abre o popover no tap. O `data-testid` é costura
     // de teste deliberada: o dublê não reproduz a árvore do recharts, então
     // alcançar o nó por CSS seria alcançar um detalhe do próprio dublê.
-    PieChart: ({ children, onClick }: { children?: ReactNode; onClick?: () => void }) => (
+    PieChart: ({
+      children,
+      onClick,
+    }: {
+      children?: ReactNode;
+      onClick?: () => void;
+    }) => (
       <div data-testid="pie-chart" onClick={onClick}>
         {children}
       </div>
     ),
     // Chama `content` como o recharts chamaria com o ponteiro sobre a fatia.
-    Tooltip: ({ content }: { content?: (p: typeof FATIA & { active: boolean }) => ReactNode }) =>
-      content ? <>{content({ active: true, ...FATIA })}</> : null,
+    Tooltip: ({
+      content,
+    }: {
+      content?: (p: typeof FATIA & { active: boolean }) => ReactNode;
+    }) => (content ? <>{content({ active: true, ...FATIA })}</> : null),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -98,7 +118,8 @@ const SITUACAO = 1;
  *  `div.relative > div (ResponsiveContainer) > div[data-testid=pie-chart]`,
  *  então o container é o avô do gráfico. */
 function containerDo(indice: number) {
-  return screen.getAllByTestId("pie-chart")[indice].parentElement!.parentElement!;
+  return screen.getAllByTestId("pie-chart")[indice].parentElement!
+    .parentElement!;
 }
 
 describe("Estoque — popovers de pizza", () => {

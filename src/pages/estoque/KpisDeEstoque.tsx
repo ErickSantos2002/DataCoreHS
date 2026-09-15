@@ -17,9 +17,17 @@ const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 export function KpisDeEstoque({ kpis }: KpisDeEstoqueProps) {
   return (
     <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4">
-      <KpiCard label="Produtos Ativos" value={kpis.produtosAtivos} tone="positivo" />
+      <KpiCard
+        label="Produtos Ativos"
+        value={kpis.produtosAtivos}
+        tone="positivo"
+      />
 
-      <KpiCard label="Produtos sem Saldo" value={kpis.produtosSemSaldo} tone="perigo" />
+      <KpiCard
+        label="Produtos sem Saldo"
+        value={kpis.produtosSemSaldo}
+        tone="perigo"
+      />
 
       <KpiCard
         label="Valor Total em Estoque"

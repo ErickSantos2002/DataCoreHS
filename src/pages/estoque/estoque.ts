@@ -33,9 +33,35 @@ export interface ProdutoEstoque {
  * ser "principal" só entra com deploy.
  */
 export const CODIGOS_PRINCIPAIS = [
-  "1", "3", "163", "4", "121", "210", "63", "119", "186", "156", "99", "320", "317",
-  "318", "7", "80", "189", "128", "297", "15", "13", "21", "8", "22", "118", "117",
-  "89", "173", "18",
+  "1",
+  "3",
+  "163",
+  "4",
+  "121",
+  "210",
+  "63",
+  "119",
+  "186",
+  "156",
+  "99",
+  "320",
+  "317",
+  "318",
+  "7",
+  "80",
+  "189",
+  "128",
+  "297",
+  "15",
+  "13",
+  "21",
+  "8",
+  "22",
+  "118",
+  "117",
+  "89",
+  "173",
+  "18",
 ];
 
 export interface FiltrosDeEstoque {
@@ -49,10 +75,15 @@ export interface FiltrosDeEstoque {
 }
 
 /** As opções do multiselect de produto: um por código, rótulo "nome (código)". */
-export function opcoesDeProduto(produtos: ProdutoEstoque[]): { valor: string; rotulo: string }[] {
+export function opcoesDeProduto(
+  produtos: ProdutoEstoque[],
+): { valor: string; rotulo: string }[] {
   return Array.from(
     new Map(
-      produtos.map((p) => [p.codigo, { valor: p.codigo, rotulo: `${p.nome} (${p.codigo})` }]),
+      produtos.map((p) => [
+        p.codigo,
+        { valor: p.codigo, rotulo: `${p.nome} (${p.codigo})` },
+      ]),
     ).values(),
   );
 }
@@ -62,7 +93,8 @@ export function filtrarProdutos(
   filtros: FiltrosDeEstoque,
 ): ProdutoEstoque[] {
   return produtos.filter((p) => {
-    const produtoOk = filtros.produto.length === 0 || filtros.produto.includes(p.codigo);
+    const produtoOk =
+      filtros.produto.length === 0 || filtros.produto.includes(p.codigo);
 
     const situacaoOk =
       filtros.situacao === "todos" ||
@@ -77,7 +109,8 @@ export function filtrarProdutos(
 
     const personalizadoOk =
       filtros.personalizado === "nenhum" ||
-      (filtros.personalizado === "rapido" && CODIGOS_PRINCIPAIS.includes(String(p.codigo)));
+      (filtros.personalizado === "rapido" &&
+        CODIGOS_PRINCIPAIS.includes(String(p.codigo)));
 
     return produtoOk && situacaoOk && saldoOk && personalizadoOk;
   });
@@ -89,13 +122,21 @@ export interface KpisDeEstoque {
   produtosSemSaldo: number;
   /** Saldo × preço somado; saldo negativo abate. */
   valorTotalEstoque: number;
-  produtoTop: { nome: string; valor: number; unidade: string; saldo: number } | null;
+  produtoTop: {
+    nome: string;
+    valor: number;
+    unidade: string;
+    saldo: number;
+  } | null;
 }
 
 export function kpisDoEstoque(produtos: ProdutoEstoque[]): KpisDeEstoque {
   const produtosAtivos = produtos.filter((p) => p.situacao === "A").length;
   const produtosSemSaldo = produtos.filter((p) => p.saldo === 0).length;
-  const valorTotalEstoque = produtos.reduce((acc, p) => acc + p.saldo * p.preco, 0);
+  const valorTotalEstoque = produtos.reduce(
+    (acc, p) => acc + p.saldo * p.preco,
+    0,
+  );
 
   const produtoMaiorValor = produtos
     .map((p) => ({ ...p, valor: p.saldo * p.preco }))
@@ -145,7 +186,9 @@ export interface FatiaDeValor {
 }
 
 /** Os mesmos produtos do ranking, com o nome cortado em 15, oito fatias. */
-export function distribuicaoDeValor(produtos: ProdutoEstoque[]): FatiaDeValor[] {
+export function distribuicaoDeValor(
+  produtos: ProdutoEstoque[],
+): FatiaDeValor[] {
   return produtos
     .filter((p) => p.saldo > 0 && p.preco > 0)
     .map((p) => ({
@@ -158,7 +201,9 @@ export function distribuicaoDeValor(produtos: ProdutoEstoque[]): FatiaDeValor[] 
 }
 
 /** Ativos e inativos, sem fatia de zero. */
-export function situacaoDosProdutos(produtos: ProdutoEstoque[]): { name: string; value: number }[] {
+export function situacaoDosProdutos(
+  produtos: ProdutoEstoque[],
+): { name: string; value: number }[] {
   const ativos = produtos.filter((p) => p.situacao === "A").length;
   const inativos = produtos.filter((p) => p.situacao === "I").length;
   return [
@@ -180,13 +225,18 @@ export function estatisticasDoEstoque(
   produtos: ProdutoEstoque[],
 ): { label: string; value: string | number }[] {
   const n = produtos.length;
-  const precoMedio = n > 0 ? produtos.reduce((acc, p) => acc + p.preco, 0) / n : 0;
-  const saldoMedio = n > 0 ? produtos.reduce((acc, p) => acc + p.saldo, 0) / n : 0;
+  const precoMedio =
+    n > 0 ? produtos.reduce((acc, p) => acc + p.preco, 0) / n : 0;
+  const saldoMedio =
+    n > 0 ? produtos.reduce((acc, p) => acc + p.saldo, 0) / n : 0;
   // `Math.max()` sem argumento é -Infinity: o vazio tem de ser tratado antes.
   const maiorPreco = n > 0 ? Math.max(...produtos.map((p) => p.preco)) : 0;
   return [
     { label: "Total de Produtos", value: n },
-    { label: "Preço Médio", value: `R$ ${precoMedio.toLocaleString("pt-BR", DINHEIRO)}` },
+    {
+      label: "Preço Médio",
+      value: `R$ ${precoMedio.toLocaleString("pt-BR", DINHEIRO)}`,
+    },
     {
       label: "Saldo Médio",
       value: saldoMedio.toLocaleString("pt-BR", {
@@ -194,11 +244,19 @@ export function estatisticasDoEstoque(
         maximumFractionDigits: 1,
       }),
     },
-    { label: "Maior Preço", value: `R$ ${maiorPreco.toLocaleString("pt-BR", DINHEIRO)}` },
+    {
+      label: "Maior Preço",
+      value: `R$ ${maiorPreco.toLocaleString("pt-BR", DINHEIRO)}`,
+    },
   ];
 }
 
-export type CampoDeOrdenacao = "nome" | "codigo" | "preco" | "saldo" | "situacao";
+export type CampoDeOrdenacao =
+  | "nome"
+  | "codigo"
+  | "preco"
+  | "saldo"
+  | "situacao";
 
 export interface OrdenacaoDeEstoque {
   campo: CampoDeOrdenacao;
@@ -208,7 +266,10 @@ export interface OrdenacaoDeEstoque {
 /** Número compara por subtração; texto em ordem natural, sem caixa nem acento. */
 function comparar(a: string | number, b: string | number): number {
   if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b), "pt-BR", { numeric: true, sensitivity: "base" });
+  return String(a).localeCompare(String(b), "pt-BR", {
+    numeric: true,
+    sensitivity: "base",
+  });
 }
 
 /**
@@ -254,7 +315,10 @@ export function buscarEOrdenar(
   };
 
   const sinal = ordenacao.direcao === "asc" ? 1 : -1;
-  filtrados.sort((a, b) => sinal * comparar(valorDe(a), valorDe(b)) || comparar(a.nome, b.nome));
+  filtrados.sort(
+    (a, b) =>
+      sinal * comparar(valorDe(a), valorDe(b)) || comparar(a.nome, b.nome),
+  );
 
   return filtrados;
 }
@@ -282,7 +346,9 @@ export function formatarValorAbreviado(valor: number): string {
 }
 
 /** As linhas da planilha: a tabela como está — filtrada, pesquisada e na ordem. */
-export function linhasDaPlanilha(produtos: ProdutoEstoque[]): Record<string, unknown>[] {
+export function linhasDaPlanilha(
+  produtos: ProdutoEstoque[],
+): Record<string, unknown>[] {
   return produtos.map((p) => ({
     Nome: p.nome,
     "Código-SKU": p.codigo,

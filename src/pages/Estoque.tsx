@@ -42,7 +42,8 @@ const Estoque: React.FC = () => {
   const [filtroProduto, setFiltroProduto] = useState<string[]>([]);
   const [filtroSituacao, setFiltroSituacao] = useState<string>("todos");
   const [filtroSaldo, setFiltroSaldo] = useState<string>("todos");
-  const [filtroPersonalizado, setFiltroPersonalizado] = useState<string>("nenhum");
+  const [filtroPersonalizado, setFiltroPersonalizado] =
+    useState<string>("nenhum");
 
   const [ordenacao, setOrdenacao] = useState<OrdenacaoDeEstoque>({
     campo: "nome",
@@ -63,11 +64,26 @@ const Estoque: React.FC = () => {
     [produtos, filtroProduto, filtroSituacao, filtroSaldo, filtroPersonalizado],
   );
 
-  const kpis = useMemo(() => kpisDoEstoque(produtosFiltrados), [produtosFiltrados]);
-  const ranking = useMemo(() => rankingDoEstoque(produtosFiltrados), [produtosFiltrados]);
-  const distribuicao = useMemo(() => distribuicaoDeValor(produtosFiltrados), [produtosFiltrados]);
-  const situacao = useMemo(() => situacaoDosProdutos(produtosFiltrados), [produtosFiltrados]);
-  const estatisticas = useMemo(() => estatisticasDoEstoque(produtosFiltrados), [produtosFiltrados]);
+  const kpis = useMemo(
+    () => kpisDoEstoque(produtosFiltrados),
+    [produtosFiltrados],
+  );
+  const ranking = useMemo(
+    () => rankingDoEstoque(produtosFiltrados),
+    [produtosFiltrados],
+  );
+  const distribuicao = useMemo(
+    () => distribuicaoDeValor(produtosFiltrados),
+    [produtosFiltrados],
+  );
+  const situacao = useMemo(
+    () => situacaoDosProdutos(produtosFiltrados),
+    [produtosFiltrados],
+  );
+  const estatisticas = useMemo(
+    () => estatisticasDoEstoque(produtosFiltrados),
+    [produtosFiltrados],
+  );
 
   const produtosTabela = useMemo(
     () => buscarEOrdenar(produtosFiltrados, pesquisaTabela, ordenacao),
@@ -135,7 +151,11 @@ const Estoque: React.FC = () => {
         <KpisDeEstoque kpis={kpis} />
 
         <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <GraficosDeEstoque ranking={ranking} distribuicao={distribuicao} situacao={situacao} />
+          <GraficosDeEstoque
+            ranking={ranking}
+            distribuicao={distribuicao}
+            situacao={situacao}
+          />
           <EstatisticasDoEstoque itens={estatisticas} />
         </div>
 
