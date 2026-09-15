@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const { user } = useAuth();
   const groups = useNavGroups();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [menuCelularAberto, setMenuCelularAberto] = useState(false);
 
   const hideLayout = noLayoutRoutes.includes(location.pathname);
 
@@ -41,10 +42,13 @@ const App: React.FC = () => {
           onNavigate={(path) => navigate(path)}
           user={user ? { name: user.username, role: user.role } : undefined}
           collapsed={sidebarCollapsed}
+          mobileMenuOpen={menuCelularAberto}
+          onCloseMobileMenu={() => setMenuCelularAberto(false)}
           topbarActions={
             <Header
               collapsed={sidebarCollapsed}
               onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
+              onOpenMobileMenu={() => setMenuCelularAberto(true)}
             />
           }
         >

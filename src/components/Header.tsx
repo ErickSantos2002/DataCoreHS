@@ -7,10 +7,13 @@ import { Switch } from "../design-system/ui/forms/Switch";
 import { Tooltip } from "../design-system/ui/feedback/Tooltip";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../context/ThemeContext";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 interface HeaderProps {
   collapsed: boolean;
   onToggleSidebar: () => void;
+  /** No celular a sidebar fixa não existe; o botão de menu abre a gaveta. */
+  onOpenMobileMenu: () => void;
 }
 
 /**
@@ -19,10 +22,15 @@ interface HeaderProps {
  * `topbarActions`. É também o único lugar que ainda monta o `Switch` de
  * tema: antes ele estava duplicado aqui e na `Sidebar`.
  */
-const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar, onOpenMobileMenu }) => {
   const { logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  // Recolher uma sidebar que o celular nem mostra (`hidden sm:flex` no
+  // AppShell) deixaria a pessoa sem caminho para a navegação.
+  const rotuloDoMenu = isMobile ? "Abrir menu" : collapsed ? "Expandir menu" : "Recolher menu";
 
   const handleLogout = () => {
     logout();
@@ -31,12 +39,12 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar }) => {
 
   return (
     <div className="flex items-center gap-3">
-      <Tooltip label={collapsed ? "Expandir menu" : "Recolher menu"}>
+      <Tooltip label={rotuloDoMenu}>
         <Button
           variant="ghost"
           size="sm"
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-          onClick={onToggleSidebar}
+          aria-label={rotuloDoMenu}
+          onClick={isMobile ? onOpenMobileMenu : onToggleSidebar}
           icon={<Menu size={16} strokeWidth={2} aria-hidden="true" />}
         />
       </Tooltip>
@@ -56,7 +64,9 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar }) => {
         onClick={handleLogout}
         icon={<LogOut size={16} strokeWidth={2} aria-hidden="true" />}
       >
-        Sair
+        {/* Só o ícone no celular; o texto continua dentro do botão e dá o
+            nome acessível. */}
+        <span className="hidden sm:inline">Sair</span>
       </Button>
     </div>
   );

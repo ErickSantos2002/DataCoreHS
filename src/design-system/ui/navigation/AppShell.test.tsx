@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Home, ShoppingCart } from "lucide-react";
 import { AppShell } from "./AppShell";
 import type { NavGroup } from "./AppShell";
@@ -238,5 +238,107 @@ describe("AppShell", () => {
     montar();
     const containerExpandido = screen.getByTestId("grupo-Principal").querySelector("div.flex.flex-col.gap-0\\.5");
     expect(containerExpandido).not.toHaveClass("items-center");
+  });
+});
+
+// ── CELULAR ────────────────────────────────────────────────────────────────
+// Na conferência de 15/09, em 390px a sidebar ocupava 256px e sobravam 128px
+// para a página — em Estoque as pizzas nem renderizavam. A casca não tinha
+// comportamento nenhum abaixo de `sm`: o `useIsMobile` das telas respondia a
+// pergunta, mas quem comia a largura era a casca.
+//
+// O jsdom não avalia media query, então "a sidebar fixa some no celular" só
+// pode ser afirmado pela classe. É o mesmo limite dos testes de classe acima.
+describe("AppShell no celular", () => {
+  function montarComGaveta(aberta: boolean, extras: { onNavigate?: (p: string) => void; onCloseMobileMenu?: () => void } = {}) {
+    return render(
+      <MemoryRouter>
+        <button>fora</button>
+        <AppShell
+          user={{ name: "erick", role: "admin" }}
+          groups={grupos}
+          activePath="/inicio"
+          onNavigate={extras.onNavigate ?? (() => {})}
+          mobileMenuOpen={aberta}
+          onCloseMobileMenu={extras.onCloseMobileMenu ?? (() => {})}
+        >
+          <p>conteúdo da página</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+  }
+
+  it("a sidebar fixa some abaixo de sm e volta a partir dele", () => {
+    montarComGaveta(false);
+
+    const aside = screen.getByRole("complementary");
+    expect(aside).toHaveClass("hidden", "sm:flex");
+  });
+
+  it("fechada, a gaveta nao existe no documento", () => {
+    montarComGaveta(false);
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("aberta, a gaveta traz a navegacao expandida, com o rotulo de cada item", () => {
+    montarComGaveta(true);
+
+    const gaveta = screen.getByRole("dialog", { name: "Menu de navegação" });
+    expect(within(gaveta).getByRole("link", { name: "Vendas" })).toHaveAttribute("href", "/vendas");
+    expect(within(gaveta).getByText("Principal")).toBeInTheDocument();
+  });
+
+  it("aberta, o foco entra na gaveta", () => {
+    montarComGaveta(true);
+
+    expect(screen.getByRole("dialog")).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it("navegar pela gaveta leva ao caminho E fecha a gaveta", () => {
+    // Os dois, e não um: fechar sem navegar deixaria a pessoa onde estava, e
+    // navegar sem fechar deixaria a gaveta cobrindo a tela nova.
+    const onNavigate = vi.fn();
+    const onCloseMobileMenu = vi.fn();
+    montarComGaveta(true, { onNavigate, onCloseMobileMenu });
+
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("link", { name: "Vendas" }));
+
+    expect(onNavigate).toHaveBeenCalledWith("/vendas");
+    expect(onCloseMobileMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("Escape fecha a gaveta", () => {
+    const onCloseMobileMenu = vi.fn();
+    montarComGaveta(true, { onCloseMobileMenu });
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+    expect(onCloseMobileMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("tocar na cortina fecha a gaveta", () => {
+    const onCloseMobileMenu = vi.fn();
+    montarComGaveta(true, { onCloseMobileMenu });
+
+    fireEvent.click(screen.getByTestId("cortina-do-menu"));
+
+    expect(onCloseMobileMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("o botao Fechar menu fecha a gaveta", () => {
+    const onCloseMobileMenu = vi.fn();
+    montarComGaveta(true, { onCloseMobileMenu });
+
+    fireEvent.click(screen.getByRole("button", { name: "Fechar menu" }));
+
+    expect(onCloseMobileMenu).toHaveBeenCalledTimes(1);
+  });
+
+  it("no celular a topbar esconde nome e papel, e o conteudo usa o respiro de celular", () => {
+    montarComGaveta(false);
+
+    expect(screen.getByText("erick").parentElement).toHaveClass("hidden", "sm:block");
+    expect(screen.getByRole("main")).toHaveClass("p-4", "sm:p-6");
   });
 });
