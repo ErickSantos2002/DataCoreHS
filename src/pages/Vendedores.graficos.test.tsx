@@ -23,7 +23,7 @@ import Vendedores from "./Vendedores";
  */
 
 const { ESTADO } = vi.hoisted(() => ({
-  ESTADO: { meses: 2 },
+  ESTADO: { meses: 2, vazio: false },
 }));
 
 vi.mock("../hooks/useAuth", () => ({
@@ -36,36 +36,39 @@ vi.mock("./comercial/useComercial", async (original) => {
     "./comercial/hooksFalsos"
   );
 
-  const resumo = () => ({
-    ...RESUMO_FALSO,
-    evolucao_mensal: Array.from({ length: ESTADO.meses }, (_, i) => ({
-      ano: 2024 + Math.floor(i / 12),
-      mes: (i % 12) + 1,
-      total: 1000 + i,
-      total_produtos: 10 + i,
-      notas: 1,
-      quantidade: 1,
-    })),
-    por_produto: Array.from({ length: 6 }, (_, i) => ({
-      chave: `P${i}`,
-      codigo: `P${i}`,
-      descricao: i === 2 ? null : `Produto ${i}`,
-      quantidade: 1,
-      valor: 600 - i * 100,
-      notas: 1,
-    })),
-    por_cliente: Array.from({ length: 9 }, (_, i) => ({
-      documento: String(i),
-      nome: i === 1 ? null : `Cliente ${i}`,
-      cpf_cnpj: null,
-      email: null,
-      fone: null,
-      valor: 9000 - i,
-      valor_produtos: 90 - i,
-      notas: 1,
-      ultima_compra: null,
-    })),
-  });
+  const resumo = () =>
+    ESTADO.vazio
+      ? RESUMO_FALSO
+      : {
+          ...RESUMO_FALSO,
+          evolucao_mensal: Array.from({ length: ESTADO.meses }, (_, i) => ({
+            ano: 2024 + Math.floor(i / 12),
+            mes: (i % 12) + 1,
+            total: 1000 + i,
+            total_produtos: 10 + i,
+            notas: 1,
+            quantidade: 1,
+          })),
+          por_produto: Array.from({ length: 6 }, (_, i) => ({
+            chave: `P${i}`,
+            codigo: `P${i}`,
+            descricao: i === 2 ? null : `Produto ${i}`,
+            quantidade: 1,
+            valor: 600 - i * 100,
+            notas: 1,
+          })),
+          por_cliente: Array.from({ length: 9 }, (_, i) => ({
+            documento: String(i),
+            nome: i === 1 ? null : `Cliente ${i}`,
+            cpf_cnpj: null,
+            email: null,
+            fone: null,
+            valor: 9000 - i,
+            valor_produtos: 90 - i,
+            notas: 1,
+            ultima_compra: null,
+          })),
+        };
 
   return { ...real, ...criarHooksFalsos([], resumo) };
 });
@@ -121,6 +124,7 @@ vi.mock("recharts", () => {
 
 beforeEach(() => {
   ESTADO.meses = 2;
+  ESTADO.vazio = false;
 });
 
 /** O cartão do gráfico pelo título — sobe do `<h3>` até o container dele. */
@@ -214,4 +218,25 @@ describe("graficos de Vendedores", () => {
     ]);
     expect(dados[7]).toEqual({ name: "Cliente 7", value: 83 });
   });
+
+  it.each([
+    "Evolução das Vendas",
+    "Top Produtos Vendidos",
+    "Distribuição de Clientes",
+  ])(
+    "sem dado no periodo, %s diz que nao ha o que mostrar, em vez de moldura muda",
+    (titulo) => {
+      // Gráfico sem dado não desenha nada útil: a linha e as barras pintam um
+      // eixo em branco e a pizza não pinta coisa alguma. A moldura vazia sob um
+      // título lia como tela quebrada. Item 6 do checklist de tela migrada.
+      ESTADO.vazio = true;
+      render(<Vendedores />);
+
+      const cartao = cartaoDoGrafico(titulo);
+      expect(cartao).toHaveTextContent(
+        "Nenhuma venda no período para montar este gráfico.",
+      );
+      expect(cartao.querySelector("[data-grafico]")).toBeNull();
+    },
+  );
 });
