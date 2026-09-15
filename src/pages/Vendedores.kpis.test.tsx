@@ -165,7 +165,9 @@ describe("carregando em Vendedores", () => {
     ESTADO.carregando = true;
     render(<Vendedores />);
 
-    expect(screen.getByText("Carregando suas vendas...")).toBeInTheDocument();
+    // Frase completa com ponto, e não reticências — convenção de interface do
+    // repositório, a mesma troca que Serviços fez.
+    expect(screen.getByText("Carregando suas vendas.")).toBeInTheDocument();
     expect(screen.queryByText("Faturamento Total")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
