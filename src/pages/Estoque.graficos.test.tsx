@@ -23,7 +23,7 @@ vi.mock("../hooks/useAuth", () => ({
 }));
 
 const { ESTADO } = vi.hoisted(() => ({
-  ESTADO: { grande: false },
+  ESTADO: { grande: false, vazio: false },
 }));
 
 /** Doze produtos ativos, todos com saldo e preço, valor 1.200 → 100 — para
@@ -42,7 +42,7 @@ vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
   return {
     useEstoque: () => ({
-      produtos: ESTADO.grande ? ESTOQUE_GRANDE : PRODUTOS_ESTOQUE,
+      produtos: ESTADO.vazio ? [] : ESTADO.grande ? ESTOQUE_GRANDE : PRODUTOS_ESTOQUE,
       carregando: false,
       atualizarProdutos: vi.fn(),
     }),
@@ -81,6 +81,7 @@ vi.mock("recharts", () => {
 
 beforeEach(() => {
   ESTADO.grande = false;
+  ESTADO.vazio = false;
 });
 
 function cartaoDoGrafico(titulo: string): HTMLElement {
@@ -165,5 +166,20 @@ describe("graficos de Estoque", () => {
     expect(dadosEm(cartaoDoGrafico("Situação dos Produtos"), "Pie")).toEqual([
       { name: "Ativos", value: 12 },
     ]);
+  });
+
+  it.each([
+    "Top 10 Produtos em Estoque",
+    "Distribuição de Valor em Estoque",
+    "Situação dos Produtos",
+  ])("sem produto, %s diz que nao ha o que mostrar, em vez de moldura muda", (titulo) => {
+    // Gráfico sem dado não desenha nada útil: as barras pintam um eixo em
+    // branco e as pizzas nada. Item 6 do checklist de tela migrada.
+    ESTADO.vazio = true;
+    render(<Estoque />);
+
+    const cartao = cartaoDoGrafico(titulo);
+    expect(cartao).toHaveTextContent("Nenhum produto para montar este gráfico.");
+    expect(cartao.querySelector("[data-grafico]")).toBeNull();
   });
 });

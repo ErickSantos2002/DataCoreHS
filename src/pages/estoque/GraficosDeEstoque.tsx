@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
-import { Card, CardTitle } from "../../design-system/ui";
+import { Card, CardTitle, ChartEmpty } from "../../design-system/ui";
 import { useCliqueFora } from "../../hooks/useCliqueFora";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import {
@@ -26,6 +26,10 @@ import {
 const SERIE_ACAO = 0;
 const SERIE_POSITIVA = 1;
 const SERIE_NEGATIVA = 4;
+
+/** Gráfico sem dado não desenha nada útil — as barras pintam um eixo em branco
+ *  e as pizzas nada, e a moldura muda sob o título lia como tela quebrada. */
+const MENSAGEM_SEM_DADO = "Nenhum produto para montar este gráfico.";
 
 export interface GraficosDeEstoqueProps {
   ranking: BarraDoRanking[];
@@ -76,6 +80,9 @@ export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosD
       <Card padding="lg">
         <CardTitle className="mb-4">Top 10 Produtos em Estoque</CardTitle>
 
+        {ranking.length === 0 ? (
+          <ChartEmpty height={isMobile ? 420 : 300} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <div ref={chartRef} className="relative">
           <ResponsiveContainer width="100%" height={isMobile ? 420 : 300}>
             <BarChart
@@ -173,11 +180,15 @@ export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosD
             </BarChart>
           </ResponsiveContainer>
         </div>
+        )}
       </Card>
 
       <Card padding="lg">
         <CardTitle className="mb-4">Distribuição de Valor em Estoque</CardTitle>
 
+        {distribuicao.length === 0 ? (
+          <ChartEmpty height={300} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <div
           ref={pizzaDistribRef}
           tabIndex={-1}
@@ -236,11 +247,15 @@ export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosD
             </PieChart>
           </ResponsiveContainer>
         </div>
+        )}
       </Card>
 
       <Card padding="lg">
         <CardTitle className="mb-4">Situação dos Produtos</CardTitle>
 
+        {situacao.length === 0 ? (
+          <ChartEmpty height={300} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <div
           ref={pizzaSituacaoRef}
           tabIndex={-1}
@@ -302,6 +317,7 @@ export function GraficosDeEstoque({ ranking, distribuicao, situacao }: GraficosD
             </PieChart>
           </ResponsiveContainer>
         </div>
+        )}
       </Card>
     </>
   );
