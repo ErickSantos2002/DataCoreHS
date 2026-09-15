@@ -1,0 +1,297 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import Clientes from "./Clientes";
+import {
+  ESTADO_CLIENTES,
+  HOJE_CLIENTES,
+  reiniciarEstadoDeClientes,
+} from "./clientes/clientesFalsos";
+
+/**
+ * Caracterização do "Detalhamento de Clientes": o que cada linha mostra, a
+ * ordem padrão, as cinco colunas ordenáveis e a pesquisa.
+ *
+ * Clientes ordena e pesquisa NO NAVEGADOR, sobre o `por_cliente` inteiro — ao
+ * contrário de Vendedores, que pede a página ao servidor. Então a ordem das
+ * linhas é observável aqui de ponta a ponta. Os doze clientes cabem numa página.
+ *
+ * O clique de ordenar é no TEXTO do cabeçalho, e não no `<th>` nem num botão:
+ * assim o teste vale para a tela de hoje e para a decomposta.
+ */
+
+vi.mock("../hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
+}));
+
+vi.mock("./comercial/useComercial", async (original) => {
+  const real = await original<typeof import("./comercial/useComercial")>();
+  const { hooksDeClientes } = await import("./clientes/clientesFalsos");
+  return { ...real, ...hooksDeClientes() };
+});
+
+vi.mock("recharts", () => {
+  const semDesenho = () => null;
+  const caixa = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
+  return {
+    ResponsiveContainer: caixa,
+    BarChart: caixa,
+    LineChart: caixa,
+    PieChart: caixa,
+    Bar: semDesenho,
+    Line: semDesenho,
+    Pie: semDesenho,
+    Cell: semDesenho,
+    XAxis: semDesenho,
+    YAxis: semDesenho,
+    Tooltip: semDesenho,
+    CartesianGrid: semDesenho,
+    Legend: semDesenho,
+  };
+});
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(HOJE_CLIENTES);
+  reiniciarEstadoDeClientes();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+const NOMES = [
+  "Alfa Mineração Recife Ltda",
+  "Beta Logística",
+  "Não informado",
+  "Gama Saúde",
+  "Delta Engenharia",
+  ...Array.from({ length: 7 }, (_, i) => `Cliente ${String(i + 6).padStart(2, "0")}`),
+];
+
+function linhas(): HTMLElement[] {
+  const corpo = screen.getByRole("table").querySelector("tbody");
+  if (!corpo) throw new Error("tbody nao encontrado");
+  return within(corpo as HTMLElement).queryAllByRole("row");
+}
+
+/** O nome do cliente de uma linha — a primeira célula traz nome, documento e
+ *  contato colados, então se procura qual nome ela começa. */
+function nomeDaLinha(linha: HTMLElement): string {
+  const texto = within(linha).getAllByRole("cell")[0].textContent ?? "";
+  const nome = NOMES.find((n) => texto.startsWith(n));
+  if (!nome) throw new Error(`linha sem nome conhecido: "${texto}"`);
+  return nome;
+}
+
+const ordemDosNomes = () => linhas().map(nomeDaLinha);
+
+function linhaDe(nome: string): HTMLElement {
+  const linha = linhas().find((l) => nomeDaLinha(l) === nome);
+  if (!linha) throw new Error(`linha de "${nome}" nao encontrada`);
+  return linha;
+}
+
+function celulas(nome: string): string[] {
+  return within(linhaDe(nome))
+    .getAllByRole("cell")
+    .map((c) => c.textContent ?? "");
+}
+
+function ordenarPor(rotulo: string) {
+  const cabecalho = screen.getByRole("table").querySelector("thead")!;
+  fireEvent.click(within(cabecalho as HTMLElement).getByText(rotulo));
+}
+
+function pesquisar(termo: string) {
+  // O campo da tabela é o único "Pesquisar..." fora de dropdown aberto.
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    target: { value: termo },
+  });
+}
+
+describe("linhas do Detalhamento de Clientes", () => {
+  it("o titulo e os cinco cabecalhos, na ordem", () => {
+    render(<Clientes />);
+
+    expect(
+      screen.getByRole("heading", { name: "Detalhamento de Clientes" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("columnheader").map((c) => c.textContent?.trim()),
+    ).toEqual(["Cliente", "Última Compra", "Valor Total", "Nº Compras", "Status"]);
+  });
+
+  it("uma linha completa: nome, documento, e-mail, telefone, data, valor, notas e status", () => {
+    render(<Clientes />);
+
+    const [cliente, data, valor, notas, status] = celulas(
+      "Alfa Mineração Recife Ltda",
+    );
+    expect(cliente).toContain("11.222.333/0001-44");
+    expect(cliente).toContain("compras@alfa.com");
+    expect(cliente).toContain("81999990000");
+    expect(data).toBe("10/09/2026");
+    expect(valor).toBe("R$ 50.000,50");
+    expect(notas).toBe("4");
+    expect(status).toBe("Ativo");
+  });
+
+  it("sem e-mail ou sem telefone, a linha mostra so o que tem", () => {
+    render(<Clientes />);
+
+    const beta = celulas("Beta Logística")[0];
+    expect(beta).toContain("8133334444");
+    expect(beta).not.toContain("@");
+
+    const semNome = celulas("Não informado")[0];
+    expect(semNome).toContain("pessoa@exemplo.com");
+    expect(semNome).toContain("123.456.789-01");
+  });
+
+  it("sem ultima compra, a data e 'Nunca' e o cliente e inativo", () => {
+    render(<Clientes />);
+
+    const [, data, , , status] = celulas("Delta Engenharia");
+    expect(data).toBe("Nunca");
+    expect(status).toBe("Inativo");
+  });
+
+  it("status: 90 dias atras exatos e inativo, 89 e ativo", () => {
+    // Hoje é 15/09 às 15h; o limite é 17/06 às 15h, e a compra de 17/06 é
+    // meia-noite — antes do limite.
+    render(<Clientes />);
+
+    expect(celulas("Não informado")[4]).toBe("Inativo");
+    expect(celulas("Gama Saúde")[4]).toBe("Ativo");
+    expect(celulas("Beta Logística")[4]).toBe("Inativo");
+  });
+
+  it("sem cliente no recorte, a tabela diz que esta vazia", () => {
+    ESTADO_CLIENTES.vazio = true;
+    render(<Clientes />);
+
+    expect(linhas()).toHaveLength(1);
+    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+  });
+});
+
+describe("ordem do Detalhamento de Clientes", () => {
+  it("abre pela ultima compra, da mais recente para 'Nunca'", () => {
+    render(<Clientes />);
+
+    expect(ordemDosNomes()).toEqual([
+      "Alfa Mineração Recife Ltda",
+      "Cliente 12",
+      "Cliente 11",
+      "Cliente 10",
+      "Cliente 09",
+      "Cliente 08",
+      "Cliente 07",
+      "Cliente 06",
+      "Gama Saúde",
+      "Não informado",
+      "Beta Logística",
+      "Delta Engenharia",
+    ]);
+  });
+
+  it("clicar na coluna que ja esta decrescente inverte", () => {
+    render(<Clientes />);
+    ordenarPor("Última Compra");
+
+    const ordem = ordemDosNomes();
+    expect(ordem[0]).toBe("Delta Engenharia");
+    expect(ordem[11]).toBe("Alfa Mineração Recife Ltda");
+  });
+
+  it("Cliente: o primeiro clique e decrescente, o segundo crescente", () => {
+    render(<Clientes />);
+
+    ordenarPor("Cliente");
+    let ordem = ordemDosNomes();
+    expect(ordem[0]).toBe("Não informado");
+    expect(ordem[11]).toBe("Alfa Mineração Recife Ltda");
+
+    ordenarPor("Cliente");
+    ordem = ordemDosNomes();
+    expect(ordem[0]).toBe("Alfa Mineração Recife Ltda");
+    expect(ordem[11]).toBe("Não informado");
+  });
+
+  it("Valor Total, nos dois sentidos", () => {
+    render(<Clientes />);
+
+    ordenarPor("Valor Total");
+    expect(ordemDosNomes()[0]).toBe("Alfa Mineração Recife Ltda");
+    expect(ordemDosNomes()[11]).toBe("Cliente 12");
+
+    ordenarPor("Valor Total");
+    expect(ordemDosNomes()[0]).toBe("Cliente 12");
+    expect(ordemDosNomes()[11]).toBe("Alfa Mineração Recife Ltda");
+  });
+
+  it("Nº Compras, nos dois sentidos", () => {
+    render(<Clientes />);
+
+    ordenarPor("Nº Compras");
+    expect(ordemDosNomes()[0]).toBe("Gama Saúde");
+    expect(ordemDosNomes()[11]).toBe("Delta Engenharia");
+
+    ordenarPor("Nº Compras");
+    expect(ordemDosNomes()[0]).toBe("Delta Engenharia");
+    expect(ordemDosNomes()[11]).toBe("Gama Saúde");
+  });
+
+  it("Status: decrescente poe os inativos em cima", () => {
+    render(<Clientes />);
+
+    ordenarPor("Status");
+    let status = linhas().map((l) => within(l).getAllByRole("cell")[4].textContent);
+    expect(status.slice(0, 3)).toEqual(["Inativo", "Inativo", "Inativo"]);
+    expect(status[3]).toBe("Ativo");
+
+    ordenarPor("Status");
+    status = linhas().map((l) => within(l).getAllByRole("cell")[4].textContent);
+    expect(status[0]).toBe("Ativo");
+    expect(status.slice(9)).toEqual(["Inativo", "Inativo", "Inativo"]);
+  });
+});
+
+describe("pesquisa do Detalhamento de Clientes", () => {
+  it("acha pelo nome, sem caixa", () => {
+    render(<Clientes />);
+    pesquisar("gama");
+    expect(ordemDosNomes()).toEqual(["Gama Saúde"]);
+  });
+
+  it("acha pelo e-mail", () => {
+    render(<Clientes />);
+    pesquisar("compras@");
+    expect(ordemDosNomes()).toEqual(["Alfa Mineração Recife Ltda"]);
+  });
+
+  it("acha pelo telefone", () => {
+    render(<Clientes />);
+    pesquisar("33334444");
+    expect(ordemDosNomes()).toEqual(["Beta Logística"]);
+  });
+
+  it("acha pelo documento com mascara e sem mascara", () => {
+    render(<Clientes />);
+
+    pesquisar("55.666.777");
+    expect(ordemDosNomes()).toEqual(["Beta Logística"]);
+
+    pesquisar("55666777");
+    expect(ordemDosNomes()).toEqual(["Beta Logística"]);
+  });
+
+  it("o documento com outra pontuacao tambem casa, pelos digitos", () => {
+    render(<Clientes />);
+    pesquisar("123-456-789");
+    expect(ordemDosNomes()).toEqual(["Não informado"]);
+  });
+});
