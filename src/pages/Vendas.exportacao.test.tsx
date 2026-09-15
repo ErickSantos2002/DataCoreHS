@@ -16,10 +16,10 @@ import { reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
  *   - o nome do arquivo, no dia local;
  *   - a falha, que hoje só escreve no console.
  *
- * ⚠️ A coluna "Data" NÃO tem o valor preso aqui: a tela a monta com
- * `new Date("2026-03-05")`, que é meia-noite em UTC, e o valor muda com o fuso
- * de quem roda. Um teste de caracterização que passasse nos dois fusos não tem
- * valor único para afirmar.
+ * A coluna "Data" saía com um dia a menos em Brasília: a tela a montava com
+ * `new Date("2026-03-05")`, que é meia-noite em UTC — em São Paulo ainda é dia
+ * 4. O teste só fica vermelho rodando a oeste de Greenwich, e é por isso que a
+ * suíte roda nos dois fusos.
  */
 
 vi.mock("../hooks/useAuth", () => ({
@@ -203,6 +203,7 @@ describe("exportacao de Vendas", () => {
       "Produtos",
     ]);
     expect(completa).toMatchObject({
+      Data: "05/03/2026",
       Cliente: "Alfa Mineração",
       CNPJ: "11.222.333/0001-44",
       Valor: 1500.25,
@@ -210,6 +211,7 @@ describe("exportacao de Vendas", () => {
       Produtos: "Bocal, Bafômetro",
     });
     expect(vazia).toMatchObject({
+      Data: "10/02/2026",
       Cliente: "",
       CNPJ: "",
       Valor: 0,

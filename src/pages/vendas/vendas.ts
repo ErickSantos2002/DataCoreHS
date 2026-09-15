@@ -304,15 +304,15 @@ export function dataDaNota(dataEmissao: string): string {
 /**
  * As linhas da planilha "Vendas".
  *
- * Achado ao mover (não corrigido): a "Data" passa por
+ * A "Data" é a mesma da tabela, montada na string. Passava por
  * `new Date("2026-03-05")`, que é meia-noite em UTC — em Brasília ainda é dia
- * 4, e a planilha sai com um dia a menos que a tabela.
+ * 4, e a planilha saía com um dia a menos que a tela.
  */
 export function linhasDaPlanilha(
   notas: NotaVenda[],
 ): Record<string, unknown>[] {
   return notas.map((n) => ({
-    Data: new Date(n.data_emissao).toLocaleDateString("pt-BR"),
+    Data: dataDaNota(n.data_emissao),
     Cliente: n.cliente?.nome || "",
     CNPJ: n.cliente?.cpf_cnpj || "",
     Valor: n.valor_nota,
