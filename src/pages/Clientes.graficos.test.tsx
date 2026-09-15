@@ -195,11 +195,16 @@ describe("Top 10 Clientes", () => {
     expect(balao).toHaveTextContent("R$ 50.000,50");
   });
 
-  it("com resumo vazio, o grafico recebe lista vazia", () => {
+  it("com resumo vazio, o cartao diz que nao ha dado, e nao desenha eixo", () => {
+    // Desenhava a grade e os eixos em branco sob o título, que lia como tela
+    // quebrada.
     ESTADO_CLIENTES.vazio = true;
     render(<Clientes />);
+    const cartao = cartaoDoGrafico("Top 10 Clientes");
 
-    expect(screen.getByRole("heading", { name: "Top 10 Clientes" })).toBeInTheDocument();
-    expect(document.querySelector("[data-balao]")).toBeNull();
+    expect(cartao).toHaveTextContent(
+      "Nenhum cliente no período para montar este gráfico.",
+    );
+    expect(cartao.querySelector('[data-grafico="BarChart"]')).toBeNull();
   });
 });

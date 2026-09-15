@@ -14,12 +14,17 @@ import {
   corDaSerie,
   useTemaDoGrafico,
 } from "../../design-system/chartTheme";
-import { Card, CardTitle } from "../../design-system/ui";
+import { Card, CardTitle, ChartEmpty } from "../../design-system/ui";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { formatarValorAbreviado, type BarraDoRanking } from "./clientes";
 
 /** Índice da rampa de séries do `chartTheme`, com nome em vez de número. */
 const SERIE_ACAO = 0;
+
+/** Sem cliente, as barras pintavam a grade e os eixos em branco sob o título,
+ *  que lia como tela quebrada. Uma frase para vazio e para falha — a falha já
+ *  tem o `Alert` no topo da página. */
+const MENSAGEM_SEM_DADO = "Nenhum cliente no período para montar este gráfico.";
 
 export interface GraficoDeClientesProps {
   ranking: BarraDoRanking[];
@@ -49,6 +54,9 @@ export function GraficoDeClientes({ ranking }: GraficoDeClientesProps) {
     <Card padding="lg" className="overflow-hidden">
       <CardTitle className="mb-4">Top 10 Clientes</CardTitle>
 
+      {ranking.length === 0 ? (
+        <ChartEmpty height={isMobile ? 420 : 300} message={MENSAGEM_SEM_DADO} />
+      ) : (
       <div ref={chartRef} className="relative">
         <ResponsiveContainer width="100%" height={isMobile ? 420 : 300}>
           <BarChart
@@ -155,6 +163,7 @@ export function GraficoDeClientes({ ranking }: GraficoDeClientesProps) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      )}
     </Card>
   );
 }
