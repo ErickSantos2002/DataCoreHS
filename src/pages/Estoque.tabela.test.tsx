@@ -290,6 +290,21 @@ describe("exportacao de Estoque", () => {
   });
 });
 
+describe("exportar com a tabela vazia em Estoque", () => {
+  it("fica desabilitado, e volta quando a pesquisa acha de novo", () => {
+    // Sem nenhuma linha, o clique gerava planilha só com o cabeçalho —
+    // arquivo vazio que sai por e-mail parecendo resultado.
+    render(<Estoque />);
+    const campo = screen.getByPlaceholderText("Pesquisar...");
+
+    fireEvent.change(campo, { target: { value: "zzz-nao-existe" } });
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+
+    fireEvent.change(campo, { target: { value: "" } });
+    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+  });
+});
+
 describe("solicitacao de compras em Estoque", () => {
   it("o botao abre o modal com o estoque inteiro e o usuario como solicitante, e fechar o tira", () => {
     render(<Estoque />);

@@ -44,9 +44,6 @@ export interface TabelaDeEstoqueProps {
  *
  * Nasce limpa, sobre os primitivos de tabela. O estado do modal de solicitação
  * veio junto (colocation): só esta tabela o abre e o fecha.
- *
- * Achados ao mover (não corrigidos):
- *   - exportar não desabilita com a tabela vazia.
  */
 export function TabelaDeEstoque({
   produtos,
@@ -114,6 +111,9 @@ export function TabelaDeEstoque({
           <Button
             variant="success"
             onClick={onExportar}
+            // Sem linha nenhuma saía planilha só com o cabeçalho. `total` é o
+            // que filtro e pesquisa deixaram, e não a página.
+            disabled={total === 0}
             icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
           >
             Exportar Excel
