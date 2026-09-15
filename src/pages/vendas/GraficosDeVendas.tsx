@@ -94,6 +94,9 @@ export function GraficosDeVendas({
               axisLine={{ stroke: chartTheme.grid.stroke }}
             />
             <YAxis
+              // Na largura padrão (60px) "R$ 10.0M" não cabia e quebrava em
+              // duas linhas, com o "R$" cortado no topo do gráfico.
+              width={72}
               tickFormatter={(value) => formatarValorAbreviado(value)}
               tick={eixo}
               axisLine={{ stroke: chartTheme.grid.stroke }}
@@ -122,7 +125,14 @@ export function GraficosDeVendas({
           <ChartEmpty height={ALTURA} message={MENSAGEM_SEM_DADO} />
         ) : (
         <ResponsiveContainer width="100%" height={ALTURA}>
-          <BarChart data={rankingProdutos} barCategoryGap="20%">
+          {/* A margem esquerda e os 110px do eixo são para o nome inclinado:
+              com 60px e sem margem, o começo dele saía cortado
+              ("TRO PHOEB..." em vez de "BAFÔMETRO PHOEB..."). */}
+          <BarChart
+            data={rankingProdutos}
+            barCategoryGap="20%"
+            margin={{ top: 5, right: 10, left: 30, bottom: 5 }}
+          >
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={chartTheme.grid.stroke}
@@ -131,7 +141,7 @@ export function GraficosDeVendas({
               dataKey="produto"
               angle={-45}
               textAnchor="end"
-              height={60}
+              height={110}
               tick={eixo}
               axisLine={{ stroke: chartTheme.grid.stroke }}
               tickFormatter={(value: string) =>
