@@ -8,6 +8,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../design-system/ui";
+import { useTemaDoGrafico } from "../../design-system/chartTheme";
 import {
   ANOS,
   MESES,
@@ -45,6 +46,7 @@ const CELULA = "px-3 py-2 text-right font-mono tabular-nums";
  * segundo — a média de doze percentuais dá peso igual a janeiro e a dezembro.
  */
 export function TabelaComparativa({ total, variacao }: TabelaComparativaProps) {
+  useTemaDoGrafico();
   const totaisDoAno = ANOS.map((ano) => somaDoAno(total, ano));
 
   return (

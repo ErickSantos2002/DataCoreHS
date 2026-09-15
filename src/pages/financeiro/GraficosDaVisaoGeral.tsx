@@ -14,7 +14,11 @@ import {
 } from "recharts";
 
 import { Card, CardTitle } from "../../design-system/ui";
-import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import {
   ANOS,
   PARES_YOY,
@@ -78,6 +82,7 @@ export function GraficosDaVisaoGeral({
   variacao,
   anosAtivos,
 }: GraficosDaVisaoGeralProps) {
+  useTemaDoGrafico();
   const anos = ANOS.filter((ano) => anosAtivos.has(ano));
 
   return (

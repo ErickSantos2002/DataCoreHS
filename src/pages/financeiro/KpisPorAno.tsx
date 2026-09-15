@@ -1,6 +1,7 @@
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 import { Card } from "../../design-system/ui";
+import { useTemaDoGrafico } from "../../design-system/chartTheme";
 import { formatarMoeda, formatarVariacao, type KpiDeAno } from "./financeiro";
 import { corDoAno } from "./coresDoAno";
 
@@ -21,6 +22,7 @@ export interface KpisPorAnoProps {
  * ele não tem número. É a mesma regra do travessão na tabela.
  */
 export function KpisPorAno({ kpis }: KpisPorAnoProps) {
+  useTemaDoGrafico();
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       {kpis.map(({ ano, total, quantidade, crescimento }) => (

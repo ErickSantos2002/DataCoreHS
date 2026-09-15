@@ -13,7 +13,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Card, CardTitle } from "../../design-system/ui";
-import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
 import {
   formatarValorAbreviado,
   type PontoDeEvolucao,
@@ -39,6 +39,7 @@ export function GraficosDeServicos({
   rankingClientes,
   distribuicaoCidades,
 }: GraficosDeServicosProps) {
+  useTemaDoGrafico();
   return (
     <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Evolução dos Serviços */}

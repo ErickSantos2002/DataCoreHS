@@ -1,6 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 
 import { Card, CardTitle } from "../../design-system/ui";
+import { useTemaDoGrafico } from "../../design-system/chartTheme";
 import { formatarDinheiro, type FaixaDeBonificacao } from "./meta";
 import { corDaFaixa } from "./coresDaMeta";
 
@@ -34,6 +35,7 @@ export function ListaDeFaixas({
   proxima,
   faturamentoAnoPassado,
 }: ListaDeFaixasProps) {
+  useTemaDoGrafico();
   return (
     <Card padding="lg">
       <CardTitle>Faixas de Bonificação (PL) — Trimestre</CardTitle>

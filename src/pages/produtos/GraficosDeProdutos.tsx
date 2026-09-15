@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 import { Card, CardTitle } from "../../design-system/ui";
-import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
 import type { PontoDeEvolucao, ProdutoAgregado } from "./produtos";
 
 /** Índice da rampa de séries do `chartTheme`, com nome em vez de número. */
@@ -27,6 +27,7 @@ export interface GraficosDeProdutosProps {
  * vendida e o ranking dos 10 produtos por valor.
  */
 export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProps) {
+  useTemaDoGrafico();
   // Ranking de produtos por valor (top 10) — a forma que o BarChart espera
   // (`produto`/`valor`) é montagem de gráfico, não conta de domínio, por
   // isso mora aqui e não em `produtos.ts`.

@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react";
+
 /** Tema unico de grafico, derivado dos tokens do design system.
  *
  * O recharts recebe cor por prop, nao por classe, e prop nao enxerga classe do
@@ -46,6 +48,40 @@ export const chartTheme = {
     ];
   },
 };
+
+/** Avisa quando o atributo `class` do <html> muda — é onde a `dark` entra. */
+function assinarClasseDoDocumento(aoMudar: () => void): () => void {
+  const observador = new MutationObserver(aoMudar);
+  observador.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observador.disconnect();
+}
+
+function temaDoDocumento(): boolean {
+  return document.documentElement.classList.contains("dark");
+}
+
+/**
+ * O `chartTheme`, com a garantia de que o componente renderiza de novo quando
+ * o tema troca. **Todo componente que pinta com `chartTheme`, `corDaSerie` ou
+ * outra cor lida de token em JavaScript chama este hook** — há guarda.
+ *
+ * Os getters acima leem a custom property no render, e nada fazia o gráfico
+ * renderizar de novo na troca: grade e eixo ficavam com a cor do tema anterior
+ * até recarregar (conferido no navegador em 15/09 — no claro, a grade seguia
+ * `#1e3a5f`, o azul-marinho do escuro).
+ *
+ * Ouvir o `darkMode` do `ThemeContext` não resolve, e isso foi testado: o
+ * provider põe a classe `dark` no <html> num `useEffect`, depois do render, e o
+ * gráfico re-renderizado pelo contexto ainda lê o token sem a classe. Por isso
+ * a assinatura é na própria classe, que só muda quando o token já mudou.
+ */
+export function useTemaDoGrafico(): typeof chartTheme {
+  useSyncExternalStore(assinarClasseDoDocumento, temaDoDocumento);
+  return chartTheme;
+}
 
 /** Cor da serie N. A setima volta ao comeco em vez de sumir. */
 export function corDaSerie(indice: number): string {

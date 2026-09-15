@@ -19,7 +19,11 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../design-system/ui";
-import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import { SeletorDeAno } from "./SeletorDeAno";
 import {
   GRUPOS_DE_CATEGORIA,
@@ -70,6 +74,7 @@ function rotuloDaLinha(chave: string): string {
  * balancete fechava com um valor que nada explicava.
  */
 export function AbaBalancete({ ano, onAno, balancete }: AbaBalanceteProps) {
+  useTemaDoGrafico();
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center gap-4">

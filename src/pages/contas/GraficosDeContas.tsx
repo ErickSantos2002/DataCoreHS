@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { Card, CardTitle, ChartEmpty } from "../../design-system/ui";
-import { chartTheme, corDaSerie } from "../../design-system/chartTheme";
+import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
 import {
   formatarMoeda,
   formatarValorAbreviado,
@@ -108,6 +108,7 @@ export function GraficosDeContas({
   tituloDasContrapartes,
   onClicarNaEvolucao,
 }: GraficosDeContasProps) {
+  useTemaDoGrafico();
   const corDoAberto = corDaSerie(tomDoAberto === "perigo" ? SERIE_PERIGO : SERIE_ACAO);
 
   return (

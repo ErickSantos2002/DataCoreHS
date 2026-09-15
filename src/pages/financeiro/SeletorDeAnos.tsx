@@ -1,3 +1,4 @@
+import { useTemaDoGrafico } from "../../design-system/chartTheme";
 import { ANOS, type Ano } from "./financeiro";
 import { corDoAno } from "./coresDoAno";
 
@@ -18,6 +19,7 @@ export interface SeletorDeAnosProps {
  * e classe do Tailwind não enxerga valor calculado.
  */
 export function SeletorDeAnos({ anosAtivos, onAlternar }: SeletorDeAnosProps) {
+  useTemaDoGrafico();
   return (
     <div className="flex flex-wrap gap-2">
       {ANOS.map((ano) => {
