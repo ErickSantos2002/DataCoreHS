@@ -5,7 +5,7 @@ import { diaLocal } from "../lib/datas";
 import { periodoDoPreset } from "../lib/periodo";
 import { baixarPlanilha } from "../lib/planilha";
 import { fetchVendas, type NotaVenda } from "../services/notasapi";
-import { Spinner } from "../design-system/ui";
+import { Alert, Spinner } from "../design-system/ui";
 import {
   paramsDoRecorte,
   useFiltrosComerciais,
@@ -117,7 +117,11 @@ const Vendas: React.FC = () => {
     ],
   );
 
-  const { resumo, carregando } = useResumoComercial(recorte);
+  const {
+    resumo,
+    carregando,
+    erro: erroDoResumo,
+  } = useResumoComercial(recorte);
 
   // Voltar para a página 1 quando o recorte muda: quem estava na página 12 de
   // um filtro amplo ficaria olhando uma página vazia depois de estreitá-lo.
@@ -127,7 +131,7 @@ const Vendas: React.FC = () => {
     setPaginaAtual(1);
   }, [chaveDoRecorte]);
 
-  const { pagina } = useVendasPaginadas(recorte, {
+  const { pagina, erro: erroDaTabela } = useVendasPaginadas(recorte, {
     busca: pesquisaTabela,
     ordenarPor: ordenacao.campo,
     direcao: ordenacao.direcao,
@@ -204,6 +208,22 @@ const Vendas: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base p-6 transition-colors">
       <CabecalhoDeVendas usuario={user} />
+
+      {/*
+        Os dois hooks já devolviam `erro` quando a rede caía, e a casca
+        descartava os dois: a pessoa via "R$ 0,00", "0" vendas e "Nenhum
+        resultado encontrado.", e lia "não vendemos nada". Alert no fluxo, e
+        não toast, porque o estado dura até recarregar. A frase é daqui: a do
+        hook (`comercial/useComercial.ts`, da outra frente) vem sem acento.
+      */}
+      {erroDoResumo || erroDaTabela ? (
+        <div className="mt-6">
+          <Alert variant="danger">
+            Não foi possível carregar as vendas. Confira a conexão e recarregue
+            a página.
+          </Alert>
+        </div>
+      ) : null}
 
       <div className="mt-6 overflow-x-hidden">
         <FiltrosDeVendas
