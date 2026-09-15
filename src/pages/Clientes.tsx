@@ -7,7 +7,7 @@ import { usePaginacao } from "../hooks/usePaginacao";
 import { diaLocal } from "../lib/datas";
 import { periodoDoPreset } from "../lib/periodo";
 import { baixarPlanilha } from "../lib/planilha";
-import { Spinner } from "../design-system/ui";
+import { Alert, Spinner } from "../design-system/ui";
 import {
   useFiltrosComerciais,
   useResumoComercial,
@@ -111,7 +111,7 @@ const Clientes: React.FC = () => {
     ],
   );
 
-  const { resumo, carregando } = useResumoComercial(recorte);
+  const { resumo, carregando, erro } = useResumoComercial(recorte);
 
   // Os clientes com compra no recorte, já consolidados por documento pelo
   // banco. Isto era o `clientesEnriquecidos` do contexto cruzado com as notas
@@ -184,6 +184,22 @@ const Clientes: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base p-6 transition-colors">
       <CabecalhoDeClientes usuario={user} />
+
+      {/*
+        O hook já devolvia `erro` quando a rede caía, e a casca descartava: a
+        pessoa via "0" ativos, "N/A" e "Nenhum resultado encontrado.", e lia
+        "não tenho cliente nenhum". Alert no fluxo, e não toast, porque o
+        estado dura até recarregar. A frase é daqui: a do hook
+        (`comercial/useComercial.ts`, da outra frente) vem sem acento.
+      */}
+      {erro ? (
+        <div className="mt-6">
+          <Alert variant="danger">
+            Não foi possível carregar os clientes. Confira a conexão e
+            recarregue a página.
+          </Alert>
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <FiltrosDeClientes
