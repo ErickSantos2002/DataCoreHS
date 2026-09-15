@@ -1081,7 +1081,8 @@ A dívida da seção anterior foi paga: oito dos nove itens conferidos, um pela
 metade. O app rodou em `npm run dev` apontando para produção **só para leitura**
 — o `.env.local` manda para `localhost:5200`, porta que nada na máquina sobe, e
 as URLs foram passadas pelo ambiente. A suíte ficou em **1630 testes / 123
-arquivos**, verde nos dois fusos; lint 49; `tsc` limpo.
+arquivos**, verde nos dois fusos; lint 49; `tsc` limpo. Depois dos dois consertos
+da casca (abaixo), **1647 / 126**.
 
 ### O que a conferência confirmou
 
@@ -1115,13 +1116,13 @@ o rótulo vem pronto do resumo do Postgres (`useServicos.ts`, que não é nosso)
 
 ### Defeitos encontrados e ainda abertos
 
-1. **Trocar o tema não repinta os gráficos.** `chartTheme` lê a custom property
+1. ✅ *Consertado em `1dfc8646` — ver abaixo.* **Trocar o tema não repinta os gráficos.** `chartTheme` lê a custom property
    no render, e a troca de tema não provoca render nos gráficos: grade e texto de
    eixo ficam com a cor do tema anterior até recarregar. No claro, a grade fica
    `#1e3a5f` — o azul-marinho do escuro. Medido no DOM: claro recarregado dá
    `#e2e8f0`, e depois da troca continua `#e2e8f0` no escuro. É compartilhado —
    atinge toda tela com recharts.
-2. **A casca não tem celular.** O `AppShell` não recolhe a sidebar em tela
+2. ✅ *Consertado em `511555e3` — ver abaixo.* **A casca não tem celular.** O `AppShell` não recolhe a sidebar em tela
    estreita: em 390px ela ocupa 256px e sobra 128px para a página. Em Estoque as
    pizzas nem renderizam nessa largura. O `useIsMobile` das telas não compensa
    uma casca que não sabe dele.
@@ -1145,6 +1146,36 @@ o rótulo vem pronto do resumo do Postgres (`useServicos.ts`, que não é nosso)
 
 ### O que ficou pela metade
 
-**Toque fora de um filtro no celular** (item 5). Com a sidebar recolhida à mão, o
-toque abre o popover de Estoque; a prova de que o toque fora fecha ficou
-inconclusiva — a simulação acertou o botão **Sair** e derrubou a sessão.
+~~**Toque fora de um filtro no celular** (item 5).~~ Fechado depois do conserto da
+casca: em 390px, tocar numa fatia abre o popover das duas pizzas de Estoque e
+tocar no título do card o fecha. Simulado com clique de mouse, que passa pelo
+`mousedown` do `useCliqueFora` — o `touchstart` de aparelho de verdade segue sem
+prova. ⚠️ Com `trigger="click"` o wrapper do recharts fica **visível** mesmo
+fechado — quem some é o conteúdo. Medir a visibilidade do wrapper dá falso
+"continua aberto"; medir o texto dá a resposta certa.
+
+### Os dois consertos da casca
+
+**O tema.** `useTemaDoGrafico` (`design-system/chartTheme.ts`) assina a classe do
+`<html>` com `MutationObserver` via `useSyncExternalStore`, e os nove componentes
+que pintam com cor de token o chamam. **Ouvir o `darkMode` do contexto não
+basta** — o `ThemeProvider` põe a classe `dark` num `useEffect`, depois do render,
+e o gráfico re-renderizado pelo contexto ainda lê o token velho. Não foi suposto:
+o teste seguiu vermelho com essa versão. Guarda novo,
+`guarda-tema-do-grafico.test.ts`, com duas portas — componente que usa cor de
+token sem chamar o hook, e leitor novo de custom property fora da lista.
+Efeito colateral aceito: na troca, a pizza refaz a animação e os rótulos voltam
+em ~1,5 s.
+
+**O celular.** Decisão do Erick entre gaveta sobreposta e trilho de ícones fixo:
+**gaveta**. Abaixo de `sm` a sidebar fixa some por CSS (`hidden sm:flex` — com
+JavaScript, o celular nasceria com 256px de sidebar e saltaria depois da
+montagem), e o botão de menu da topbar abre a sidebar expandida por cima, no
+molde do `Modal`: cortina, foco entrando e voltando, `Escape`, fundo sem rolar;
+navegar fecha. **Não prende o `Tab`**, diferente do `Modal` — fica para quando
+alguém pedir. O miolo virou `ConteudoDaSidebar`, e a extração passou nos 15
+testes antigos sem edição. Topbar no celular só com avatar e ícone de Sair;
+conteúdo com `p-4`, o `--content-padding-mobile`.
+
+Menor, visto na conferência e não desta mudança: o tooltip "Recolher menu" do
+botão focado sai cortado no topo da janela.
