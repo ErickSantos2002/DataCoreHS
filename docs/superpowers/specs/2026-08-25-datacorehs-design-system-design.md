@@ -1265,3 +1265,79 @@ três `ChartEmpty`, `TableEmpty`, exportar desabilitado), erro (API bloqueada: o
   "R$ 5.000" convivem).
 - Falha ao salvar o tipo e ao exportar continuam em toast: são retorno de ação
   que a pessoa acabou de tomar, que é o uso certo.
+
+## Estado em 15/09/2026 (noite) — Estoque migrada, Fase 3 em 10 de 12
+
+Branch `fase-3-estoque`, catorze commits sobre `1015920e`. Suíte em **1773 testes /
+137 arquivos**, verde nos dois fusos; lint **39** (era 47 — saíram o `gerarPDF`, a
+lista `solicitacao` e o `atualizarQuantidade` que ninguém chamava, e os `any` do
+comparador); `tsc` limpo. `PENDENTES_FASE_3`: **Clientes e Vendas**. **Próxima:
+Clientes.**
+
+### Como foi
+
+Estoque é diferente das telas do Comercial: a conta é **toda do navegador** — o
+`EstoqueContext` entrega o catálogo inteiro e a tela filtra, soma e ordena. Então a
+ordem das linhas e os números são observáveis de ponta a ponta, sobre um estoque
+falso de seis produtos com todo campo distinto (`estoque/produtosFalsos.ts`).
+
+1. **Caracterização**: três arquivos novos (topo e filtros, gráficos, tabela), 68
+   testes com os quatro que existiam. **23 plantações — duas saíram cegas** na
+   primeira rodada: só a opção "Inativo" do filtro de situação estava testada, e o
+   teste do modal filtrava pela *pesquisa*, que não chega na lista que o modal
+   recebe. Os dois testes foram refeitos e as duas plantações replantadas.
+2. **Decompor num commit** (`7f23ab63`), 68 testes sem uma edição.
+3. **Dez consertos**, um commit cada, teste vermelho antes, plantação depois.
+
+### Os consertos
+
+| Commit | Defeito |
+|---|---|
+| `a69e2dfe` | **"NaN%" no balão da pizza de situação** — o balão lia `percent` do dado da fatia, onde o recharts não o põe. **O teste de popover escondia**: o dublê dele põe `percent` justamente ali. Teste novo com dublê fiel. |
+| `cdfa4008` | Falha de rede silenciosa — o `EstoqueContext` só escrevia no console; agora devolve `erro`, e a tela mostra o `Alert`. |
+| `1a600bda` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta (a lição de Vendedores aplicada antes de aparecer). |
+| `f013cc27` | Exportar não desabilitava com a tabela vazia. |
+| `04fbf3ca` | Gráfico sem produto era moldura muda → `ChartEmpty`. |
+| `f32f04aa` | Estatísticas com ponto decimal (`toFixed`) ao lado de cartões em pt-BR. |
+| `d6f394e8` | "Produto Top" sem produto saía "R$ ()". |
+| `43633713` | Frase de carregando com reticências. |
+| `06a896f2` | **Código-SKU ordenava como texto** ("900" antes de "163"), e o comparador nunca devolvia 0 — empate sem regra. Agora ordem natural, e empate pelo nome. |
+| `57dcb7e0` | **Visto só no navegador**: o Tiny devolve nome com espaço nas pontas (" VIDRO - PHOEBUS "), e esse produto abria a tabela. A comparação ignora o espaço das pontas. |
+
+### Uma lição de processo
+
+Um `prettier --write` rodado com `--ignore-path /dev/null` num arquivo ainda
+ignorado **meteu 492 linhas de formatação num commit de conserto de 18**. Desfeito
+e reaplicado sem formatar; a formatação foi para o commit do passo 7 (`2c9bf8c5`).
+Até a tela sair do `.prettierignore`, não formatar arquivo dela.
+
+### Checklist de tela migrada — Estoque
+
+1. Hexadecimal cravado: **nenhum** (as oito cores de `CORES` saíram).
+2. `dark:` onde há token: **nenhum**.
+3. Azul de ação: **sim** — valor total em `tone="acao"`, preço em `text-action`.
+4. Um botão primário por bloco: **sim** — "Solicitação de Compras"; "Exportar
+   Excel" é `success`.
+5. Texto abaixo de 12px: **só o rótulo do `KpiCard`** (11px, do primitivo); os
+   eixos subiram de 10/11 para 12px.
+6. Estado vazio com frase: **sim** — `TableEmpty` e `ChartEmpty` nos três gráficos.
+7. Ícone é componente: **sim**.
+8. Contagem de paginação em frase: **sim** — "Mostrando 1 a 15 de 280 produtos".
+9. `focus-visible` com anel de 2px: **sim**.
+10. Nada animando em laço fora spinner: **sim**.
+
+### Conferência no navegador (15/09)
+
+Claro e escuro; o balão de situação mostrando "Inativos · Quantidade: 3 · 1%";
+tabela cabendo (1080 de 1080); vazio (Inativo + saldo negativo: três `ChartEmpty`,
+`TableEmpty`, exportar desabilitado, "Produto Top" N/A e estatísticas zeradas em
+pt-BR); erro (API bloqueada: "Não foi possível carregar o estoque."); carregando;
+celular em 390px com as pizzas renderizando.
+
+### Achados registrados e não corrigidos
+
+- **A lista de "Principais" é cravada no código** (29 códigos), sem nome ao lado nem
+  registro de quem a definiu — produto novo só entra com deploy. Decisão de produto.
+- O eixo do Top 10 escreve "R$ 0.00" / "R$ 2.0M" com ponto (`formatarValorAbreviado`).
+- O dublê de `Estoque.popover.test.tsx` segue pondo `percent` no dado da fatia; hoje
+  inofensivo (a tela não lê mais), mas é o mesmo tipo de dublê que escondeu o NaN.
