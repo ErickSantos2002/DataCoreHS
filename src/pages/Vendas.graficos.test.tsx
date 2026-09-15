@@ -2,10 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vendas from "./Vendas";
-import {
-  ESTADO_VENDAS,
-  reiniciarEstadoDeVendas,
-} from "./vendas/vendasFalsas";
+import { ESTADO_VENDAS, reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
 
 /**
  * Os quatro gráficos de Vendas: que estão na tela, sob o título certo, o array
@@ -138,9 +135,7 @@ vi.mock("recharts", async () => {
     YAxis: eixo("YAxis"),
     Tooltip: ({ content, formatter }: Props) => (
       <div data-grafico="Tooltip">
-        {formatter ? (
-          <p data-formatado>{formatter(2400)}</p>
-        ) : null}
+        {formatter ? <p data-formatado>{formatter(2400)}</p> : null}
         {typeof content === "function"
           ? atual.map((d, i) => (
               <div key={i} data-balao={i}>
@@ -229,9 +224,7 @@ describe("Evolucao das Vendas", () => {
     render(<Vendas />);
     const cartao = cartaoDoGrafico("Evolução das Vendas");
 
-    const eixoY = cartao.querySelector(
-      '[data-grafico="YAxis"]',
-    ) as HTMLElement;
+    const eixoY = cartao.querySelector('[data-grafico="YAxis"]') as HTMLElement;
     expect(JSON.parse(eixoY.getAttribute("data-rotulos")!)).toEqual([
       "R$ 0",
       "R$ 999.5",

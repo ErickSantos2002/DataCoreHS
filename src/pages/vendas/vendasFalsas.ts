@@ -40,7 +40,12 @@ export const NOTAS_VENDAS = [
     cliente: { id: 1, nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
     nome_vendedor: "Vendedor A",
     itens: [
-      { codigo: "B1", descricao: "Bocal", quantidade: "10", valor_total: "100" },
+      {
+        codigo: "B1",
+        descricao: "Bocal",
+        quantidade: "10",
+        valor_total: "100",
+      },
       {
         codigo: "F1",
         descricao: "Bafômetro",
@@ -225,7 +230,13 @@ export function hooksDeVendas() {
       if (ESTADO_VENDAS.vazio || ESTADO_VENDAS.erroDaTabela) {
         return {
           ...resposta,
-          pagina: { itens: [], total: 0, valor_total: 0, limite: 15, offset: 0 },
+          pagina: {
+            itens: [],
+            total: 0,
+            valor_total: 0,
+            limite: 15,
+            offset: 0,
+          },
           erro: ESTADO_VENDAS.erroDaTabela,
         };
       }

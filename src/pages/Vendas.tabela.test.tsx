@@ -2,10 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vendas from "./Vendas";
-import {
-  ESTADO_VENDAS,
-  reiniciarEstadoDeVendas,
-} from "./vendas/vendasFalsas";
+import { ESTADO_VENDAS, reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
 import type { PedidoDaTabela } from "./comercial/useComercial";
 
 /**
@@ -117,7 +114,14 @@ describe("linhas do Detalhamento de Vendas", () => {
     ).toBeInTheDocument();
     expect(
       screen.getAllByRole("columnheader").map((c) => c.textContent?.trim()),
-    ).toEqual(["Data", "Cliente", "Valor", "Vendedor", "Produtos", "Observações"]);
+    ).toEqual([
+      "Data",
+      "Cliente",
+      "Valor",
+      "Vendedor",
+      "Produtos",
+      "Observações",
+    ]);
   });
 
   it("uma nota completa: data, cliente com CNPJ, valor, vendedor, itens e observacao", () => {
@@ -157,7 +161,9 @@ describe("linhas do Detalhamento de Vendas", () => {
     ESTADO_VENDAS.vazio = true;
     render(<Vendas />);
 
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 });
 
@@ -186,15 +192,24 @@ describe("pedido de ordenacao do Detalhamento de Vendas", () => {
     ["Cliente", "cliente"],
     ["Valor", "valor"],
     ["Vendedor", "vendedor"],
-  ])("%s: o primeiro clique e decrescente, o segundo crescente", (rotulo, campo) => {
-    render(<Vendas />);
+  ])(
+    "%s: o primeiro clique e decrescente, o segundo crescente",
+    (rotulo, campo) => {
+      render(<Vendas />);
 
-    ordenarPor(rotulo);
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "desc" });
+      ordenarPor(rotulo);
+      expect(ultimoPedido()).toMatchObject({
+        ordenarPor: campo,
+        direcao: "desc",
+      });
 
-    ordenarPor(rotulo);
-    expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "asc" });
-  });
+      ordenarPor(rotulo);
+      expect(ultimoPedido()).toMatchObject({
+        ordenarPor: campo,
+        direcao: "asc",
+      });
+    },
+  );
 
   it("Produtos e Observacoes nao ordenam", () => {
     render(<Vendas />);
@@ -222,7 +237,9 @@ describe("observacoes do Detalhamento de Vendas", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Ver Observações" }));
-    expect(screen.getByRole("dialog")).toHaveTextContent("observações da nota 11");
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "observações da nota 11",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Fechar observações" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

@@ -29,14 +29,26 @@ export function EstatisticasDeVendas({
   // Acima de 24 meses a evolução é anual, e o cartão comparava ANOS sob
   // "Variação último mês", "Melhor mês" e "Média mensal".
   const unidade = porAno
-    ? { titulo: "Anual", ultimo: "último ano", melhor: "Melhor ano", media: "Média anual" }
-    : { titulo: "Mensal", ultimo: "último mês", melhor: "Melhor mês", media: "Média mensal" };
+    ? {
+        titulo: "Anual",
+        ultimo: "último ano",
+        melhor: "Melhor ano",
+        media: "Média anual",
+      }
+    : {
+        titulo: "Mensal",
+        ultimo: "último mês",
+        melhor: "Melhor mês",
+        media: "Média mensal",
+      };
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
       <Card padding="lg">
         <CardTitle className="mb-4">Resumo do Período</CardTitle>
-        <DataList items={resumo.map((item) => ({ key: item.label, ...item }))} />
+        <DataList
+          items={resumo.map((item) => ({ key: item.label, ...item }))}
+        />
       </Card>
 
       <Card padding="lg">

@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Vendas from "./Vendas";
 import { fetchVendas, type NotaVenda } from "../services/notasapi";
 import { baixarPlanilha } from "../lib/planilha";
-import {
-  ESTADO_VENDAS,
-  reiniciarEstadoDeVendas,
-} from "./vendas/vendasFalsas";
+import { ESTADO_VENDAS, reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
 
 /**
  * Caracterização da exportação de Vendas, antes de decompor a tela.
@@ -240,15 +237,17 @@ describe("exportacao de Vendas", () => {
   });
 
   it("a falha da busca nao gera planilha, nao derruba a tela e avisa", async () => {
-    const console = vi.spyOn(globalThis.console, "error").mockImplementation(
-      () => {},
-    );
+    const console = vi
+      .spyOn(globalThis.console, "error")
+      .mockImplementation(() => {});
     vi.mocked(fetchVendas).mockRejectedValue(new Error("rede"));
     render(<Vendas />);
     await exportar();
 
     expect(baixarPlanilha).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeEnabled();
     // Só escrevia no console: a pessoa clicava, o botão girava e nada
     // acontecia. Toast, porque é retorno de uma ação que ela acabou de tomar.
     expect(TOAST.erro).toHaveBeenCalledWith(
@@ -274,7 +273,9 @@ describe("exportacao de Vendas", () => {
     expect(fetchVendas).toHaveBeenCalledTimes(1);
 
     await act(async () => terminar(resposta([NOTA_COMPLETA], 1)));
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeEnabled();
     expect(baixarPlanilha).toHaveBeenCalledTimes(1);
   });
 
@@ -283,7 +284,9 @@ describe("exportacao de Vendas", () => {
     ESTADO_VENDAS.vazio = true;
     render(<Vendas />);
 
-    expect(screen.getByRole("button", { name: /Exportar Excel/ })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Exportar Excel/ }),
+    ).toBeDisabled();
     await exportar();
     expect(fetchVendas).not.toHaveBeenCalled();
   });

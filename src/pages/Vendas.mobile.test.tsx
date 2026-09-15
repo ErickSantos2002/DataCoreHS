@@ -76,7 +76,9 @@ vi.mock("recharts", () => {
       <div>{children}</div>
     ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
     Line: semDesenho,
@@ -86,8 +88,18 @@ vi.mock("recharts", () => {
     // `window.innerWidth` que o `YAxis` do ranking de vendedores fazia direto
     // no render (a terceira mora no `tickFormatter`, que este dublê nao chama).
     XAxis: semDesenho,
-    YAxis: ({ width, tick }: { width?: number; tick?: { fontSize?: number } }) => (
-      <div data-testid="eixo-y" data-width={String(width)} data-fonte={String(tick?.fontSize)} />
+    YAxis: ({
+      width,
+      tick,
+    }: {
+      width?: number;
+      tick?: { fontSize?: number };
+    }) => (
+      <div
+        data-testid="eixo-y"
+        data-width={String(width)}
+        data-fonte={String(tick?.fontSize)}
+      />
     ),
     Tooltip: semDesenho,
     CartesianGrid: semDesenho,
@@ -175,6 +187,9 @@ describe("Vendas — o eixo do ranking de vendedores reage ao isMobile do hook",
     // janela ja esta estreita antes do primeiro render, `isMobile` sai
     // `true` assim que o componente monta — sem esperar por um `resize`
     // posterior.
-    expect(screen.getAllByTestId("eixo-y")[2]).toHaveAttribute("data-width", "80");
+    expect(screen.getAllByTestId("eixo-y")[2]).toHaveAttribute(
+      "data-width",
+      "80",
+    );
   });
 });

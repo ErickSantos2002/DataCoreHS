@@ -105,7 +105,11 @@ export function TabelaDeVendas({
         <span>{rotulo}</span>
         {ordenacao.campo === campo ? (
           ordenacao.direcao === "desc" ? (
-            <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            <ChevronDown
+              className="h-4 w-4"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           ) : (
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           )
@@ -127,7 +131,11 @@ export function TabelaDeVendas({
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
               icon={
-                <Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
               }
             />
           </div>
@@ -140,7 +148,11 @@ export function TabelaDeVendas({
             loading={exportando}
             disabled={total === 0}
             icon={
-              <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             }
           >
             Exportar Excel
@@ -161,7 +173,9 @@ export function TabelaDeVendas({
                 <span>Produtos</span>
               </span>
             </TableHeaderCell>
-            <TableHeaderCell className="text-center">Observações</TableHeaderCell>
+            <TableHeaderCell className="text-center">
+              Observações
+            </TableHeaderCell>
           </TableRow>
         </TableHead>
 
@@ -189,7 +203,8 @@ export function TabelaDeVendas({
                     ) : null}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-semibold text-action">
-                    R$ {Number(nota.valor_nota).toLocaleString("pt-BR", DINHEIRO)}
+                    R${" "}
+                    {Number(nota.valor_nota).toLocaleString("pt-BR", DINHEIRO)}
                   </TableCell>
                   <TableCell muted className="text-sm">
                     {nota.nome_vendedor || "Não informado"}

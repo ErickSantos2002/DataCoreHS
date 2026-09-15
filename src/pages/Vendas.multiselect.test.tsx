@@ -41,29 +41,33 @@ vi.mock("../hooks/useAuth", () => ({
 
 const { NOTAS_VENDAS } = vi.hoisted(() => ({
   NOTAS_VENDAS: [
-  {
-    id: 1,
-    data_emissao: "2026-01-10",
-    valor_nota: 1000,
-    cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
-    nome_vendedor: "Vendedor A",
-    itens: [
-      { descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
-    ],
-    tem_observacoes: false,
-  },
-  {
-    id: 2,
-    data_emissao: "2026-02-10",
-    valor_nota: 500,
-    cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
-    nome_vendedor: "Vendedor A",
-    itens: [
-      { descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
-    ],
-    tem_observacoes: false,
-  },
-],
+    {
+      id: 1,
+      data_emissao: "2026-01-10",
+      valor_nota: 1000,
+      cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
+      nome_vendedor: "Vendedor A",
+      itens: [
+        {
+          descricao: "Bafômetro Phoebus",
+          quantidade: "2",
+          valor_total: "1000",
+        },
+      ],
+      tem_observacoes: false,
+    },
+    {
+      id: 2,
+      data_emissao: "2026-02-10",
+      valor_nota: 500,
+      cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
+      nome_vendedor: "Vendedor A",
+      itens: [
+        { descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
+      ],
+      tem_observacoes: false,
+    },
+  ],
 }));
 
 // A tela deixou de ler o `DataContext` (item 9.4): os agregados vêm somados do
@@ -90,9 +94,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -139,7 +149,9 @@ function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
  * a coisa errada.
  */
 function campoDeBusca(rotulo: string, valor: string): HTMLElement {
-  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText(
+    "Pesquisar...",
+  );
 }
 
 describe("MultiSelect em Vendas", () => {
@@ -162,8 +174,12 @@ describe("MultiSelect em Vendas", () => {
       target: { value: "beta" },
     });
 
-    expect(screen.getByRole("checkbox", { name: /Beta Logística/ })).toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: /Alfa/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Beta Logística/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Alfa/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -248,12 +264,16 @@ describe("MultiSelect em Vendas", () => {
     render(<Vendas />);
     abrir("Empresas", "Todas as empresas");
     const container = containerDoFiltro("Empresas", "Todas as empresas");
-    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+    expect(
+      within(container).getByPlaceholderText("Pesquisar..."),
+    ).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
     // O container do filtro continua no DOM (o botão vive nele); o que some
     // ao fechar é só o painel do dropdown, filho dele.
-    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      within(container).queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 });

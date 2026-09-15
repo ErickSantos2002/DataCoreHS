@@ -2,10 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vendas from "./Vendas";
-import {
-  ESTADO_VENDAS,
-  reiniciarEstadoDeVendas,
-} from "./vendas/vendasFalsas";
+import { ESTADO_VENDAS, reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
 
 /**
  * Caracterização do topo e do rodapé de Vendas — cabeçalho, os quatro KPIs,
@@ -214,9 +211,7 @@ describe("carregando em Vendas", () => {
     ESTADO_VENDAS.carregando = true;
     render(<Vendas />);
 
-    expect(
-      screen.getByText("Carregando dados de vendas."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Carregando dados de vendas.")).toBeInTheDocument();
     expect(screen.queryByText("Faturamento Total")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
@@ -243,7 +238,9 @@ describe("recorte que os filtros de Vendas mandam", () => {
       screen.getByRole("button", { name: "Empresas Todas as empresas" }),
     );
     fireEvent.click(
-      screen.getByRole("checkbox", { name: "Beta Logística (55.666.777/0001-88)" }),
+      screen.getByRole("checkbox", {
+        name: "Beta Logística (55.666.777/0001-88)",
+      }),
     );
     expect(ultimoRecorte().clientes).toEqual([2]);
   });

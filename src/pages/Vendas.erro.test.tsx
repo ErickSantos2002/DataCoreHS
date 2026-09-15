@@ -2,10 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Vendas from "./Vendas";
-import {
-  ESTADO_VENDAS,
-  reiniciarEstadoDeVendas,
-} from "./vendas/vendasFalsas";
+import { ESTADO_VENDAS, reiniciarEstadoDeVendas } from "./vendas/vendasFalsas";
 
 /**
  * O que a tela de Vendas diz quando a busca falha.
@@ -77,7 +74,8 @@ beforeEach(() => {
 
 describe("falha de rede na tela de Vendas", () => {
   it("o resumo falhando, a tela avisa em bloco com frase acentuada", () => {
-    ESTADO_VENDAS.erroDoResumo = "Nao foi possivel carregar os dados do periodo.";
+    ESTADO_VENDAS.erroDoResumo =
+      "Nao foi possivel carregar os dados do periodo.";
     render(<Vendas />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(FRASE);
@@ -92,7 +90,8 @@ describe("falha de rede na tela de Vendas", () => {
   });
 
   it("as duas falhando, o aviso aparece uma vez so", () => {
-    ESTADO_VENDAS.erroDoResumo = "Nao foi possivel carregar os dados do periodo.";
+    ESTADO_VENDAS.erroDoResumo =
+      "Nao foi possivel carregar os dados do periodo.";
     ESTADO_VENDAS.erroDaTabela = "Nao foi possivel carregar as notas.";
     render(<Vendas />);
 

@@ -26,6 +26,9 @@ src/pages/*
 !src/pages/clientes
 !src/pages/Clientes.tsx
 !src/pages/Clientes.*.test.tsx
+!src/pages/vendas
+!src/pages/Vendas.tsx
+!src/pages/Vendas.*.test.tsx
 src/components
 src/context
 src/services
