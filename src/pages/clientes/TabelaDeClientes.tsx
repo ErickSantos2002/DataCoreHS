@@ -133,6 +133,9 @@ export function TabelaDeClientes({
           <Button
             variant="success"
             onClick={onExportarExcel}
+            // Sem linha nenhuma saía planilha só com o cabeçalho, e PDF com a
+            // tabela vazia. `total` é o que a pesquisa deixou, e não a página.
+            disabled={total === 0}
             icon={
               <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
             }
@@ -142,6 +145,7 @@ export function TabelaDeClientes({
           <Button
             variant="secondary"
             onClick={onExportarPdf}
+            disabled={total === 0}
             icon={
               <Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
             }

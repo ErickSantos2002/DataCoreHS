@@ -212,14 +212,28 @@ describe("PDF de Clientes", () => {
     expect(tabelaDoPdf().body.map((l) => l[0])).toEqual(["Beta Logística"]);
   });
 
-  it("sem cliente, as duas exportacoes ainda saem", () => {
+  it("sem cliente, os dois botoes desabilitam e nada sai", () => {
+    // Saía planilha só com o cabeçalho e PDF com a tabela vazia.
     ESTADO_CLIENTES.vazio = true;
     render(<Clientes />);
 
+    expect(screen.getByRole("button", { name: /Excel/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /PDF/ })).toBeDisabled();
     exportar("Excel");
     exportar("PDF");
+    expect(baixarPlanilha).not.toHaveBeenCalled();
+    expect(autoTable).not.toHaveBeenCalled();
+  });
 
-    expect(planilha().abas[0].linhas).toEqual([]);
-    expect(tabelaDoPdf().body).toEqual([]);
+  it("a pesquisa que nao acha nada tambem desabilita", () => {
+    render(<Clientes />);
+    expect(screen.getByRole("button", { name: /Excel/ })).toBeEnabled();
+
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "zzz-ninguem" },
+    });
+
+    expect(screen.getByRole("button", { name: /Excel/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /PDF/ })).toBeDisabled();
   });
 });
