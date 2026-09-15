@@ -205,7 +205,7 @@ describe("carregando em Vendas", () => {
     render(<Vendas />);
 
     expect(
-      screen.getByText("Carregando dados de vendas..."),
+      screen.getByText("Carregando dados de vendas."),
     ).toBeInTheDocument();
     expect(screen.queryByText("Faturamento Total")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
