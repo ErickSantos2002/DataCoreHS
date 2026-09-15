@@ -59,8 +59,6 @@ export interface TabelaDeVendedoresProps {
  * para irmão do `Card`, sem mudar nada visível: ele é `position: fixed`.
  *
  * Achados ao mover (não corrigidos):
- *   - o clique de ordenar mora no `<th>`, que não entra na ordem de tabulação:
- *     ordenar é ação só de mouse;
  *   - abrir a edição do tipo é um `<div>` com `onClick`, também só de mouse;
  *   - os botões de salvar e cancelar a edição são só ícone, sem nome acessível.
  */
@@ -114,13 +112,31 @@ export function TabelaDeVendedores({
       )
     ) : null;
 
+  // O clique mora num `<button>` dentro do `<th>`, e não no `<th>`: um `<th>`
+  // não entra na ordem de tabulação nem responde a Enter, e ordenar era ação
+  // só de mouse. Não é o `sortable` do primitivo porque ele acrescenta as
+  // setas "↑ ↓ ↕" como TEXTO no cabeçalho; aqui fica o chevron, como em
+  // `servicos/TabelaDeServicos.tsx`. `aria-sort` conta a direção a quem não vê.
   const ordenavel = (campo: CampoDeOrdenacao, rotulo: string, icone?: React.ReactNode) => (
-    <TableHeaderCell className="cursor-pointer" onClick={() => onOrdenar(campo)}>
-      <span className="inline-flex select-none items-center gap-1">
+    <TableHeaderCell
+      aria-sort={
+        ordenacao.campo !== campo
+          ? "none"
+          : ordenacao.direcao === "asc"
+            ? "ascending"
+            : "descending"
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onOrdenar(campo)}
+        aria-label={`Ordenar por ${rotulo}`}
+        className="inline-flex select-none items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
         {icone}
         <span>{rotulo}</span>
         {indicador(campo)}
-      </span>
+      </button>
     </TableHeaderCell>
   );
 

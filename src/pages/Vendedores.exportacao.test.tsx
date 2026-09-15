@@ -137,7 +137,7 @@ describe("exportacao de Vendedores", () => {
     render(<Vendedores />);
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "  Alfa  " } });
-    fireEvent.click(screen.getByRole("columnheader", { name: /Valor/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Valor" }));
     await exportar();
 
     expect(fetchVendas).toHaveBeenCalledTimes(2);

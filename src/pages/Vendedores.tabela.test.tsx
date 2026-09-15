@@ -267,17 +267,17 @@ describe("pedido de ordenacao da tabela de Vendedores", () => {
   ])("o primeiro clique em %s pede %s decrescente, o segundo crescente", (rotulo, campo) => {
     render(<Vendedores />);
 
-    fireEvent.click(screen.getByRole("columnheader", { name: new RegExp(rotulo) }));
+    fireEvent.click(screen.getByRole("button", { name: `Ordenar por ${rotulo}` }));
     expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "desc" });
 
-    fireEvent.click(screen.getByRole("columnheader", { name: new RegExp(rotulo) }));
+    fireEvent.click(screen.getByRole("button", { name: `Ordenar por ${rotulo}` }));
     expect(ultimoPedido()).toMatchObject({ ordenarPor: campo, direcao: "asc" });
   });
 
   it("clicar em Data, que ja e a ordem decrescente, inverte para crescente", () => {
     render(<Vendedores />);
 
-    fireEvent.click(screen.getByRole("columnheader", { name: /Data/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Data" }));
 
     expect(ultimoPedido()).toMatchObject({ ordenarPor: "data_emissao", direcao: "asc" });
   });
@@ -294,6 +294,34 @@ describe("pedido de ordenacao da tabela de Vendedores", () => {
       ordenarPor: antes.ordenarPor,
       direcao: antes.direcao,
     });
+  });
+
+  it.each([
+    ["Data", "data_emissao"],
+    ["Cliente", "cliente"],
+    ["Valor", "valor_produtos"],
+    ["Tipo da Nota", "tipo"],
+  ])("a coluna %s ordena por um botao, que o teclado alcanca, e o th diz a direcao", (rotulo) => {
+    // O clique morava no `<th>`, que não entra na ordem de tabulação nem
+    // responde a Enter: ordenar era ação só de mouse. `aria-sort` conta o
+    // estado para leitor de tela, que antes só tinha o chevron para ver.
+    render(<Vendedores />);
+
+    const botao = screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
+    fireEvent.click(botao);
+
+    expect(botao.closest("th")).toHaveAttribute(
+      "aria-sort",
+      ultimoPedido().direcao === "asc" ? "ascending" : "descending",
+    );
+  });
+
+  it("coluna que nao e a da ordem atual diz aria-sort none", () => {
+    render(<Vendedores />);
+
+    expect(
+      screen.getByRole("button", { name: "Ordenar por Cliente" }).closest("th"),
+    ).toHaveAttribute("aria-sort", "none");
   });
 
   it("a tela pede 15 por pagina", () => {
