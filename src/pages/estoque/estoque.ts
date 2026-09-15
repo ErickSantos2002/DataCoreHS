@@ -263,10 +263,12 @@ export interface OrdenacaoDeEstoque {
   direcao: "asc" | "desc";
 }
 
-/** Número compara por subtração; texto em ordem natural, sem caixa nem acento. */
+/** Número compara por subtração; texto em ordem natural, sem caixa nem acento,
+ *  e sem o espaço das pontas — o Tiny devolve nome como " VIDRO - PHOEBUS ", e o
+ *  espaço ordenava antes de qualquer letra. */
 function comparar(a: string | number, b: string | number): number {
   if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b), "pt-BR", {
+  return String(a).trim().localeCompare(String(b).trim(), "pt-BR", {
     numeric: true,
     sensitivity: "base",
   });

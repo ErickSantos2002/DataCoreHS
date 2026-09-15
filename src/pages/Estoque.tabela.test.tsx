@@ -22,11 +22,28 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
+const { ESTADO } = vi.hoisted(() => ({
+  ESTADO: { comEspaco: false },
+}));
+
 vi.mock("../context/EstoqueContext", async () => {
   const { PRODUTOS_ESTOQUE } = await import("./estoque/produtosFalsos");
+  // Nome com espaço nas pontas, como o Tiny devolve " VIDRO - PHOEBUS "
+  // (visto no navegador em 15/09).
+  const COM_ESPACO = {
+    id: 99,
+    nome: " Vidro ",
+    codigo: "V1",
+    unidade: "UN",
+    preco: 1,
+    saldo: 1,
+    situacao: "A" as const,
+  };
   return {
     useEstoque: () => ({
-      produtos: PRODUTOS_ESTOQUE,
+      produtos: ESTADO.comEspaco
+        ? [...PRODUTOS_ESTOQUE, COM_ESPACO]
+        : PRODUTOS_ESTOQUE,
       carregando: false,
       atualizarProdutos: vi.fn(),
     }),
@@ -80,6 +97,7 @@ vi.mock("recharts", () => {
 });
 
 beforeEach(() => {
+  ESTADO.comEspaco = false;
   vi.mocked(baixarPlanilha).mockReset();
 });
 
@@ -174,6 +192,23 @@ describe("ordem da tabela de Estoque", () => {
       "Kit calibração",
       "Sensor antigo",
       "Tubo descartável",
+    ]);
+  });
+
+  it("espaco nas pontas do nome nao joga o produto para o topo da ordem", () => {
+    // " VIDRO - PHOEBUS " abria a tabela, antes de "(PACOTE..." e de "4G...":
+    // o espaço ordena antes de qualquer letra.
+    ESTADO.comEspaco = true;
+    render(<Estoque />);
+
+    expect(nomes().map((n) => n.trim())).toEqual([
+      "Bafômetro Phoebus Premium Edition XL",
+      "Bocal",
+      "Brinde",
+      "Kit calibração",
+      "Sensor antigo",
+      "Tubo descartável",
+      "Vidro",
     ]);
   });
 
