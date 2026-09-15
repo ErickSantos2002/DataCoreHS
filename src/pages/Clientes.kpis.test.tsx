@@ -175,7 +175,7 @@ describe("carregando em Clientes", () => {
     render(<Clientes />);
 
     expect(
-      screen.getByText("Carregando dados dos clientes..."),
+      screen.getByText("Carregando dados dos clientes."),
     ).toBeInTheDocument();
     expect(screen.queryByText("Clientes Ativos")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();

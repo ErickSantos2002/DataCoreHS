@@ -176,7 +176,7 @@ const Clientes: React.FC = () => {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted">
         <Spinner size="lg" />
-        <p>Carregando dados dos clientes...</p>
+        <p>Carregando dados dos clientes.</p>
       </div>
     );
   }
