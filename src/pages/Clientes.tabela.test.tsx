@@ -5,6 +5,7 @@ import Clientes from "./Clientes";
 import {
   ESTADO_CLIENTES,
   HOJE_CLIENTES,
+  RESUMO_CLIENTES,
   reiniciarEstadoDeClientes,
 } from "./clientes/clientesFalsos";
 
@@ -332,3 +333,75 @@ describe("ordenar pelo teclado no Detalhamento de Clientes", () => {
     expect(cabecalho("Cliente")).toHaveAttribute("aria-sort", "ascending");
   });
 });
+
+describe("ordem estavel e natural no Detalhamento de Clientes", () => {
+  it("empate desempata pelo nome, crescente nos dois sentidos", () => {
+    // Oito clientes com 2 notas. O comparador antigo nunca devolvia 0
+    // (`a > b ? 1 : -1`): em empate a ordem dependia do motor.
+    render(<Clientes />);
+
+    ordenarPor("Nº Compras");
+    expect(ordemDosNomes()).toEqual([
+      "Gama Saúde",
+      "Alfa Mineração Recife Ltda",
+      "Beta Logística",
+      "Cliente 06",
+      "Cliente 07",
+      "Cliente 08",
+      "Cliente 09",
+      "Cliente 10",
+      "Cliente 11",
+      "Cliente 12",
+      "Não informado",
+      "Delta Engenharia",
+    ]);
+
+    ordenarPor("Nº Compras");
+    expect(ordemDosNomes()).toEqual([
+      "Delta Engenharia",
+      "Cliente 06",
+      "Cliente 07",
+      "Cliente 08",
+      "Cliente 09",
+      "Cliente 10",
+      "Cliente 11",
+      "Cliente 12",
+      "Não informado",
+      "Beta Logística",
+      "Alfa Mineração Recife Ltda",
+      "Gama Saúde",
+    ]);
+  });
+
+  it("o nome ordena sem acento, sem caixa e sem o espaco das pontas", () => {
+    // Com `toLowerCase` e `>`, "Ágil" ia para o fim — "á" vem depois de "z" —
+    // e o espaço que o Tiny deixa na frente do nome jogava " Zeta" para o topo.
+    ESTADO_CLIENTES.resumo = CARTEIRA_COM_ACENTO;
+    render(<Clientes />);
+
+    ordenarPor("Cliente");
+    ordenarPor("Cliente");
+
+    const primeiras = linhas().map(
+      (l) => within(l).getAllByRole("cell")[0].querySelector("p")?.textContent,
+    );
+    expect(primeiras).toEqual(["Ágil Serviços", "beta minúscula", "Bravo", " Zeta"]);
+  });
+});
+
+const CARTEIRA_COM_ACENTO = {
+  ...RESUMO_CLIENTES,
+  por_cliente: [" Zeta", "Ágil Serviços", "beta minúscula", "Bravo"].map(
+    (nome, i) => ({
+      documento: String(i),
+      nome,
+      cpf_cnpj: null,
+      email: null,
+      fone: null,
+      valor: 100 - i,
+      valor_produtos: 1,
+      notas: 1,
+      ultima_compra: "2026-09-01",
+    }),
+  ),
+};

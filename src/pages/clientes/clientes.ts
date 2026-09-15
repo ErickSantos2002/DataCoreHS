@@ -235,13 +235,27 @@ export interface OrdenacaoDeClientes {
   direcao: "asc" | "desc";
 }
 
+/** Número compara por subtração; texto em ordem natural, sem caixa nem acento,
+ *  e sem o espaço das pontas — o Tiny devolve nome como " ZETA ", e o espaço
+ *  ordenava antes de qualquer letra. */
+function comparar(a: string | number, b: string | number): number {
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).trim().localeCompare(String(b).trim(), "pt-BR", {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
 /**
  * A tabela: pesquisa por nome, e-mail, telefone ou documento (com máscara ou
  * pelos dígitos), e a ordem.
  *
- * Achado ao mover (não corrigido): o comparador nunca devolve 0
- * (`a > b ? 1 : -1`), e em empate a ordem depende do motor; o nome compara
- * com `toLowerCase`, sem acento nem espaço das pontas.
+ * Duas regras de ordem que a tela antiga não tinha, as mesmas de Estoque:
+ *   - o nome compara com `localeCompare`: com `toLowerCase` e `>`, "Ágil" ia
+ *     para depois de "Zeta", e o espaço da frente jogava o nome para o topo;
+ *   - **empate desempata pelo nome**, crescente em qualquer direção: o
+ *     comparador antigo nunca devolvia 0 (`a > b ? 1 : -1`), e oito clientes
+ *     com duas notas saíam na ordem que o motor quisesse.
  */
 export function buscarEOrdenar(
   carteira: ClienteDaCarteira[],
@@ -266,7 +280,7 @@ export function buscarEOrdenar(
   const valorDe = (c: ClienteDaCarteira): string | number => {
     switch (ordenacao.campo) {
       case "nome":
-        return c.nome.toLowerCase();
+        return c.nome;
       case "ultimaCompra":
         return c.ultimaCompra?.getTime() || 0;
       case "totalComprado":
@@ -278,12 +292,11 @@ export function buscarEOrdenar(
     }
   };
 
-  filtrados.sort((a, b) => {
-    const aVal = valorDe(a);
-    const bVal = valorDe(b);
-    if (ordenacao.direcao === "asc") return aVal > bVal ? 1 : -1;
-    return aVal < bVal ? 1 : -1;
-  });
+  const sinal = ordenacao.direcao === "asc" ? 1 : -1;
+  filtrados.sort(
+    (a, b) =>
+      sinal * comparar(valorDe(a), valorDe(b)) || comparar(a.nome, b.nome),
+  );
 
   return filtrados;
 }

@@ -136,6 +136,9 @@ export const ESTADO_CLIENTES = {
   carregando: false,
   vazio: false,
   erro: null as string | null,
+  /** Um resumo no lugar de `RESUMO_CLIENTES`. Tem de ser um objeto fixo do
+   *  arquivo de teste, e não montado a cada render (ver `hooksDeClientes`). */
+  resumo: null as ResumoComercial | null,
   recortes: [] as RecorteComercial[],
 };
 
@@ -143,6 +146,7 @@ export function reiniciarEstadoDeClientes() {
   ESTADO_CLIENTES.carregando = false;
   ESTADO_CLIENTES.vazio = false;
   ESTADO_CLIENTES.erro = null;
+  ESTADO_CLIENTES.resumo = null;
   ESTADO_CLIENTES.recortes.length = 0;
 }
 
@@ -160,7 +164,7 @@ export function hooksDeClientes() {
         resumo:
           ESTADO_CLIENTES.vazio || ESTADO_CLIENTES.erro
             ? RESUMO_FALSO
-            : RESUMO_CLIENTES,
+            : (ESTADO_CLIENTES.resumo ?? RESUMO_CLIENTES),
         carregando: ESTADO_CLIENTES.carregando,
         atualizando: false,
         erro: ESTADO_CLIENTES.erro,
