@@ -47,9 +47,31 @@ export interface Servico {
   valor_servico: number;
   razao_social_tomador: string;
   cpf_cnpj_tomador: string;
-  cidade_tomador: string;
-  uf_tomador: string;
+  /** `null` de fato: a importação parou de trazer a cidade em 2025, e a API
+   *  devolve `null` em toda NFS-e daquele ano. Ver `rotuloDaCidade`. */
+  cidade_tomador: string | null;
+  uf_tomador: string | null;
   discriminacao_servico: string;
+}
+
+/**
+ * "Cidade/UF" do tomador, para a tabela e as duas exportações.
+ *
+ * As três montavam `${cidade}/${uf}` direto, e desde 2025 a API manda
+ * `cidade_tomador: null` (1276 de 1276 notas daquele ano, 868 das 1133 de
+ * 2026). A planilha e o PDF saíam com "null/null" em toda linha e a tabela com
+ * uma barra solta, porque o React não imprime `null` — conferido abrindo os
+ * dois arquivos em 15/09. A parte que falta some com a barra; faltando as
+ * duas, travessão, pelo mesmo motivo de `dataDeCalendario`: diz "não tem".
+ *
+ * Aceita `undefined` também: é como o falso dos testes representa o campo.
+ */
+export function rotuloDaCidade(
+  cidade: string | null | undefined,
+  uf: string | null | undefined,
+): string {
+  const partes = [cidade, uf].map((parte) => parte?.trim()).filter(Boolean);
+  return partes.length ? partes.join("/") : "—";
 }
 
 /** Os quatro números do topo da tela. */
@@ -286,7 +308,7 @@ export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[]
     Cliente: s.razao_social_tomador,
     "CNPJ/CPF": s.cpf_cnpj_tomador,
     "Data Emissão": dataDeCalendario(s.data_emissao),
-    Cidade: `${s.cidade_tomador}/${s.uf_tomador}`,
+    Cidade: rotuloDaCidade(s.cidade_tomador, s.uf_tomador),
     Valor: converterParaNumero(s.valor_servico),
     Descrição: s.discriminacao_servico,
   }));
@@ -322,6 +344,6 @@ export function linhasDoPdf(servicos: Servico[]): (string | number)[][] {
     s.razao_social_tomador.substring(0, 25),
     dataDeCalendario(s.data_emissao),
     `R$ ${converterParaNumero(s.valor_servico).toFixed(2)}`,
-    `${s.cidade_tomador}/${s.uf_tomador}`,
+    rotuloDaCidade(s.cidade_tomador, s.uf_tomador),
   ]);
 }

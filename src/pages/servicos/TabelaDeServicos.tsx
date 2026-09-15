@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "../../design-system/ui";
 import { converterParaNumero } from "../../lib/dinheiro";
+import { rotuloDaCidade } from "./servicos";
 import type { OrdenacaoDeServicos, Servico } from "./servicos";
 
 /**
@@ -141,7 +142,7 @@ export function TabelaDeServicos({
       case "cidade":
         return (
           <TableCell key={chave} muted>
-            {servico.cidade_tomador}/{servico.uf_tomador}
+            {rotuloDaCidade(servico.cidade_tomador, servico.uf_tomador)}
           </TableCell>
         );
       case "valor":

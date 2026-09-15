@@ -324,6 +324,23 @@ describe("linhasDaPlanilha", () => {
 
     expect(linha["Data Emissão"]).toBe("—");
   });
+
+  it.each([
+    ["sem cidade e sem UF", "—", null, null],
+    ["so com a UF", "MG", null, "MG"],
+    ["so com a cidade", "Recife", "Recife", null],
+  ])("nota %s sai com %s na cidade, e nao com null", (_caso, esperado, cidade, uf) => {
+    // A API devolve `cidade_tomador: null` em toda NFS-e de 2025 e em 868 das
+    // 1133 de 2026 (a importação parou de trazer o campo). A template string
+    // `${cidade}/${uf}` imprimia "null/null" nas 57 linhas de uma planilha de
+    // setembro — conferido abrindo o arquivo em 15/09. Os três casos, e não só
+    // o dos dois nulos: uma função que devolvesse sempre "—" passaria com um.
+    const [linha] = linhasDaPlanilha([
+      { ...SERVICO_BASE, cidade_tomador: cidade, uf_tomador: uf },
+    ]);
+
+    expect(linha.Cidade).toBe(esperado);
+  });
 });
 
 /**
@@ -365,5 +382,15 @@ describe("linhasDoPdf", () => {
     }));
 
     expect(linhasDoPdf(servicos)).toHaveLength(30);
+  });
+
+  it("nota sem cidade e sem UF sai com travessao, e nao com null/null", () => {
+    // Mesmo defeito da planilha, na quinta coluna: o PDF de 15/09 saiu com
+    // "null/null" nas 30 linhas.
+    const [linha] = linhasDoPdf([
+      { ...SERVICO_BASE, cidade_tomador: null, uf_tomador: null },
+    ]);
+
+    expect(linha[4]).toBe("—");
   });
 });

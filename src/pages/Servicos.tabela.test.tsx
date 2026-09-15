@@ -30,8 +30,9 @@ import type { PedidoDaTabelaDeServicos } from "./servicos/useServicos";
  *   - 3001 / Alfa Mineração / 2026-01-10 / Recife-PE / R$ 1.000,00.
  *     Único serviço usado pelo teste de colunas.
  *   - 1002 / Beta Logística / 2026-02-15 / Olinda-PE / R$ 500,00.
- *   - 2003 / Gama Extração / 2026-03-20 / Salvador-BA / R$ 750,00. Único
- *     serviço com "Gama" no nome do cliente — usado pela pesquisa.
+ *   - 2003 / Gama Extração / 2026-03-20 / sem cidade nem UF / R$ 750,00.
+ *     Único serviço com "Gama" no nome do cliente — usado pela pesquisa — e
+ *     o único sem cidade, como toda NFS-e de 2025 chega da API.
  */
 vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
@@ -74,8 +75,12 @@ const { SERVICOS_ENRIQUECIDOS, PEDIDOS } = vi.hoisted(() => ({
       valor_servico: 750,
       razao_social_tomador: "Gama Extração",
       cpf_cnpj_tomador: "22.333.444/0001-55",
-      cidade_tomador: "Salvador",
-      uf_tomador: "BA",
+      // Sem cidade e sem UF, como chega da API a NFS-e emitida desde 2025. A
+      // API manda `null`; aqui vai `undefined` porque o `ServicoDoFixture` do
+      // falso (que não é nosso) só aceita esse. O `null` tem prova própria em
+      // `servicos/servicos.test.ts`.
+      cidade_tomador: undefined,
+      uf_tomador: undefined,
       discriminacao_servico: "Inspeção de equipamentos",
       valor_servico_numero: 750,
       mes: "marco",
@@ -255,6 +260,14 @@ describe("tabela de Serviços", () => {
     // `screen.getByText("Alfa Mineração")` puro, que também acharia o card
     // "Top Cliente" (o cliente com maior faturamento no fixture é a Alfa).
     expect(textoDe(celula(linhaContendo("3001"), rotulo))).toBe(valor);
+  });
+
+  it("a nota sem cidade mostra travessao na coluna Cidade/UF, e nao uma barra solta", () => {
+    // O React não imprime `null`, então a célula saía "/" — em toda linha de
+    // 2025 em diante, conferido no navegador em 15/09.
+    render(<Servicos />);
+
+    expect(textoDe(celula(linhaContendo("2003"), "Cidade/UF"))).toBe("—");
   });
 
   it("a celula de descricao traz o botao que abre as observacoes", () => {
