@@ -150,7 +150,10 @@ export function TabelaDeVendedores({
         type="button"
         onClick={() => onOrdenar(campo)}
         aria-label={`Ordenar por ${rotulo}`}
-        className="inline-flex select-none items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        // `uppercase` de novo aqui: o preflight do Tailwind zera text-transform
+        // em `button`, e os cabeçalhos ordenáveis saíam em caixa normal ao lado
+        // dos outros em caixa alta.
+        className="inline-flex select-none items-center gap-1 uppercase tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         {icone}
         <span>{rotulo}</span>
@@ -292,7 +295,7 @@ export function TabelaDeVendedores({
                     {nota.itens?.length > 0 ? (
                       <div>
                         <p
-                          className="max-w-xs truncate"
+                          className="max-w-[10rem] truncate"
                           title={nota.itens.map((i) => i.descricao).join(", ")}
                         >
                           {nota.itens.map((i) => i.descricao).join(", ")}
@@ -327,12 +330,12 @@ export function TabelaDeVendedores({
 
                   <TableCell>
                     {editandoTipo === nota.id ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <select
                           aria-label="Tipo da nota"
                           value={tipoTemp}
                           onChange={(e) => setTipoTemp(e.target.value)}
-                          className="rounded-lg border border-borda bg-surface px-2 py-1 text-sm text-conteudo focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                          className="rounded-lg border border-borda bg-surface px-1 py-1 text-sm text-conteudo focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                           disabled={salvandoTipo === nota.id}
                         >
                           {TIPOS.map((tipo) => (
