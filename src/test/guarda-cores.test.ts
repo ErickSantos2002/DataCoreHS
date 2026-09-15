@@ -104,7 +104,7 @@ describe("guarda de cor", () => {
 //
 // `src/styles/index.css` nao esta na lista: a unica classe custom dele
 // (`.input-cc`, consumida so pelo CentroCustoTab) ja migrou para token.
-const PENDENTES_FASE_3: string[] = ["src/pages/Vendas.tsx"];
+const PENDENTES_FASE_3: string[] = [];
 
 /** Nomes de cor que o tailwind.config.js REMAPEIA com hexadecimal literal.
  *  Sao a ponte de paleta (blue, slate) e o `login`: escrever `bg-blue-600`
