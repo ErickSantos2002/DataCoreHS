@@ -217,3 +217,40 @@ describe("observacoes do Detalhamento de Vendas", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
+
+describe("ordenar pelo teclado no Detalhamento de Vendas", () => {
+  // O clique morava no `<th>`, que não entra na ordem de tabulação nem
+  // responde a Enter: ordenar era ação só de mouse, e o leitor de tela não
+  // sabia qual coluna estava ordenada.
+  const ROTULOS = ["Data", "Cliente", "Valor", "Vendedor"];
+
+  // O `<th>` que contém o botão: no jsdom daqui o nome acessível do cabeçalho
+  // sai do texto visível, e não do `aria-label` do botão.
+  const cabecalho = (rotulo: string) =>
+    screen
+      .getByRole("button", { name: `Ordenar por ${rotulo}` })
+      .closest("th") as HTMLElement;
+
+  it("cada coluna ordenavel e um botao com nome", () => {
+    render(<Vendas />);
+    for (const rotulo of ROTULOS) {
+      expect(
+        screen.getByRole("button", { name: `Ordenar por ${rotulo}` }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("aria-sort diz a coluna e o sentido, e as outras ficam em none", () => {
+    render(<Vendas />);
+
+    expect(cabecalho("Data")).toHaveAttribute("aria-sort", "descending");
+    expect(cabecalho("Valor")).toHaveAttribute("aria-sort", "none");
+
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Valor" }));
+    expect(cabecalho("Valor")).toHaveAttribute("aria-sort", "descending");
+    expect(cabecalho("Data")).toHaveAttribute("aria-sort", "none");
+
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Valor" }));
+    expect(cabecalho("Valor")).toHaveAttribute("aria-sort", "ascending");
+  });
+});
