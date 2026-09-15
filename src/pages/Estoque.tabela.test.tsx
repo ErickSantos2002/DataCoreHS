@@ -99,8 +99,11 @@ function celula(linha: HTMLElement, rotulo: string): HTMLElement {
   return linha.querySelectorAll("td")[indice] as HTMLElement;
 }
 
+/** Clica onde a pessoa clica: no botão de ordenar, se a coluna tem um, e no
+ *  próprio `<th>` quando não tem (Unidade, Valor Total). */
 function clicarNoCabecalho(rotulo: string) {
-  fireEvent.click(screen.getByRole("columnheader", { name: rotulo }));
+  const botao = screen.queryByRole("button", { name: `Ordenar por ${rotulo}` });
+  fireEvent.click(botao ?? screen.getByRole("columnheader", { name: rotulo }));
 }
 
 describe("colunas da tabela de Estoque", () => {
@@ -217,6 +220,26 @@ describe("ordem da tabela de Estoque", () => {
       "Inativo",
     ]);
   });
+
+  it.each(["Nome", "Código-SKU", "Preço", "Saldo", "Situação"])(
+    "a coluna %s ordena por um botao, que o teclado alcanca, e o th diz a direcao",
+    (rotulo) => {
+      // O clique morava no `<th>`, fora da ordem de tabulação e sem Enter.
+      render(<Estoque />);
+
+      const botao = screen.getByRole("button", { name: `Ordenar por ${rotulo}` });
+      expect(botao.closest("th")).toHaveAttribute(
+        "aria-sort",
+        rotulo === "Nome" ? "ascending" : "none",
+      );
+
+      fireEvent.click(botao);
+
+      // Nome já estava crescente e inverte; as outras recebem o primeiro
+      // clique, que é decrescente.
+      expect(botao.closest("th")).toHaveAttribute("aria-sort", "descending");
+    },
+  );
 
   it("Unidade e Valor Total nao ordenam", () => {
     render(<Estoque />);

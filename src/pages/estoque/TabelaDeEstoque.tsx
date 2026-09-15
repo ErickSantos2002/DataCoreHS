@@ -46,8 +46,6 @@ export interface TabelaDeEstoqueProps {
  * veio junto (colocation): só esta tabela o abre e o fecha.
  *
  * Achados ao mover (não corrigidos):
- *   - o clique de ordenar mora no `<th>`, que não entra na ordem de tabulação:
- *     ordenar é ação só de mouse;
  *   - exportar não desabilita com a tabela vazia.
  */
 export function TabelaDeEstoque({
@@ -65,9 +63,27 @@ export function TabelaDeEstoque({
 }: TabelaDeEstoqueProps) {
   const [modalAberto, setModalAberto] = useState(false);
 
+  // O clique mora num `<button>` dentro do `<th>`: um `<th>` não entra na
+  // ordem de tabulação nem responde a Enter, e ordenar era ação só de mouse.
+  // Não é o `sortable` do primitivo, que põe as setas como TEXTO no cabeçalho.
+  // `uppercase` de novo no botão porque o preflight do Tailwind zera
+  // text-transform em `button` (a lição de Vendedores).
   const ordenavel = (campo: CampoDeOrdenacao, rotulo: string) => (
-    <TableHeaderCell className="cursor-pointer" onClick={() => onOrdenar(campo)}>
-      <span className="inline-flex select-none items-center gap-1">
+    <TableHeaderCell
+      aria-sort={
+        ordenacao.campo !== campo
+          ? "none"
+          : ordenacao.direcao === "asc"
+            ? "ascending"
+            : "descending"
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onOrdenar(campo)}
+        aria-label={`Ordenar por ${rotulo}`}
+        className="inline-flex select-none items-center gap-1 uppercase tracking-wider focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
         <span>{rotulo}</span>
         {ordenacao.campo === campo ? (
           ordenacao.direcao === "desc" ? (
@@ -76,7 +92,7 @@ export function TabelaDeEstoque({
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           )
         ) : null}
-      </span>
+      </button>
     </TableHeaderCell>
   );
 
