@@ -214,6 +214,9 @@ export function TabelaDeVendas({
                       <Button
                         variant="ghost"
                         size="sm"
+                        // Sem `nowrap` o rótulo quebrava em "Ver" e
+                        // "Observações", e a linha dobrava de altura.
+                        className="whitespace-nowrap"
                         onClick={() => setNotaDasObservacoes(nota.id)}
                       >
                         Ver Observações
