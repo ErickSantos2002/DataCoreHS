@@ -51,44 +51,22 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-// O fixture mora dentro de `vi.hoisted` porque a fábrica do `vi.mock` abaixo
-// roda antes dos imports deste arquivo.
-const { NOTAS_VENDAS } = vi.hoisted(() => ({
-  NOTAS_VENDAS: [
-    {
-      id: 1,
-      data_emissao: "2026-01-10",
-      valor_nota: 1000,
-      cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
-      nome_vendedor: "Vendedor A",
-      itens: [
-        { descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
-      ],
-      tem_observacoes: false,
-    },
-    {
-      id: 2,
-      data_emissao: "2026-02-10",
-      valor_nota: 500,
-      cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
-      nome_vendedor: "Vendedor A",
-      itens: [
-        { descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
-      ],
-      tem_observacoes: false,
-    },
-  ],
-}));
-
 // A tela deixou de ler o `DataContext` (item 9.4): os agregados vêm somados do
 // banco e a tabela vem paginada; aquele context nem existe mais. O falso mora
 // em `comercial/hooksFalsos`, igual ao de `Vendas.paginacao.test.tsx`. O que
 // este arquivo afirma não depende da fonte: o eixo do ranking lê `isMobile`,
 // não o dado.
+//
+// 15/09/2026, migração: o falso passou a ser o de `vendas/vendasFalsas.ts`. O de
+// `criarHooksFalsos` com duas notas devolvia o resumo VAZIO, e com os gráficos
+// sem dado virando `ChartEmpty` o Top 5 Vendedores não monta eixo nenhum — o
+// teste só enxergava o eixo porque o gráfico vazio desenhava assim mesmo. O
+// resumo de `vendasFalsas` tem os quatro gráficos com dado, e o índice 2
+// continua sendo o eixo dos vendedores.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos } = await import("./comercial/hooksFalsos");
-  return { ...real, ...criarHooksFalsos(NOTAS_VENDAS) };
+  const { hooksDeVendas } = await import("./vendas/vendasFalsas");
+  return { ...real, ...hooksDeVendas() };
 });
 
 vi.mock("recharts", () => {

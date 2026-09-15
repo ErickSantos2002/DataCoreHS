@@ -18,7 +18,7 @@ import {
   corDaSerie,
   useTemaDoGrafico,
 } from "../../design-system/chartTheme";
-import { Card, CardTitle } from "../../design-system/ui";
+import { Card, CardTitle, ChartEmpty } from "../../design-system/ui";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { formatarValorAbreviado, type PontoDeEvolucao } from "./vendas";
 
@@ -26,7 +26,15 @@ import { formatarValorAbreviado, type PontoDeEvolucao } from "./vendas";
 const SERIE_ACAO = 0;
 const SERIE_POSITIVA = 1;
 
+/** A altura dos quatro gráficos — o `ChartEmpty` que ocupa o lugar do vazio
+ *  precisa do MESMO número, senão o cartão pula de tamanho. */
 const ALTURA = 300;
+
+/** Gráfico sem dado não desenha nada útil: linha e barras pintam um eixo em
+ *  branco e a pizza nada, e a moldura muda sob o título lia como tela
+ *  quebrada. Uma frase para vazio e para falha — a falha já tem o `Alert` no
+ *  topo da página. */
+const MENSAGEM_SEM_DADO = "Nenhuma venda no período para montar este gráfico.";
 
 const DINHEIRO = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
@@ -71,6 +79,9 @@ export function GraficosDeVendas({
     <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card padding="lg">
         <CardTitle className="mb-4">Evolução das Vendas</CardTitle>
+        {evolucao.length === 0 ? (
+          <ChartEmpty height={ALTURA} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <ResponsiveContainer width="100%" height={ALTURA}>
           <LineChart data={evolucao}>
             <CartesianGrid
@@ -102,10 +113,14 @@ export function GraficosDeVendas({
             />
           </LineChart>
         </ResponsiveContainer>
+        )}
       </Card>
 
       <Card padding="lg">
         <CardTitle className="mb-4">Top 5 Produtos</CardTitle>
+        {rankingProdutos.length === 0 ? (
+          <ChartEmpty height={ALTURA} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <ResponsiveContainer width="100%" height={ALTURA}>
           <BarChart data={rankingProdutos} barCategoryGap="20%">
             <CartesianGrid
@@ -154,10 +169,14 @@ export function GraficosDeVendas({
             />
           </BarChart>
         </ResponsiveContainer>
+        )}
       </Card>
 
       <Card padding="lg">
         <CardTitle className="mb-4">Top 5 Vendedores</CardTitle>
+        {rankingVendedores.length === 0 ? (
+          <ChartEmpty height={ALTURA} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <ResponsiveContainer width="100%" height={ALTURA}>
           <BarChart
             data={rankingVendedores}
@@ -216,10 +235,14 @@ export function GraficosDeVendas({
             />
           </BarChart>
         </ResponsiveContainer>
+        )}
       </Card>
 
       <Card padding="lg">
         <CardTitle className="mb-4">Distribuição por Empresa</CardTitle>
+        {distribuicaoEmpresas.length === 0 ? (
+          <ChartEmpty height={ALTURA} message={MENSAGEM_SEM_DADO} />
+        ) : (
         <ResponsiveContainer width="100%" height={ALTURA}>
           <PieChart>
             <Pie
@@ -252,6 +275,7 @@ export function GraficosDeVendas({
             />
           </PieChart>
         </ResponsiveContainer>
+        )}
       </Card>
     </div>
   );

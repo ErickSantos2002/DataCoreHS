@@ -350,7 +350,9 @@ describe("Distribuicao por Empresa", () => {
 });
 
 describe("graficos sem dado em Vendas", () => {
-  it("com resumo vazio, os quatro cartoes continuam com o titulo", () => {
+  it("com resumo vazio, os quatro cartoes dizem que nao ha dado, e nao desenham eixo", () => {
+    // Desenhavam grade e eixos em branco sob o título, e a pizza nada — lia
+    // como tela quebrada.
     ESTADO_VENDAS.vazio = true;
     render(<Vendas />);
 
@@ -360,8 +362,20 @@ describe("graficos sem dado em Vendas", () => {
       "Top 5 Vendedores",
       "Distribuição por Empresa",
     ]) {
-      expect(screen.getByRole("heading", { name: titulo })).toBeInTheDocument();
+      const cartao = cartaoDoGrafico(titulo);
+      expect(cartao).toHaveTextContent(
+        "Nenhuma venda no período para montar este gráfico.",
+      );
+      expect(cartao.querySelector("[data-grafico]")).toBeNull();
     }
-    expect(document.querySelector("[data-balao]")).toBeNull();
+  });
+
+  it("um grafico sem dado nao apaga os outros", () => {
+    // Um mês só: a evolução tem ponto, e os rankings também.
+    ESTADO_VENDAS.meses = 1;
+    render(<Vendas />);
+    expect(
+      cartaoDoGrafico("Evolução das Vendas").querySelector("[data-grafico]"),
+    ).not.toBeNull();
   });
 });
