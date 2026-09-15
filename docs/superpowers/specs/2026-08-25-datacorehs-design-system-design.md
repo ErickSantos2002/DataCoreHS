@@ -1439,3 +1439,102 @@ desabilitados); vazio (período em 2031: `ChartEmpty`, KPIs e estatísticas zera
 - O "Top Cliente" com o período "Todos" é um cliente **inativo** (última compra em
   2021): o ranking é por valor do recorte, e não por atividade. Não é defeito, mas
   vale saber ao ler o cartão.
+
+## Estado em 15/09/2026 (noite) — Vendas migrada, Fase 3 concluída (12 de 12)
+
+Branch `fase-3-vendas`, dezessete commits sobre `8bc61ab4`. Suíte em **1887 testes /
+147 arquivos**, verde nos dois fusos; lint **24** (era 27 — saíram as oito cores de
+`CORES_PIZZA` que ninguém usava, imports sem uso e o estado `exportando` que nada lia);
+`tsc` limpo. **`PENDENTES_FASE_3` está vazia: não há mais tela fora do design system.**
+
+### Como foi
+
+Vendas é a gêmea de Vendedores na fonte de dados: resumo agregado do banco e tabela
+paginada no servidor (`comercial/useComercial.ts`, da outra frente). A tabela prende o
+**pedido** que a tela manda, e não a ordem das linhas.
+
+1. **Caracterização**: quatro arquivos novos (topo e rodapé, gráficos, tabela,
+   exportação) sobre `vendas/vendasFalsas.ts`, 74 testes com os quatro que existiam.
+   **42 plantações**, todas derrubaram. O dublê de recharts dos gráficos chama o `label`
+   da pizza com o `percent` que o recharts calcula e o `content` com o item do array,
+   sem nada a mais — a lição do NaN de Estoque.
+2. **Decompor num commit** (`6dd57f93`), 74 testes sem uma edição.
+3. **Quinze consertos**, um commit cada, teste vermelho antes e plantação depois —
+   três deles vistos só no navegador.
+
+### Os consertos
+
+| Commit | Defeito |
+|---|---|
+| `752e83f9` | Falha de rede silenciosa nos dois hooks → um `Alert`. |
+| `cfc3b27b` | **A planilha saía com um dia a menos em Brasília**: `new Date("2026-03-05")` é meia-noite em UTC. O teste só fica vermelho em `TZ=America/Sao_Paulo`. Conferido no arquivo exportado da API real: 04/09, igual à tabela. |
+| `7d835194` | Ordenar só de mouse → botões com `aria-sort`. |
+| `a03b666b` | Exportar não desabilitava durante o laço (dois cliques, duas planilhas) nem sem nota. |
+| `8f043afa` | Falha ao exportar só escrevia no console → toast. |
+| `41d7cb39` | Os quatro gráficos sem venda eram moldura muda → `ChartEmpty`. |
+| `600bb3b5` | Frase de carregando com reticências. |
+| `7ebf2eea` | **Acima de 24 meses o comparativo comparava ANOS sob "Variação último mês", "Melhor mês" e "Média mensal"** — e com o período "Todos" produção já passa de 24 meses: era o que a tela mostrava por padrão. Agora "Comparativo Anual"; e com menos de dois pontos o cartão explica em vez de ficar mudo. |
+| `07cfb7a8` · `20b8873d` | Média de itens ("2.6") e variação ("-20.0%") com ponto. |
+| `98bd4f3f` | **Navegador**: seis colunas de filtro quebravam "Todos os vendedores". |
+| `6abea0c7` | **Navegador**: "R$ 10.0M" quebrava no eixo da evolução, e o nome inclinado do Top 5 Produtos saía cortado ("TRO PHOEB..."). Conferido medindo cada rótulo contra a caixa do gráfico. |
+| `5cdee458` | **Navegador**: "Ver Observações" quebrava em duas linhas e dobrava a altura da linha. |
+
+### Três lições
+
+- **Mensagem de commit afirmando plantação que não foi medida, de novo**: o de
+  `752e83f9` saiu dizendo que cada plantação derrubava dois testes; a saída mostrava um.
+  Corrigido antes de seguir. E a plantação do `a03b666b` rodou com um teste já
+  vermelho por outro motivo — foi refeita com a base limpa antes de acreditar na
+  contagem.
+- **Teste que só enxergava o eixo porque o gráfico vazio desenhava**:
+  `Vendas.mobile.test` usava um resumo vazio, e o eixo de vendedores que ele lê só
+  existia porque o gráfico sem dado pintava eixo assim mesmo. Com o `ChartEmpty` ele
+  caiu — trocou para `vendasFalsas`, sem mudar o que afirma.
+- **Um teste caiu pelo conserto, e não por defeito**: o de exportação que pesquisava
+  "bocal" com o Vendedor B não casava nota nenhuma no fixture; com o botão desabilitado
+  sem nota, o clique não exportava. Trocou o termo.
+
+### Checklist de tela migrada — Vendas
+
+1. Hexadecimal cravado: **nenhum** (saíram `CORES`, `CORES_PIZZA` e os balões).
+2. `dark:` onde há token: **nenhum**.
+3. Azul de ação: **sim** — faturamento em `tone="acao"`, valor em `text-action`.
+4. Um botão primário por bloco: **sim** — nenhum `primary`; "Exportar Excel" é `success`.
+5. Texto abaixo de 12px: **só o rótulo do `KpiCard`** (11px, do primitivo); o eixo de
+   vendedores caía para 9px em celular e o de valor era 11px — os dois em 12px.
+6. Estado vazio com frase: **sim** — `TableEmpty`, quatro `ChartEmpty` e a frase do
+   comparativo.
+7. Ícone é componente: **sim**.
+8. Contagem de paginação em frase: **sim** — "Mostrando 1 a 15 de 4336 notas".
+9. `focus-visible` com anel de 2px: **sim**.
+10. Nada animando em laço fora spinner: **sim**.
+
+### Conferência no navegador (15/09)
+
+Claro e escuro contra a API real (4336 notas); ordenar por Enter (a primeira linha
+virou a maior venda, R$ 799.680,00); modal de observações aberto e fechado;
+**exportação real** num período de cinco dias (10 notas, datas iguais às da tabela);
+vazio (período em 2031: quatro `ChartEmpty`, `TableEmpty`, exportar desabilitado, a
+frase do comparativo); erro (resumo e vendas bloqueados: um `Alert`); carregando;
+celular em 400px sem rolagem lateral.
+
+### Achados registrados e não corrigidos
+
+- **Data invertida vira "Confira a conexão"**: com o início depois do fim a API responde
+  422, e a tela diz que a rede caiu. Vale para as quatro telas do Comercial; o
+  tratamento mora em `comercial/useComercial.ts`, da outra frente.
+- **`ModalObservacoesDaNota` não é diálogo**: `<div>` sem `role="dialog"`, sem Escape e
+  com o botão em `bg-blue-600` cru. É componente compartilhado com Vendedores, fora
+  destas telas.
+- **O último ponto do comparativo é o período corrente, ainda aberto**: "Variação último
+  ano −32,0%" compara 2026 até setembro com 2025 inteiro. Decisão de produto.
+- "Não informado" é o maior vendedor (R$ 38 milhões) e a menor venda é R$ 0,00 — dado,
+  não tela.
+- A nota do "Produto Top" segue sem casas fixas ("R$ 15.684.661,84" ao lado de
+  "R$ 5.000"), como em Vendedores; o eixo abreviado segue com ponto, como nas outras.
+
+### Depois da Fase 3
+
+A **ponte de paleta** (`blue-*`, `slate-700/800/900` no `tailwind.config.js`) ainda não
+pode sair: `ModalObservacoesDaNota`, `ModalObservacoes`, `CentralButton` e `Login` a
+usam. O guarda de cor cobre as telas; esses componentes são o próximo passo.
