@@ -205,13 +205,21 @@ export interface OrdenacaoDeEstoque {
   direcao: "asc" | "desc";
 }
 
+/** Número compara por subtração; texto em ordem natural, sem caixa nem acento. */
+function comparar(a: string | number, b: string | number): number {
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), "pt-BR", { numeric: true, sensitivity: "base" });
+}
+
 /**
  * A tabela: pesquisa por nome, código ou unidade, e a ordem.
  *
- * Achados ao mover (não corrigidos):
- *   - o comparador nunca devolve `0` (`aVal > bVal ? 1 : -1`): em empate a
- *     ordem não é estável;
- *   - o código ordena como TEXTO — "900" antes de "4" no decrescente.
+ * Duas regras de ordem que a tela antiga não tinha:
+ *   - **ordem natural** no texto: o código é SKU, e ordenava como texto puro —
+ *     "900" antes de "163" e "77" antes de "4" no decrescente;
+ *   - **empate desempata pelo nome**, crescente em qualquer direção: o
+ *     comparador antigo nunca devolvia 0 (`aVal > bVal ? 1 : -1`), e em empate
+ *     a ordem dependia do motor.
  */
 export function buscarEOrdenar(
   produtos: ProdutoEstoque[],
@@ -230,40 +238,23 @@ export function buscarEOrdenar(
     );
   }
 
-  filtrados.sort((a, b) => {
-    let aVal: string | number;
-    let bVal: string | number;
-
+  const valorDe = (p: ProdutoEstoque): string | number => {
     switch (ordenacao.campo) {
       case "nome":
-        aVal = a.nome.toLowerCase();
-        bVal = b.nome.toLowerCase();
-        break;
+        return p.nome;
       case "codigo":
-        aVal = a.codigo;
-        bVal = b.codigo;
-        break;
+        return p.codigo;
       case "preco":
-        aVal = a.preco;
-        bVal = b.preco;
-        break;
+        return p.preco;
       case "saldo":
-        aVal = a.saldo;
-        bVal = b.saldo;
-        break;
+        return p.saldo;
       case "situacao":
-        aVal = a.situacao;
-        bVal = b.situacao;
-        break;
-      default:
-        return 0;
+        return p.situacao;
     }
+  };
 
-    if (ordenacao.direcao === "asc") {
-      return aVal > bVal ? 1 : -1;
-    }
-    return aVal < bVal ? 1 : -1;
-  });
+  const sinal = ordenacao.direcao === "asc" ? 1 : -1;
+  filtrados.sort((a, b) => sinal * comparar(valorDe(a), valorDe(b)) || comparar(a.nome, b.nome));
 
   return filtrados;
 }

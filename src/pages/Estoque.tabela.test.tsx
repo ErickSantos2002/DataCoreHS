@@ -195,7 +195,10 @@ describe("ordem da tabela de Estoque", () => {
     ]);
   });
 
-  it("Codigo-SKU ordena como texto", () => {
+  it("Codigo-SKU ordena em ordem natural, com o numero dentro do texto lido como numero", () => {
+    // Ordenava como TEXTO: "900" vinha antes de "163" e "77" antes de "4" no
+    // decrescente, porque "9" > "1" e "7" > "4". O código é SKU, e quem procura
+    // o 163 espera achá-lo depois do 77.
     render(<Estoque />);
 
     clicarNoCabecalho("Código-SKU");
@@ -203,21 +206,29 @@ describe("ordem da tabela de Estoque", () => {
     expect(linhas().map((l) => celula(l, "Código-SKU").textContent)).toEqual([
       "P2",
       "900",
+      "163",
       "77",
       "4",
-      "163",
       "1",
     ]);
   });
 
-  it("Situacao decrescente poe os inativos primeiro", () => {
+  it("Situacao decrescente poe os inativos primeiro, e o empate sai em ordem de nome", () => {
+    // O comparador nunca devolvia 0 (`aVal > bVal ? 1 : -1`): em empate a ordem
+    // dependia do motor, e não de regra nenhuma. Agora o empate desempata pelo
+    // nome — "Kit calibração" antes de "Sensor antigo", embora o Sensor venha
+    // antes no catálogo.
     render(<Estoque />);
 
     clicarNoCabecalho("Situação");
 
-    expect(linhas().slice(0, 2).map((l) => celula(l, "Situação").textContent)).toEqual([
-      "Inativo",
-      "Inativo",
+    expect(nomes()).toEqual([
+      "Kit calibração",
+      "Sensor antigo",
+      "Bafômetro Phoebus Premium Edition XL",
+      "Bocal",
+      "Brinde",
+      "Tubo descartável",
     ]);
   });
 
