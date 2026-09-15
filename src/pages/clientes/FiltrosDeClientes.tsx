@@ -66,7 +66,14 @@ export function FiltrosDeClientes({
         </h2>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
+      {/*
+        Seis colunas desde `lg` quebravam "Todos os vendedores" em duas linhas
+        numa tela de 1440px — a área útil, com a barra lateral, é de ~1080px —,
+        e aquele filtro ficava mais alto que os vizinhos. Duas por linha em
+        `md`, três em `lg` e as seis só em `2xl`, onde cabem — conferido no
+        navegador de 800 a 1920px, todos com a mesma altura.
+      */}
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
         <MultiSelect
           rotulo="Cliente"
           opcoes={opcoes.clientes}
