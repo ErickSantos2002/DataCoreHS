@@ -1074,3 +1074,77 @@ insubstituível — nenhum teste responde por ele. Acumulado:
 - Exportar com a tabela vazia gera planilha e PDF só com cabeçalho.
 - Os `<label>` dos filtros de Serviços seguem sem `htmlFor`.
 - "NFS-e Emitidas" sem separador de milhar, com 5.004 notas na base.
+
+## Estado em 15/09/2026 — a conferência no navegador
+
+A dívida da seção anterior foi paga: oito dos nove itens conferidos, um pela
+metade. O app rodou em `npm run dev` apontando para produção **só para leitura**
+— o `.env.local` manda para `localhost:5200`, porta que nada na máquina sobe, e
+as URLs foram passadas pelo ambiente. A suíte ficou em **1630 testes / 123
+arquivos**, verde nos dois fusos; lint 49; `tsc` limpo.
+
+### O que a conferência confirmou
+
+- **Planilha** de Serviços com período de 01 a 14/09: 57 linhas contra 57 na
+  tela, e a soma da coluna Valor (R$ 115.739,20) igual ao KPI.
+- **PDF**: as cinco colunas do cabeçalho batem com o corpo.
+- **API derrubada**: o `Alert` "Não foi possível carregar as notas de serviço."
+  aparece no fluxo da página.
+- **Carregando**: "Carregando dados de serviços." — frase completa, com ponto.
+- **Mais de 24 meses**: a evolução troca para escala anual, e o preset passa
+  sozinho a "Personalizado".
+- **Produtos**: linha e barras do "Top 10" no mesmo tom (`#1f89ca`).
+- **Estoque, no desktop**: os dois popovers de pizza fecham com `Escape` e com
+  clique fora.
+
+### O defeito consertado: a cidade `null`
+
+Desde 2025 a API devolve `cidade_tomador: null` — **1276 de 1276** notas de 2025,
+868 das 1133 de 2026 (medido em `silver.stg_servicos`; a falta já existe em
+`tiny.servicos`). A planilha e o PDF montavam `${cidade}/${uf}` e saíam com
+**"null/null" em toda linha**; a tabela mostrava uma barra solta. Nenhum teste
+via isso porque todo fixture tinha cidade.
+
+Consertado em `f3b2ed67` com `rotuloDaCidade` (`pages/servicos/servicos.ts`),
+usada nos três lugares. O tipo `Servico` passou a declarar `string | null`.
+
+**A causa não é deste repo.** A importação das NFS-e parou de trazer a cidade do
+tomador — é assunto do `tiny-integrador`. Enquanto isso, a pizza "Distribuição
+por cidade" **engana**: as fatias "/SP", "/MG" e "/ 8%" são notas sem cidade, e
+o rótulo vem pronto do resumo do Postgres (`useServicos.ts`, que não é nosso).
+
+### Defeitos encontrados e ainda abertos
+
+1. **Trocar o tema não repinta os gráficos.** `chartTheme` lê a custom property
+   no render, e a troca de tema não provoca render nos gráficos: grade e texto de
+   eixo ficam com a cor do tema anterior até recarregar. No claro, a grade fica
+   `#1e3a5f` — o azul-marinho do escuro. Medido no DOM: claro recarregado dá
+   `#e2e8f0`, e depois da troca continua `#e2e8f0` no escuro. É compartilhado —
+   atinge toda tela com recharts.
+2. **A casca não tem celular.** O `AppShell` não recolhe a sidebar em tela
+   estreita: em 390px ela ocupa 256px e sobra 128px para a página. Em Estoque as
+   pizzas nem renderizam nessa largura. O `useIsMobile` das telas não compensa
+   uma casca que não sabe dele.
+3. **Falha de rede deixa o resto da tela mentindo.** Abaixo do `Alert`, Serviços
+   mostra KPIs "R$ 0,00" / "0" / "N/A", gráficos com moldura vazia e "Nenhum
+   resultado encontrado." — como se o período não tivesse nota.
+4. **O PDF corta em 30 linhas sem dizer.** Com 57 no recorte, o relatório traz 30
+   e o cabeçalho não menciona nem o corte nem o período filtrado.
+5. **"NaN%" no tooltip da pizza de situação de Estoque.** Fica para a migração
+   dessa tela.
+
+### Menores
+
+- Valores do PDF em formato americano (`R$ 2500.00`).
+- Eixo Y da evolução de Serviços: "R$ 550.0K" quebra em duas linhas; o último
+  ano ("2026") sai cortado na borda, e com "Todos" o rótulo de 2025 some.
+- Na pizza, a sexta cor da rampa (`--color-primary-300`) é quase ilegível como
+  texto de rótulo no tema claro.
+- Top 10 de Produtos: os rótulos inclinados perdem o **começo** do nome.
+- Eixo Y da evolução de Produtos sem separador de milhar ("2000000").
+
+### O que ficou pela metade
+
+**Toque fora de um filtro no celular** (item 5). Com a sidebar recolhida à mão, o
+toque abre o popover de Estoque; a prova de que o toque fora fecha ficou
+inconclusiva — a simulação acertou o botão **Sair** e derrubou a sessão.
