@@ -17,7 +17,7 @@ const CentralButton: React.FC = () => {
         onMouseLeave={() => setIsHovered(false)}
         className="fixed bottom-6 right-6 z-50
                  bg-surface hover:bg-surface-elevated
-                 border-2 border-blue-600 dark:border-blue-500
+                 border-2 border-action
                  rounded-full
                  shadow-lg hover:shadow-2xl
                  transition-all duration-300 ease-in-out
@@ -39,8 +39,11 @@ const CentralButton: React.FC = () => {
         />
 
         {/* Efeito de pulso (opcional) */}
+        {/* `opacity-75` é a propriedade opacity no elemento, e não alfa sobre
+            a classe de token (`bg-action/75`), que o Tailwind não gera quando
+            o token guarda hexadecimal dentro de var(). */}
         <span className="absolute inline-flex h-full w-full rounded-full
-                       bg-blue-400 opacity-75 animate-ping"
+                       bg-action opacity-75 animate-ping"
               style={{ animationDuration: '2s' }}
         />
       </button>
