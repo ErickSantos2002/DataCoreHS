@@ -19,35 +19,21 @@ describe("classes de token", () => {
   });
 });
 
-describe("ponte de paleta", () => {
-  it("blue-* aponta para a rampa do design system, em hexadecimal", () => {
-    // Os dez degraus, nao so uma amostra: uma transposicao em blue[50..300]
-    // ou blue[700..900] passaria pela checagem de formato (regex hex abaixo)
-    // sem que nada acusasse.
-    expect(cores.blue[50]).toBe("#f1f9fe");
-    expect(cores.blue[100]).toBe("#dbeefa");
-    expect(cores.blue[200]).toBe("#b8ddf5");
-    expect(cores.blue[300]).toBe("#7bc0ea");
-    expect(cores.blue[400]).toBe("#47a6e1");
-    expect(cores.blue[500]).toBe("#1f89ca");
-    expect(cores.blue[600]).toBe("#1a71a8");
-    expect(cores.blue[700]).toBe("#155984");
-    expect(cores.blue[800]).toBe("#104565");
-    expect(cores.blue[900]).toBe("#0b3047");
+describe("ponte de paleta, deletada em 16/09/2026", () => {
+  // Enquanto existiu, `blue` (dez degraus) e `slate` (700/800/900) eram
+  // redefinidos em hexadecimal, e este bloco travava os valores. Com a Fase 3
+  // concluida e os ultimos consumidores em classe de token, a ponte saiu — e o
+  // que se trava agora e a AUSENCIA dela: enquanto `blue` estiver remapeado, o
+  // guarda de cor nao acusa `bg-blue-600`, porque ele deriva a ponte daqui.
+  it("blue e slate voltaram a ser a paleta crua do Tailwind", () => {
+    expect(cores.blue).toBeUndefined();
+    expect(cores.slate).toBeUndefined();
   });
 
-  it("usa hexadecimal e nao var(), porque ha classes com opacidade", () => {
-    // dark:bg-blue-900/40 existe no JSX. O Tailwind nao aplica alfa sobre
-    // um var() que guarda hexadecimal - a classe sairia sem cor.
-    for (const degrau of Object.values(cores.blue)) {
-      expect(degrau).toMatch(/^#[0-9a-f]{6}$/);
-    }
-  });
-
-  it("slate-700/800/900 apontam para as superficies escuras do DS", () => {
-    expect(cores.slate[900]).toBe("#0d1b2a");
-    expect(cores.slate[800]).toBe("#132238");
-    expect(cores.slate[700]).toBe("#1a2f4a");
+  it("o login continua com o hexadecimal proprio, que nao era ponte", () => {
+    // Excecao documentada: o painel e escuro nos dois temas, e #0a192f nao
+    // existe em nenhum var() de colors.css.
+    expect(cores.login).toBe("#0a192f");
   });
 });
 

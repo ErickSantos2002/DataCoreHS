@@ -152,10 +152,20 @@ function paletaCrua(): { nomes: string[]; degraus: string[] } {
   return { nomes, degraus: [...degraus] };
 }
 
-/** Ocorrencias de classe de paleta crua num arquivo ja sem comentario. */
+/** Ocorrencias de classe de paleta crua num arquivo ja sem comentario.
+ *
+ *  Nome de custom property NAO conta: o design system tem tokens chamados
+ *  `--color-slate-900` e `--color-slate-500` (`colors.css`, copia verbatim),
+ *  e o padrao casa o trecho `--color-slate-900` inteiro porque o prefixo de
+ *  utilitario aceita `-`. Enquanto `slate` esteve na ponte de paleta isso
+ *  ficou escondido; ao deletar a ponte, em 16/09/2026, os dois viraram
+ *  "infracao" — acusar o NOME de um token do design system e acusar codigo
+ *  certo. Duas barras seguidas so aparecem em custom property. */
 function paletaCruaEm(caminho: string, padrao: RegExp): string[] {
   const conteudo = semComentarios(readFileSync(caminho, "utf8"));
-  return conteudo.match(padrao) ?? [];
+  return (conteudo.match(padrao) ?? []).filter(
+    (achado) => !achado.includes("--"),
+  );
 }
 
 function padraoDePaletaCrua(): RegExp {
@@ -184,6 +194,24 @@ describe("catraca da paleta crua do Tailwind", () => {
     expect(degraus.length).toBeGreaterThan(5);
     expect(ponte.length).toBeGreaterThan(0);
     for (const nome of ponte) expect(nomes).not.toContain(nome);
+  });
+
+  it("nome de custom property do design system nao e infracao", () => {
+    // `--color-slate-900` e `--color-slate-500` existem em colors.css e sao
+    // lidos por `coresDoAno.ts` e pelo teste do tailwind.config. Sao NOME DE
+    // TOKEN, nao classe de paleta crua.
+    const padrao = padraoDePaletaCrua();
+    expect("var(--color-slate-900)".match(padrao)).not.toBeNull();
+    expect(
+      ("var(--color-slate-900)".match(padrao) ?? []).filter(
+        (achado) => !achado.includes("--"),
+      ),
+    ).toEqual([]);
+    // E a classe de verdade continua sendo pega. Montada em pedacos porque
+    // este arquivo tambem passa pelo guarda: escrita por extenso, a string
+    // seria acusada.
+    const classeCrua = ["bg", "slate", "900"].join("-");
+    expect(classeCrua.match(padrao)).toEqual([classeCrua]);
   });
 
   it("nenhum arquivo fora da lista da Fase 3 usa paleta crua", () => {

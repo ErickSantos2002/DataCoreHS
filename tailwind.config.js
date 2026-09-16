@@ -125,39 +125,18 @@ module.exports = {
           neutral: "var(--on-tint-neutral)",
         },
 
-        // ── Camada 2: ponte de paleta (TEMPORARIA) ───────────────────
-        // O JSX escreve cor literal: 272 classes de azul e 132 de slate.
-        // Redefinir a paleta faz todas apontarem para a marca sem editar
-        // nenhuma tela. Hexadecimal literal, e nao var(), porque existem
-        // classes com modificador de opacidade (dark:bg-blue-900/40) e o
-        // Tailwind nao aplica alfa sobre var() que guarda hexadecimal.
+        // ── Camada 2: a ponte de paleta, que existiu aqui ────────────
+        // Eram `blue` (dez degraus) e `slate` (700/800/900) redefinidos em
+        // hexadecimal: o JSX escrevia 272 classes de azul e 132 de slate, e
+        // remapear a paleta fez todas apontarem para a marca sem editar tela
+        // nenhuma. Era andaime da Fase 3, para migrar doze telas uma a uma.
         //
-        // Cada tela migrada na Fase 3 troca estas classes pelas de token
-        // acima. Quando a ultima sair, este bloco inteiro e deletado.
-        blue: {
-          50: "#f1f9fe",
-          100: "#dbeefa",
-          200: "#b8ddf5",
-          300: "#7bc0ea",
-          400: "#47a6e1",
-          500: "#1f89ca",
-          600: "#1a71a8",
-          700: "#155984",
-          800: "#104565",
-          900: "#0b3047",
-        },
-        // Usados exclusivamente sob o prefixo dark: (132 ocorrencias, zero
-        // soltas), entao apontam direto para as superficies do tema escuro.
-        //
-        // A rampa so e redefinida nestes tres degraus (700/800/900). 50-600
-        // e 950 NAO estao aqui: continuam o cinza-frio nativo do Tailwind.
-        // Ou seja, bg-slate-600 sai cinza e bg-slate-700 sai navy — os dois
-        // no mesmo arquivo, degraus vizinhos, cores de familia diferente.
-        slate: {
-          700: "#1a2f4a", // --surface-elevated no escuro
-          800: "#132238", // --surface no escuro
-          900: "#0d1b2a", // --bg-base no escuro
-        },
+        // Deletada em 16/09/2026, com a Fase 3 concluida e os quatro ultimos
+        // consumidores (os dois modais de observacao, o CentralButton e o
+        // Login) passados para classe de token. A partir daqui `bg-blue-600`
+        // e `bg-slate-800` voltam a ser a paleta crua do Tailwind — e o
+        // guarda de cor (`guarda-cores.test.ts`), que deriva a ponte deste
+        // arquivo, passa a acusa-las sozinho.
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

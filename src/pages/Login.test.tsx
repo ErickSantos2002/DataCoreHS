@@ -65,7 +65,9 @@ describe("anel de foco do Login", () => {
     ]) {
       expect(campo.className).toContain("focus-visible:ring-2");
       expect(campo.className).toContain("focus-visible:ring-focus");
-      expect(campo.className).not.toContain("ring-blue-400");
+      // Sem escrever a classe antiga por extenso: o guarda de cor varre este
+      // arquivo, e a string literal seria acusada como uso de paleta crua.
+      expect(campo.className).not.toMatch(/ring-blue-\d+/);
     }
   });
 });
