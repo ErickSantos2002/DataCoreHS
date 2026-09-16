@@ -1538,3 +1538,55 @@ celular em 400px sem rolagem lateral.
 A **ponte de paleta** (`blue-*`, `slate-700/800/900` no `tailwind.config.js`) ainda não
 pode sair: `ModalObservacoesDaNota`, `ModalObservacoes`, `CentralButton` e `Login` a
 usam. O guarda de cor cobre as telas; esses componentes são o próximo passo.
+
+## Estado em 16/09/2026 — a ponte de paleta foi deletada
+
+Branch `fase-4-ponte-de-paleta`, seis commits sobre `03ed4319`. Suíte em **1898 testes /
+149 arquivos**; lint 24; `tsc` limpo; `npm run build` passa.
+
+A ponte (`blue` em dez degraus e `slate` 700/800/900 redefinidos em hexadecimal no
+`tailwind.config.js`) era o andaime da Fase 3: fazia 272 classes de azul e 132 de slate
+já escritas apontarem para a marca sem editar tela nenhuma. Com as doze telas migradas,
+sobravam **quatro consumidores fora das telas** — eles saíram primeiro, um commit cada,
+e só então o andaime caiu.
+
+| Commit | O quê |
+|---|---|
+| `75ed9fc1` · `bffc3315` | Os dois modais de observação (o que busca o texto, de Vendas e Vendedores, e o que o recebe, de Serviços) eram `<div className="fixed inset-0">` à mão: **sem `role="dialog"`, sem nome acessível, sem Escape e sem prender o foco** — quem navegava por teclado seguia tabulando na tabela atrás. Agora são o `Modal` do design system. O botão "Fechar" do rodapé saiu: o × do cabeçalho já se chama assim, e dois controles com o mesmo nome acessível no mesmo diálogo é ruído. O `ModalObservacoes` ganhou teste próprio, que não tinha. |
+| `c326b687` | O Login usava `focus:ring-2 focus:ring-blue-400` — `focus:` em vez de `focus-visible:`, e a cor da ponte. O primitivo `Input` não serve ali: o painel é escuro nos dois temas, exceção documentada. |
+| `051e4bc6` | `CentralButton`: borda e pulso em `border-action`/`bg-action`. Ganhou teste, que não tinha. |
+| `e44a25c5` | **A ponte deletada.** O teste do config deixa de travar os valores dela e passa a travar a ausência; o hexadecimal do `login` fica, que nunca foi ponte. |
+| `820dfb07` | Os quatro arquivos saem do `.prettierignore`. |
+
+### O guarda ganhou uma regra: nome de token não é classe
+
+Ao deletar a ponte, `guarda-cores` passou a acusar `--color-slate-900` em
+`src/test/tailwind-config.test.ts` e `--color-slate-500` em
+`pages/financeiro/coresDoAno.ts`. Não são classes: são **nomes de custom property** do
+design system (`colors.css`, cópia verbatim) — o padrão casava o trecho inteiro porque o
+prefixo de utilitário aceita `-`. Enquanto `slate` esteve na ponte isso ficou escondido.
+O guarda passa a descartar achado que contenha `--`.
+
+Duas armadilhas do mesmo tipo apareceram nos testes, que o guarda também varre: a
+asserção do Login que citava `ring-blue-400` por extenso virou regex, e o caso novo do
+guarda monta `bg-slate-900` em pedaços.
+
+### A prova que importa
+
+Plantação: devolver `border-blue-600` ao `CentralButton` **derruba o guarda de cor** —
+e antes da remoção não derrubava, porque a ponte o isentava. É essa a mudança de regime:
+a partir daqui a paleta crua do Tailwind é infração em qualquer arquivo do `src`.
+
+### Conferência no navegador (16/09)
+
+Claro e escuro: o modal de observações abrindo sobre a tabela de Vendas, fechando no
+Escape; o botão flutuante com a borda da marca e o pulso; e o Login num contexto isolado
+do navegador (sem mexer na sessão aberta), com o anel de foco em `#1a71a8` sobre o
+azul-marinho do painel.
+
+### Achado registrado e não corrigido
+
+O `CentralButton` pulsa em laço (`animate-ping`, 2 s) o tempo todo, em todas as telas —
+é o único elemento que anima sem parar fora de spinner, e contraria o item 10 do
+checklist de tela migrada. Não foi mexido: é decisão de produto, e o botão é a porta para
+a Central HS.
