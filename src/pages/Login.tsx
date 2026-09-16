@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { User } from "lucide-react"
-import { useAuth } from "../hooks/useAuth"
-import { useNavigate } from "react-router-dom"
-import logo from "../assets/logo.png"
-import { useTheme } from "../context/ThemeContext"
-import { Button } from "../design-system/ui/core/Button"
+import React, { useState, useEffect } from "react";
+import { User } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+import { useTheme } from "../context/ThemeContext";
+import { Button } from "../design-system/ui/core/Button";
 
 /**
  * Painel de login — escuro nos dois temas, de proposito (excecao documentada
@@ -19,27 +19,27 @@ import { Button } from "../design-system/ui/core/Button"
  * remoto, virou lucide-react.
  */
 const Login: React.FC = () => {
-  const { login, loading, error, user } = useAuth()
-  const { setDarkModeOnLogin } = useTheme() // 👈 use a nova função
-  const navigate = useNavigate()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const { login, loading, error, user } = useAuth();
+  const { setDarkModeOnLogin } = useTheme(); // 👈 use a nova função
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     if (user) {
       // ✅ Ativa via contexto (não manualmente)
-      setDarkModeOnLogin()
+      setDarkModeOnLogin();
 
       if (location.pathname !== "/inicio") {
-        navigate("/inicio", { replace: true })
+        navigate("/inicio", { replace: true });
       }
     }
-  }, [user, navigate, location.pathname, setDarkModeOnLogin])
+  }, [user, navigate, location.pathname, setDarkModeOnLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await login(username, password)
-  }
+    e.preventDefault();
+    await login(username, password);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-login">
@@ -99,13 +99,19 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          <Button type="submit" size="lg" fullWidth loading={loading} className="mt-2">
+          <Button
+            type="submit"
+            size="lg"
+            fullWidth
+            loading={loading}
+            className="mt-2"
+          >
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

@@ -5,7 +5,9 @@ import Login from "./Login";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeProvider } from "../context/ThemeContext";
 
-function renderLogin(auth: Partial<React.ComponentProps<typeof AuthContext.Provider>["value"]>) {
+function renderLogin(
+  auth: Partial<React.ComponentProps<typeof AuthContext.Provider>["value"]>,
+) {
   const value = {
     user: null,
     token: null,
@@ -36,7 +38,9 @@ describe("Login", () => {
 
   it("mostra a mensagem de erro quando as credenciais falham", () => {
     renderLogin({ error: "Usuário ou senha incorretos." });
-    expect(screen.getByText("Usuário ou senha incorretos.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Usuário ou senha incorretos."),
+    ).toBeInTheDocument();
   });
 
   it("desabilita usuario, senha e o botao enquanto o login esta em andamento", () => {

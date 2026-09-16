@@ -29,7 +29,18 @@ src/pages/*
 !src/pages/vendas
 !src/pages/Vendas.tsx
 !src/pages/Vendas.*.test.tsx
+!src/pages/Login.tsx
+!src/pages/Login.test.tsx
 src/components
+# Os quatro que migraram para classe de token em 16/09/2026, junto da remocao
+# da ponte de paleta, saem da divida: cada arquivo limpo passa a ser formatado,
+# como as telas da Fase 3.
+!src/components/ModalObservacoes.tsx
+!src/components/ModalObservacoes.test.tsx
+!src/components/ModalObservacoesDaNota.tsx
+!src/components/ModalObservacoesDaNota.test.tsx
+!src/components/CentralButton.tsx
+!src/components/CentralButton.test.tsx
 src/context
 src/services
 src/hooks
