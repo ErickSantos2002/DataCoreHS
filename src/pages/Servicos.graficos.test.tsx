@@ -123,7 +123,8 @@ vi.mock("recharts", () => {
  *  gráfico daquele cartão e mais nada. */
 function cartaoDoGrafico(titulo: string): HTMLElement {
   const cabecalho = screen.getByRole("heading", { name: titulo });
-  if (!cabecalho.parentElement) throw new Error(`gráfico "${titulo}" sem cartao`);
+  if (!cabecalho.parentElement)
+    throw new Error(`gráfico "${titulo}" sem cartao`);
   return cabecalho.parentElement;
 }
 
@@ -157,13 +158,16 @@ const RANKING = "Top 10 Clientes";
 const CIDADES = "Distribuição por Cidade do Serviço";
 
 describe("graficos de Serviços", () => {
-  it.each([EVOLUCAO, RANKING, CIDADES])("o cartao %s esta na tela", (titulo) => {
-    // O pior caso da revisão: com o `<GraficosDeServicos …/>` embrulhado em
-    // `{false && …}` os três sumiam da página e 58 testes ficavam verdes.
-    render(<Servicos />);
+  it.each([EVOLUCAO, RANKING, CIDADES])(
+    "o cartao %s esta na tela",
+    (titulo) => {
+      // O pior caso da revisão: com o `<GraficosDeServicos …/>` embrulhado em
+      // `{false && …}` os três sumiam da página e 58 testes ficavam verdes.
+      render(<Servicos />);
 
-    expect(screen.getByRole("heading", { name: titulo })).toBeInTheDocument();
-  });
+      expect(screen.getByRole("heading", { name: titulo })).toBeInTheDocument();
+    },
+  );
 
   it("a evolucao recebe um ponto por mes, com o rotulo em portugues", () => {
     render(<Servicos />);
@@ -186,8 +190,16 @@ describe("graficos de Serviços", () => {
     render(<Servicos />);
 
     expect(dadosDoGrafico(RANKING)).toEqual([
-      { cliente: "Alfa Mineração", clienteCompleto: "Alfa Mineração", valor: 1000 },
-      { cliente: "Beta Logística", clienteCompleto: "Beta Logística", valor: 500 },
+      {
+        cliente: "Alfa Mineração",
+        clienteCompleto: "Alfa Mineração",
+        valor: 1000,
+      },
+      {
+        cliente: "Beta Logística",
+        clienteCompleto: "Beta Logística",
+        valor: 500,
+      },
     ]);
     expect(serieDoGrafico(RANKING)).toBe("valor");
   });
@@ -214,10 +226,14 @@ describe("graficos de Serviços", () => {
     fireEvent.change(campoData("Início"), { target: { value: "2026-02-01" } });
     fireEvent.change(campoData("Fim"), { target: { value: "2026-02-28" } });
 
-    expect(dadosDoGrafico(EVOLUCAO).map((ponto) => ponto.mes)).toEqual(["fev. de 2026"]);
-    expect(dadosDoGrafico(RANKING).map((barra) => barra.clienteCompleto)).toEqual([
-      "Beta Logística",
+    expect(dadosDoGrafico(EVOLUCAO).map((ponto) => ponto.mes)).toEqual([
+      "fev. de 2026",
     ]);
-    expect(dadosDoGrafico(CIDADES).map((fatia) => fatia.name)).toEqual(["Olinda/PE"]);
+    expect(
+      dadosDoGrafico(RANKING).map((barra) => barra.clienteCompleto),
+    ).toEqual(["Beta Logística"]);
+    expect(dadosDoGrafico(CIDADES).map((fatia) => fatia.name)).toEqual([
+      "Olinda/PE",
+    ]);
   });
 });

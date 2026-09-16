@@ -122,9 +122,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -244,7 +250,9 @@ const LINHA_DA_ALFA: Array<[string, string]> = [
 ];
 
 /** Rótulo do cabeçalho -> campo que a tela manda em `ordenarPor`. */
-const ORDENACAO_POR_COLUNA: Array<[string, PedidoDaTabelaDeServicos["ordenarPor"]]> = [
+const ORDENACAO_POR_COLUNA: Array<
+  [string, PedidoDaTabelaDeServicos["ordenarPor"]]
+> = [
   ["Número NFS-e", "numero"],
   ["Cliente (Tomador)", "cliente"],
   ["Data Emissão", "data_emissao"],
@@ -253,14 +261,17 @@ const ORDENACAO_POR_COLUNA: Array<[string, PedidoDaTabelaDeServicos["ordenarPor"
 ];
 
 describe("tabela de Serviços", () => {
-  it.each(LINHA_DA_ALFA)("a coluna %s da linha da Alfa mostra %s", (rotulo, valor) => {
-    render(<Servicos />);
+  it.each(LINHA_DA_ALFA)(
+    "a coluna %s da linha da Alfa mostra %s",
+    (rotulo, valor) => {
+      render(<Servicos />);
 
-    // Escopado pela linha do número "3001" (único na tabela) — não por
-    // `screen.getByText("Alfa Mineração")` puro, que também acharia o card
-    // "Top Cliente" (o cliente com maior faturamento no fixture é a Alfa).
-    expect(textoDe(celula(linhaContendo("3001"), rotulo))).toBe(valor);
-  });
+      // Escopado pela linha do número "3001" (único na tabela) — não por
+      // `screen.getByText("Alfa Mineração")` puro, que também acharia o card
+      // "Top Cliente" (o cliente com maior faturamento no fixture é a Alfa).
+      expect(textoDe(celula(linhaContendo("3001"), rotulo))).toBe(valor);
+    },
+  );
 
   it("a nota sem cidade mostra travessao na coluna Cidade/UF, e nao uma barra solta", () => {
     // O React não imprime `null`, então a célula saía "/" — em toda linha de
@@ -303,7 +314,9 @@ describe("tabela de Serviços", () => {
       render(<Servicos />);
 
       const cel = celula(linhaContendo(numero), "Descrição");
-      fireEvent.click(within(cel).getByRole("button", { name: "Ver Observações" }));
+      fireEvent.click(
+        within(cel).getByRole("button", { name: "Ver Observações" }),
+      );
 
       expect(screen.getByText("Observações da Nota")).toBeInTheDocument();
       expect(screen.getByText(discriminacao)).toBeInTheDocument();
@@ -316,7 +329,9 @@ describe("tabela de Serviços", () => {
     expect(screen.queryByText("Observações da Nota")).not.toBeInTheDocument();
 
     const cel = celula(linhaContendo("3001"), "Descrição");
-    fireEvent.click(within(cel).getByRole("button", { name: "Ver Observações" }));
+    fireEvent.click(
+      within(cel).getByRole("button", { name: "Ver Observações" }),
+    );
     expect(screen.getByText("Observações da Nota")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Fechar" }));
@@ -397,9 +412,9 @@ describe("tabela de Serviços", () => {
     // depender do nome da classe que o lucide gera.
     render(<Servicos />);
 
-    const colunas = within(document.querySelector("thead") as HTMLElement).getAllByRole(
-      "columnheader",
-    );
+    const colunas = within(
+      document.querySelector("thead") as HTMLElement,
+    ).getAllByRole("columnheader");
     const svgsDe = (rotulo: string) =>
       colunas[indiceDaColuna(rotulo)].querySelectorAll("svg").length;
 
@@ -436,7 +451,9 @@ describe("tabela de Serviços", () => {
     filtrarParaVazio();
 
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 
   it("com a tabela vazia, os dois botoes de exportar ficam desabilitados", () => {

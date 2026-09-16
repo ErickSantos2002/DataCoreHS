@@ -21,24 +21,25 @@ vi.mock("../hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: 1, username: "erick", role: "admin" } }),
 }));
 
-
 const { NOTAS } = vi.hoisted(() => {
   const ITENS = Array.from({ length: 17 }, (_, i) => ({
-  codigo: `P${String(i + 1).padStart(2, "0")}`,
-  descricao: `Produto ${String(i + 1).padStart(2, "0")}`,
-  quantidade: String(17 - i),
-  valor_total: "100",
-}));
-  return { NOTAS: [
-  {
-    id: 1,
-    data_emissao: "2026-01-10",
-    valor_nota: 1200,
-    cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
-    nome_vendedor: "Vendedor A",
-    itens: ITENS,
-  },
-] };
+    codigo: `P${String(i + 1).padStart(2, "0")}`,
+    descricao: `Produto ${String(i + 1).padStart(2, "0")}`,
+    quantidade: String(17 - i),
+    valor_total: "100",
+  }));
+  return {
+    NOTAS: [
+      {
+        id: 1,
+        data_emissao: "2026-01-10",
+        valor_nota: 1200,
+        cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
+        nome_vendedor: "Vendedor A",
+        itens: ITENS,
+      },
+    ],
+  };
 });
 
 // A tela deixou de ler o `DataContext` (item 9.4): a agregação vem somada do
@@ -46,7 +47,9 @@ const { NOTAS } = vi.hoisted(() => {
 // é o `por_produto` — é ele que virou a tabela.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
@@ -56,9 +59,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -195,7 +204,9 @@ describe("preset de periodo em Produtos", () => {
     escolherPreset("anoAtual");
     expect(seletorDePreset()).toHaveValue("anoAtual");
 
-    fireEvent.change(campoData("Data Início"), { target: { value: "2026-03-01" } });
+    fireEvent.change(campoData("Data Início"), {
+      target: { value: "2026-03-01" },
+    });
 
     expect(seletorDePreset()).toHaveValue("custom");
     // A data digitada tem de sobreviver: se o preset virasse outro que não
@@ -210,7 +221,9 @@ describe("preset de periodo em Produtos", () => {
     render(<Produtos />);
     escolherPreset("anoAtual");
 
-    fireEvent.change(campoData("Data Fim"), { target: { value: "2026-06-30" } });
+    fireEvent.change(campoData("Data Fim"), {
+      target: { value: "2026-06-30" },
+    });
 
     expect(seletorDePreset()).toHaveValue("custom");
     expect(campoData("Data Início")).toHaveValue("2026-01-01");

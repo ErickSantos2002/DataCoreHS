@@ -36,7 +36,9 @@ const VALORES_VAZIOS = {
   dataFim: "",
 };
 
-function montar(sobrescreve: Partial<Parameters<typeof FiltrosDeContas>[0]> = {}) {
+function montar(
+  sobrescreve: Partial<Parameters<typeof FiltrosDeContas>[0]> = {},
+) {
   const props = {
     rotuloDaContraparte: "Cliente",
     opcoes: OPCOES,
@@ -96,10 +98,16 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     abrir("Categoria", "Todas");
     const situacao = within(painel("Situação", "Todas"));
     const categoria = within(painel("Categoria", "Todas"));
-    expect(situacao.getByRole("checkbox", { name: "Em aberto" })).toBeInTheDocument();
-    expect(situacao.getByRole("checkbox", { name: "Quitado" })).toBeInTheDocument();
+    expect(
+      situacao.getByRole("checkbox", { name: "Em aberto" }),
+    ).toBeInTheDocument();
+    expect(
+      situacao.getByRole("checkbox", { name: "Quitado" }),
+    ).toBeInTheDocument();
     expect(situacao.queryByRole("checkbox", { name: "Materiais" })).toBeNull();
-    expect(categoria.getByRole("checkbox", { name: "Materiais" })).toBeInTheDocument();
+    expect(
+      categoria.getByRole("checkbox", { name: "Materiais" }),
+    ).toBeInTheDocument();
   });
 
   it("a busca filtra a lista daquele filtro", () => {
@@ -109,8 +117,12 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     fireEvent.change(dentro.getByPlaceholderText("Pesquisar..."), {
       target: { value: "mater" },
     });
-    expect(dentro.getByRole("checkbox", { name: "Materiais" })).toBeInTheDocument();
-    expect(dentro.queryByRole("checkbox", { name: "Servicos prestados" })).toBeNull();
+    expect(
+      dentro.getByRole("checkbox", { name: "Materiais" }),
+    ).toBeInTheDocument();
+    expect(
+      dentro.queryByRole("checkbox", { name: "Servicos prestados" }),
+    ).toBeNull();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -127,7 +139,9 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     const props = montar();
     abrir("Situação", "Todas");
     fireEvent.click(
-      within(painel("Situação", "Todas")).getByRole("checkbox", { name: "Quitado" }),
+      within(painel("Situação", "Todas")).getByRole("checkbox", {
+        name: "Quitado",
+      }),
     );
     expect(props.onSituacao).toHaveBeenCalledWith(["Quitado"]);
   });
@@ -143,7 +157,9 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     // (ex.: comparar por objeto em vez de string) e desmarcar a lista inteira
     // sem que o callback abaixo denuncie nada.
     expect(dentro.getByRole("checkbox", { name: "Quitado" })).toBeChecked();
-    expect(dentro.getByRole("checkbox", { name: "Em aberto" })).not.toBeChecked();
+    expect(
+      dentro.getByRole("checkbox", { name: "Em aberto" }),
+    ).not.toBeChecked();
     fireEvent.click(dentro.getByRole("checkbox", { name: "Quitado" }));
     expect(props.onSituacao).toHaveBeenCalledWith([]);
   });
@@ -169,16 +185,27 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     // promete um listbox que não entrega — não há `role="listbox"` nem
     // `role="option"` nela — e essa promessa mentirosa não é portada na
     // fusão. Exigir o atributo aqui obrigaria a mantê-la.)
-    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "false");
+    expect(gatilho("Situação", "Todas")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     abrir("Situação", "Todas");
-    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "true");
+    expect(gatilho("Situação", "Todas")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
     expect(
       within(painel("Situação", "Todas")).getByPlaceholderText("Pesquisar..."),
     ).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
-    expect(gatilho("Situação", "Todas")).toHaveAttribute("aria-expanded", "false");
+    expect(gatilho("Situação", "Todas")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     expect(
-      within(painel("Situação", "Todas")).queryByPlaceholderText("Pesquisar..."),
+      within(painel("Situação", "Todas")).queryByPlaceholderText(
+        "Pesquisar...",
+      ),
     ).toBeNull();
   });
 });

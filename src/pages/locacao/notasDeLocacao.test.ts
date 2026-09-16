@@ -46,7 +46,9 @@ describe("valor da nota", () => {
     // milhar brasileiro vira ponto decimal e o resto da string é jogado fora.
     ["valor formatado em português", "1.234,56", 1.234],
   ])("%s vira %s", (_rotulo, entrada, esperado) => {
-    expect(paraNumero(entrada as number | string | null | undefined)).toBe(esperado);
+    expect(paraNumero(entrada as number | string | null | undefined)).toBe(
+      esperado,
+    );
   });
 });
 
@@ -133,24 +135,28 @@ describe("data na planilha", () => {
   it.each(FUSOS)("em %s, a planilha leva a data que a tela mostra", (fuso) => {
     const naPlanilha = noFuso(
       fuso,
-      () => linhasDaPlanilha([nota({ id: 1, data_emissao: "2026-07-10" })])[0].Data,
+      () =>
+        linhasDaPlanilha([nota({ id: 1, data_emissao: "2026-07-10" })])[0].Data,
     );
 
     expect(naPlanilha).toBe("10/07/2026");
     expect(naPlanilha).toBe(dataDaNota("2026-07-10"));
   });
 
-  it.each(FUSOS)("em %s, as três datas do arquivo conferido saem no dia certo", (fuso) => {
-    const datas = noFuso(fuso, () =>
-      linhasDaPlanilha([
-        nota({ id: 1, data_emissao: "2026-07-10" }),
-        nota({ id: 2, data_emissao: "2026-05-22" }),
-        nota({ id: 3, data_emissao: "2026-03-24" }),
-      ]).map((linha) => linha.Data),
-    );
+  it.each(FUSOS)(
+    "em %s, as três datas do arquivo conferido saem no dia certo",
+    (fuso) => {
+      const datas = noFuso(fuso, () =>
+        linhasDaPlanilha([
+          nota({ id: 1, data_emissao: "2026-07-10" }),
+          nota({ id: 2, data_emissao: "2026-05-22" }),
+          nota({ id: 3, data_emissao: "2026-03-24" }),
+        ]).map((linha) => linha.Data),
+      );
 
-    expect(datas).toEqual(["10/07/2026", "22/05/2026", "24/03/2026"]);
-  });
+      expect(datas).toEqual(["10/07/2026", "22/05/2026", "24/03/2026"]);
+    },
+  );
 
   it("com hora junto, os dois caminhos concordam", () => {
     const naPlanilha = linhasDaPlanilha([

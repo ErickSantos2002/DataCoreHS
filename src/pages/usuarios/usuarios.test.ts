@@ -98,7 +98,9 @@ describe("perfil com que o formulário abre", () => {
   });
 
   it("na edição, mantém o papel que o usuário já tem", () => {
-    expect(papelInicial(papeis("admin", "vendas", "comum"), "vendas")).toBe("vendas");
+    expect(papelInicial(papeis("admin", "vendas", "comum"), "vendas")).toBe(
+      "vendas",
+    );
   });
 
   it("na edição, papel fora da lista cai na mesma regra do cadastro", () => {
@@ -125,18 +127,24 @@ describe("regra da senha", () => {
   });
 
   it("senha vazia é recusada — tanto na criação quanto na troca", () => {
-    expect(validarSenha("", "")).toBe("A senha deve ter pelo menos 6 caracteres.");
-    expect(validarCriacao({ username: "novo", senha: "", confirmacao: "" })).toBe(
+    expect(validarSenha("", "")).toBe(
+      "A senha deve ter pelo menos 6 caracteres.",
+    );
+    expect(
+      validarCriacao({ username: "novo", senha: "", confirmacao: "" }),
+    ).toBe("A senha deve ter pelo menos 6 caracteres.");
+  });
+
+  it("tamanho vem antes de conferência", () => {
+    expect(validarSenha("123", "999")).toBe(
       "A senha deve ter pelo menos 6 caracteres.",
     );
   });
 
-  it("tamanho vem antes de conferência", () => {
-    expect(validarSenha("123", "999")).toBe("A senha deve ter pelo menos 6 caracteres.");
-  });
-
   it("confirmação diferente é recusada", () => {
-    expect(validarSenha("senha123", "senha124")).toBe("As senhas não coincidem.");
+    expect(validarSenha("senha123", "senha124")).toBe(
+      "As senhas não coincidem.",
+    );
   });
 
   it("senha boa e conferida devolve null", () => {
@@ -146,17 +154,25 @@ describe("regra da senha", () => {
 
 describe("validações do cadastro", () => {
   it("valida na ordem: nome, tamanho da senha, conferência", () => {
-    expect(validarCriacao({ username: "  ", senha: "1", confirmacao: "9" })).toBe(
-      "Informe um nome de usuário.",
-    );
-    expect(validarCriacao({ username: "novo", senha: "1", confirmacao: "9" })).toBe(
-      "A senha deve ter pelo menos 6 caracteres.",
-    );
     expect(
-      validarCriacao({ username: "novo", senha: "senha123", confirmacao: "senha124" }),
+      validarCriacao({ username: "  ", senha: "1", confirmacao: "9" }),
+    ).toBe("Informe um nome de usuário.");
+    expect(
+      validarCriacao({ username: "novo", senha: "1", confirmacao: "9" }),
+    ).toBe("A senha deve ter pelo menos 6 caracteres.");
+    expect(
+      validarCriacao({
+        username: "novo",
+        senha: "senha123",
+        confirmacao: "senha124",
+      }),
     ).toBe("As senhas não coincidem.");
     expect(
-      validarCriacao({ username: "novo", senha: "senha123", confirmacao: "senha123" }),
+      validarCriacao({
+        username: "novo",
+        senha: "senha123",
+        confirmacao: "senha123",
+      }),
     ).toBeNull();
   });
 
@@ -169,7 +185,10 @@ describe("validações do cadastro", () => {
 describe("mensagem de erro da API", () => {
   it("prefere o detail que o backend mandou", () => {
     expect(
-      mensagemDeErro({ response: { data: { detail: "Usuário já existe" } } }, "padrão"),
+      mensagemDeErro(
+        { response: { data: { detail: "Usuário já existe" } } },
+        "padrão",
+      ),
     ).toBe("Usuário já existe");
   });
 
@@ -177,10 +196,15 @@ describe("mensagem de erro da API", () => {
     expect(mensagemDeErro(new Error("Network Error"), "padrão")).toBe("padrão");
     expect(mensagemDeErro(null, "padrão")).toBe("padrão");
     expect(mensagemDeErro(undefined, "padrão")).toBe("padrão");
-    expect(mensagemDeErro({ response: { data: { detail: { msg: "x" } } } }, "padrão")).toBe(
-      "padrão",
-    );
-    expect(mensagemDeErro({ response: { data: { detail: "" } } }, "padrão")).toBe("padrão");
+    expect(
+      mensagemDeErro(
+        { response: { data: { detail: { msg: "x" } } } },
+        "padrão",
+      ),
+    ).toBe("padrão");
+    expect(
+      mensagemDeErro({ response: { data: { detail: "" } } }, "padrão"),
+    ).toBe("padrão");
   });
 });
 

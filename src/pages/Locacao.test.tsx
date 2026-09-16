@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Locacao from "./Locacao";
@@ -141,7 +147,8 @@ async function montar(notas: NotaLocacao[] = NOTAS) {
 function kpi(rotulo: string): string {
   const etiqueta = screen.getByText(rotulo);
   const valor = etiqueta.nextElementSibling;
-  if (!valor) throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
+  if (!valor)
+    throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
   return valor.textContent?.trim() ?? "";
 }
 
@@ -187,7 +194,9 @@ describe("Locação — carregamento", () => {
   });
 
   it("mostra a mensagem de erro quando a busca falha, e a tabela fica vazia", async () => {
-    const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const console_error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     fetchLocacaoMock.mockRejectedValue(new Error("500"));
     render(<Locacao />, { wrapper: Molde });
 
@@ -195,14 +204,18 @@ describe("Locação — carregamento", () => {
       await screen.findByText("Não foi possível carregar as notas de locação."),
     ).toBeInTheDocument();
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
     console_error.mockRestore();
   });
 
   it("com a lista vazia diz que não há nota, e zera os três KPIs", async () => {
     await montar([]);
 
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
     expect(kpi("Valor Total em Locação")).toBe("R$ 0,00");
     expect(kpi("Quantidade de Notas")).toBe("0");
     expect(kpi("Valor Médio")).toBe("R$ 0,00");
@@ -288,23 +301,33 @@ describe("Locação — busca", () => {
 
     // O que a tela mostra na coluna Valor ("R$ 1.500,50") não casa com nada.
     buscar("1.500,50");
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
   });
 
   it("ignora situação, natureza da operação e data", async () => {
     await montar();
 
     buscar("Autorizada");
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
 
     buscar("Locação de equipamento");
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
 
     buscar("2026-03-10");
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
 
     buscar("10/03/2026");
-    expect(screen.getByText("Nenhuma nota de locação encontrada.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma nota de locação encontrada."),
+    ).toBeInTheDocument();
   });
 
   it("busca vazia devolve a lista inteira", async () => {
@@ -334,13 +357,13 @@ describe("Locação — ordenação", () => {
   // é a coluna ordenada quando a tela abre — nela o primeiro clique alterna
   // para crescente em vez de recomeçar.
   const DECRESCENTE: Record<string, string[]> = {
-    "Número": ["1010", "1002", "1001", "—"],
+    Número: ["1010", "1002", "1001", "—"],
     Data: ["1001", "1002", "—", "1010"],
     Cliente: ["—", "1002", "1010", "1001"],
     Valor: ["1010", "1002", "—", "1001"],
   };
   const CRESCENTE: Record<string, string[]> = {
-    "Número": ["—", "1001", "1002", "1010"],
+    Número: ["—", "1001", "1002", "1010"],
     Data: ["1010", "—", "1002", "1001"],
     Cliente: ["1001", "1010", "1002", "—"],
     Valor: ["1001", "—", "1002", "1010"],
@@ -417,9 +440,24 @@ describe("Locação — ordenação", () => {
     // antes" nas duas perguntas, e o bloco empatado saía invertido — 2 antes
     // de 1.
     await montar([
-      nota({ id: 1, numero: "1", valor_nota: 100, data_emissao: "2026-04-01T00:00:00" }),
-      nota({ id: 2, numero: "2", valor_nota: 100, data_emissao: "2026-04-01T00:00:00" }),
-      nota({ id: 3, numero: "3", valor_nota: 500, data_emissao: "2026-04-02T00:00:00" }),
+      nota({
+        id: 1,
+        numero: "1",
+        valor_nota: 100,
+        data_emissao: "2026-04-01T00:00:00",
+      }),
+      nota({
+        id: 2,
+        numero: "2",
+        valor_nota: 100,
+        data_emissao: "2026-04-01T00:00:00",
+      }),
+      nota({
+        id: 3,
+        numero: "3",
+        valor_nota: 500,
+        data_emissao: "2026-04-02T00:00:00",
+      }),
     ]);
 
     // Decrescente: a de 500 sobe, e as duas de 100 ficam na ordem da API.
@@ -464,7 +502,10 @@ describe("Locação — ordenação", () => {
       nota({
         id: 3,
         numero: "007948",
-        cliente: { nome: "APERAM BIOENERGIA LTDA.", cpf_cnpj: "18.238.980/0029-21" },
+        cliente: {
+          nome: "APERAM BIOENERGIA LTDA.",
+          cpf_cnpj: "18.238.980/0029-21",
+        },
       }),
     ]);
 
@@ -570,7 +611,9 @@ describe("Locação — cabeçalho e linhas", () => {
   it("apresenta a tela e diz quem está logado", async () => {
     await montar();
 
-    expect(screen.getByRole("heading", { name: "Locação" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Locação" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/erick/)).toBeInTheDocument();
   });
 
@@ -582,7 +625,9 @@ describe("Locação — cabeçalho e linhas", () => {
     expect(within(linha).getByText(/R\$\s*300,00/)).toBeInTheDocument();
     expect(within(linha).getByText("Autorizada")).toBeInTheDocument();
     expect(within(linha).getByText("Ana Lima")).toBeInTheDocument();
-    expect(within(linha).getByText(/22\.222\.222\/0001-22/)).toBeInTheDocument();
+    expect(
+      within(linha).getByText(/22\.222\.222\/0001-22/),
+    ).toBeInTheDocument();
   });
 
   it("preenche o buraco de cada campo ausente com o texto de hoje", async () => {

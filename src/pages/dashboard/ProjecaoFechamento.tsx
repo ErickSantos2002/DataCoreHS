@@ -100,7 +100,9 @@ export function ProjecaoFechamento({
             </>
           ) : (
             <>
-              <p className="mt-2 font-mono text-2xl font-bold text-conteudo-faint">—</p>
+              <p className="mt-2 font-mono text-2xl font-bold text-conteudo-faint">
+                —
+              </p>
               <p className="mt-1 text-sm text-conteudo-muted">
                 Ainda não há dia apurado neste trimestre, então não há ritmo
                 para projetar.
@@ -142,7 +144,10 @@ export function ProjecaoFechamento({
 
       <div className="mt-3 flex gap-5 text-xs text-conteudo-muted">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm bg-action" aria-hidden="true" />
+          <span
+            className="h-2.5 w-2.5 rounded-sm bg-action"
+            aria-hidden="true"
+          />
           Realizado
         </span>
         <span className="flex items-center gap-1.5">

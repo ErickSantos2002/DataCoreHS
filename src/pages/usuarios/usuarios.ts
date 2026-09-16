@@ -78,7 +78,9 @@ export function dataDeCriacao(iso: string | null | undefined): string {
 }
 
 /** As opções do `<select>` de perfil, na ordem em que a API mandou. */
-export function opcoesDePapel(papeis: Papel[]): { value: string; label: string }[] {
+export function opcoesDePapel(
+  papeis: Papel[],
+): { value: string; label: string }[] {
   return papeis.map((papel) => ({ value: papel.name, label: papel.name }));
 }
 
@@ -93,7 +95,10 @@ export function opcoesDePapel(papeis: Papel[]): { value: string; label: string }
  * `preferido` é o papel que o usuário sendo editado já tem. Se ele não
  * estiver na lista, cai na mesma regra do formulário de criação.
  */
-export function papelInicial(papeis: Papel[], preferido?: string | null): string {
+export function papelInicial(
+  papeis: Papel[],
+  preferido?: string | null,
+): string {
   const existe = (nome: string) => papeis.some((papel) => papel.name === nome);
   if (preferido && existe(preferido)) return preferido;
   if (existe(PAPEL_PREFERIDO)) return PAPEL_PREFERIDO;
@@ -104,7 +109,10 @@ export function papelInicial(papeis: Papel[], preferido?: string | null): string
  * A regra da senha, uma só para os dois formulários: tamanho antes de
  * conferência. Devolve a mensagem a mostrar, ou `null` quando está tudo bem.
  */
-export function validarSenha(senha: string, confirmacao: string): string | null {
+export function validarSenha(
+  senha: string,
+  confirmacao: string,
+): string | null {
   if (senha.length < TAMANHO_MINIMO_DA_SENHA) {
     return `A senha deve ter pelo menos ${TAMANHO_MINIMO_DA_SENHA} caracteres.`;
   }
@@ -138,12 +146,15 @@ export function validarEdicao(username: string): string | null {
  * frase genérica de quem chamou.
  */
 export function mensagemDeErro(erro: unknown, padrao: string): string {
-  const detalhe = (erro as { response?: { data?: { detail?: unknown } } } | null)?.response
-    ?.data?.detail;
+  const detalhe = (
+    erro as { response?: { data?: { detail?: unknown } } } | null
+  )?.response?.data?.detail;
   return typeof detalhe === "string" && detalhe ? detalhe : padrao;
 }
 
 /** "1 usuário cadastrado" / "3 usuários cadastrados" — frase concorda em número. */
 export function contarUsuarios(quantidade: number): string {
-  return quantidade === 1 ? "1 usuário cadastrado" : `${quantidade} usuários cadastrados`;
+  return quantidade === 1
+    ? "1 usuário cadastrado"
+    : `${quantidade} usuários cadastrados`;
 }

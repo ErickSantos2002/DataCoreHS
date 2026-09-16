@@ -8,7 +8,12 @@ import {
   Select,
 } from "../../design-system/ui";
 import type { Papel } from "../../services/api";
-import { mensagemDeErro, opcoesDePapel, papelInicial, validarCriacao } from "./usuarios";
+import {
+  mensagemDeErro,
+  opcoesDePapel,
+  papelInicial,
+  validarCriacao,
+} from "./usuarios";
 
 export interface DadosDoNovoUsuario {
   username: string;
@@ -35,7 +40,11 @@ export interface ModalCriarUsuarioProps {
  * perfis, e é esse mesmo valor que vai no payload: o que se lê no campo é o
  * que se grava.
  */
-export function ModalCriarUsuario({ papeis, onFechar, onCriar }: ModalCriarUsuarioProps) {
+export function ModalCriarUsuario({
+  papeis,
+  onFechar,
+  onCriar,
+}: ModalCriarUsuarioProps) {
   const [username, setUsername] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmacao, setConfirmacao] = useState("");
@@ -52,7 +61,11 @@ export function ModalCriarUsuario({ papeis, onFechar, onCriar }: ModalCriarUsuar
     setErro(null);
     setSalvando(true);
     try {
-      await onCriar({ username: username.trim(), password: senha, role_name: papel });
+      await onCriar({
+        username: username.trim(),
+        password: senha,
+        role_name: papel,
+      });
       // Sucesso: a tela fecha o diálogo, o que desmonta este componente.
       // Nada de `setSalvando(false)` aqui — seria estado em componente morto.
     } catch (e) {

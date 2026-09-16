@@ -79,14 +79,18 @@ const { NOTAS } = vi.hoisted(() => ({
 
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
 /** Dublê do recharts — nenhum teste aqui olha para gráfico. */
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const passante = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const passante = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: passante,
     BarChart: passante,
@@ -116,7 +120,10 @@ function ordemDaTabela(): string[] {
   if (!corpo) throw new Error("tbody nao encontrado");
   return within(corpo as HTMLElement)
     .getAllByRole("row")
-    .map((linha) => within(linha).getAllByRole("cell")[0].textContent?.trim() ?? "");
+    .map(
+      (linha) =>
+        within(linha).getAllByRole("cell")[0].textContent?.trim() ?? "",
+    );
 }
 
 /** O botão de ordenação de uma coluna, achado pelo nome acessível. */

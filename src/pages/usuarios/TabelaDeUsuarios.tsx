@@ -90,7 +90,9 @@ function LinhaDeUsuario({
       <TableCell className="font-medium">
         {usuario.username}
         {ehVoce ? (
-          <span className="ml-2 text-xs font-normal text-conteudo-muted">(você)</span>
+          <span className="ml-2 text-xs font-normal text-conteudo-muted">
+            (você)
+          </span>
         ) : null}
       </TableCell>
       <TableCell>
@@ -104,18 +106,30 @@ function LinhaDeUsuario({
       <TableCell>
         <div className="flex items-center justify-center gap-1">
           <AcaoDaLinha rotulo="Editar" onClick={onEditar}>
-            <Pencil className="h-4 w-4 text-action" strokeWidth={2} aria-hidden="true" />
+            <Pencil
+              className="h-4 w-4 text-action"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           </AcaoDaLinha>
           <AcaoDaLinha rotulo="Trocar senha" onClick={onTrocarSenha}>
-            <Lock className="h-4 w-4 text-warning" strokeWidth={2} aria-hidden="true" />
+            <Lock
+              className="h-4 w-4 text-warning"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           </AcaoDaLinha>
           <AcaoDaLinha
-            rotulo={ehVoce ? "Não é possível excluir seu próprio usuário" : "Excluir"}
+            rotulo={
+              ehVoce ? "Não é possível excluir seu próprio usuário" : "Excluir"
+            }
             disabled={ehVoce}
             onClick={onExcluir}
           >
             <Trash2
-              className={ehVoce ? "h-4 w-4 text-conteudo-faint" : "h-4 w-4 text-danger"}
+              className={
+                ehVoce ? "h-4 w-4 text-conteudo-faint" : "h-4 w-4 text-danger"
+              }
               strokeWidth={2}
               aria-hidden="true"
             />

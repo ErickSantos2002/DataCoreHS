@@ -38,8 +38,10 @@ export function ModalExcluirUsuario({
     <Modal open onClose={onFechar} title="Confirmar Exclusão" erro={erro}>
       <p className="text-conteudo">
         Tem certeza que deseja excluir o usuário{" "}
-        <span className="font-semibold text-conteudo-heading">{usuario.username}</span>?
-        Esta ação não pode ser desfeita.
+        <span className="font-semibold text-conteudo-heading">
+          {usuario.username}
+        </span>
+        ? Esta ação não pode ser desfeita.
       </p>
 
       <ModalFooter>

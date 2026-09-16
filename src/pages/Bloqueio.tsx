@@ -18,10 +18,14 @@ const Bloqueio: React.FC = () => {
         <title>Acesso negado | DataCoreHS</title>
       </Helmet>
 
-      <h1 className="text-2xl font-bold text-conteudo-heading">Acesso negado</h1>
+      <h1 className="text-2xl font-bold text-conteudo-heading">
+        Acesso negado
+      </h1>
 
       <div className="w-full max-w-md">
-        <Alert variant="danger">Você não tem permissão para acessar esta página.</Alert>
+        <Alert variant="danger">
+          Você não tem permissão para acessar esta página.
+        </Alert>
       </div>
     </div>
   );

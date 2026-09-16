@@ -34,7 +34,11 @@ export function KpisDeServicos({ kpis }: KpisDeServicosProps) {
         tone="acao"
       />
 
-      <KpiCard label="NFS-e Emitidas" value={kpis.totalServicos} tone="positivo" />
+      <KpiCard
+        label="NFS-e Emitidas"
+        value={kpis.totalServicos}
+        tone="positivo"
+      />
 
       <KpiCard
         label="Ticket Médio"
@@ -48,7 +52,11 @@ export function KpisDeServicos({ kpis }: KpisDeServicosProps) {
         label="Top Cliente"
         value={kpis.topCliente?.nome || "N/A"}
         valorEhTexto
-        note={kpis.topCliente ? formatarValorAbreviado(kpis.topCliente.valor) : "R$ 0"}
+        note={
+          kpis.topCliente
+            ? formatarValorAbreviado(kpis.topCliente.valor)
+            : "R$ 0"
+        }
       />
     </div>
   );

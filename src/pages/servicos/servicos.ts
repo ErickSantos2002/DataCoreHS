@@ -35,7 +35,10 @@
 import type { ResumoDeServicos } from "../../services/notasapi";
 import { dataDeCalendario } from "../../lib/datas";
 import { converterParaNumero } from "../../lib/dinheiro";
-import type { PedidoDaTabelaDeServicos, RecorteDeServicos } from "./useServicos";
+import type {
+  PedidoDaTabelaDeServicos,
+  RecorteDeServicos,
+} from "./useServicos";
 
 /** Os campos que a tela lê de um serviço (NFS-e), como a página do servidor os
  *  entrega. É um subconjunto de `NotaServico`: a tabela não precisa saber de
@@ -137,7 +140,9 @@ export interface OrdenacaoDeServicos {
  * mas é ela que decide o que entra no `WHERE` da consulta: um campo que se
  * perca aqui vira um filtro que a tela mostra marcado e o banco ignora.
  */
-export function recorteDeServicos(filtros: FiltrosDeServicos): RecorteDeServicos {
+export function recorteDeServicos(
+  filtros: FiltrosDeServicos,
+): RecorteDeServicos {
   return {
     clientes: filtros.cliente,
     cidades: filtros.cidade,
@@ -185,7 +190,10 @@ export function evolucaoDoResumo(
   const dadosMensais = evolucaoMensal.map((m) => {
     const data = new Date(m.ano, m.mes - 1);
     return {
-      mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+      mes: data.toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "numeric",
+      }),
       total: m.total,
       ordem: data.getTime(),
       ano: m.ano,
@@ -193,11 +201,14 @@ export function evolucaoDoResumo(
   });
 
   if (dadosMensais.length > 24) {
-    const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
-      if (!acc[item.ano]) acc[item.ano] = 0;
-      acc[item.ano] += item.total;
-      return acc;
-    }, {});
+    const agrupadoAnual = dadosMensais.reduce(
+      (acc: Record<number, number>, item) => {
+        if (!acc[item.ano]) acc[item.ano] = 0;
+        acc[item.ano] += item.total;
+        return acc;
+      },
+      {},
+    );
 
     return Object.entries(agrupadoAnual)
       .map(([ano, total]) => ({
@@ -302,7 +313,9 @@ export function proximaOrdenacao(
  * `data_emissao: string`, então a nota sem data é dado fora do contrato —
  * mas ela chega, e um travessão numa célula diz o que "Invalid Date" não diz.
  */
-export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[] {
+export function linhasDaPlanilha(
+  servicos: Servico[],
+): Record<string, unknown>[] {
   return servicos.map((s) => ({
     "Número NFS-e": s.numero_nfse,
     Cliente: s.razao_social_tomador,
@@ -339,11 +352,13 @@ export function linhasDaPlanilha(servicos: Servico[]): Record<string, unknown>[]
  * registra.
  */
 export function linhasDoPdf(servicos: Servico[]): (string | number)[][] {
-  return servicos.slice(0, 30).map((s) => [
-    s.numero_nfse,
-    s.razao_social_tomador.substring(0, 25),
-    dataDeCalendario(s.data_emissao),
-    `R$ ${converterParaNumero(s.valor_servico).toFixed(2)}`,
-    rotuloDaCidade(s.cidade_tomador, s.uf_tomador),
-  ]);
+  return servicos
+    .slice(0, 30)
+    .map((s) => [
+      s.numero_nfse,
+      s.razao_social_tomador.substring(0, 25),
+      dataDeCalendario(s.data_emissao),
+      `R$ ${converterParaNumero(s.valor_servico).toFixed(2)}`,
+      rotuloDaCidade(s.cidade_tomador, s.uf_tomador),
+    ]);
 }

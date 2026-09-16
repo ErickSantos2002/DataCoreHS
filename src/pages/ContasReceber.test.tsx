@@ -124,7 +124,10 @@ vi.mock("recharts", () => {
     <ul>
       {data.map((dado, i) => (
         <li key={i}>
-          <button type="button" onClick={() => onClick?.({ activeLabel: rotulo(dado) })}>
+          <button
+            type="button"
+            onClick={() => onClick?.({ activeLabel: rotulo(dado) })}
+          >
             {serie(dado)}
           </button>
         </li>
@@ -342,7 +345,8 @@ async function assentar() {
 function kpi(rotulo: string): string {
   const etiqueta = screen.getByText(rotulo);
   const valor = etiqueta.nextElementSibling;
-  if (!valor) throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
+  if (!valor)
+    throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
   return texto(valor);
 }
 
@@ -356,7 +360,9 @@ function linhasDaTabela(): HTMLElement[] {
 
 /** A coluna "ID Tiny" de cada linha, na ordem em que a tela desenhou. */
 function idsNaTela(): string[] {
-  return linhasDaTabela().map((linha) => texto(within(linha).getAllByRole("cell")[0]));
+  return linhasDaTabela().map((linha) =>
+    texto(within(linha).getAllByRole("cell")[0]),
+  );
 }
 
 /** O conteúdo das oito células de uma linha. */
@@ -389,14 +395,16 @@ async function abrirFiltro(rotulo: string) {
 /** Abre o multi-select e marca uma opção pelo texto dela. */
 async function marcarOpcao(rotulo: string, opcao: string) {
   const bloco = blocoDoFiltro(rotulo);
-  if (within(bloco).queryAllByRole("checkbox").length === 0) await abrirFiltro(rotulo);
+  if (within(bloco).queryAllByRole("checkbox").length === 0)
+    await abrirFiltro(rotulo);
   fireEvent.click(within(bloco).getByRole("checkbox", { name: opcao }));
   await assentar();
 }
 
 async function opcoesDoFiltro(rotulo: string): Promise<string[]> {
   const bloco = blocoDoFiltro(rotulo);
-  if (within(bloco).queryAllByRole("checkbox").length === 0) await abrirFiltro(rotulo);
+  if (within(bloco).queryAllByRole("checkbox").length === 0)
+    await abrirFiltro(rotulo);
   return within(bloco)
     .getAllByRole("checkbox")
     .map((caixa) => texto(caixa.parentElement));
@@ -415,9 +423,12 @@ async function preencherData(rotulo: string, valor: string) {
 }
 
 async function escolherPreset(valor: string) {
-  fireEvent.change(within(blocoDoFiltro("Período Rápido")).getByRole("combobox"), {
-    target: { value: valor },
-  });
+  fireEvent.change(
+    within(blocoDoFiltro("Período Rápido")).getByRole("combobox"),
+    {
+      target: { value: valor },
+    },
+  );
   await assentar();
 }
 
@@ -429,8 +440,9 @@ async function escolherPreset(valor: string) {
  */
 function campoDeBusca(): HTMLInputElement {
   const seletor = 'input[placeholder="Pesquisar..."]';
-  let no: HTMLElement | null =
-    screen.getByRole("button", { name: /exportar excel/i }).parentElement;
+  let no: HTMLElement | null = screen.getByRole("button", {
+    name: /exportar excel/i,
+  }).parentElement;
   while (no && !no.querySelector(seletor)) no = no.parentElement;
   const campo = no?.querySelector(seletor);
   if (!campo) throw new Error("campo de busca da tabela não está na tela");
@@ -456,7 +468,8 @@ async function ordenarPor(coluna: string) {
 function cartaoDoGrafico(titulo: string | RegExp): HTMLElement {
   const cabecalho = screen.getByRole("heading", { name: titulo });
   let no: HTMLElement | null = cabecalho.parentElement;
-  while (no && within(no).queryAllByRole("list").length === 0) no = no.parentElement;
+  while (no && within(no).queryAllByRole("list").length === 0)
+    no = no.parentElement;
   if (!no) throw new Error(`gráfico "${String(titulo)}" não está na tela`);
   return no;
 }
@@ -509,7 +522,9 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     servidor.modo = "pendente";
     render(<ContasReceber />, { wrapper: Molde });
 
-    expect(screen.getByText("Carregando contas a receber...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Carregando contas a receber..."),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.queryByText("Total a Receber")).not.toBeInTheDocument();
   });
@@ -525,7 +540,9 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // quem usava não distinguia "a API caiu" de "não há conta nenhuma"
     // (defeito 1.10). O aviso é um `Alert` no fluxo da página — estado
     // permanente até recarregar —, e não um toast que some em 4 segundos.
-    const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const console_error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     servidor.modo = "falha";
     render(<ContasReceber />, { wrapper: Molde });
 
@@ -567,10 +584,16 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     await montar([]);
 
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
-    expect(screen.queryByText("Nenhum resultado encontrado.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Nenhum resultado encontrado."),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Anterior" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Próxima" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Anterior" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Próxima" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "1" })).not.toBeInTheDocument();
   });
 
@@ -581,7 +604,9 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // zerados, então tem dado.
     await montar([]);
 
-    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(
+      screen.getAllByText("Nenhuma conta para montar este gráfico."),
+    ).toHaveLength(2);
     expect(itensDoGrafico(/Evolução/)).toHaveLength(12);
   });
 
@@ -589,12 +614,16 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // Não há frase de erro dentro do gráfico: repetir "não foi possível
     // carregar" em cada cartão diria a mesma coisa mais duas vezes, e a
     // distinção já mora no `Alert` vermelho no topo da página.
-    const console_error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const console_error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     servidor.modo = "falha";
     render(<ContasReceber />, { wrapper: Molde });
     await screen.findByRole("table");
 
-    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(
+      screen.getAllByText("Nenhuma conta para montar este gráfico."),
+    ).toHaveLength(2);
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Não foi possível carregar as contas a receber.",
     );
@@ -627,21 +656,29 @@ describe("Contas a Receber — carregamento e lista vazia", () => {
     // Locação já desabilitava nesse caso.
     await montar([]);
 
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeDisabled();
   });
 
   it("uma busca que não casa com nada também desabilita o exportar", async () => {
     // O botão olha o recorte inteiro, e não a página: filtrar até sobrar
     // zero linha é o mesmo caso de não ter conta nenhuma.
     await montar();
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeEnabled();
 
     await buscar("nao existe esse cliente");
     expect(linhasDaTabela()).toHaveLength(0);
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeDisabled();
 
     await buscar("");
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeEnabled();
   });
 
   it("apresenta a tela e diz quem está logado", async () => {
@@ -736,9 +773,30 @@ describe("Contas a Receber — KPIs", () => {
     // Três contas emitidas no mesmo mês e vencendo em três meses diferentes:
     // um mês só, então a média é a soma inteira.
     await montar([
-      conta({ id: 1, data: "2026-05-01", vencimento: "2026-06-01", valor: "100", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-05-20", vencimento: "2026-07-01", valor: "200", saldo: "200", situacao: "pendente" }),
-      conta({ id: 3, data: "2026-05-31", vencimento: "2026-08-01", valor: "300", saldo: "300", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2026-05-01",
+        vencimento: "2026-06-01",
+        valor: "100",
+        saldo: "100",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-05-20",
+        vencimento: "2026-07-01",
+        valor: "200",
+        saldo: "200",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 3,
+        data: "2026-05-31",
+        vencimento: "2026-08-01",
+        valor: "300",
+        saldo: "300",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(kpi("Média Mensal Faturada")).toBe("R$ 600,00");
@@ -748,8 +806,20 @@ describe("Contas a Receber — KPIs", () => {
     // 31/12 e 01/01 são meses distintos, mesmo com um dia de distância:
     // 600 / 2 = 300.
     await montar([
-      conta({ id: 1, data: "2025-12-31", valor: "300", saldo: "300", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-01", valor: "300", saldo: "300", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2025-12-31",
+        valor: "300",
+        saldo: "300",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-01-01",
+        valor: "300",
+        saldo: "300",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(kpi("Média Mensal Faturada")).toBe("R$ 300,00");
@@ -761,8 +831,20 @@ describe("Contas a Receber — KPIs", () => {
     // A tela mostrava R$ 1.100 — nem o faturado (R$ 2.000) nem o que entrou
     // (R$ 1.900), porque somava saldo com valor cheio (defeito 1.2).
     await montar([
-      conta({ id: 1, data: "2026-01-05", valor: "1000", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "0", situacao: "recebido" }),
+      conta({
+        id: 1,
+        data: "2026-01-05",
+        valor: "1000",
+        saldo: "100",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-01-06",
+        valor: "1000",
+        saldo: "0",
+        situacao: "recebido",
+      }),
     ]);
 
     expect(kpi("Total Recebido")).toBe("R$ 1.900,00");
@@ -809,7 +891,9 @@ describe("Contas a Receber — situação", () => {
   });
 
   it("a caixa alta vale para a conta mas não para o rótulo: a badge mostra o texto cru", async () => {
-    await montar([conta({ id: 1, valor: "100", saldo: "0", situacao: "PAGO" })]);
+    await montar([
+      conta({ id: 1, valor: "100", saldo: "0", situacao: "PAGO" }),
+    ]);
 
     expect(kpi("Total Recebido")).toBe("R$ 100,00");
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("PAGO");
@@ -817,7 +901,13 @@ describe("Contas a Receber — situação", () => {
 
   it("situação desconhecida é tratada como conta em aberto", async () => {
     await montar([
-      conta({ id: 1, vencimento: "2026-12-01", valor: "900", saldo: "700", situacao: "cancelado" }),
+      conta({
+        id: 1,
+        vencimento: "2026-12-01",
+        valor: "900",
+        saldo: "700",
+        situacao: "cancelado",
+      }),
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 700,00");
@@ -831,7 +921,13 @@ describe("Contas a Receber — situação", () => {
     // A badge de fallback mostrava `situacao ?? "-"`, e string vazia não é
     // nula: a célula ficava com uma pílula cinza sem texto nenhum dentro.
     await montar([
-      conta({ id: 1, vencimento: "2026-12-01", valor: "900", saldo: "700", situacao: "" }),
+      conta({
+        id: 1,
+        vencimento: "2026-12-01",
+        valor: "900",
+        saldo: "700",
+        situacao: "",
+      }),
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 700,00");
@@ -840,7 +936,13 @@ describe("Contas a Receber — situação", () => {
 
   it("situação nula entra no aberto e mostra o travessão curto", async () => {
     await montar([
-      conta({ id: 1, vencimento: "2026-12-01", valor: "900", saldo: "700", situacao: null }),
+      conta({
+        id: 1,
+        vencimento: "2026-12-01",
+        valor: "900",
+        saldo: "700",
+        situacao: null,
+      }),
     ]);
 
     expect(kpi("Total a Receber")).toBe("R$ 700,00");
@@ -878,7 +980,12 @@ describe("Contas a Receber — opções dos filtros", () => {
   it("as situações são as distintas da base, sem repetição e sem vazio", async () => {
     await montar();
 
-    expect(await opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente", "recebido"]);
+    expect(await opcoesDoFiltro("Situação")).toEqual([
+      "aberto",
+      "pago",
+      "pendente",
+      "recebido",
+    ]);
   });
 
   it("situação nula e vazia não viram opção — e a conta some de qualquer seleção", async () => {
@@ -907,7 +1014,11 @@ describe("Contas a Receber — opções dos filtros", () => {
       conta({ id: 5, categoria: null }),
     ]);
 
-    expect(await opcoesDoFiltro("Categoria")).toEqual(["Água", "Boletos", "Zinco"]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual([
+      "Água",
+      "Boletos",
+      "Zinco",
+    ]);
   });
 
   it("os clientes são os distintos, e o nome vazio NÃO vira opção", async () => {
@@ -929,7 +1040,11 @@ describe("Contas a Receber — opções dos filtros", () => {
     await marcarOpcao("Situação", "pendente");
 
     expect(idsNaTela()).toEqual(["103", "104"]);
-    expect(await opcoesDoFiltro("Categoria")).toEqual(["Locação", "Produtos", "Serviços"]);
+    expect(await opcoesDoFiltro("Categoria")).toEqual([
+      "Locação",
+      "Produtos",
+      "Serviços",
+    ]);
   });
 });
 
@@ -955,9 +1070,15 @@ describe("Contas a Receber — cada filtro isolado", () => {
     // metade e estragaria a outra — o nome viraria só "Situação" e sumiria o
     // estado. `aria-labelledby` com o rótulo e o valor anuncia os dois.
     await montar();
-    expect(screen.getByRole("button", { name: "Situação Todas" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Cliente Todos" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Situação Todas" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Categoria Todas" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Cliente Todos" }),
+    ).toBeInTheDocument();
 
     await marcarOpcao("Situação", "aberto");
     expect(
@@ -967,12 +1088,14 @@ describe("Contas a Receber — cada filtro isolado", () => {
 
   it("o botão do multi-select conta quantas opções estão marcadas", async () => {
     await montar();
-    expect(texto(within(blocoDoFiltro("Situação")).getByRole("button"))).toBe("Todas");
+    expect(texto(within(blocoDoFiltro("Situação")).getByRole("button"))).toBe(
+      "Todas",
+    );
 
     await marcarOpcao("Situação", "aberto");
-    expect(texto(within(blocoDoFiltro("Situação")).getAllByRole("button")[0])).toBe(
-      "1 selecionado(s)",
-    );
+    expect(
+      texto(within(blocoDoFiltro("Situação")).getAllByRole("button")[0]),
+    ).toBe("1 selecionado(s)");
   });
 
   it("Limpar seleção devolve a lista inteira", async () => {
@@ -981,7 +1104,9 @@ describe("Contas a Receber — cada filtro isolado", () => {
     expect(idsNaTela()).toEqual(["105", "106"]);
 
     fireEvent.click(
-      within(blocoDoFiltro("Situação")).getByRole("button", { name: "Limpar seleção" }),
+      within(blocoDoFiltro("Situação")).getByRole("button", {
+        name: "Limpar seleção",
+      }),
     );
     await assentar();
     expect(idsNaTela()).toEqual(["101", "102", "103", "104", "105", "106"]);
@@ -1071,8 +1196,11 @@ describe("Contas a Receber — filtro por data", () => {
     await preencherData("Data Início", "2026-01-01");
 
     expect(
-      (within(blocoDoFiltro("Período Rápido")).getByRole("combobox") as HTMLSelectElement)
-        .value,
+      (
+        within(blocoDoFiltro("Período Rápido")).getByRole(
+          "combobox",
+        ) as HTMLSelectElement
+      ).value,
     ).toBe("custom");
     // A data de fim que o preset tinha posto continua lá.
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
@@ -1175,7 +1303,9 @@ describe("Contas a Receber — fuso horário", () => {
     // Este é o pedaço que a tela acerta: `formatarData` fatia a string em
     // "-" e nunca constrói um `Date`. O dia mostrado é o dia escrito, em
     // TZ=UTC e em TZ=America/Sao_Paulo.
-    await montar([conta({ id: 1, data: "2026-01-01", vencimento: "2026-03-01" })]);
+    await montar([
+      conta({ id: 1, data: "2026-01-01", vencimento: "2026-03-01" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("01/01/2026");
     expect(celulasDaLinha(linhasDaTabela()[0])[1]).toBe("01/03/2026");
@@ -1193,7 +1323,9 @@ describe("Contas a Receber — fuso horário", () => {
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-09-01",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-30");
+    expect(campoDeData("Data Fim").value).toBe(
+      foraDoUtc() ? "2026-08-31" : "2026-09-30",
+    );
   });
 
   it("na virada do mês, o Últimos 30 dias conta os 30 dias a partir do dia LOCAL", async () => {
@@ -1206,7 +1338,9 @@ describe("Contas a Receber — fuso horário", () => {
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2026-08-01" : "2026-08-02",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2026-08-31" : "2026-09-01");
+    expect(campoDeData("Data Fim").value).toBe(
+      foraDoUtc() ? "2026-08-31" : "2026-09-01",
+    );
   });
 
   it("na virada do ANO, o Ano atual é o ano local nas duas pontas", async () => {
@@ -1220,20 +1354,26 @@ describe("Contas a Receber — fuso horário", () => {
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2025-01-01" : "2026-01-01",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-12-31");
+    expect(campoDeData("Data Fim").value).toBe(
+      foraDoUtc() ? "2025-12-31" : "2026-12-31",
+    );
 
     await escolherPreset("mesAtual");
     expect(campoDeData("Data Início").value).toBe(
       foraDoUtc() ? "2025-12-01" : "2026-01-01",
     );
-    expect(campoDeData("Data Fim").value).toBe(foraDoUtc() ? "2025-12-31" : "2026-01-31");
+    expect(campoDeData("Data Fim").value).toBe(
+      foraDoUtc() ? "2025-12-31" : "2026-01-31",
+    );
   });
 
   it("o que é vencido usa o dia LOCAL, e não o dia em UTC", async () => {
     // Mesmo instante do teste acima: em UTC já é 01/09 e a conta de 31/08
     // está vencida; em Brasília ainda é 31/08 e ela não está.
     vi.setSystemTime(new Date("2026-09-01T02:00:00Z"));
-    await montar([conta({ id: 1, vencimento: "2026-08-31", situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, vencimento: "2026-08-31", situacao: "pendente" }),
+    ]);
 
     expect(kpi("Contas Vencidas")).toBe(foraDoUtc() ? "0" : "1");
   });
@@ -1602,17 +1742,39 @@ describe("Contas a Receber — gráfico de evolução", () => {
     expect(
       screen.getByRole("heading", { name: "Evolução Mensal — 2026" }),
     ).toBeInTheDocument();
-    expect(itensDoGrafico(/Evolução/)[2]).toBe("label=Mar recebido=0 aberto=300");
+    expect(itensDoGrafico(/Evolução/)[2]).toBe(
+      "label=Mar recebido=0 aberto=300",
+    );
   });
 
   it("com dois anos na base, troca para ANUAL e ordena do mais antigo ao mais novo", async () => {
     await montar([
-      conta({ id: 1, data: "2026-05-01", valor: "100", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2024-05-01", valor: "700", saldo: "0", situacao: "recebido" }),
-      conta({ id: 3, data: "2025-05-01", valor: "300", saldo: "250", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2026-05-01",
+        valor: "100",
+        saldo: "100",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2024-05-01",
+        valor: "700",
+        saldo: "0",
+        situacao: "recebido",
+      }),
+      conta({
+        id: 3,
+        data: "2025-05-01",
+        valor: "300",
+        saldo: "250",
+        situacao: "pendente",
+      }),
     ]);
 
-    expect(screen.getByRole("heading", { name: "Evolução Anual" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Evolução Anual" }),
+    ).toBeInTheDocument();
     // 2025 tem uma conta em aberto de 300 com 50 já recebidos: ela aparece
     // nas duas barras do ano.
     expect(itensDoGrafico(/Evolução/)).toEqual([
@@ -1624,8 +1786,20 @@ describe("Contas a Receber — gráfico de evolução", () => {
 
   it("no modo anual só aparece ano que tem conta — não há barra vazia no meio", async () => {
     await montar([
-      conta({ id: 1, data: "2020-01-01", valor: "10", saldo: "10", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-01", valor: "20", saldo: "20", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2020-01-01",
+        valor: "10",
+        saldo: "10",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-01-01",
+        valor: "20",
+        saldo: "20",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(itensDoGrafico(/Evolução/)).toEqual([
@@ -1639,11 +1813,25 @@ describe("Contas a Receber — gráfico de evolução", () => {
     // Antes cada conta ia inteira para uma barra só — a quitada pelo valor
     // cheio, a em aberto pelo saldo — e os 600 sumiam do gráfico.
     await montar([
-      conta({ id: 1, data: "2026-01-05", valor: "1000", saldo: "400", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-01-06", valor: "1000", saldo: "0", situacao: "recebido" }),
+      conta({
+        id: 1,
+        data: "2026-01-05",
+        valor: "1000",
+        saldo: "400",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-01-06",
+        valor: "1000",
+        saldo: "0",
+        situacao: "recebido",
+      }),
     ]);
 
-    expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=1600 aberto=400");
+    expect(itensDoGrafico(/Evolução/)[0]).toBe(
+      "label=Jan recebido=1600 aberto=400",
+    );
     // E as duas barras somadas dão os dois KPIs do topo.
     expect(kpi("Total Recebido")).toBe("R$ 1.600,00");
     expect(kpi("Total a Receber")).toBe("R$ 400,00");
@@ -1656,8 +1844,11 @@ describe("Contas a Receber — gráfico de evolução", () => {
     expect(campoDeData("Data Início").value).toBe("2026-08-01");
     expect(campoDeData("Data Fim").value).toBe("2026-08-31");
     expect(
-      (within(blocoDoFiltro("Período Rápido")).getByRole("combobox") as HTMLSelectElement)
-        .value,
+      (
+        within(blocoDoFiltro("Período Rápido")).getByRole(
+          "combobox",
+        ) as HTMLSelectElement
+      ).value,
     ).toBe("custom");
     expect(idsNaTela()).toEqual(["104", "105", "106"]);
   });
@@ -1682,8 +1873,20 @@ describe("Contas a Receber — gráfico de evolução", () => {
 
   it("clicar numa barra anual filtra o ano — e o gráfico vira mensal daquele ano", async () => {
     await montar([
-      conta({ id: 1, data: "2025-03-01", valor: "100", saldo: "100", situacao: "pendente" }),
-      conta({ id: 2, data: "2026-04-01", valor: "200", saldo: "200", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2025-03-01",
+        valor: "100",
+        saldo: "100",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        data: "2026-04-01",
+        valor: "200",
+        saldo: "200",
+        situacao: "pendente",
+      }),
     ]);
     // Entra em "Personalizado" com as datas ainda em branco: assim os dois
     // anos continuam na base (o gráfico segue anual) e o clique tem de
@@ -1697,8 +1900,11 @@ describe("Contas a Receber — gráfico de evolução", () => {
     // O clique tem de vencer o preset que estava valendo, senão o efeito do
     // "Ano atual" reescreve as datas por cima do ano que foi clicado.
     expect(
-      (within(blocoDoFiltro("Período Rápido")).getByRole("combobox") as HTMLSelectElement)
-        .value,
+      (
+        within(blocoDoFiltro("Período Rápido")).getByRole(
+          "combobox",
+        ) as HTMLSelectElement
+      ).value,
     ).toBe("custom");
     expect(idsNaTela()).toEqual(["1"]);
     expect(
@@ -1720,7 +1926,9 @@ describe("Contas a Receber — gráfico de evolução", () => {
     await montar();
     await buscar("gama");
     expect(idsNaTela()).toEqual(["103"]);
-    expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=1000 aberto=0");
+    expect(itensDoGrafico(/Evolução/)[0]).toBe(
+      "label=Jan recebido=1000 aberto=0",
+    );
 
     await marcarOpcao("Cliente", "Gama Energia");
     expect(itensDoGrafico(/Evolução/)[0]).toBe("label=Jan recebido=0 aberto=0");
@@ -1785,8 +1993,24 @@ describe("Contas a Receber — gráficos de categoria e de clientes", () => {
     // avisava (defeito 1.1). Uma conta marcada como recebida com saldo
     // sobrando é o caso em que os dois discordavam.
     await montar([
-      conta({ id: 1, data: "2026-01-05", categoria: "Serviços", cliente_nome: "Alfa", valor: "1000", saldo: "300", situacao: "recebido" }),
-      conta({ id: 2, data: "2026-01-06", categoria: "Locação", cliente_nome: "Beta", valor: "500", saldo: "500", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data: "2026-01-05",
+        categoria: "Serviços",
+        cliente_nome: "Alfa",
+        valor: "1000",
+        saldo: "300",
+        situacao: "recebido",
+      }),
+      conta({
+        id: 2,
+        data: "2026-01-06",
+        categoria: "Locação",
+        cliente_nome: "Beta",
+        valor: "500",
+        saldo: "500",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(itensDoGrafico("Distribuição por Categoria")).toEqual([
@@ -1894,7 +2118,14 @@ describe("Contas a Receber — linha da tabela", () => {
 
 describe("Contas a Receber — dinheiro", () => {
   it("texto com vírgula decimal e ponto de milhar é lido certo", async () => {
-    await montar([conta({ id: 1, valor: "1.234,56", saldo: "1.234,56", situacao: "pendente" })]);
+    await montar([
+      conta({
+        id: 1,
+        valor: "1.234,56",
+        saldo: "1.234,56",
+        situacao: "pendente",
+      }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,56");
     expect(kpi("Total a Receber")).toBe("R$ 1.234,56");
@@ -1904,7 +2135,9 @@ describe("Contas a Receber — dinheiro", () => {
     // "1.234" (mil duzentos e trinta e quatro) não tem vírgula: o ponto era
     // lido como decimal e a nota virava R$ 1,23 na tela, no KPI e na
     // planilha. Era o pior defeito de dinheiro das duas telas.
-    await montar([conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,00");
     expect(kpi("Total a Receber")).toBe("R$ 1.234,00");
@@ -1913,20 +2146,33 @@ describe("Contas a Receber — dinheiro", () => {
   it("uma ou duas casas depois do ponto continuam sendo centavo", async () => {
     // A régua é o tamanho do grupo: três dígitos agrupados é milhar, uma ou
     // duas casas é centavo. "1.23" continua um real e vinte e três.
-    await montar([conta({ id: 1, valor: "1.23", saldo: "1.23", situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, valor: "1.23", saldo: "1.23", situacao: "pendente" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1,23");
   });
 
   it("o R$ e os espaços vêm junto sem atrapalhar", async () => {
-    await montar([conta({ id: 1, valor: "R$ 1.500,50", saldo: "R$ 1.500,50", situacao: "pendente" })]);
+    await montar([
+      conta({
+        id: 1,
+        valor: "R$ 1.500,50",
+        saldo: "R$ 1.500,50",
+        situacao: "pendente",
+      }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.500,50");
   });
 
   it("valor ausente, vazio ou sem número nenhum vale zero", async () => {
     await montar([
-      conta({ id: 1, valor: null as unknown as string, saldo: null as unknown as string }),
+      conta({
+        id: 1,
+        valor: null as unknown as string,
+        saldo: null as unknown as string,
+      }),
       conta({ id: 2, valor: "", saldo: "" }),
       conta({ id: 3, valor: "sem valor", saldo: "sem valor" }),
       conta({ id: 4, valor: 0, saldo: 0 }),
@@ -1950,7 +2196,9 @@ describe("Contas a Receber — dinheiro", () => {
   });
 
   it("número já vem pronto do backend e não passa pelo parse", async () => {
-    await montar([conta({ id: 1, valor: 1500.5, saldo: 1500.5, situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, valor: 1500.5, saldo: 1500.5, situacao: "pendente" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.500,50");
   });
@@ -2057,7 +2305,11 @@ describe("Contas a Receber — exportação para Excel", () => {
       "aberto",
       "pendente",
     ]);
-    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual(["Sim", "Sim", "Não"]);
+    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual([
+      "Sim",
+      "Sim",
+      "Não",
+    ]);
   });
 
   it("data com hora sai como o dia também na planilha", async () => {
@@ -2073,7 +2325,9 @@ describe("Contas a Receber — exportação para Excel", () => {
     await exportar();
 
     expect(planilha.linhas).toHaveLength(20);
-    expect(planilha.linhas.map((l) => l["ID Tiny"]).slice(0, 3)).toEqual([20, 19, 18]);
+    expect(planilha.linhas.map((l) => l["ID Tiny"]).slice(0, 3)).toEqual([
+      20, 19, 18,
+    ]);
   });
 
   it("a busca da tabela entra na planilha", async () => {
@@ -2107,7 +2361,9 @@ describe("Contas a Receber — exportação para Excel", () => {
     await exportar();
 
     expect(planilha.arquivo).toBe(
-      foraDoUtcAgora() ? "contas_a_receber_2026-08-31.xlsx" : "contas_a_receber_2026-09-01.xlsx",
+      foraDoUtcAgora()
+        ? "contas_a_receber_2026-08-31.xlsx"
+        : "contas_a_receber_2026-09-01.xlsx",
     );
   });
 });

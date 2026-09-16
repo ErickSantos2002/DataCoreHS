@@ -25,24 +25,43 @@ export interface KpisDeContasProps {
  *
  * Os cinco descrevem a base FILTRADA, e não o recorte da busca da tabela.
  */
-export function KpisDeContas({ kpis, rotuloDoAberto, rotuloDoQuitado }: KpisDeContasProps) {
+export function KpisDeContas({
+  kpis,
+  rotuloDoAberto,
+  rotuloDoQuitado,
+}: KpisDeContasProps) {
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4">
-      <KpiCard label={rotuloDoAberto} value={formatarMoeda(kpis.totalAberto)} tone="acao" />
+      <KpiCard
+        label={rotuloDoAberto}
+        value={formatarMoeda(kpis.totalAberto)}
+        tone="acao"
+      />
       <KpiCard
         label={rotuloDoQuitado}
         value={formatarMoeda(kpis.totalQuitado)}
         tone="positivo"
       />
-      <KpiCard label="Contas Vencidas" value={kpis.contasVencidas} tone="perigo" />
-      <KpiCard label="A Vencer (30 dias)" value={kpis.aVencer30} tone="alerta" />
+      <KpiCard
+        label="Contas Vencidas"
+        value={kpis.contasVencidas}
+        tone="perigo"
+      />
+      <KpiCard
+        label="A Vencer (30 dias)"
+        value={kpis.aVencer30}
+        tone="alerta"
+      />
       {/*
         "Média Mensal Faturada", e não "Média Mensal": o número é
         (aberto + quitado) / meses distintos de EMISSÃO, ou seja, quanto a
         empresa fatura por mês. O rótulo curto não dizia de que grandeza nem
         de que mês estava falando (defeito 1.2).
       */}
-      <KpiCard label="Média Mensal Faturada" value={formatarMoeda(kpis.mediaMensal)} />
+      <KpiCard
+        label="Média Mensal Faturada"
+        value={formatarMoeda(kpis.mediaMensal)}
+      />
     </div>
   );
 }

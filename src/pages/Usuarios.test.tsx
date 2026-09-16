@@ -104,7 +104,11 @@ const PAPEIS: Papel[] = [
 const PAPEIS_EMBUTIDOS = ["admin", "vendas", "financeiro", "servicos", "comum"];
 
 async function montar(
-  opcoes: { usuarios?: Usuario[]; papeis?: Papel[]; logado?: typeof usuarioLogado } = {},
+  opcoes: {
+    usuarios?: Usuario[];
+    papeis?: Papel[];
+    logado?: typeof usuarioLogado;
+  } = {},
 ) {
   if (opcoes.logado !== undefined) usuarioLogado = opcoes.logado;
   api.getUsers.mockResolvedValue(opcoes.usuarios ?? USUARIOS);
@@ -162,7 +166,9 @@ function camposDeSenha(): HTMLInputElement[] {
   const rotulos = screen.queryByLabelText("Nova senha")
     ? ["Nova senha", "Repita nova senha"]
     : ["Senha", "Confirmar senha"];
-  return rotulos.map((rotulo) => screen.getByLabelText(rotulo) as HTMLInputElement);
+  return rotulos.map(
+    (rotulo) => screen.getByLabelText(rotulo) as HTMLInputElement,
+  );
 }
 
 /** O campo "Usuário" do diálogo aberto — o único campo de texto da tela. */
@@ -180,7 +186,10 @@ function campoDeUsuario(): HTMLInputElement {
 function modal(titulo: string | RegExp): HTMLElement {
   const cabecalho = screen.getByRole("heading", { name: titulo });
   let no: HTMLElement | null = cabecalho.parentElement;
-  while (no && within(no).queryAllByRole("button", { name: "Cancelar" }).length === 0) {
+  while (
+    no &&
+    within(no).queryAllByRole("button", { name: "Cancelar" }).length === 0
+  ) {
     no = no.parentElement;
   }
   if (!no) throw new Error(`modal "${titulo}" não está aberto`);
@@ -212,7 +221,9 @@ async function preencherCriacao(
 }
 
 async function abrirCriar() {
-  await userEvent.setup().click(screen.getByRole("button", { name: "Novo Usuário" }));
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Novo Usuário" }));
 }
 
 /** Erro devolvido pelo axios, no formato que a tela lê. */
@@ -256,7 +267,9 @@ describe("Usuários — carregamento", () => {
 
     await screen.findByRole("table");
     expect(linhasDaTabela()).toHaveLength(0);
-    expect(screen.getByText("Nenhum usuário cadastrado ainda.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum usuário cadastrado ainda."),
+    ).toBeInTheDocument();
     expect(screen.getByText(/0 usuários cadastrados/)).toBeInTheDocument();
     expect(screen.queryByText(/erro/i)).not.toBeInTheDocument();
   });
@@ -316,25 +329,31 @@ describe("Usuários — tabela", () => {
     await montar({ usuarios: [] });
 
     expect(linhasDaTabela()).toHaveLength(0);
-    expect(screen.getAllByRole("columnheader").map((c) => c.textContent)).toEqual([
-      "ID",
-      "Usuário",
-      "Perfil",
-      "Criado em",
-      "Ações",
-    ]);
+    expect(
+      screen.getAllByRole("columnheader").map((c) => c.textContent),
+    ).toEqual(["ID", "Usuário", "Perfil", "Criado em", "Ações"]);
     expect(screen.getByText(/0 usuários cadastrados/)).toBeInTheDocument();
-    expect(screen.getByText("Nenhum usuário cadastrado ainda.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum usuário cadastrado ainda."),
+    ).toBeInTheDocument();
 
     await userEvent
       .setup()
       .click(screen.getByRole("button", { name: "Criar o primeiro usuário" }));
-    expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Novo Usuário" }),
+    ).toBeInTheDocument();
   });
 
   it("usuário sem perfil aparece com travessão na coluna Perfil", async () => {
     await montar({
-      usuarios: [usuario({ id: 3, username: "orfao", role: undefined as unknown as Papel })],
+      usuarios: [
+        usuario({
+          id: 3,
+          username: "orfao",
+          role: undefined as unknown as Papel,
+        }),
+      ],
     });
 
     expect(celulasDaLinha(linhasDaTabela()[0])[2]).toBe("—");
@@ -411,7 +430,9 @@ describe("Usuários — o próprio usuário logado", () => {
     await montar({ logado: { id: 7, username: "erick", role: "admin" } });
 
     expect(within(linhaDe("maria")).getByText("(você)")).toBeInTheDocument();
-    expect(within(linhaDe("erick")).queryByText("(você)")).not.toBeInTheDocument();
+    expect(
+      within(linhaDe("erick")).queryByText("(você)"),
+    ).not.toBeInTheDocument();
   });
 
   it("o botão de excluir do próprio usuário fica desabilitado, com o motivo no title", async () => {
@@ -440,7 +461,9 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
 
-    expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Novo Usuário" }),
+    ).toBeInTheDocument();
     expect(campoDeUsuario()).toHaveValue("");
     expect(camposDeSenha().map((c) => c.value)).toEqual(["", ""]);
     expect(selectDePerfil()).toHaveValue("comum");
@@ -449,7 +472,9 @@ describe("Usuários — modal de criação", () => {
   it("recusa nome de usuário vazio", async () => {
     await montar();
     await abrirCriar();
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(screen.getByText("Informe um nome de usuário.")).toBeInTheDocument();
     expect(api.createUser).not.toHaveBeenCalled();
@@ -459,7 +484,9 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
     await preencherCriacao("   ", "senha123");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(screen.getByText("Informe um nome de usuário.")).toBeInTheDocument();
     expect(api.createUser).not.toHaveBeenCalled();
@@ -469,9 +496,13 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
     await preencherCriacao("novo", "12345");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
-    expect(screen.getByText("A senha deve ter pelo menos 6 caracteres.")).toBeInTheDocument();
+    expect(
+      screen.getByText("A senha deve ter pelo menos 6 caracteres."),
+    ).toBeInTheDocument();
     expect(api.createUser).not.toHaveBeenCalled();
   });
 
@@ -479,7 +510,9 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
     await preencherCriacao("novo", "senha123", "senha124");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(screen.getByText("As senhas não coincidem.")).toBeInTheDocument();
     expect(api.createUser).not.toHaveBeenCalled();
@@ -490,12 +523,18 @@ describe("Usuários — modal de criação", () => {
     await abrirCriar();
     // Tudo errado de uma vez: só a primeira mensagem aparece.
     await preencherCriacao("", "123", "999");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
     expect(screen.getByText("Informe um nome de usuário.")).toBeInTheDocument();
 
     await preencherCriacao("novo", "", "");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
-    expect(screen.getByText("A senha deve ter pelo menos 6 caracteres.")).toBeInTheDocument();
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
+    expect(
+      screen.getByText("A senha deve ter pelo menos 6 caracteres."),
+    ).toBeInTheDocument();
   });
 
   it("cria o usuário com o payload exato, fecha o modal e recarrega a lista", async () => {
@@ -513,7 +552,9 @@ describe("Usuários — modal de criação", () => {
       role_name: "financeiro",
     });
     await screen.findByRole("table");
-    expect(screen.queryByRole("heading", { name: "Novo Usuário" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Novo Usuário" }),
+    ).not.toBeInTheDocument();
     // Recarregou: segunda ida ao /users e ao /roles.
     expect(api.getUsers).toHaveBeenCalledTimes(2);
     expect(api.getRoles).toHaveBeenCalledTimes(2);
@@ -558,7 +599,9 @@ describe("Usuários — modal de criação", () => {
     await abrirCriar();
     await preencherCriacao("rascunho", "senha123");
     await digitar.keyboard("{Escape}");
-    expect(screen.queryByRole("heading", { name: "Novo Usuário" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Novo Usuário" }),
+    ).not.toBeInTheDocument();
 
     await abrirCriar();
     expect(campoDeUsuario()).toHaveValue("");
@@ -570,10 +613,14 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
     await preencherCriacao("novato", "senha123");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(await screen.findByText("Usuário já existe")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Novo Usuário" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Novo Usuário" }),
+    ).toBeInTheDocument();
     expect(api.getUsers).toHaveBeenCalledTimes(1);
   });
 
@@ -582,15 +629,24 @@ describe("Usuários — modal de criação", () => {
     await montar();
     await abrirCriar();
     await preencherCriacao("novato", "senha123");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
-    expect(await screen.findByText("Erro ao criar usuário.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Erro ao criar usuário."),
+    ).toBeInTheDocument();
   });
 });
 
 describe("Usuários — perfis do select", () => {
   it("lista os perfis que vieram do getRoles", async () => {
-    await montar({ papeis: [{ id: 9, name: "suporte" }, { id: 10, name: "comum" }] });
+    await montar({
+      papeis: [
+        { id: 9, name: "suporte" },
+        { id: 10, name: "comum" },
+      ],
+    });
     await abrirCriar();
 
     expect(opcoesDoSelect()).toEqual(["suporte", "comum"]);
@@ -617,7 +673,9 @@ describe("Usuários — perfis do select", () => {
     expect(selectDePerfil().value).toBe("suporte");
 
     await preencherCriacao("novato", "senha123");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(api.createUser).toHaveBeenCalledWith({
       username: "novato",
@@ -637,7 +695,9 @@ describe("Usuários — perfis do select", () => {
     expect(selectDePerfil().value).toBe("suporte");
 
     await preencherCriacao("novato", "senha123");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Criar Usuário" }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Criar Usuário" }));
 
     expect(api.createUser).toHaveBeenCalledWith({
       username: "novato",
@@ -672,14 +732,22 @@ describe("Usuários — modal de edição", () => {
     await montar();
     await userEvent.setup().click(acao("maria", "Editar"));
 
-    expect(screen.getByRole("heading", { name: "Editar — maria" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Editar — maria" }),
+    ).toBeInTheDocument();
     expect(campoDeUsuario()).toHaveValue("maria");
     expect(selectDePerfil()).toHaveValue("vendas");
   });
 
   it("usuário sem perfil abre a edição em comum", async () => {
     await montar({
-      usuarios: [usuario({ id: 3, username: "orfao", role: undefined as unknown as Papel })],
+      usuarios: [
+        usuario({
+          id: 3,
+          username: "orfao",
+          role: undefined as unknown as Papel,
+        }),
+      ],
     });
     await userEvent.setup().click(acao("orfao", "Editar"));
 
@@ -701,7 +769,9 @@ describe("Usuários — modal de edição", () => {
       role_name: "financeiro",
     });
     await screen.findByRole("table");
-    expect(screen.queryByRole("heading", { name: /^Editar/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /^Editar/ }),
+    ).not.toBeInTheDocument();
     expect(api.getUsers).toHaveBeenCalledTimes(2);
   });
 
@@ -726,7 +796,9 @@ describe("Usuários — modal de edição", () => {
 
     api.updateUser.mockRejectedValue(new Error("Network Error"));
     await digitar.click(screen.getByRole("button", { name: "Salvar" }));
-    expect(await screen.findByText("Erro ao atualizar usuário.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Erro ao atualizar usuário."),
+    ).toBeInTheDocument();
   });
 
   it("Cancelar fecha a edição sem chamar a API", async () => {
@@ -735,7 +807,9 @@ describe("Usuários — modal de edição", () => {
     await digitar.click(acao("maria", "Editar"));
     await digitar.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(screen.queryByRole("heading", { name: /^Editar/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /^Editar/ }),
+    ).not.toBeInTheDocument();
     expect(api.updateUser).not.toHaveBeenCalled();
   });
 });
@@ -746,7 +820,9 @@ describe("Usuários — modal de exclusão", () => {
     await userEvent.setup().click(acao("joao", "Excluir"));
 
     const caixa = modal("Confirmar Exclusão");
-    expect(within(caixa).getByText(/Tem certeza que deseja excluir o usuário/)).toBeInTheDocument();
+    expect(
+      within(caixa).getByText(/Tem certeza que deseja excluir o usuário/),
+    ).toBeInTheDocument();
     expect(within(caixa).getByText("joao")).toBeInTheDocument();
   });
 
@@ -754,7 +830,11 @@ describe("Usuários — modal de exclusão", () => {
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("joao", "Excluir"));
-    await digitar.click(within(modal("Confirmar Exclusão")).getByRole("button", { name: "Excluir" }));
+    await digitar.click(
+      within(modal("Confirmar Exclusão")).getByRole("button", {
+        name: "Excluir",
+      }),
+    );
 
     expect(api.deleteUser).toHaveBeenCalledTimes(1);
     expect(api.deleteUser).toHaveBeenCalledWith(9);
@@ -769,7 +849,11 @@ describe("Usuários — modal de exclusão", () => {
     const digitar = userEvent.setup();
     await montar();
     await digitar.click(acao("joao", "Excluir"));
-    await digitar.click(within(modal("Confirmar Exclusão")).getByRole("button", { name: "Cancelar" }));
+    await digitar.click(
+      within(modal("Confirmar Exclusão")).getByRole("button", {
+        name: "Cancelar",
+      }),
+    );
 
     expect(
       screen.queryByRole("heading", { name: "Confirmar Exclusão" }),
@@ -782,13 +866,19 @@ describe("Usuários — modal de exclusão", () => {
     api.deleteUser.mockRejectedValue(erroApi("Usuário tem notas vinculadas"));
     await montar();
     await digitar.click(acao("joao", "Excluir"));
-    const confirmar = within(modal("Confirmar Exclusão")).getByRole("button", { name: "Excluir" });
+    const confirmar = within(modal("Confirmar Exclusão")).getByRole("button", {
+      name: "Excluir",
+    });
     await digitar.click(confirmar);
-    expect(await screen.findByText("Usuário tem notas vinculadas")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Usuário tem notas vinculadas"),
+    ).toBeInTheDocument();
 
     api.deleteUser.mockRejectedValue(new Error("Network Error"));
     await digitar.click(confirmar);
-    expect(await screen.findByText("Erro ao excluir usuário.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Erro ao excluir usuário."),
+    ).toBeInTheDocument();
   });
 });
 
@@ -823,9 +913,13 @@ describe("Usuários — modal de troca de senha", () => {
     await digitar.type(repita, "outrasenh4");
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
-    expect(await screen.findByText("As senhas não coincidem.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("As senhas não coincidem."),
+    ).toBeInTheDocument();
     expect(api.updateUserPassword).not.toHaveBeenCalled();
-    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trocar Senha" }),
+    ).toBeInTheDocument();
   });
 
   it("recusa senha vazia — o mesmo mínimo de 6 da criação", async () => {
@@ -843,7 +937,9 @@ describe("Usuários — modal de troca de senha", () => {
       await screen.findByText("A senha deve ter pelo menos 6 caracteres."),
     ).toBeInTheDocument();
     expect(api.updateUserPassword).not.toHaveBeenCalled();
-    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trocar Senha" }),
+    ).toBeInTheDocument();
   });
 
   it("recusa senha curta, e a mensagem é a mesma da criação", async () => {
@@ -912,7 +1008,9 @@ describe("Usuários — modal de troca de senha", () => {
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
     expect(api.updateUserPassword).toHaveBeenCalledWith(7, "outrasenha");
-    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trocar Senha" }),
+    ).toBeInTheDocument();
   });
 
   it("a API recusando, o motivo aparece no diálogo e ele não fecha", async () => {
@@ -928,10 +1026,17 @@ describe("Usuários — modal de troca de senha", () => {
     await digitar.type(repita, "outrasenha");
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
-    expect(await screen.findByText("Senha igual à anterior")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Senha igual à anterior"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trocar Senha" }),
+    ).toBeInTheDocument();
     // O que foi digitado continua ali — a pessoa corrige, não redigita tudo.
-    expect(camposDeSenha().map((c) => c.value)).toEqual(["outrasenha", "outrasenha"]);
+    expect(camposDeSenha().map((c) => c.value)).toEqual([
+      "outrasenha",
+      "outrasenha",
+    ]);
   });
 
   it("sem detail na resposta, cai na mensagem genérica da troca de senha", async () => {
@@ -944,8 +1049,12 @@ describe("Usuários — modal de troca de senha", () => {
     await digitar.type(repita, "outrasenha");
     await digitar.click(screen.getByRole("button", { name: "Confirmar" }));
 
-    expect(await screen.findByText("Erro ao trocar a senha.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Trocar Senha" })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Erro ao trocar a senha."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Trocar Senha" }),
+    ).toBeInTheDocument();
   });
 
   it("depois de uma falha, o Confirmar volta a funcionar", async () => {
@@ -996,8 +1105,12 @@ describe("Usuários — um diálogo de cada vez, e o erro é de quem o produziu"
     await abrirCriar();
     await digitar.click(acao("joao", "Excluir"));
 
-    expect(screen.queryByRole("heading", { name: "Novo Usuário" })).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Confirmar Exclusão" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Novo Usuário" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Confirmar Exclusão" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
   });
 
@@ -1021,7 +1134,9 @@ describe("Usuários — um diálogo de cada vez, e o erro é de quem o produziu"
 
     await digitar.click(screen.getByRole("button", { name: "Cancelar" }));
     await digitar.click(acao("maria", "Editar"));
-    expect(screen.queryByText("Informe um nome de usuário.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Informe um nome de usuário."),
+    ).not.toBeInTheDocument();
   });
 
   it("erro de exclusão fica no diálogo de exclusão, e some ao abrir o de edição", async () => {
@@ -1030,15 +1145,21 @@ describe("Usuários — um diálogo de cada vez, e o erro é de quem o produziu"
     await montar();
     await digitar.click(acao("joao", "Excluir"));
     await digitar.click(
-      within(modal("Confirmar Exclusão")).getByRole("button", { name: "Excluir" }),
+      within(modal("Confirmar Exclusão")).getByRole("button", {
+        name: "Excluir",
+      }),
     );
     const aviso = await screen.findByText("Usuário tem notas vinculadas");
     expect(modal("Confirmar Exclusão").contains(aviso)).toBe(true);
 
     await digitar.click(
-      within(modal("Confirmar Exclusão")).getByRole("button", { name: "Cancelar" }),
+      within(modal("Confirmar Exclusão")).getByRole("button", {
+        name: "Cancelar",
+      }),
     );
     await digitar.click(acao("maria", "Editar"));
-    expect(screen.queryByText("Usuário tem notas vinculadas")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Usuário tem notas vinculadas"),
+    ).not.toBeInTheDocument();
   });
 });

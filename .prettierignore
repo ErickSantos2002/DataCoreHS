@@ -13,24 +13,21 @@ src/design-system
 # formatada — a regra entrou na receita para a divida parar de crescer. O
 # padrao precisa ser `src/pages/*`, e nao `src/pages`: pela regra do
 # .gitignore, arquivo dentro de diretorio excluido nao volta por negacao.
+# 16/09/2026: com a Fase 3 concluida, `src/pages` inteiro passa a ser
+# formatado. O padrao precisa ser `!src/pages/**`, e nao `!src/pages/`: a
+# regra do .gitignore nao devolve os FILHOS de um diretorio ja excluido por
+# `src/pages/*` — com a barra sozinha, o `prettier --check` responde
+# "formatado" para arquivo que segue ignorado, que e a mentira do check.
 src/pages/*
-!src/pages/financeiro
-!src/pages/GerenciamentoFinanceiro.tsx
-!src/pages/GerenciamentoFinanceiro.test.tsx
-!src/pages/vendedores
-!src/pages/Vendedores.tsx
-!src/pages/Vendedores.*.test.tsx
-!src/pages/estoque
-!src/pages/Estoque.tsx
-!src/pages/Estoque.*.test.tsx
-!src/pages/clientes
-!src/pages/Clientes.tsx
-!src/pages/Clientes.*.test.tsx
-!src/pages/vendas
-!src/pages/Vendas.tsx
-!src/pages/Vendas.*.test.tsx
-!src/pages/Login.tsx
-!src/pages/Login.test.tsx
+!src/pages/**
+# Os quatro arquivos da OUTRA FRENTE continuam de fora: sao dela, e formatar
+# arquivo de outra sessao vira colisao de diff sem ninguem ter mudado logica.
+# Vem DEPOIS da negacao porque a ultima regra que casa e a que vale.
+src/pages/comercial/useComercial.ts
+src/pages/comercial/hooksFalsos.ts
+src/pages/servicos/useServicos.ts
+src/pages/servicos/hooksFalsos.ts
+
 src/components
 # Os quatro que migraram para classe de token em 16/09/2026, junto da remocao
 # da ponte de paleta, saem da divida: cada arquivo limpo passa a ser formatado,

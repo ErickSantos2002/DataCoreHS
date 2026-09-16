@@ -11,7 +11,9 @@ import { Link } from "react-router-dom";
 const NotFound: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface-base px-4 text-center">
-      <h1 className="mb-4 text-6xl font-extrabold text-conteudo-heading">404</h1>
+      <h1 className="mb-4 text-6xl font-extrabold text-conteudo-heading">
+        404
+      </h1>
       <p className="mb-6 text-xl text-conteudo">Página não encontrada.</p>
       <Link
         to="/dashboard"

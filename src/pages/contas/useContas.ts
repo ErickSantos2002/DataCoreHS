@@ -85,7 +85,10 @@ export function useResumoDeContas(
     erro: string | null;
   } | null>(null);
 
-  const chave = useMemo(() => JSON.stringify(paramsDosFiltros(filtros)), [filtros]);
+  const chave = useMemo(
+    () => JSON.stringify(paramsDosFiltros(filtros)),
+    [filtros],
+  );
 
   useEffect(() => {
     let vivo = true;
@@ -155,7 +158,11 @@ export function usePaginaDeContas(
       .catch((falha) => {
         console.error(`Erro ao buscar a pagina de ${tipo}:`, falha);
         if (vivo) {
-          setEstado({ chave, pagina: PAGINA_VAZIA, erro: "Não foi possível carregar a tabela." });
+          setEstado({
+            chave,
+            pagina: PAGINA_VAZIA,
+            erro: "Não foi possível carregar a tabela.",
+          });
         }
       });
     return () => {

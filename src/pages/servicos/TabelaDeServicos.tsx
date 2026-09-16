@@ -73,8 +73,18 @@ interface ColunaDeServicos {
 
 const COLUNAS: ColunaDeServicos[] = [
   { chave: "numero", rotulo: "Número NFS-e", campo: "numero", Icone: FileText },
-  { chave: "cliente", rotulo: "Cliente (Tomador)", campo: "cliente", Icone: Building },
-  { chave: "emissao", rotulo: "Data Emissão", campo: "data_emissao", Icone: Calendar },
+  {
+    chave: "cliente",
+    rotulo: "Cliente (Tomador)",
+    campo: "cliente",
+    Icone: Building,
+  },
+  {
+    chave: "emissao",
+    rotulo: "Data Emissão",
+    campo: "data_emissao",
+    Icone: Calendar,
+  },
   { chave: "cidade", rotulo: "Cidade/UF", campo: "cidade", Icone: MapPin },
   { chave: "valor", rotulo: "Valor", campo: "valor", Icone: DollarSign },
   { chave: "descricao", rotulo: "Descrição" },
@@ -111,7 +121,9 @@ export function TabelaDeServicos({
   onExportarPDF,
   exportando,
 }: TabelaDeServicosProps) {
-  const [observacoesSelecionadas, setObservacoesSelecionadas] = useState<string | null>(null);
+  const [observacoesSelecionadas, setObservacoesSelecionadas] = useState<
+    string | null
+  >(null);
 
   const celula = (servico: Servico, chave: string): ReactNode => {
     switch (chave) {
@@ -125,7 +137,9 @@ export function TabelaDeServicos({
         return (
           <TableCell key={chave} className="min-w-[200px]">
             <p className="font-medium">{servico.razao_social_tomador}</p>
-            <p className="text-xs text-conteudo-muted">{servico.cpf_cnpj_tomador}</p>
+            <p className="text-xs text-conteudo-muted">
+              {servico.cpf_cnpj_tomador}
+            </p>
           </TableCell>
         );
       case "emissao":
@@ -147,12 +161,18 @@ export function TabelaDeServicos({
         );
       case "valor":
         return (
-          <TableCell key={chave} className="whitespace-nowrap font-semibold text-action">
+          <TableCell
+            key={chave}
+            className="whitespace-nowrap font-semibold text-action"
+          >
             R${" "}
-            {converterParaNumero(servico.valor_servico).toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            {converterParaNumero(servico.valor_servico).toLocaleString(
+              "pt-BR",
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              },
+            )}
           </TableCell>
         );
       case "descricao":
@@ -161,7 +181,9 @@ export function TabelaDeServicos({
             {servico.discriminacao_servico ? (
               <button
                 type="button"
-                onClick={() => setObservacoesSelecionadas(servico.discriminacao_servico)}
+                onClick={() =>
+                  setObservacoesSelecionadas(servico.discriminacao_servico)
+                }
                 className="whitespace-nowrap rounded-full bg-action-tint px-3 py-1 text-sm font-medium text-action transition-colors hover:text-action-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
                 Ver Observações
@@ -189,7 +211,13 @@ export function TabelaDeServicos({
                 aria-label="Pesquisar serviços"
                 value={pesquisa}
                 onChange={(evento) => onPesquisar(evento.target.value)}
-                icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+                icon={
+                  <Search
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
               />
             </div>
             <Button
@@ -209,7 +237,13 @@ export function TabelaDeServicos({
               // disparava a busca inteira outra vez.
               disabled={total === 0 || exportando !== null}
               loading={exportando === "excel"}
-              icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Download
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             >
               {exportando === "excel" ? "Exportando..." : "Excel"}
             </Button>
@@ -218,7 +252,13 @@ export function TabelaDeServicos({
               onClick={onExportarPDF}
               disabled={total === 0 || exportando !== null}
               loading={exportando === "pdf"}
-              icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Download
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             >
               {exportando === "pdf" ? "Exportando..." : "PDF"}
             </Button>
@@ -246,14 +286,26 @@ export function TabelaDeServicos({
                       className="inline-flex select-none items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                     >
                       {Icone ? (
-                        <Icone className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                        <Icone
+                          className="h-4 w-4"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
                       ) : null}
                       <span>{rotulo}</span>
                       {ordenacao.campo === campo ? (
                         ordenacao.direcao === "desc" ? (
-                          <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                          <ChevronDown
+                            className="h-4 w-4"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
                         ) : (
-                          <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                          <ChevronUp
+                            className="h-4 w-4"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
                         )
                       ) : null}
                     </button>

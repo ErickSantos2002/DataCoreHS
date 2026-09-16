@@ -23,7 +23,11 @@ function emReais(valor: number): string {
  * É a contraparte numérica dos velocímetros: eles mostram a distância até o
  * degrau, esta lista mostra de onde o número saiu.
  */
-export function ResumoTrimestre({ meses, total, totalAno }: ResumoTrimestreProps) {
+export function ResumoTrimestre({
+  meses,
+  total,
+  totalAno,
+}: ResumoTrimestreProps) {
   return (
     <Card padding="lg">
       <CardTitle>Trimestre Atual</CardTitle>
@@ -36,7 +40,10 @@ export function ResumoTrimestre({ meses, total, totalAno }: ResumoTrimestreProps
           </li>
         ) : (
           meses.map((item) => (
-            <li key={item.mes} className="flex items-baseline justify-between gap-3">
+            <li
+              key={item.mes}
+              className="flex items-baseline justify-between gap-3"
+            >
               <span className="font-medium">{item.mes}:</span>
               <span className="font-mono font-bold text-action">
                 R$ {emReais(item.total)}

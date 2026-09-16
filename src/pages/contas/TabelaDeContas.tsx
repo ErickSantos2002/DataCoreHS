@@ -69,7 +69,11 @@ export function colunasDeContas(
     { chave: "id", rotulo: "ID Tiny", campo: "id_tiny" },
     { chave: "vencimento", rotulo: "Vencimento", campo: "vencimento" },
     { chave: "emissao", rotulo: "Emissão", campo: campoDaEmissao },
-    { chave: "contraparte", rotulo: rotuloDaContraparte, campo: "cliente_nome" },
+    {
+      chave: "contraparte",
+      rotulo: rotuloDaContraparte,
+      campo: "cliente_nome",
+    },
     { chave: "categoria", rotulo: "Categoria", campo: "categoria" },
     { chave: "valor", rotulo: "Valor", campo: "valor_numero" },
     { chave: "saldo", rotulo: "Saldo", campo: "saldo_numero" },
@@ -120,10 +124,13 @@ function SeloDeSituacao<C extends ContaBase>({
   if (conta.vencida) {
     const situacao = conta.situacao?.trim();
     return (
-      <Badge variant="danger">{situacao ? `${situacao} · Vencida` : "Vencida"}</Badge>
+      <Badge variant="danger">
+        {situacao ? `${situacao} · Vencida` : "Vencida"}
+      </Badge>
     );
   }
-  if (estaEmAberto(conta.situacao)) return <Badge variant="warning">{conta.situacao}</Badge>;
+  if (estaEmAberto(conta.situacao))
+    return <Badge variant="warning">{conta.situacao}</Badge>;
   // `?? "-"` cobria só o `null`: a string vazia passava e desenhava uma
   // pílula colorida sem texto nenhum dentro (defeito 1.6). `||` cobre as duas.
   return <Badge variant="secondary">{conta.situacao || "-"}</Badge>;
@@ -169,13 +176,21 @@ export function TabelaDeContas<C extends ContaBase>({
         );
       case "vencimento":
         return (
-          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
+          <TableCell
+            key={chave}
+            muted
+            className="whitespace-nowrap font-mono text-xs"
+          >
             {dataDeCalendario(conta.vencimento)}
           </TableCell>
         );
       case "emissao":
         return (
-          <TableCell key={chave} muted className="whitespace-nowrap font-mono text-xs">
+          <TableCell
+            key={chave}
+            muted
+            className="whitespace-nowrap font-mono text-xs"
+          >
             {dataDeCalendario(conta.emissao)}
           </TableCell>
         );
@@ -187,7 +202,9 @@ export function TabelaDeContas<C extends ContaBase>({
           <TableCell key={chave} className="min-w-[200px]">
             <p className="font-medium">{conta.cliente_nome}</p>
             {conta.cliente_cpf_cnpj ? (
-              <p className="font-mono text-xs text-conteudo-muted">{conta.cliente_cpf_cnpj}</p>
+              <p className="font-mono text-xs text-conteudo-muted">
+                {conta.cliente_cpf_cnpj}
+              </p>
             ) : null}
           </TableCell>
         );
@@ -199,13 +216,19 @@ export function TabelaDeContas<C extends ContaBase>({
         );
       case "valor":
         return (
-          <TableCell key={chave} className="whitespace-nowrap font-mono font-semibold text-action">
+          <TableCell
+            key={chave}
+            className="whitespace-nowrap font-mono font-semibold text-action"
+          >
             {formatarMoeda(conta.valor)}
           </TableCell>
         );
       case "saldo":
         return (
-          <TableCell key={chave} className="whitespace-nowrap font-mono font-semibold">
+          <TableCell
+            key={chave}
+            className="whitespace-nowrap font-mono font-semibold"
+          >
             {formatarMoeda(conta.saldo)}
           </TableCell>
         );
@@ -230,7 +253,13 @@ export function TabelaDeContas<C extends ContaBase>({
               aria-label="Pesquisar nas contas"
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
-              icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             />
           </div>
           <Button
@@ -240,7 +269,13 @@ export function TabelaDeContas<C extends ContaBase>({
             // três fazem igual. `total` é o recorte inteiro, e não a página:
             // uma busca que não casa com nada também desabilita.
             disabled={total === 0}
-            icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+            icon={
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            }
           >
             Exportar Excel
           </Button>
@@ -264,9 +299,17 @@ export function TabelaDeContas<C extends ContaBase>({
                   <span>{rotulo}</span>
                   {ordenacao.campo === campo ? (
                     ordenacao.direcao === "desc" ? (
-                      <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                      <ChevronDown
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                      <ChevronUp
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
                     )
                   ) : null}
                 </button>
@@ -280,7 +323,9 @@ export function TabelaDeContas<C extends ContaBase>({
             <TableEmpty colSpan={colunas.length} message={MENSAGEM_DE_VAZIO} />
           ) : (
             contas.map((conta) => (
-              <TableRow key={conta.id}>{colunas.map(({ chave }) => celula(conta, chave))}</TableRow>
+              <TableRow key={conta.id}>
+                {colunas.map(({ chave }) => celula(conta, chave))}
+              </TableRow>
             ))
           )}
         </TableBody>

@@ -28,7 +28,11 @@ export interface ModalTrocarSenhaProps {
  *    o erro no mesmo lugar em que a tela mostra os outros, e só fecha no
  *    sucesso.
  */
-export function ModalTrocarSenha({ usuario, onFechar, onConfirmar }: ModalTrocarSenhaProps) {
+export function ModalTrocarSenha({
+  usuario,
+  onFechar,
+  onConfirmar,
+}: ModalTrocarSenhaProps) {
   const [novaSenha, setNovaSenha] = useState("");
   const [repitaSenha, setRepitaSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);

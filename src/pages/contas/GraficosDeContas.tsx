@@ -13,7 +13,11 @@ import {
 } from "recharts";
 
 import { Card, CardTitle, ChartEmpty } from "../../design-system/ui";
-import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import {
   formatarMoeda,
   formatarValorAbreviado,
@@ -109,14 +113,18 @@ export function GraficosDeContas({
   onClicarNaEvolucao,
 }: GraficosDeContasProps) {
   useTemaDoGrafico();
-  const corDoAberto = corDaSerie(tomDoAberto === "perigo" ? SERIE_PERIGO : SERIE_ACAO);
+  const corDoAberto = corDaSerie(
+    tomDoAberto === "perigo" ? SERIE_PERIGO : SERIE_ACAO,
+  );
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card padding="lg" className="lg:col-span-2">
         <div className="mb-4 flex items-center justify-between gap-4">
           <CardTitle>{evolucao.titulo}</CardTitle>
-          <span className="text-xs text-conteudo-faint">Clique em uma barra para filtrar</span>
+          <span className="text-xs text-conteudo-faint">
+            Clique em uma barra para filtrar
+          </span>
         </div>
         {evolucao.dados.length === 0 ? (
           <ChartEmpty height={ALTURA_DA_EVOLUCAO} message={MENSAGEM_SEM_DADO} />
@@ -128,7 +136,10 @@ export function GraficosDeContas({
               onClick={onClicarNaEvolucao}
               style={{ cursor: "pointer" }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartTheme.grid.stroke}
+              />
               <XAxis
                 dataKey="label"
                 tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }}
@@ -185,7 +196,8 @@ export function GraficosDeContas({
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
-                  const { name, value } = payload[0].payload as PontoDeCategoria;
+                  const { name, value } = payload[0]
+                    .payload as PontoDeCategoria;
                   return <BalaoDeTooltip titulo={name} valor={value} />;
                 }}
               />
@@ -205,7 +217,10 @@ export function GraficosDeContas({
               layout="vertical"
               margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartTheme.grid.stroke}
+              />
               <XAxis
                 type="number"
                 tickFormatter={formatarValorAbreviado}
@@ -219,17 +234,24 @@ export function GraficosDeContas({
                 stroke={chartTheme.axis.stroke}
                 tick={{ fontSize: 12 }}
                 tickFormatter={(nome: string) =>
-                  nome.length > LIMITE_DO_EIXO ? `${nome.slice(0, LIMITE_DO_EIXO)}...` : nome
+                  nome.length > LIMITE_DO_EIXO
+                    ? `${nome.slice(0, LIMITE_DO_EIXO)}...`
+                    : nome
                 }
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
-                  const { nome, valor } = payload[0].payload as PontoDeContraparte;
+                  const { nome, valor } = payload[0]
+                    .payload as PontoDeContraparte;
                   return <BalaoDeTooltip titulo={nome} valor={valor} />;
                 }}
               />
-              <Bar dataKey="valor" fill={corDaSerie(SERIE_ACAO)} radius={[0, 6, 6, 0]} />
+              <Bar
+                dataKey="valor"
+                fill={corDaSerie(SERIE_ACAO)}
+                radius={[0, 6, 6, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         )}

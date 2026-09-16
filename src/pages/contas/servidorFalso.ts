@@ -72,10 +72,7 @@ const NAO_VENCEM = ["pago", "recebido"];
 // criaria a terceira cópia da mesma regra. No backend nada disso existe: a
 // coluna é `numeric`, e o valor chega pronto.
 function semAcento(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 export function criarServidorDeContas(
@@ -138,9 +135,13 @@ export function criarServidorDeContas(
       );
     });
 
-  const agrupar = (contas: ContaDaTela[], chave: (c: ContaDaTela) => string) => {
+  const agrupar = (
+    contas: ContaDaTela[],
+    chave: (c: ContaDaTela) => string,
+  ) => {
     const soma = new Map<string, number>();
-    for (const c of contas) soma.set(chave(c), (soma.get(chave(c)) ?? 0) + faturadoDe(c));
+    for (const c of contas)
+      soma.set(chave(c), (soma.get(chave(c)) ?? 0) + faturadoDe(c));
     return [...soma.entries()]
       .map(([nome, valor]) => ({ nome, valor }))
       .sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
@@ -153,10 +154,13 @@ export function criarServidorDeContas(
    * ordena "Água" antes de "Boletos"; o `sort` do JS ordena por código UTF-16
    * e a joga depois de "Zinco". Conferido contra o Postgres em 2026-09-09.
    */
-  const opcoesDe = (contas: ContaDaTela[], campo: (c: ContaDaTela) => string | null) =>
-    [...new Set(contas.map((c) => (campo(c) ?? "").trim()).filter(Boolean))].sort((a, b) =>
-      a.localeCompare(b, "pt-BR"),
-    );
+  const opcoesDe = (
+    contas: ContaDaTela[],
+    campo: (c: ContaDaTela) => string | null,
+  ) =>
+    [
+      ...new Set(contas.map((c) => (campo(c) ?? "").trim()).filter(Boolean)),
+    ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   const fetchResumoDeContas = async (
     _tipo: string,
@@ -170,7 +174,10 @@ export function criarServidorDeContas(
     em30.setDate(hoje.getDate() + 30);
 
     const porAno = new Map<number, { quitado: number; aberto: number }>();
-    const porMes = new Map<string, { ano: number; mes: number; quitado: number; aberto: number }>();
+    const porMes = new Map<
+      string,
+      { ano: number; mes: number; quitado: number; aberto: number }
+    >();
     for (const c of contas) {
       const [ano, mes] = (c.emissao ?? "").split("-").map(Number);
       if (!ano) continue;
@@ -186,7 +193,8 @@ export function criarServidorDeContas(
       porMes.set(chave, noMes);
     }
 
-    const meses = new Set(contas.map((c) => (c.emissao ?? "").slice(0, 7))).size;
+    const meses = new Set(contas.map((c) => (c.emissao ?? "").slice(0, 7)))
+      .size;
     const totalAberto = contas.reduce((t, c) => t + abertoDe(c), 0);
     const totalQuitado = contas.reduce((t, c) => t + quitadoDe(c), 0);
 
@@ -207,8 +215,13 @@ export function criarServidorDeContas(
       por_ano: [...porAno.entries()]
         .map(([ano, v]) => ({ ano, ...v }))
         .sort((a, b) => a.ano - b.ano),
-      por_mes: [...porMes.values()].sort((a, b) => a.ano - b.ano || a.mes - b.mes),
-      por_categoria: agrupar(contas, (c) => (c.categoria ?? "").trim() || "Sem categoria"),
+      por_mes: [...porMes.values()].sort(
+        (a, b) => a.ano - b.ano || a.mes - b.mes,
+      ),
+      por_categoria: agrupar(
+        contas,
+        (c) => (c.categoria ?? "").trim() || "Sem categoria",
+      ),
       por_contraparte: agrupar(contas, (c) => (c.cliente_nome ?? "").trim()),
       opcoes: {
         situacao: opcoesDe(todas, (c) => c.situacao),
@@ -238,7 +251,9 @@ export function criarServidorDeContas(
     const leia = (c: ContaDaTela): string | number => {
       if (campo === "valor_numero") return c.valor;
       if (campo === "saldo_numero") return c.saldo;
-      return (c as unknown as Record<string, string | number | null>)[campo] ?? "";
+      return (
+        (c as unknown as Record<string, string | number | null>)[campo] ?? ""
+      );
     };
     const ordenadas = [...encontradas].sort((a, b) => {
       const x = leia(a);

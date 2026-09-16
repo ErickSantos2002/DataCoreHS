@@ -96,7 +96,10 @@ export function TabelaDeLocacao({
   onOrdenar,
   onExportar,
 }: TabelaDeLocacaoProps) {
-  const somaDoRecorte = notas.reduce((acc, nota) => acc + paraNumero(nota.valor_nota), 0);
+  const somaDoRecorte = notas.reduce(
+    (acc, nota) => acc + paraNumero(nota.valor_nota),
+    0,
+  );
   const filtrando = pesquisa.length > 0;
 
   return (
@@ -113,7 +116,13 @@ export function TabelaDeLocacao({
               aria-label="Buscar nas notas de locação"
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
-              icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             />
           </div>
           {filtrando ? (
@@ -124,7 +133,13 @@ export function TabelaDeLocacao({
           <Button
             onClick={onExportar}
             disabled={notas.length === 0}
-            icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+            icon={
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            }
           >
             Exportar Excel
           </Button>

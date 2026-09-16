@@ -82,7 +82,6 @@ export function mesesDoTrimestre(raw?: string): number[] {
     .filter((m) => Number.isInteger(m) && m >= 1 && m <= 12);
 }
 
-
 /** Como a projeção chegou ao número.
  *
  *  `sazonal` — pela forma do mesmo trimestre no ano anterior, corrigida pelo

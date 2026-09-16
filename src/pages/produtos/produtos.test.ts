@@ -29,25 +29,28 @@ import {
 describe("rotuloDoCliente", () => {
   it("junta nome e documento no formato que o multi-select mostra", () => {
     expect(
-      rotuloDoCliente({ nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" }),
+      rotuloDoCliente({
+        nome: "Alfa Mineração",
+        cpf_cnpj: "11.222.333/0001-44",
+      }),
     ).toBe("Alfa Mineração (11.222.333/0001-44)");
   });
 });
 
 describe("rotuloDoProduto", () => {
   it("junta descrição e código", () => {
-    expect(rotuloDoProduto({ descricao: "Bafômetro Phoebus", codigo: "P1" })).toBe(
-      "Bafômetro Phoebus (P1)",
-    );
+    expect(
+      rotuloDoProduto({ descricao: "Bafômetro Phoebus", codigo: "P1" }),
+    ).toBe("Bafômetro Phoebus (P1)");
   });
 
   it("sem código, escreve 'sem código' em vez de deixar o parêntese vazio", () => {
     // A fonte nova devolve `codigo: null` para item mal cadastrado no Tiny —
     // antes esses itens nem chegavam à tela, agora chegam e precisam de um
     // rótulo que a pessoa consiga escolher no multi-select.
-    expect(rotuloDoProduto({ descricao: "Item sem código", codigo: null })).toBe(
-      "Item sem código (sem código)",
-    );
+    expect(
+      rotuloDoProduto({ descricao: "Item sem código", codigo: null }),
+    ).toBe("Item sem código (sem código)");
   });
 });
 
@@ -65,8 +68,12 @@ describe("indicesDeRotulo", () => {
       ],
     });
 
-    expect(indices.idPorRotulo.get("Alfa Mineração (11.222.333/0001-44)")).toBe(7);
-    expect(indices.idPorRotulo.get("Beta Logística (55.666.777/0001-88)")).toBe(9);
+    expect(indices.idPorRotulo.get("Alfa Mineração (11.222.333/0001-44)")).toBe(
+      7,
+    );
+    expect(indices.idPorRotulo.get("Beta Logística (55.666.777/0001-88)")).toBe(
+      9,
+    );
     expect(indices.chavePorRotulo.get("Bafômetro Phoebus (P1)")).toBe("P1");
     expect(indices.chavePorRotulo.get("Tubo (sem código)")).toBe("#Tubo");
   });
@@ -148,7 +155,14 @@ describe("produtosDoResumo", () => {
 
   it("com quantidade zero o valor médio é zero, e não NaN nem Infinity", () => {
     const [agregado] = produtosDoResumo([
-      { chave: "P1", codigo: "P1", descricao: "Devolvido", quantidade: 0, valor: 300, notas: 1 },
+      {
+        chave: "P1",
+        codigo: "P1",
+        descricao: "Devolvido",
+        quantidade: 0,
+        valor: 300,
+        notas: 1,
+      },
     ]);
 
     expect(agregado.valorMedio).toBe(0);
@@ -161,8 +175,22 @@ describe("produtosDoResumo", () => {
     // com a mesma `key` do React. A `chave` do resumo vem junto agora, e é
     // ela que os separa.
     const agregados = produtosDoResumo([
-      { chave: "#Tubo", codigo: null, descricao: "Tubo", quantidade: 1, valor: 10, notas: 1 },
-      { chave: "#Filtro", codigo: null, descricao: null, quantidade: 2, valor: 20, notas: 1 },
+      {
+        chave: "#Tubo",
+        codigo: null,
+        descricao: "Tubo",
+        quantidade: 1,
+        valor: 10,
+        notas: 1,
+      },
+      {
+        chave: "#Filtro",
+        codigo: null,
+        descricao: null,
+        quantidade: 2,
+        valor: 20,
+        notas: 1,
+      },
     ]);
 
     expect(agregados.map((p) => p.codigo)).toEqual(["", ""]);
@@ -263,8 +291,22 @@ describe("evolucaoDoResumo", () => {
     // isso que a conversão faz `m.mes - 1`; sem isso janeiro viraria
     // fevereiro e dezembro viraria janeiro do ano seguinte.
     const pontos = evolucaoDoResumo([
-      { ano: 2026, mes: 1, total: 0, total_produtos: 0, notas: 1, quantidade: 7 },
-      { ano: 2026, mes: 12, total: 0, total_produtos: 0, notas: 1, quantidade: 3 },
+      {
+        ano: 2026,
+        mes: 1,
+        total: 0,
+        total_produtos: 0,
+        notas: 1,
+        quantidade: 7,
+      },
+      {
+        ano: 2026,
+        mes: 12,
+        total: 0,
+        total_produtos: 0,
+        notas: 1,
+        quantidade: 3,
+      },
     ]);
 
     expect(pontos).toHaveLength(2);
@@ -354,14 +396,21 @@ describe("rankingPorValor", () => {
     // continuaram verdes: o gráfico "Top 10 Produtos (Valor)" passaria a
     // desenhar os dez produtos MAIS BARATOS com o título intacto — a primeira
     // barra viraria o item de R$ 12,00 no lugar do de R$ 1.500,00.
-    expect(rankingPorValor(CATALOGO, 10).map((p) => p.codigo)).toEqual(["P2", "P1", "P3"]);
+    expect(rankingPorValor(CATALOGO, 10).map((p) => p.codigo)).toEqual([
+      "P2",
+      "P1",
+      "P3",
+    ]);
   });
 
   it("corta no limite pedido, ficando com os de maior valor", () => {
     // Trocar `.slice(0, limite)` por `.slice(0, 1)` também passava verde. O
     // limite é o "10" do título do gráfico: se ele não for respeitado, o
     // rótulo mente sobre quantas barras estão ali.
-    expect(rankingPorValor(CATALOGO, 2).map((p) => p.codigo)).toEqual(["P2", "P1"]);
+    expect(rankingPorValor(CATALOGO, 2).map((p) => p.codigo)).toEqual([
+      "P2",
+      "P1",
+    ]);
   });
 });
 
@@ -415,7 +464,9 @@ describe("ordenarEBuscar", () => {
 
   /** Os códigos na ordem em que a tabela os mostraria. */
   function ordemPor(campo: string): string[] {
-    return ordenarEBuscar(CATALOGO, "", { campo, direcao: "desc" }).map((p) => p.codigo);
+    return ordenarEBuscar(CATALOGO, "", { campo, direcao: "desc" }).map(
+      (p) => p.codigo,
+    );
   }
 
   it("ordena por código, e não pela ordem de entrada", () => {
@@ -426,7 +477,9 @@ describe("ordenarEBuscar", () => {
     // código, então só a descendente prova que o `case` existe.
     expect(ordemPor("codigo")).toEqual(["P3", "P2", "P1"]);
     expect(
-      ordenarEBuscar(CATALOGO, "", { campo: "codigo", direcao: "asc" }).map((p) => p.codigo),
+      ordenarEBuscar(CATALOGO, "", { campo: "codigo", direcao: "asc" }).map(
+        (p) => p.codigo,
+      ),
     ).toEqual(["P1", "P2", "P3"]);
   });
 
@@ -478,10 +531,14 @@ describe("ordenarEBuscar", () => {
       },
     ];
 
-    const resultado = ordenarEBuscar(agregados, "termo que nao existe em nenhum produto", {
-      campo: "quantidadeVendida",
-      direcao: "desc",
-    });
+    const resultado = ordenarEBuscar(
+      agregados,
+      "termo que nao existe em nenhum produto",
+      {
+        campo: "quantidadeVendida",
+        direcao: "desc",
+      },
+    );
 
     expect(resultado).toEqual([]);
   });

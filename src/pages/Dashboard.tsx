@@ -22,14 +22,8 @@ function progressoAte(total: number, degrau: number): number {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const {
-    dados,
-    total,
-    carregando,
-    totalAno,
-    serieMensal,
-    totaisAnoAnterior,
-  } = useDashboard();
+  const { dados, total, carregando, totalAno, serieMensal, totaisAnoAnterior } =
+    useDashboard();
   const { configuracoes } = useConfiguracoes();
 
   const metaConfig = configuracoes.find((c) => c.chave === "META");
@@ -61,7 +55,7 @@ const Dashboard: React.FC = () => {
 
   if (carregando) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted md:min-h-0 md:h-full">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-base px-6 py-16 text-conteudo-muted md:h-full md:min-h-0">
         <Spinner size="lg" />
         <p>Carregando os dados da meta do trimestre.</p>
       </div>
@@ -69,7 +63,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface-base p-6 transition-colors md:min-h-0 md:h-full">
+    <div className="min-h-screen bg-surface-base p-6 transition-colors md:h-full md:min-h-0">
       <div className="flex flex-col gap-4">
         <CabecalhoMeta usuario={user} />
 

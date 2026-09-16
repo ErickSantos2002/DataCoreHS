@@ -4,7 +4,10 @@ import autoTable from "jspdf-autotable";
 
 import Servicos from "./Servicos";
 import { baixarPlanilha } from "../lib/planilha";
-import type { PedidoDaTabelaDeServicos, RecorteDeServicos } from "./servicos/useServicos";
+import type {
+  PedidoDaTabelaDeServicos,
+  RecorteDeServicos,
+} from "./servicos/useServicos";
 
 /**
  * As duas exportações de Serviços: o retorno na tela, o recorte que viaja e o
@@ -90,7 +93,10 @@ const { SERVICOS, BUSCA } = vi.hoisted(() => ({
     liberar: null as null | (() => void),
     pedidos: [] as Array<{
       recorte: RecorteDeServicos;
-      pedido: Pick<PedidoDaTabelaDeServicos, "busca" | "ordenarPor" | "direcao">;
+      pedido: Pick<
+        PedidoDaTabelaDeServicos,
+        "busca" | "ordenarPor" | "direcao"
+      >;
     }>,
   },
 }));
@@ -108,7 +114,10 @@ vi.mock("./servicos/useServicos", async (original) => {
     // tela chega inteiro à exportação.
     todosOsServicos: (
       recorte: RecorteDeServicos,
-      pedido: Pick<PedidoDaTabelaDeServicos, "busca" | "ordenarPor" | "direcao">,
+      pedido: Pick<
+        PedidoDaTabelaDeServicos,
+        "busca" | "ordenarPor" | "direcao"
+      >,
     ) => {
       BUSCA.chamadas += 1;
       BUSCA.pedidos.push({ recorte, pedido });
@@ -126,9 +135,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -158,7 +173,8 @@ async function terminarABusca(): Promise<void> {
   });
 }
 
-const botao = (nome: RegExp | string) => screen.getByRole("button", { name: nome });
+const botao = (nome: RegExp | string) =>
+  screen.getByRole("button", { name: nome });
 
 /**
  * O botão que está exportando agora.
@@ -208,7 +224,10 @@ function planilhaBaixada(): {
 function tabelaDoPdf(): { head: string[][]; body: (string | number)[][] } {
   const chamada = vi.mocked(autoTable).mock.calls[0];
   if (!chamada) throw new Error("nenhum PDF foi montado");
-  const opcoes = chamada[1] as { head: string[][]; body: (string | number)[][] };
+  const opcoes = chamada[1] as {
+    head: string[][];
+    body: (string | number)[][];
+  };
   return { head: opcoes.head, body: opcoes.body };
 }
 
@@ -231,7 +250,9 @@ describe("exportacao de Serviços", () => {
 
     expect(botao(/^excel$/i)).toBeEnabled();
     expect(botao(/^pdf$/i)).toBeEnabled();
-    expect(screen.queryByRole("button", { name: /Exportando\.\.\./ })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /Exportando\.\.\./ }),
+    ).toBeNull();
   });
 
   it("enquanto o PDF exporta, o botao dele avisa e os dois ficam desabilitados", async () => {
@@ -315,7 +336,9 @@ describe("o que a exportacao de Serviços pede ao servidor", () => {
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
       target: { value: "Alfa" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Ordenar por Número NFS-e" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ordenar por Número NFS-e" }),
+    );
 
     fireEvent.click(botao(/^pdf$/i));
 

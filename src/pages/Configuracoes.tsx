@@ -30,28 +30,38 @@ const Configuracoes: React.FC = () => {
 
   // Se ainda está carregando auth
   if (loading) {
-    return <div className="p-6 text-conteudo-muted">Verificando permissões...</div>;
+    return (
+      <div className="p-6 text-conteudo-muted">Verificando permissões...</div>
+    );
   }
 
   // Se não for admin
   if (!user || user.role !== "admin") {
     return (
       <div className="p-6">
-        <Alert variant="danger">Acesso negado. Esta página é restrita a administradores.</Alert>
+        <Alert variant="danger">
+          Acesso negado. Esta página é restrita a administradores.
+        </Alert>
       </div>
     );
   }
 
   if (carregando) {
-    return <div className="p-6 text-conteudo-muted">Carregando configurações...</div>;
+    return (
+      <div className="p-6 text-conteudo-muted">Carregando configurações...</div>
+    );
   }
 
   return (
     <div className="p-6">
       {/* Card de título e descrição */}
       <Card padding="lg" className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold text-conteudo-heading">Configurações</h1>
-        <p className="text-conteudo-muted">Gerencie os parâmetros utilizados no Dashboard.</p>
+        <h1 className="mb-2 text-3xl font-bold text-conteudo-heading">
+          Configurações
+        </h1>
+        <p className="text-conteudo-muted">
+          Gerencie os parâmetros utilizados no Dashboard.
+        </p>
       </Card>
 
       {/* Lista de configurações */}
@@ -72,13 +82,18 @@ const Configuracoes: React.FC = () => {
                 />
               ) : (
                 <>
-                  <p className="mb-1 text-sm font-semibold text-conteudo-muted">{cfg.chave}</p>
+                  <p className="mb-1 text-sm font-semibold text-conteudo-muted">
+                    {cfg.chave}
+                  </p>
                   {cfg.chave === "ANIMACAO_META" ? (
                     <div className="flex items-center gap-3">
                       <Switch
                         checked={cfg.valor === "true"}
                         onChange={(checked) =>
-                          editarConfiguracao(cfg.chave, checked ? "true" : "false")
+                          editarConfiguracao(
+                            cfg.chave,
+                            checked ? "true" : "false",
+                          )
                         }
                         label={cfg.valor === "true" ? "Ativada" : "Desativada"}
                       />
@@ -103,7 +118,11 @@ const Configuracoes: React.FC = () => {
                     >
                       Salvar
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={cancelarEdicao}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={cancelarEdicao}
+                    >
                       Cancelar
                     </Button>
                   </>

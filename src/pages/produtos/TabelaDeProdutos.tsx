@@ -97,7 +97,8 @@ export function TabelaDeProdutos({
       case "valorTotal":
         return (
           <TableCell key={chave} className="font-semibold text-action">
-            R$ {produto.valorTotal.toLocaleString("pt-BR", {
+            R${" "}
+            {produto.valorTotal.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -106,7 +107,8 @@ export function TabelaDeProdutos({
       case "valorMedio":
         return (
           <TableCell key={chave} muted>
-            R$ {produto.valorMedio.toLocaleString("pt-BR", {
+            R${" "}
+            {produto.valorMedio.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -135,7 +137,13 @@ export function TabelaDeProdutos({
               aria-label="Pesquisar produtos"
               value={pesquisa}
               onChange={(evento) => onPesquisar(evento.target.value)}
-              icon={<Search className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+              icon={
+                <Search
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              }
             />
           </div>
           <Button
@@ -148,7 +156,13 @@ export function TabelaDeProdutos({
             // recorte inteiro (filtro + busca), e não a página: uma busca sem
             // resultado também desabilita.
             disabled={total === 0}
-            icon={<Download className="h-4 w-4" strokeWidth={2} aria-hidden="true" />}
+            icon={
+              <Download
+                className="h-4 w-4"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            }
           >
             Exportar Excel
           </Button>
@@ -170,9 +184,17 @@ export function TabelaDeProdutos({
                     <span>{rotulo}</span>
                     {ordenacao.campo === campo ? (
                       ordenacao.direcao === "desc" ? (
-                        <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                        <ChevronDown
+                          className="h-4 w-4"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                        <ChevronUp
+                          className="h-4 w-4"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
                       )
                     ) : null}
                   </button>

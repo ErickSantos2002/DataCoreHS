@@ -43,20 +43,30 @@ const { NOTAS } = vi.hoisted(() => ({
       valor_nota: 200,
       cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
       nome_vendedor: "Vendedor B",
-      itens: [{ descricao: "Desconto Comercial", quantidade: "2", valor_total: "200" }],
+      itens: [
+        {
+          descricao: "Desconto Comercial",
+          quantidade: "2",
+          valor_total: "200",
+        },
+      ],
     },
   ],
 }));
 
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
-  const passante = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+  const passante = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
   return {
     ResponsiveContainer: passante,
     BarChart: passante,
@@ -102,11 +112,15 @@ describe("produto sem codigo na tabela", () => {
     const linhas = within(corpoDaTabela()).getAllByRole("row");
     expect(linhas).toHaveLength(2);
     // Ordenacao inicial: quantidadeVendida desc — Desconto (2 un.) na frente.
-    expect(within(linhas[0]).getByText("Desconto Comercial")).toBeInTheDocument();
+    expect(
+      within(linhas[0]).getByText("Desconto Comercial"),
+    ).toBeInTheDocument();
     expect(within(linhas[1]).getByText("Frete")).toBeInTheDocument();
 
     // A `chave` e dado INTERNO: ela nao pode vazar para coluna nenhuma.
-    expect(within(corpoDaTabela()).queryByText("#Frete")).not.toBeInTheDocument();
+    expect(
+      within(corpoDaTabela()).queryByText("#Frete"),
+    ).not.toBeInTheDocument();
     expect(
       within(corpoDaTabela()).queryByText("#Desconto Comercial"),
     ).not.toBeInTheDocument();

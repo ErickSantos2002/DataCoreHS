@@ -1,6 +1,12 @@
 import { Filter } from "lucide-react";
 
-import { FilterBar, Input, MultiSelect, Select, deTextos } from "../../design-system/ui";
+import {
+  FilterBar,
+  Input,
+  MultiSelect,
+  Select,
+  deTextos,
+} from "../../design-system/ui";
 import { PRESETS_DE_PERIODO } from "../../lib/periodo";
 import type { FiltrosDeContas as ValoresDosFiltros } from "./contas";
 
@@ -45,8 +51,14 @@ export function FiltrosDeContas({
   return (
     <FilterBar>
       <div className="flex w-full items-center gap-2">
-        <Filter className="h-4 w-4 text-conteudo-muted" strokeWidth={2} aria-hidden="true" />
-        <h2 className="text-base font-semibold text-conteudo-heading">Filtros</h2>
+        <Filter
+          className="h-4 w-4 text-conteudo-muted"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
+        <h2 className="text-base font-semibold text-conteudo-heading">
+          Filtros
+        </h2>
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">

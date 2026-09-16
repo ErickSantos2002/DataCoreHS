@@ -90,7 +90,14 @@ describe("formatação", () => {
     // telas de Locação e Usuários, e a ausência vira o travessão do resto do
     // sistema em vez do hífen.
     const linha = linhasDaPlanilha(
-      [conta({ id: 1, emissao: "2026-01-18T10:00:00", vencimento: "2026-02-20", liquidacao: null })],
+      [
+        conta({
+          id: 1,
+          emissao: "2026-01-18T10:00:00",
+          vencimento: "2026-02-20",
+          liquidacao: null,
+        }),
+      ],
       {
         aba: "x",
         prefixoDoArquivo: "x",
@@ -108,7 +115,10 @@ describe("formatação", () => {
 describe("clique numa barra do gráfico", () => {
   it("no modo anual, a barra vira o ano inteiro", () => {
     expect(periodoDaBarra("2025", "anual", null)).toEqual(periodoDoAno("2025"));
-    expect(periodoDoAno("2025")).toEqual({ inicio: "2025-01-01", fim: "2025-12-31" });
+    expect(periodoDoAno("2025")).toEqual({
+      inicio: "2025-01-01",
+      fim: "2025-12-31",
+    });
   });
 
   it("no modo mensal, a barra vira o mês inteiro — e acerta o mês curto", () => {
@@ -129,7 +139,11 @@ describe("clique numa barra do gráfico", () => {
 describe("gráfico de evolução", () => {
   // As duas séries chegam do banco somadas; o que se testa aqui é a escolha
   // entre elas e o formato que o recharts desenha.
-  const ano = (ano: number, quitado: number, aberto: number) => ({ ano, quitado, aberto });
+  const ano = (ano: number, quitado: number, aberto: number) => ({
+    ano,
+    quitado,
+    aberto,
+  });
   const mes = (ano: number, mes: number, quitado: number, aberto: number) => ({
     ano,
     mes,
@@ -188,7 +202,9 @@ describe("gráfico de evolução", () => {
   });
 
   it("sem nenhuma conta, cai no ano do relógio", () => {
-    expect(montarEvolucao([], [], RECEBER, AGORA).titulo).toBe("Evolução Mensal — 2026");
+    expect(montarEvolucao([], [], RECEBER, AGORA).titulo).toBe(
+      "Evolução Mensal — 2026",
+    );
   });
 
   it("uma conta em aberto com recebimento parcial entra nas DUAS séries", () => {
@@ -204,11 +220,20 @@ describe("gráfico de evolução", () => {
       AGORA,
     );
 
-    expect(evolucao.dados[0]).toEqual({ label: "Jan", recebido: 600, aberto: 400 });
+    expect(evolucao.dados[0]).toEqual({
+      label: "Jan",
+      recebido: 600,
+      aberto: 400,
+    });
   });
 
   it("mês fora do intervalo 1–12 não derruba o gráfico", () => {
-    const evolucao = montarEvolucao([ano(2026, 5, 0)], [mes(2026, 13, 5, 0)], RECEBER, AGORA);
+    const evolucao = montarEvolucao(
+      [ano(2026, 5, 0)],
+      [mes(2026, 13, 5, 0)],
+      RECEBER,
+      AGORA,
+    );
     expect(evolucao.dados).toHaveLength(12);
   });
 });
@@ -277,7 +302,10 @@ describe("gráficos de categoria e de contraparte", () => {
     }));
 
     expect(montarContrapartes(entrada)).toHaveLength(10);
-    expect(montarContrapartes(entrada)[0]).toEqual({ nome: "Cliente 12", valor: 120 });
+    expect(montarContrapartes(entrada)[0]).toEqual({
+      nome: "Cliente 12",
+      valor: 120,
+    });
   });
 
   it("nenhum dos dois reordena o que recebeu", () => {
@@ -288,8 +316,14 @@ describe("gráficos de categoria e de contraparte", () => {
       { nome: "Menor", valor: 1 },
       { nome: "Maior", valor: 99 },
     ];
-    expect(montarCategorias(fora_de_ordem).map((f) => f.name)).toEqual(["Menor", "Maior"]);
-    expect(montarContrapartes(fora_de_ordem).map((c) => c.nome)).toEqual(["Menor", "Maior"]);
+    expect(montarCategorias(fora_de_ordem).map((f) => f.name)).toEqual([
+      "Menor",
+      "Maior",
+    ]);
+    expect(montarContrapartes(fora_de_ordem).map((c) => c.nome)).toEqual([
+      "Menor",
+      "Maior",
+    ]);
   });
 });
 
@@ -298,15 +332,24 @@ describe("ordenação", () => {
   // o ESTADO do clique no cabeçalho — qual coluna e qual direção pedir.
 
   it("o primeiro clique numa coluna é sempre decrescente, inclusive na já ordenada", () => {
-    expect(proximaOrdenacao({ campo: "vencimento", direcao: "asc" }, "vencimento")).toEqual({
+    expect(
+      proximaOrdenacao({ campo: "vencimento", direcao: "asc" }, "vencimento"),
+    ).toEqual({
       campo: "vencimento",
       direcao: "desc",
     });
-    expect(proximaOrdenacao({ campo: "vencimento", direcao: "desc" }, "vencimento")).toEqual({
+    expect(
+      proximaOrdenacao({ campo: "vencimento", direcao: "desc" }, "vencimento"),
+    ).toEqual({
       campo: "vencimento",
       direcao: "asc",
     });
-    expect(proximaOrdenacao({ campo: "vencimento", direcao: "desc" }, "valor_numero")).toEqual({
+    expect(
+      proximaOrdenacao(
+        { campo: "vencimento", direcao: "desc" },
+        "valor_numero",
+      ),
+    ).toEqual({
       campo: "valor_numero",
       direcao: "desc",
     });
@@ -318,7 +361,10 @@ describe("planilha", () => {
     aba: "Contas a Receber",
     prefixoDoArquivo: "contas_a_receber",
     rotuloDaContraparte: "Cliente",
-    colunasProprias: () => ({ "Forma Pagamento": "Boleto", Portador: "Banco Um" }),
+    colunasProprias: () => ({
+      "Forma Pagamento": "Boleto",
+      Portador: "Banco Um",
+    }),
   };
 
   const FORMATO_PAGAR = {
@@ -341,7 +387,9 @@ describe("planilha", () => {
   it("as duas telas exportam as mesmas colunas, na mesma ordem", () => {
     // Só o nome da contraparte e a coluna que existe numa API só é que
     // mudam. `ID Tiny` e `Emissão` existem nas duas.
-    expect(Object.keys(linhasDaPlanilha([umaConta], FORMATO_RECEBER)[0])).toEqual([
+    expect(
+      Object.keys(linhasDaPlanilha([umaConta], FORMATO_RECEBER)[0]),
+    ).toEqual([
       "ID Tiny",
       "Cliente",
       "CPF_CNPJ",
@@ -361,24 +409,26 @@ describe("planilha", () => {
       "UF",
     ]);
 
-    expect(Object.keys(linhasDaPlanilha([umaConta], FORMATO_PAGAR)[0])).toEqual([
-      "ID Tiny",
-      "Fornecedor",
-      "CPF_CNPJ",
-      "Categoria",
-      "Nº Documento",
-      "Histórico",
-      "Valor",
-      "Saldo",
-      "Emissão",
-      "Vencimento",
-      "Liquidação",
-      "Situação",
-      "Vencida",
-      "Ocorrência",
-      "Cidade",
-      "UF",
-    ]);
+    expect(Object.keys(linhasDaPlanilha([umaConta], FORMATO_PAGAR)[0])).toEqual(
+      [
+        "ID Tiny",
+        "Fornecedor",
+        "CPF_CNPJ",
+        "Categoria",
+        "Nº Documento",
+        "Histórico",
+        "Valor",
+        "Saldo",
+        "Emissão",
+        "Vencimento",
+        "Liquidação",
+        "Situação",
+        "Vencida",
+        "Ocorrência",
+        "Cidade",
+        "UF",
+      ],
+    );
   });
 
   it("dinheiro sai como número e data sai como texto dd/mm/aaaa", () => {
@@ -407,9 +457,13 @@ describe("planilha", () => {
     const viradaDoMes = new Date("2026-09-01T02:00:00Z");
     const foraDoUtc = viradaDoMes.getTimezoneOffset() !== 0;
 
-    expect(nomeDoArquivo("contas_a_receber", AGORA)).toBe("contas_a_receber_2026-08-31.xlsx");
+    expect(nomeDoArquivo("contas_a_receber", AGORA)).toBe(
+      "contas_a_receber_2026-08-31.xlsx",
+    );
     expect(nomeDoArquivo("contas_a_receber", viradaDoMes)).toBe(
-      foraDoUtc ? "contas_a_receber_2026-08-31.xlsx" : "contas_a_receber_2026-09-01.xlsx",
+      foraDoUtc
+        ? "contas_a_receber_2026-08-31.xlsx"
+        : "contas_a_receber_2026-09-01.xlsx",
     );
   });
 });

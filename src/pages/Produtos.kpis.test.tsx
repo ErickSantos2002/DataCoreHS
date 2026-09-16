@@ -91,7 +91,9 @@ const { NOTAS } = vi.hoisted(() => ({
 // importa é o `por_produto` — é ele que virou a tabela.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
@@ -161,7 +163,8 @@ function serieDoGrafico(id: string): Record<string, unknown>[] {
 function paragrafosDoKpi(rotulo: string): Element[] {
   const etiqueta = screen.getByText(rotulo);
   const cartao = etiqueta.parentElement;
-  if (!cartao) throw new Error(`o rotulo "${rotulo}" nao esta dentro de um card`);
+  if (!cartao)
+    throw new Error(`o rotulo "${rotulo}" nao esta dentro de um card`);
   return Array.from(cartao.querySelectorAll("p"));
 }
 

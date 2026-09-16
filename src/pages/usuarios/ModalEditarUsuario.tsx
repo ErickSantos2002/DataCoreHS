@@ -1,8 +1,19 @@
 import { useState } from "react";
 
-import { Button, Input, Modal, ModalFooter, Select } from "../../design-system/ui";
+import {
+  Button,
+  Input,
+  Modal,
+  ModalFooter,
+  Select,
+} from "../../design-system/ui";
 import type { Papel, Usuario } from "../../services/api";
-import { mensagemDeErro, opcoesDePapel, papelInicial, validarEdicao } from "./usuarios";
+import {
+  mensagemDeErro,
+  opcoesDePapel,
+  papelInicial,
+  validarEdicao,
+} from "./usuarios";
 
 export interface DadosDaEdicao {
   username: string;
@@ -32,7 +43,9 @@ export function ModalEditarUsuario({
   onSalvar,
 }: ModalEditarUsuarioProps) {
   const [username, setUsername] = useState(usuario.username);
-  const [papel, setPapel] = useState(() => papelInicial(papeis, usuario.role?.name));
+  const [papel, setPapel] = useState(() =>
+    papelInicial(papeis, usuario.role?.name),
+  );
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -53,7 +66,12 @@ export function ModalEditarUsuario({
   }
 
   return (
-    <Modal open onClose={onFechar} title={`Editar — ${usuario.username}`} erro={erro}>
+    <Modal
+      open
+      onClose={onFechar}
+      title={`Editar — ${usuario.username}`}
+      erro={erro}
+    >
       <div className="flex flex-col gap-4">
         <Input
           label="Usuário"

@@ -69,7 +69,10 @@ export interface ResumoDeLocacao {
  * na tabela.
  */
 export function resumirLocacao(notas: NotaLocacao[]): ResumoDeLocacao {
-  const total = notas.reduce((acc, nota) => acc + paraNumero(nota.valor_nota), 0);
+  const total = notas.reduce(
+    (acc, nota) => acc + paraNumero(nota.valor_nota),
+    0,
+  );
   const quantidade = notas.length;
   return {
     total,
@@ -85,7 +88,10 @@ export function resumirLocacao(notas: NotaLocacao[]): ResumoDeLocacao {
  * que a tela mostra ("R$ 49.000,00"): quem digita "49.000,00" não acha nada.
  * Situação, natureza da operação e data ficam de fora da varredura.
  */
-export function filtrarNotas(notas: NotaLocacao[], pesquisa: string): NotaLocacao[] {
+export function filtrarNotas(
+  notas: NotaLocacao[],
+  pesquisa: string,
+): NotaLocacao[] {
   if (!pesquisa) return [...notas];
 
   const termo = pesquisa.toLowerCase();
@@ -105,7 +111,10 @@ export function filtrarNotas(notas: NotaLocacao[], pesquisa: string): NotaLocaca
 }
 
 /** Valor comparável de cada coluna ordenável. */
-const CHAVE_DE_ORDEM: Record<CampoOrdenavel, (nota: NotaLocacao) => number | string> = {
+const CHAVE_DE_ORDEM: Record<
+  CampoOrdenavel,
+  (nota: NotaLocacao) => number | string
+> = {
   data_emissao: (nota) => new Date(nota.data_emissao).getTime(),
   cliente: (nota) => nota.cliente?.nome || "",
   valor: (nota) => paraNumero(nota.valor_nota),
@@ -130,7 +139,10 @@ const CHAVE_DE_ORDEM: Record<CampoOrdenavel, (nota: NotaLocacao) => number | str
  * defeito: sem nada que distinga uma nota da outra na coluna ordenada, não
  * existe segunda ordem para a seta mostrar.
  */
-export function ordenarNotas(notas: NotaLocacao[], { campo, direcao }: Ordenacao): NotaLocacao[] {
+export function ordenarNotas(
+  notas: NotaLocacao[],
+  { campo, direcao }: Ordenacao,
+): NotaLocacao[] {
   const chave = CHAVE_DE_ORDEM[campo];
   const sentido = direcao === "asc" ? 1 : -1;
   return [...notas].sort((a, b) => {
@@ -145,7 +157,10 @@ export function ordenarNotas(notas: NotaLocacao[], { campo, direcao }: Ordenacao
  * Para onde a ordenação vai quando alguém clica num cabeçalho: coluna nova
  * entra em decrescente; clicar de novo na mesma coluna alterna a direção.
  */
-export function proximaOrdenacao(atual: Ordenacao, campo: CampoOrdenavel): Ordenacao {
+export function proximaOrdenacao(
+  atual: Ordenacao,
+  campo: CampoOrdenavel,
+): Ordenacao {
   return {
     campo,
     direcao: atual.campo === campo && atual.direcao === "desc" ? "asc" : "desc",
@@ -163,7 +178,9 @@ export type TomDaSituacao = "success" | "warning" | "danger" | "muted";
  * "Autorizada", "Registrada"...) fica em `success`, que é a cor que a tela
  * usava para todas antes desta migração.
  */
-export function tomDaSituacao(situacao: string | null | undefined): TomDaSituacao {
+export function tomDaSituacao(
+  situacao: string | null | undefined,
+): TomDaSituacao {
   if (!situacao) return "muted";
   const texto = situacao.toLowerCase();
   if (/cancel|denegad|rejeit/.test(texto)) return "danger";

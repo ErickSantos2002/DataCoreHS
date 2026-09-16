@@ -16,8 +16,8 @@ export function CabecalhoLocacao({ usuario }: CabecalhoLocacaoProps) {
     <Card padding="lg">
       <h1 className="text-3xl font-bold text-conteudo-heading">Locação</h1>
       <p className="mt-1 text-sm text-conteudo-muted">
-        Notas fiscais marcadas como <span className="font-semibold">Locação</span> no
-        Tiny ERP
+        Notas fiscais marcadas como{" "}
+        <span className="font-semibold">Locação</span> no Tiny ERP
         {usuario?.username ? ` — ${usuario.username}` : ""}
       </p>
     </Card>

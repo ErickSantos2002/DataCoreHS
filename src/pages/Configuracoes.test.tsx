@@ -8,7 +8,9 @@ type Configuracao = { id: number; chave: string; valor: string };
 
 function renderConfiguracoes(opts: {
   auth?: Partial<React.ComponentProps<typeof AuthContext.Provider>["value"]>;
-  config?: Partial<React.ComponentProps<typeof ConfiguracoesContext.Provider>["value"]>;
+  config?: Partial<
+    React.ComponentProps<typeof ConfiguracoesContext.Provider>["value"]
+  >;
 }) {
   const authValue = {
     user: { id: 1, username: "admin", role: "admin" },
@@ -45,9 +47,13 @@ describe("Configuracoes", () => {
   });
 
   it("nega acesso a quem nao e admin", () => {
-    renderConfiguracoes({ auth: { user: { id: 2, username: "vendas", role: "vendas" } } });
+    renderConfiguracoes({
+      auth: { user: { id: 2, username: "vendas", role: "vendas" } },
+    });
     expect(
-      screen.getByText("Acesso negado. Esta página é restrita a administradores."),
+      screen.getByText(
+        "Acesso negado. Esta página é restrita a administradores.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -58,19 +64,26 @@ describe("Configuracoes", () => {
 
   it("mostra o interruptor de ANIMACAO_META e alterna seu valor", () => {
     const { configValue } = renderConfiguracoes({
-      config: { configuracoes: [{ id: 1, chave: "ANIMACAO_META", valor: "true" }] },
+      config: {
+        configuracoes: [{ id: 1, chave: "ANIMACAO_META", valor: "true" }],
+      },
     });
     const interruptor = screen.getByRole("switch");
     expect(interruptor).toBeChecked();
     expect(screen.getByText("Ativada")).toBeInTheDocument();
 
     fireEvent.click(interruptor);
-    expect(configValue.editarConfiguracao).toHaveBeenCalledWith("ANIMACAO_META", "false");
+    expect(configValue.editarConfiguracao).toHaveBeenCalledWith(
+      "ANIMACAO_META",
+      "false",
+    );
   });
 
   it("mostra o valor de uma configuracao comum e permite editar e salvar", async () => {
     const { configValue } = renderConfiguracoes({
-      config: { configuracoes: [{ id: 2, chave: "OUTRA_CHAVE", valor: "valor-antigo" }] },
+      config: {
+        configuracoes: [{ id: 2, chave: "OUTRA_CHAVE", valor: "valor-antigo" }],
+      },
     });
     expect(screen.getByText("valor-antigo")).toBeInTheDocument();
 
@@ -81,12 +94,17 @@ describe("Configuracoes", () => {
     fireEvent.change(campo, { target: { value: "valor-novo" } });
     fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
 
-    expect(configValue.editarConfiguracao).toHaveBeenCalledWith("OUTRA_CHAVE", "valor-novo");
+    expect(configValue.editarConfiguracao).toHaveBeenCalledWith(
+      "OUTRA_CHAVE",
+      "valor-novo",
+    );
   });
 
   it("cancelar a edicao descarta a alteracao sem chamar editarConfiguracao", () => {
     const { configValue } = renderConfiguracoes({
-      config: { configuracoes: [{ id: 3, chave: "TERCEIRA_CHAVE", valor: "original" }] },
+      config: {
+        configuracoes: [{ id: 3, chave: "TERCEIRA_CHAVE", valor: "original" }],
+      },
     });
 
     fireEvent.click(screen.getByRole("button", { name: /editar/i }));

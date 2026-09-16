@@ -38,8 +38,9 @@ export function CabecalhoMeta({ usuario }: CabecalhoMetaProps) {
             Meta do trimestre
           </h1>
           <p className="mt-1 text-conteudo">
-            Bem-vindo, <span className="font-semibold">{usuario?.username}</span>{" "}
-            ({usuario?.role})
+            Bem-vindo,{" "}
+            <span className="font-semibold">{usuario?.username}</span> (
+            {usuario?.role})
           </p>
           <p className="mt-2 max-w-2xl text-sm text-conteudo-muted">
             O faturamento considera as notas fiscais de venda e de serviço do

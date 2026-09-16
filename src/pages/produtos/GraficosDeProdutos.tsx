@@ -11,7 +11,11 @@ import {
 } from "recharts";
 
 import { Card, CardTitle } from "../../design-system/ui";
-import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import type { PontoDeEvolucao, ProdutoAgregado } from "./produtos";
 
 /** Índice da rampa de séries do `chartTheme`, com nome em vez de número. */
@@ -26,7 +30,10 @@ export interface GraficosDeProdutosProps {
  * Os dois gráficos da tela de Produtos: a evolução mensal da quantidade
  * vendida e o ranking dos 10 produtos por valor.
  */
-export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProps) {
+export function GraficosDeProdutos({
+  evolucao,
+  ranking,
+}: GraficosDeProdutosProps) {
   useTemaDoGrafico();
   // Ranking de produtos por valor (top 10) — a forma que o BarChart espera
   // (`produto`/`valor`) é montagem de gráfico, não conta de domínio, por
@@ -47,13 +54,18 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Evolução da Quantidade de Produtos Vendidos */}
       <Card padding="lg">
-        <CardTitle className="mb-4">Evolução da Quantidade de Produtos Vendidos</CardTitle>
+        <CardTitle className="mb-4">
+          Evolução da Quantidade de Produtos Vendidos
+        </CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={evolucao}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               dataKey="mes"
               tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }}
@@ -84,7 +96,10 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
         <CardTitle className="mb-4">Top 10 Produtos (Valor)</CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={rankingProdutosValor} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               dataKey="produto"
               angle={-45}
@@ -103,7 +118,13 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
                 // desta tela e as de `GraficosDeContas.tsx` (a tela irmã) já
                 // usam 12; só esta destoava, e um rótulo de eixo é justamente
                 // o texto que a pessoa mais precisa ler de relance.
-                <text x={x} y={y} textAnchor="end" fontSize={12} fill={chartTheme.axis.stroke}>
+                <text
+                  x={x}
+                  y={y}
+                  textAnchor="end"
+                  fontSize={12}
+                  fill={chartTheme.axis.stroke}
+                >
                   {formatarValorAbreviado(payload.value)}
                 </text>
               )}
@@ -123,11 +144,19 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
                         wordBreak: "break-word",
                       }}
                     >
-                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>{produto}</p>
-                      <p style={{ color: corDaSerie(SERIE_ACAO), fontSize: "14px" }}>
+                      <p style={{ fontWeight: 600, marginBottom: "4px" }}>
+                        {produto}
+                      </p>
+                      <p
+                        style={{
+                          color: corDaSerie(SERIE_ACAO),
+                          fontSize: "14px",
+                        }}
+                      >
                         Valor: <br />
                         <span style={{ fontWeight: 600 }}>
-                          R$ {valor.toLocaleString("pt-BR", {
+                          R${" "}
+                          {valor.toLocaleString("pt-BR", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
@@ -139,7 +168,11 @@ export function GraficosDeProdutos({ evolucao, ranking }: GraficosDeProdutosProp
                 return null;
               }}
             />
-            <Bar dataKey="valor" fill={corDaSerie(SERIE_ACAO)} radius={[6, 6, 0, 0]} />
+            <Bar
+              dataKey="valor"
+              fill={corDaSerie(SERIE_ACAO)}
+              radius={[6, 6, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </Card>

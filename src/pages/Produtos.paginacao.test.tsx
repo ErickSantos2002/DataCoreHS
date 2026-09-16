@@ -50,24 +50,25 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-
 const { NOTAS } = vi.hoisted(() => {
   const ITENS = Array.from({ length: 17 }, (_, i) => ({
-  codigo: `P${String(i + 1).padStart(2, "0")}`,
-  descricao: `Produto ${String(i + 1).padStart(2, "0")}`,
-  quantidade: String(17 - i),
-  valor_total: "100",
-}));
-  return { NOTAS: [
-  {
-    id: 1,
-    data_emissao: "2026-01-10",
-    valor_nota: 1200,
-    cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
-    nome_vendedor: "Vendedor A",
-    itens: ITENS,
-  },
-] };
+    codigo: `P${String(i + 1).padStart(2, "0")}`,
+    descricao: `Produto ${String(i + 1).padStart(2, "0")}`,
+    quantidade: String(17 - i),
+    valor_total: "100",
+  }));
+  return {
+    NOTAS: [
+      {
+        id: 1,
+        data_emissao: "2026-01-10",
+        valor_nota: 1200,
+        cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
+        nome_vendedor: "Vendedor A",
+        itens: ITENS,
+      },
+    ],
+  };
 });
 
 // A tela deixou de ler o `DataContext` (item 9.4): a agregação vem somada do
@@ -75,7 +76,9 @@ const { NOTAS } = vi.hoisted(() => {
 // é o `por_produto` — é ele que virou a tabela.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
@@ -88,13 +91,26 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ data, children }: { data?: unknown[]; children?: React.ReactNode }) => (
-      <div data-testid="grafico-ranking" data-serie={JSON.stringify(data ?? [])}>
+    BarChart: ({
+      data,
+      children,
+    }: {
+      data?: unknown[];
+      children?: React.ReactNode;
+    }) => (
+      <div
+        data-testid="grafico-ranking"
+        data-serie={JSON.stringify(data ?? [])}
+      >
         {children}
       </div>
     ),
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -127,7 +143,9 @@ describe("paginacao em Produtos", () => {
 
     expect(linhasDaTabela()).toHaveLength(15);
     expect(within(corpoDaTabela()).getByText("Produto 01")).toBeInTheDocument();
-    expect(within(corpoDaTabela()).queryByText("Produto 16")).not.toBeInTheDocument();
+    expect(
+      within(corpoDaTabela()).queryByText("Produto 16"),
+    ).not.toBeInTheDocument();
   });
 
   it("a frase de contagem diz o intervalo e o total", () => {
@@ -145,7 +163,9 @@ describe("paginacao em Produtos", () => {
 
     expect(linhasDaTabela()).toHaveLength(2);
     expect(within(corpoDaTabela()).getByText("Produto 16")).toBeInTheDocument();
-    expect(within(corpoDaTabela()).queryByText("Produto 01")).not.toBeInTheDocument();
+    expect(
+      within(corpoDaTabela()).queryByText("Produto 01"),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
       "Mostrando 16 a 17 de 17 produtos",
     );
@@ -182,7 +202,9 @@ describe("paginacao em Produtos", () => {
     });
 
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 
   it("filtrar volta para a primeira pagina", () => {
@@ -192,7 +214,9 @@ describe("paginacao em Produtos", () => {
     render(<Produtos />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 16 a 17");
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent(
+      "Mostrando 16 a 17",
+    );
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
       target: { value: "Produto 0" },

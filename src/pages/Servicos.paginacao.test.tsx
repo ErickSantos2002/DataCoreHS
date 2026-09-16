@@ -23,18 +23,18 @@ vi.mock("../hooks/useAuth", () => ({
 
 const { SERVICOS_ENRIQUECIDOS } = vi.hoisted(() => ({
   SERVICOS_ENRIQUECIDOS: Array.from({ length: 17 }, (_, i) => ({
-  id: i + 1,
-  numero_nfse: String(1000 + i + 1),
-  data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
-  valor_servico: 100 + i,
-  razao_social_tomador: `Cliente ${String(i + 1).padStart(2, "0")}`,
-  cpf_cnpj_tomador: `11.111.111/0001-${String(i + 1).padStart(2, "0")}`,
-  cidade_tomador: "Recife",
-  uf_tomador: "PE",
-  discriminacao_servico: `Servico ${String(i + 1).padStart(2, "0")}`,
-  valor_servico_numero: 100 + i,
-  mes: "janeiro",
-  ano: 2026,
+    id: i + 1,
+    numero_nfse: String(1000 + i + 1),
+    data_emissao: `2026-01-${String(i + 1).padStart(2, "0")}`,
+    valor_servico: 100 + i,
+    razao_social_tomador: `Cliente ${String(i + 1).padStart(2, "0")}`,
+    cpf_cnpj_tomador: `11.111.111/0001-${String(i + 1).padStart(2, "0")}`,
+    cidade_tomador: "Recife",
+    uf_tomador: "PE",
+    discriminacao_servico: `Servico ${String(i + 1).padStart(2, "0")}`,
+    valor_servico_numero: 100 + i,
+    mes: "janeiro",
+    ano: 2026,
   })),
 }));
 
@@ -52,9 +52,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -122,7 +128,9 @@ describe("paginacao em Servicos", () => {
     });
 
     expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 
   it("filtrar volta para a primeira pagina", () => {
@@ -132,7 +140,9 @@ describe("paginacao em Servicos", () => {
     render(<Servicos />);
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 16 a 17");
+    expect(screen.getByText(/Mostrando/)).toHaveTextContent(
+      "Mostrando 16 a 17",
+    );
 
     fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
       target: { value: "Cliente 0" },

@@ -13,7 +13,11 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Card, CardTitle } from "../../design-system/ui";
-import { chartTheme, corDaSerie, useTemaDoGrafico } from "../../design-system/chartTheme";
+import {
+  chartTheme,
+  corDaSerie,
+  useTemaDoGrafico,
+} from "../../design-system/chartTheme";
 import {
   formatarValorAbreviado,
   type PontoDeEvolucao,
@@ -47,7 +51,10 @@ export function GraficosDeServicos({
         <CardTitle className="mb-4">Evolução dos Serviços Emitidos</CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={evolucaoMensal}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               dataKey="mes"
               tick={{ fill: chartTheme.axis.stroke, fontSize: 12 }}
@@ -79,7 +86,10 @@ export function GraficosDeServicos({
         <CardTitle className="mb-4">Top 10 Clientes</CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={rankingClientes} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={chartTheme.grid.stroke}
+            />
             <XAxis
               type="number"
               tickFormatter={(value) => formatarValorAbreviado(value)}
@@ -111,7 +121,8 @@ export function GraficosDeServicos({
                         {clienteCompleto}
                       </p>
                       <p style={{ color: corDaSerie(SERIE_ACAO) }}>
-                        Valor: R$ {Number(valor).toLocaleString("pt-BR", {
+                        Valor: R${" "}
+                        {Number(valor).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -129,7 +140,9 @@ export function GraficosDeServicos({
 
       {/* Distribuição por Cidade */}
       <Card padding="lg" className="lg:col-span-2">
-        <CardTitle className="mb-4">Distribuição por Cidade do Serviço</CardTitle>
+        <CardTitle className="mb-4">
+          Distribuição por Cidade do Serviço
+        </CardTitle>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -138,7 +151,8 @@ export function GraficosDeServicos({
               cy="50%"
               labelLine={false}
               label={({ name, percent = 0 }) => {
-                const nomeCortado = name.length > 15 ? `${name.substring(0, 15)}...` : name;
+                const nomeCortado =
+                  name.length > 15 ? `${name.substring(0, 15)}...` : name;
                 return `${nomeCortado} ${(percent * 100).toFixed(0)}%`;
               }}
               outerRadius={80}

@@ -203,7 +203,9 @@ describe("rankingDoResumo", () => {
     const nome = "Mineração Santa Luz.";
     expect(nome).toHaveLength(20);
 
-    expect(rankingDoResumo([{ nome, valor: 1, notas: 1 }])[0].cliente).toBe(nome);
+    expect(rankingDoResumo([{ nome, valor: 1, notas: 1 }])[0].cliente).toBe(
+      nome,
+    );
   });
 });
 
@@ -231,9 +233,9 @@ describe("proximaOrdenacao", () => {
   // quebrada, e vice-versa.
 
   it("clicar num campo diferente comeca em desc, vindo de desc", () => {
-    expect(proximaOrdenacao({ campo: "data_emissao", direcao: "desc" }, "numero")).toEqual(
-      { campo: "numero", direcao: "desc" },
-    );
+    expect(
+      proximaOrdenacao({ campo: "data_emissao", direcao: "desc" }, "numero"),
+    ).toEqual({ campo: "numero", direcao: "desc" });
   });
 
   it("clicar num campo diferente comeca em desc tambem vindo de asc", () => {
@@ -242,21 +244,27 @@ describe("proximaOrdenacao", () => {
     // daria `asc`... e o caso acima morreria, mas este é o que prende a regra
     // pelo outro lado — o primeiro clique numa coluna é SEMPRE decrescente,
     // não importa como a coluna anterior estava.
-    expect(proximaOrdenacao({ campo: "data_emissao", direcao: "asc" }, "numero")).toEqual({
+    expect(
+      proximaOrdenacao({ campo: "data_emissao", direcao: "asc" }, "numero"),
+    ).toEqual({
       campo: "numero",
       direcao: "desc",
     });
   });
 
   it("clicar de novo no mesmo campo em desc inverte para asc", () => {
-    expect(proximaOrdenacao({ campo: "numero", direcao: "desc" }, "numero")).toEqual({
+    expect(
+      proximaOrdenacao({ campo: "numero", direcao: "desc" }, "numero"),
+    ).toEqual({
       campo: "numero",
       direcao: "asc",
     });
   });
 
   it("clicar de novo no mesmo campo em asc volta para desc", () => {
-    expect(proximaOrdenacao({ campo: "numero", direcao: "asc" }, "numero")).toEqual({
+    expect(
+      proximaOrdenacao({ campo: "numero", direcao: "asc" }, "numero"),
+    ).toEqual({
       campo: "numero",
       direcao: "desc",
     });
@@ -329,18 +337,21 @@ describe("linhasDaPlanilha", () => {
     ["sem cidade e sem UF", "—", null, null],
     ["so com a UF", "MG", null, "MG"],
     ["so com a cidade", "Recife", "Recife", null],
-  ])("nota %s sai com %s na cidade, e nao com null", (_caso, esperado, cidade, uf) => {
-    // A API devolve `cidade_tomador: null` em toda NFS-e de 2025 e em 868 das
-    // 1133 de 2026 (a importação parou de trazer o campo). A template string
-    // `${cidade}/${uf}` imprimia "null/null" nas 57 linhas de uma planilha de
-    // setembro — conferido abrindo o arquivo em 15/09. Os três casos, e não só
-    // o dos dois nulos: uma função que devolvesse sempre "—" passaria com um.
-    const [linha] = linhasDaPlanilha([
-      { ...SERVICO_BASE, cidade_tomador: cidade, uf_tomador: uf },
-    ]);
+  ])(
+    "nota %s sai com %s na cidade, e nao com null",
+    (_caso, esperado, cidade, uf) => {
+      // A API devolve `cidade_tomador: null` em toda NFS-e de 2025 e em 868 das
+      // 1133 de 2026 (a importação parou de trazer o campo). A template string
+      // `${cidade}/${uf}` imprimia "null/null" nas 57 linhas de uma planilha de
+      // setembro — conferido abrindo o arquivo em 15/09. Os três casos, e não só
+      // o dos dois nulos: uma função que devolvesse sempre "—" passaria com um.
+      const [linha] = linhasDaPlanilha([
+        { ...SERVICO_BASE, cidade_tomador: cidade, uf_tomador: uf },
+      ]);
 
-    expect(linha.Cidade).toBe(esperado);
-  });
+      expect(linha.Cidade).toBe(esperado);
+    },
+  );
 });
 
 /**
@@ -368,7 +379,9 @@ describe("linhasDoPdf", () => {
     // Mesma prova de `linhasDaPlanilha` acima, e mesmo motivo: a data não
     // pode passar por `new Date`, senão `TZ=America/Sao_Paulo` imprime o dia
     // anterior — aqui, 31/12/2025.
-    const datas = linhasDoPdf([SERVICO_BASE, SERVICO_NA_VIRADA]).map((linha) => linha[2]);
+    const datas = linhasDoPdf([SERVICO_BASE, SERVICO_NA_VIRADA]).map(
+      (linha) => linha[2],
+    );
 
     expect(datas).toEqual(["10/01/2026", "01/01/2026"]);
   });

@@ -23,7 +23,11 @@ import {
   type DialetoDeContas,
   type FormatoDaPlanilha,
 } from "./contas";
-import { todasAsContas, usePaginaDeContas, useResumoDeContas } from "./useContas";
+import {
+  todasAsContas,
+  usePaginaDeContas,
+  useResumoDeContas,
+} from "./useContas";
 
 /**
  * Tudo o que difere entre Contas a Receber e Contas a Pagar, num objeto só.
@@ -158,7 +162,11 @@ export function TelaDeContas({ tipo, configuracao }: TelaDeContasProps) {
 
   const aoClicarNaEvolucao = useCallback(
     (estado: { activeLabel?: string }) => {
-      const periodo = periodoDaBarra(estado?.activeLabel, evolucao.modo, evolucao.ano);
+      const periodo = periodoDaBarra(
+        estado?.activeLabel,
+        evolucao.modo,
+        evolucao.ano,
+      );
       if (!periodo) return;
       setDataInicio(periodo.inicio);
       setDataFim(periodo.fim);

@@ -22,12 +22,16 @@ export interface CabecalhoProdutosProps {
 export function CabecalhoProdutos({ usuario }: CabecalhoProdutosProps) {
   return (
     <Card padding="lg">
-      <h1 className="text-3xl font-bold text-conteudo-heading">Produtos - Dashboard</h1>
+      <h1 className="text-3xl font-bold text-conteudo-heading">
+        Produtos - Dashboard
+      </h1>
       <p className="mt-1 text-sm text-conteudo">
-        Bem-vindo, <span className="font-semibold">{usuario?.username}</span> ({usuario?.role})
+        Bem-vindo, <span className="font-semibold">{usuario?.username}</span> (
+        {usuario?.role})
       </p>
       <p className="mt-2 text-sm text-conteudo-muted">
-        Análise detalhada de produtos vendidos, quantidades, valores e performance.
+        Análise detalhada de produtos vendidos, quantidades, valores e
+        performance.
       </p>
     </Card>
   );

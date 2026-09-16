@@ -16,7 +16,10 @@ export interface CabecalhoUsuariosProps {
  * gerenciamento: a decisão é "cadastrar acesso novo", e tudo o mais na tela
  * (editar, trocar senha, excluir) é ação sobre uma linha, não sobre a tela.
  */
-export function CabecalhoUsuarios({ quantidade, onNovoUsuario }: CabecalhoUsuariosProps) {
+export function CabecalhoUsuarios({
+  quantidade,
+  onNovoUsuario,
+}: CabecalhoUsuariosProps) {
   return (
     <Card padding="lg">
       <div className="flex flex-wrap items-start justify-between gap-4">

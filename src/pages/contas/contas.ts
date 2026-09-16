@@ -132,7 +132,10 @@ export const MESES_ABREV = [
 
 export const ITENS_POR_PAGINA = 15;
 
-export const ORDENACAO_INICIAL: Ordenacao = { campo: "vencimento", direcao: "asc" };
+export const ORDENACAO_INICIAL: Ordenacao = {
+  campo: "vencimento",
+  direcao: "asc",
+};
 
 /** No máximo oito fatias na pizza de categoria, contando a de "Outros". */
 export const FATIAS_DE_CATEGORIA = 8;
@@ -254,7 +257,12 @@ export function periodoDaBarra(
  */
 export function montarEvolucao(
   porAno: readonly { ano: number; quitado: number; aberto: number }[],
-  porMes: readonly { ano: number; mes: number; quitado: number; aberto: number }[],
+  porMes: readonly {
+    ano: number;
+    mes: number;
+    quitado: number;
+    aberto: number;
+  }[],
   dialeto: DialetoDeContas,
   agora: Date,
 ): Evolucao {
@@ -283,7 +291,12 @@ export function montarEvolucao(
     ponto[chave] = (ponto[chave] as number) + linha.quitado;
     ponto.aberto = (ponto.aberto as number) + linha.aberto;
   }
-  return { dados: meses, titulo: `Evolução Mensal — ${ano}`, modo: "mensal", ano };
+  return {
+    dados: meses,
+    titulo: `Evolução Mensal — ${ano}`,
+    modo: "mensal",
+    ano,
+  };
 }
 
 /**
@@ -302,7 +315,13 @@ export function montarEvolucao(
 export function montarCategorias(
   linhas: readonly { nome: string; valor: number }[],
 ): PontoDeCategoria[] {
-  const emPonto = ({ nome, valor }: { nome: string; valor: number }): PontoDeCategoria => ({
+  const emPonto = ({
+    nome,
+    valor,
+  }: {
+    nome: string;
+    valor: number;
+  }): PontoDeCategoria => ({
     name: nome,
     value: valor,
   });
@@ -320,7 +339,9 @@ export function montarCategorias(
 export function montarContrapartes(
   linhas: readonly { nome: string; valor: number }[],
 ): PontoDeContraparte[] {
-  return linhas.slice(0, BARRAS_DE_CONTRAPARTE).map(({ nome, valor }) => ({ nome, valor }));
+  return linhas
+    .slice(0, BARRAS_DE_CONTRAPARTE)
+    .map(({ nome, valor }) => ({ nome, valor }));
 }
 
 // ── Tabela ─────────────────────────────────────────────────────────────────

@@ -20,11 +20,14 @@ const EmConstrucao: React.FC<EmConstrucaoProps> = ({ titulo }) => {
         <title>{titulo} | DataCoreHS</title>
       </Helmet>
 
-      <h1 className="text-2xl font-bold text-conteudo-heading">Em construção</h1>
+      <h1 className="text-2xl font-bold text-conteudo-heading">
+        Em construção
+      </h1>
 
       <div className="w-full max-w-md">
         <Alert variant="warning">
-          Em breve teremos gráficos e análises aqui para ajudar na sua tomada de decisão.
+          Em breve teremos gráficos e análises aqui para ajudar na sua tomada de
+          decisão.
         </Alert>
       </div>
     </div>

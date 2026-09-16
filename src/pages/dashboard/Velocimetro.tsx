@@ -57,7 +57,9 @@ export function Velocimetro({
 }: VelocimetroProps) {
   // Meta zero faz `progresso` chegar como NaN (0 dividido por 0). Sem esta
   // rede o arco recebe `strokeDasharray="NaN"` e some da tela.
-  const percentual = isNaN(progresso) ? 0 : Math.min(Math.max(progresso, 0), 100);
+  const percentual = isNaN(progresso)
+    ? 0
+    : Math.min(Math.max(progresso, 0), 100);
   const traco = (percentual / 100) * CIRCUNFERENCIA;
   const falta = degrau - valor;
   const ponta = pontaDaAgulha(percentual);
@@ -80,7 +82,13 @@ export function Velocimetro({
         role="img"
         aria-label={`Velocímetro da faixa de bonificação de ${rotuloBonus}`}
       >
-        <path d={ARCO} fill="none" className="stroke-borda" strokeWidth="16" strokeLinecap="round" />
+        <path
+          d={ARCO}
+          fill="none"
+          className="stroke-borda"
+          strokeWidth="16"
+          strokeLinecap="round"
+        />
         <path
           d={ARCO}
           fill="none"

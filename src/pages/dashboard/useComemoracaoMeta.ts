@@ -6,13 +6,7 @@ import confetti from "canvas-confetti";
  * string e não enxerga CSS. Não são cores de interface — nenhuma delas
  * pinta texto, fundo ou borda — são confete festivo, sem significado
  * semântico para um token carregar. */
-const CORES_CONFETE = [
-  "#FFD700",
-  "#FFA500",
-  "#FF6347",
-  "#4169E1",
-  "#32CD32",
-];
+const CORES_CONFETE = ["#FFD700", "#FFA500", "#FF6347", "#4169E1", "#32CD32"];
 const CORES_FOGOS = [
   "#FFD700",
   "#FFA500",

@@ -177,7 +177,9 @@ vi.mock("recharts", async () => {
   };
 
   return {
-    ResponsiveContainer: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     BarChart,
     Bar,
@@ -429,7 +431,8 @@ async function assentar() {
 function kpi(rotulo: string): string {
   const etiqueta = screen.getByText(rotulo);
   const valor = etiqueta.nextElementSibling;
-  if (!valor) throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
+  if (!valor)
+    throw new Error(`KPI "${rotulo}" não tem valor ao lado do rótulo`);
   return texto(valor);
 }
 
@@ -463,7 +466,9 @@ async function alternarLista(rotulo: string) {
 async function selecionar(rotulo: string, ...opcoes: string[]) {
   await alternarLista(rotulo);
   for (const opcao of opcoes) {
-    fireEvent.click(within(filtro(rotulo)).getByRole("checkbox", { name: opcao }));
+    fireEvent.click(
+      within(filtro(rotulo)).getByRole("checkbox", { name: opcao }),
+    );
     await assentar();
   }
   await alternarLista(rotulo);
@@ -520,9 +525,12 @@ function cartaoDaTabela(): HTMLElement {
 }
 
 async function buscar(termo: string) {
-  fireEvent.change(within(cartaoDaTabela()).getByPlaceholderText("Pesquisar..."), {
-    target: { value: termo },
-  });
+  fireEvent.change(
+    within(cartaoDaTabela()).getByPlaceholderText("Pesquisar..."),
+    {
+      target: { value: termo },
+    },
+  );
   await assentar();
 }
 
@@ -586,9 +594,7 @@ async function clicarNaBarra(rotulo: string) {
 
 const tituloDaEvolucao = () =>
   texto(
-    screen
-      .getAllByRole("heading")
-      .find((h) => texto(h).startsWith("Evolução")),
+    screen.getAllByRole("heading").find((h) => texto(h).startsWith("Evolução")),
   );
 
 // --- Preparação -------------------------------------------------------------
@@ -619,7 +625,9 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     servidor.modo = "pendente";
     render(<ContasPagar />, { wrapper: Molde });
 
-    expect(screen.getByText("Carregando contas a pagar...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Carregando contas a pagar..."),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 
@@ -634,7 +642,9 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     // uma lista vazia e não ficava sabendo que a API caiu (defeito 1.10).
     // O aviso é um `Alert` no fluxo da página, do mesmo jeito que na gêmea e
     // na tela de Locação.
-    const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
+    const erroNoConsole = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     servidor.modo = "falha";
     render(<ContasPagar />, { wrapper: Molde });
 
@@ -673,10 +683,16 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     await montar([]);
 
     expect(screen.getByText("Nenhuma conta encontrada.")).toBeInTheDocument();
-    expect(screen.queryByText("Nenhum resultado encontrado.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Nenhum resultado encontrado."),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Anterior" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Próxima" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Anterior" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Próxima" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "1" })).not.toBeInTheDocument();
   });
 
@@ -686,7 +702,9 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     // quebrada. A evolução segue desenhando — tem os 12 meses zerados.
     await montar([]);
 
-    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(
+      screen.getAllByText("Nenhuma conta para montar este gráfico."),
+    ).toHaveLength(2);
     expect(evolucao()).toHaveLength(12);
   });
 
@@ -694,12 +712,16 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     // Não há frase de erro dentro do gráfico: a distinção entre "a API caiu"
     // e "não há conta" já mora no `Alert` vermelho no topo da página, e
     // repeti-la em cada cartão diria a mesma coisa mais duas vezes.
-    const erroNoConsole = vi.spyOn(console, "error").mockImplementation(() => {});
+    const erroNoConsole = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     servidor.modo = "falha";
     render(<ContasPagar />, { wrapper: Molde });
     await screen.findByRole("table");
 
-    expect(screen.getAllByText("Nenhuma conta para montar este gráfico.")).toHaveLength(2);
+    expect(
+      screen.getAllByText("Nenhuma conta para montar este gráfico."),
+    ).toHaveLength(2);
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Não foi possível carregar as contas a pagar.",
     );
@@ -722,7 +744,9 @@ describe("Contas a Pagar — carregamento e lista vazia", () => {
     await montar([]);
 
     await alternarLista("Situação");
-    expect(within(filtro("Situação")).getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+    expect(
+      within(filtro("Situação")).getByText("Nenhum resultado encontrado"),
+    ).toBeInTheDocument();
     await alternarLista("Situação");
   });
 });
@@ -731,7 +755,9 @@ describe("Contas a Pagar — cabeçalho", () => {
   it("mostra o título da tela e quem está logado", async () => {
     await montar();
 
-    expect(screen.getByRole("heading", { name: "Contas a Pagar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Contas a Pagar" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("erick")).toBeInTheDocument();
     expect(screen.getByText(/\(admin\)/)).toBeInTheDocument();
   });
@@ -841,9 +867,24 @@ describe("Contas a Pagar — KPIs", () => {
   it("a média mensal conta meses DISTINTOS de emissão, não lançamentos", async () => {
     // Três contas, dois meses de emissão: 300 / 2 = 150.
     await montar([
-      conta({ id: 1, data_emissao: "2026-01-05", valor: "100.00", saldo: "100.00" }),
-      conta({ id: 2, data_emissao: "2026-01-25", valor: "100.00", saldo: "100.00" }),
-      conta({ id: 3, data_emissao: "2026-02-01", valor: "100.00", saldo: "100.00" }),
+      conta({
+        id: 1,
+        data_emissao: "2026-01-05",
+        valor: "100.00",
+        saldo: "100.00",
+      }),
+      conta({
+        id: 2,
+        data_emissao: "2026-01-25",
+        valor: "100.00",
+        saldo: "100.00",
+      }),
+      conta({
+        id: 3,
+        data_emissao: "2026-02-01",
+        valor: "100.00",
+        saldo: "100.00",
+      }),
     ]);
 
     expect(kpi("Média Mensal Faturada")).toBe("R$ 150,00");
@@ -854,8 +895,20 @@ describe("Contas a Pagar — KPIs", () => {
     // de outras. Com uma paga de 900 e uma em aberto de 500 com saldo 100, a
     // média dava 1000 — nem o faturado (1400) nem o que saiu (1300).
     await montar([
-      conta({ id: 1, data_emissao: "2026-01-05", valor: "900.00", saldo: "0.00", situacao: "pago" }),
-      conta({ id: 2, data_emissao: "2026-01-06", valor: "500.00", saldo: "100.00", situacao: "pendente" }),
+      conta({
+        id: 1,
+        data_emissao: "2026-01-05",
+        valor: "900.00",
+        saldo: "0.00",
+        situacao: "pago",
+      }),
+      conta({
+        id: 2,
+        data_emissao: "2026-01-06",
+        valor: "500.00",
+        saldo: "100.00",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(kpi("Total Pago")).toBe("R$ 1.300,00");
@@ -867,8 +920,20 @@ describe("Contas a Pagar — KPIs", () => {
     // Duas contas emitidas no mesmo mês, vencendo em meses diferentes:
     // continua sendo um mês só de dados.
     await montar([
-      conta({ id: 1, data_emissao: "2026-01-05", vencimento: "2026-02-05", valor: "100.00", saldo: "100.00" }),
-      conta({ id: 2, data_emissao: "2026-01-06", vencimento: "2026-09-06", valor: "100.00", saldo: "100.00" }),
+      conta({
+        id: 1,
+        data_emissao: "2026-01-05",
+        vencimento: "2026-02-05",
+        valor: "100.00",
+        saldo: "100.00",
+      }),
+      conta({
+        id: 2,
+        data_emissao: "2026-01-06",
+        vencimento: "2026-09-06",
+        valor: "100.00",
+        saldo: "100.00",
+      }),
     ]);
 
     expect(kpi("Média Mensal Faturada")).toBe("R$ 200,00");
@@ -897,7 +962,9 @@ describe("Contas a Pagar — situação na tabela", () => {
 
     // 102 está paga; 101 e 106 venceram e mostram "pendente · Vencida";
     // 103 continua "aberto"; 104 e 105 continuam "pendente".
-    const porId = new Map(linhasDaTabela().map((l) => [celulasDaLinha(l)[0], celulasDaLinha(l)[7]]));
+    const porId = new Map(
+      linhasDaTabela().map((l) => [celulasDaLinha(l)[0], celulasDaLinha(l)[7]]),
+    );
     // O selo mostra o texto cru que a API mandou, e não o literal "Pago".
     expect(porId.get("102")).toBe("pago");
     expect(porId.get("101")).toBe("pendente · Vencida");
@@ -908,13 +975,22 @@ describe("Contas a Pagar — situação na tabela", () => {
   });
 
   it("situação desconhecida aparece como veio da API", async () => {
-    await montar([conta({ id: 1, vencimento: "2026-12-01", situacao: "cancelado" })]);
+    await montar([
+      conta({ id: 1, vencimento: "2026-12-01", situacao: "cancelado" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("cancelado");
   });
 
   it("situação nula vira travessão curto, e a categoria nula também", async () => {
-    await montar([conta({ id: 1, vencimento: "2026-12-01", situacao: null, categoria: null })]);
+    await montar([
+      conta({
+        id: 1,
+        vencimento: "2026-12-01",
+        situacao: null,
+        categoria: null,
+      }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[4]).toBe("-");
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("-");
@@ -929,7 +1005,9 @@ describe("Contas a Pagar — situação na tabela", () => {
   });
 
   it("uma conta paga nunca aparece como vencida, mesmo com vencimento antigo", async () => {
-    await montar([conta({ id: 1, vencimento: "2020-01-01", situacao: "pago" })]);
+    await montar([
+      conta({ id: 1, vencimento: "2020-01-01", situacao: "pago" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[7]).toBe("pago");
     expect(kpi("Contas Vencidas")).toBe("0");
@@ -966,8 +1044,18 @@ describe("Contas a Pagar — situação na tabela", () => {
 describe("Contas a Pagar — dinheiro", () => {
   it("converte o valor em texto do jeito brasileiro e do jeito americano", async () => {
     await montar([
-      conta({ id: 1, valor: "1.234,56", saldo: "1.234,56", situacao: "pendente" }),
-      conta({ id: 2, valor: "1234.56", saldo: "1234.56", situacao: "pendente" }),
+      conta({
+        id: 1,
+        valor: "1.234,56",
+        saldo: "1.234,56",
+        situacao: "pendente",
+      }),
+      conta({
+        id: 2,
+        valor: "1234.56",
+        saldo: "1234.56",
+        situacao: "pendente",
+      }),
     ]);
 
     const valores = linhasDaTabela().map((l) => celulasDaLinha(l)[5]);
@@ -978,20 +1066,36 @@ describe("Contas a Pagar — dinheiro", () => {
   it("ponto de milhar sem centavo é milhar, e não decimal", async () => {
     // "1.234" não tem vírgula: o ponto era lido como decimal e a conta de
     // mil duzentos e trinta e quatro reais virava R$ 1,23.
-    await montar([conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, valor: "1.234", saldo: "1.234", situacao: "pendente" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,00");
     expect(kpi("Total em Aberto")).toBe("R$ 1.234,00");
   });
 
   it("engole o R$ e os espaços que vierem colados no número", async () => {
-    await montar([conta({ id: 1, valor: "R$ 2.000,00", saldo: "R$ 2.000,00", situacao: "pendente" })]);
+    await montar([
+      conta({
+        id: 1,
+        valor: "R$ 2.000,00",
+        saldo: "R$ 2.000,00",
+        situacao: "pendente",
+      }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 2.000,00");
   });
 
   it("valor negativo passa inteiro, com o sinal", async () => {
-    await montar([conta({ id: 1, valor: "-250.75", saldo: "-250.75", situacao: "pendente" })]);
+    await montar([
+      conta({
+        id: 1,
+        valor: "-250.75",
+        saldo: "-250.75",
+        situacao: "pendente",
+      }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("-R$ 250,75");
     expect(kpi("Total em Aberto")).toBe("-R$ 250,75");
@@ -1001,7 +1105,12 @@ describe("Contas a Pagar — dinheiro", () => {
     await montar([
       conta({ id: 1, valor: "", saldo: "", situacao: "pendente" }),
       conta({ id: 2, valor: 0, saldo: 0, situacao: "pendente" }),
-      conta({ id: 3, valor: "sem valor", saldo: "sem valor", situacao: "pendente" }),
+      conta({
+        id: 3,
+        valor: "sem valor",
+        saldo: "sem valor",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(linhasDaTabela().map((l) => celulasDaLinha(l)[5])).toEqual([
@@ -1013,7 +1122,9 @@ describe("Contas a Pagar — dinheiro", () => {
   });
 
   it("valor que já vem número passa direto, sem passar pelo parse", async () => {
-    await montar([conta({ id: 1, valor: 1234.5, saldo: 1234.5, situacao: "pendente" })]);
+    await montar([
+      conta({ id: 1, valor: 1234.5, saldo: 1234.5, situacao: "pendente" }),
+    ]);
 
     expect(celulasDaLinha(linhasDaTabela()[0])[5]).toBe("R$ 1.234,50");
   });
@@ -1023,7 +1134,11 @@ describe("Contas a Pagar — filtros", () => {
   it("as opções de cada multi-select são distintas, ordenadas e sem as vazias", async () => {
     await montar();
 
-    expect(await opcoesDoFiltro("Situação")).toEqual(["aberto", "pago", "pendente"]);
+    expect(await opcoesDoFiltro("Situação")).toEqual([
+      "aberto",
+      "pago",
+      "pendente",
+    ]);
     expect(await opcoesDoFiltro("Categoria")).toEqual([
       "Energia",
       "Frete",
@@ -1093,9 +1208,15 @@ describe("Contas a Pagar — filtros", () => {
     // O `<label>` era solto e o gatilho é um `<button>`: o leitor de tela
     // anunciava só "Todas", sem dizer de qual campo (defeito 1.14).
     await montar();
-    expect(screen.getByRole("button", { name: "Situação Todas" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Categoria Todas" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Fornecedor Todos" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Situação Todas" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Categoria Todas" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Fornecedor Todos" }),
+    ).toBeInTheDocument();
 
     await selecionar("Fornecedor", "Beta Energia");
     expect(
@@ -1119,7 +1240,11 @@ describe("Contas a Pagar — filtros", () => {
     expect(idsNaTela()).toHaveLength(2);
 
     await alternarLista("Categoria");
-    fireEvent.click(within(filtro("Categoria")).getByRole("button", { name: "Limpar seleção" }));
+    fireEvent.click(
+      within(filtro("Categoria")).getByRole("button", {
+        name: "Limpar seleção",
+      }),
+    );
     await assentar();
     await alternarLista("Categoria");
 
@@ -1130,9 +1255,12 @@ describe("Contas a Pagar — filtros", () => {
     await montar();
 
     await alternarLista("Fornecedor");
-    fireEvent.change(within(filtro("Fornecedor")).getByPlaceholderText("Pesquisar..."), {
-      target: { value: "beta" },
-    });
+    fireEvent.change(
+      within(filtro("Fornecedor")).getByPlaceholderText("Pesquisar..."),
+      {
+        target: { value: "beta" },
+      },
+    );
     expect(
       within(filtro("Fornecedor"))
         .getAllByRole("checkbox")
@@ -1231,7 +1359,12 @@ describe("Contas a Pagar — presets de período", () => {
     // do "mês atual"; agora o preset é o mês do calendário inteiro.
     await montar([
       ...CONTAS,
-      conta({ id: 7, id_tiny: 107, data_emissao: "2026-03-20", vencimento: "2026-05-20" }),
+      conta({
+        id: 7,
+        id_tiny: 107,
+        data_emissao: "2026-03-20",
+        vencimento: "2026-05-20",
+      }),
     ]);
     await escolherPreset("mesAtual");
 
@@ -1349,7 +1482,9 @@ describe("Contas a Pagar — presets e o fuso horário", () => {
     ]);
 
     expect(kpi("Contas Vencidas")).toBe(ATRASADO_EM_RELACAO_A_UTC ? "0" : "1");
-    expect(kpi("A Vencer (30 dias)")).toBe(ATRASADO_EM_RELACAO_A_UTC ? "2" : "1");
+    expect(kpi("A Vencer (30 dias)")).toBe(
+      ATRASADO_EM_RELACAO_A_UTC ? "2" : "1",
+    );
   });
 
   it("as datas da tabela são lidas da string, então não andam para trás em nenhum fuso", async () => {
@@ -1424,7 +1559,13 @@ describe("Contas a Pagar — busca da tabela", () => {
 
   it("conta sem categoria, sem documento e sem histórico só é achada pelo fornecedor", async () => {
     await montar([
-      conta({ id: 1, cliente_nome: "Solo Ltda", categoria: null, nro_documento: null, historico: null }),
+      conta({
+        id: 1,
+        cliente_nome: "Solo Ltda",
+        categoria: null,
+        nro_documento: null,
+        historico: null,
+      }),
     ]);
 
     await buscar("Solo");
@@ -1451,9 +1592,9 @@ describe("Contas a Pagar — ordenação", () => {
     Categoria: ["103", "101", "104", "105", "102", "106"],
     Valor: ["104", "101", "105", "102", "106", "103"],
     Saldo: ["104", "101", "105", "106", "103", "102"],
-    "Emissão": ["106", "105", "104", "103", "102", "101"],
+    Emissão: ["106", "105", "104", "103", "102", "101"],
     Vencimento: ["105", "104", "103", "106", "101", "102"],
-    "Situação": ["101", "104", "105", "106", "102", "103"],
+    Situação: ["101", "104", "105", "106", "102", "103"],
   };
   const CRESCENTE: Record<string, string[]> = {
     "ID Tiny": ["101", "102", "103", "104", "105", "106"],
@@ -1461,9 +1602,9 @@ describe("Contas a Pagar — ordenação", () => {
     Categoria: ["102", "106", "105", "101", "104", "103"],
     Valor: ["103", "106", "102", "105", "101", "104"],
     Saldo: ["102", "103", "106", "105", "101", "104"],
-    "Emissão": ["101", "102", "103", "104", "105", "106"],
+    Emissão: ["101", "102", "103", "104", "105", "106"],
     Vencimento: ["102", "101", "106", "103", "104", "105"],
-    "Situação": ["103", "102", "101", "104", "105", "106"],
+    Situação: ["103", "102", "101", "104", "105", "106"],
   };
 
   it("a tela abre ordenada por vencimento, do mais antigo para o mais novo", async () => {
@@ -1574,12 +1715,16 @@ describe("Contas a Pagar — paginação", () => {
     await montar(DEZESSETE);
 
     expect(linhasDaTabela()).toHaveLength(15);
-    expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 1 a 15 de 17 registros"),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     await assentar();
     expect(linhasDaTabela()).toHaveLength(2);
-    expect(screen.getByText("Mostrando 16 a 17 de 17 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 16 a 17 de 17 registros"),
+    ).toBeInTheDocument();
   });
 
   it("com uma página só, a contagem continua na tela e os botões travam", async () => {
@@ -1588,7 +1733,9 @@ describe("Contas a Pagar — paginação", () => {
     // (defeito 1.7). O `Pagination` do design system mostra sempre.
     await montar(CONTAS);
 
-    expect(screen.getByText("Mostrando 1 a 6 de 6 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 1 a 6 de 6 registros"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
   });
@@ -1621,7 +1768,9 @@ describe("Contas a Pagar — paginação", () => {
 
     await selecionar("Situação", "pendente");
     expect(linhasDaTabela()).toHaveLength(15);
-    expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 1 a 15 de 17 registros"),
+    ).toBeInTheDocument();
   });
 
   it("buscar estando na página 2 também volta para a página 1", async () => {
@@ -1633,7 +1782,7 @@ describe("Contas a Pagar — paginação", () => {
     // "Fornecedor 10".."Fornecedor 17" = 8 linhas, cabem na página 1.
     expect(linhasDaTabela()).toHaveLength(8);
     expect(screen.getByText(/Mostrando/)).toHaveTextContent(
-      'Mostrando 1 a 8 de 8 registros',
+      "Mostrando 1 a 8 de 8 registros",
     );
   });
 
@@ -1656,7 +1805,9 @@ describe("Contas a Pagar — paginação", () => {
     await assentar();
 
     await escolherPreset("anoAtual");
-    expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 1 a 15 de 17 registros"),
+    ).toBeInTheDocument();
   });
 
   it("a exportação leva a lista inteira, não só a página que está na tela", async () => {
@@ -1773,7 +1924,9 @@ describe("Contas a Pagar — gráfico de evolução", () => {
     await assentar();
 
     await clicarNaBarra("Mar");
-    expect(screen.getByText("Mostrando 1 a 15 de 17 registros")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mostrando 1 a 15 de 17 registros"),
+    ).toBeInTheDocument();
   });
 
   it("o gráfico segue os filtros", async () => {
@@ -1802,7 +1955,15 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
   it("a pizza soma o valor cheio de uma conta em aberto quase paga", async () => {
     // Ela vale 1000 e falta 1: os 999 já pagos mais o 1 que falta dão os
     // 1000 da fatia — a mesma soma dos dois KPIs do topo.
-    await montar([conta({ id: 1, categoria: "Material", valor: "1000.00", saldo: "1.00", situacao: "pendente" })]);
+    await montar([
+      conta({
+        id: 1,
+        categoria: "Material",
+        valor: "1000.00",
+        saldo: "1.00",
+        situacao: "pendente",
+      }),
+    ]);
 
     expect(categorias()).toEqual([{ name: "Material", value: 1000 }]);
     expect(kpi("Total em Aberto")).toBe("R$ 1,00");
@@ -1815,8 +1976,22 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
     // avisava (defeito 1.1). Uma conta marcada como paga com saldo sobrando
     // é o caso em que os dois discordavam.
     await montar([
-      conta({ id: 1, categoria: "Material", cliente_nome: "Alfa", valor: "1000.00", saldo: "300.00", situacao: "pago" }),
-      conta({ id: 2, categoria: "Frete", cliente_nome: "Beta", valor: "500.00", saldo: "500.00", situacao: "pendente" }),
+      conta({
+        id: 1,
+        categoria: "Material",
+        cliente_nome: "Alfa",
+        valor: "1000.00",
+        saldo: "300.00",
+        situacao: "pago",
+      }),
+      conta({
+        id: 2,
+        categoria: "Frete",
+        cliente_nome: "Beta",
+        valor: "500.00",
+        saldo: "500.00",
+        situacao: "pendente",
+      }),
     ]);
 
     expect(categorias()).toEqual([
@@ -1852,7 +2027,11 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
     // das oito calculado sobre um total que não era o total.
     await montar(
       Array.from({ length: 10 }, (_, i) =>
-        conta({ id: i + 1, categoria: `Cat ${i}`, valor: String((i + 1) * 10) }),
+        conta({
+          id: i + 1,
+          categoria: `Cat ${i}`,
+          valor: String((i + 1) * 10),
+        }),
       ),
     );
 
@@ -1879,7 +2058,11 @@ describe("Contas a Pagar — gráficos de categoria e de fornecedores", () => {
   it("o top de fornecedores para em 10, os 10 maiores", async () => {
     await montar(
       Array.from({ length: 12 }, (_, i) =>
-        conta({ id: i + 1, cliente_nome: `F${String(i).padStart(2, "0")}`, valor: String((i + 1) * 10) }),
+        conta({
+          id: i + 1,
+          cliente_nome: `F${String(i).padStart(2, "0")}`,
+          valor: String((i + 1) * 10),
+        }),
       ),
     );
 
@@ -1939,15 +2122,15 @@ describe("Contas a Pagar — exportação para Excel", () => {
         CPF_CNPJ: "22.222.222/0001-22",
         Categoria: "Energia",
         "Nº Documento": "NF-002",
-        "Histórico": "Conta de luz de janeiro",
+        Histórico: "Conta de luz de janeiro",
         Valor: 500,
         Saldo: 0,
-        "Emissão": "20/01/2026",
+        Emissão: "20/01/2026",
         Vencimento: "25/01/2026",
-        "Liquidação": "24/01/2026",
-        "Situação": "pago",
+        Liquidação: "24/01/2026",
+        Situação: "pago",
         Vencida: "Não",
-        "Ocorrência": "U",
+        Ocorrência: "U",
         Cidade: "Olinda",
         UF: "PE",
       },
@@ -1959,7 +2142,12 @@ describe("Contas a Pagar — exportação para Excel", () => {
     // não há o clássico "planilha um dia antes" aqui. Roda igual em TZ=UTC
     // e em TZ=America/Sao_Paulo.
     await montar([
-      conta({ id: 1, data_emissao: "2026-01-01", vencimento: "2026-12-31", liquidacao: "2026-07-10" }),
+      conta({
+        id: 1,
+        data_emissao: "2026-01-01",
+        vencimento: "2026-12-31",
+        liquidacao: "2026-07-10",
+      }),
     ]);
     await exportar();
 
@@ -1979,9 +2167,9 @@ describe("Contas a Pagar — exportação para Excel", () => {
       CPF_CNPJ: "",
       Categoria: "",
       "Nº Documento": "",
-      "Histórico": "",
-      "Liquidação": "—",
-      "Situação": "",
+      Histórico: "",
+      Liquidação: "—",
+      Situação: "",
       Vencida: "Não",
       Cidade: "",
       UF: "",
@@ -1993,7 +2181,12 @@ describe("Contas a Pagar — exportação para Excel", () => {
     // mais distinguia uma "pendente" vencida de uma "aberto" vencida.
     await montar([
       CONTAS[0], // pendente, vencida
-      conta({ id: 9, id_tiny: 109, vencimento: "2026-01-05", situacao: "aberto" }), // vencida
+      conta({
+        id: 9,
+        id_tiny: 109,
+        vencimento: "2026-01-05",
+        situacao: "aberto",
+      }), // vencida
       CONTAS[2], // aberto, vence hoje -> não vencida
     ]);
     await exportar();
@@ -2003,7 +2196,11 @@ describe("Contas a Pagar — exportação para Excel", () => {
       "pendente",
       "aberto",
     ]);
-    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual(["Sim", "Sim", "Não"]);
+    expect(planilha.linhas.map((l) => l["Vencida"])).toEqual([
+      "Sim",
+      "Sim",
+      "Não",
+    ]);
   });
 
   it("exporta o que está filtrado, buscado e na ordem escolhida", async () => {
@@ -2012,7 +2209,10 @@ describe("Contas a Pagar — exportação para Excel", () => {
     await ordenarPor("Valor"); // decrescente
 
     await exportar();
-    expect(planilha.linhas.map((l) => l["Nº Documento"])).toEqual(["NF-004", "NF-001"]);
+    expect(planilha.linhas.map((l) => l["Nº Documento"])).toEqual([
+      "NF-004",
+      "NF-001",
+    ]);
 
     // "papel" sozinho casaria também com o fornecedor "Alfa Papelaria";
     // "papel a4" só existe no histórico da NF-001.
@@ -2025,7 +2225,9 @@ describe("Contas a Pagar — exportação para Excel", () => {
     // Antes o clique passava e escrevia um arquivo sem nenhuma linha.
     await montar([]);
 
-    expect(screen.getByRole("button", { name: /exportar excel/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /exportar excel/i }),
+    ).toBeDisabled();
   });
 
   it("o arquivo se chama contas_a_pagar_ mais a data LOCAL de hoje", async () => {

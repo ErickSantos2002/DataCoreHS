@@ -106,9 +106,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -159,8 +165,14 @@ function campoData(rotulo: "Início" | "Fim"): HTMLInputElement {
  * (`aria-labelledby` do rótulo + o texto do botão), mesmo molde de
  * `Servicos.multiselect.test.tsx`, símbolo `abrir`.
  */
-function escolherNoFiltro(rotulo: string, placeholder: string, opcao: string): void {
-  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${placeholder}` }));
+function escolherNoFiltro(
+  rotulo: string,
+  placeholder: string,
+  opcao: string,
+): void {
+  fireEvent.click(
+    screen.getByRole("button", { name: `${rotulo} ${placeholder}` }),
+  );
   fireEvent.click(screen.getByRole("checkbox", { name: opcao }));
 }
 
@@ -217,7 +229,9 @@ describe("KPIs de Serviços", () => {
       // filtro), os números continuariam os de `KPIS_SEM_FILTRO`.
       render(<Servicos />);
 
-      fireEvent.change(campoData("Início"), { target: { value: "2026-01-01" } });
+      fireEvent.change(campoData("Início"), {
+        target: { value: "2026-01-01" },
+      });
       fireEvent.change(campoData("Fim"), { target: { value: "2026-02-28" } });
 
       expect(within(cartaoDoKpi(rotulo)).getByText(valor)).toBeInTheDocument();
@@ -240,9 +254,21 @@ describe("KPIs de Serviços", () => {
   // tela iria a "R$ 0,00" com "0" notas.
 
   it.each([
-    ["Cliente (Tomador)", "Todos os clientes", "Alfa Mineração (11.222.333/0001-44)", "R$ 1.700,00", "2"],
+    [
+      "Cliente (Tomador)",
+      "Todos os clientes",
+      "Alfa Mineração (11.222.333/0001-44)",
+      "R$ 1.700,00",
+      "2",
+    ],
     ["Cidade do Serviço", "Todas as cidades", "Olinda/PE", "R$ 500,00", "1"],
-    ["Tipo de Serviço", "Todos os tipos", "Inspeção de equipamentos", "R$ 700,00", "1"],
+    [
+      "Tipo de Serviço",
+      "Todos os tipos",
+      "Inspeção de equipamentos",
+      "R$ 700,00",
+      "1",
+    ],
   ])(
     "o filtro %s chega ao recorte e muda os KPIs",
     (rotulo, placeholder, opcao, faturamento, notas) => {
@@ -253,7 +279,9 @@ describe("KPIs de Serviços", () => {
       expect(
         within(cartaoDoKpi("Faturamento Total")).getByText(faturamento),
       ).toBeInTheDocument();
-      expect(within(cartaoDoKpi("NFS-e Emitidas")).getByText(notas)).toBeInTheDocument();
+      expect(
+        within(cartaoDoKpi("NFS-e Emitidas")).getByText(notas),
+      ).toBeInTheDocument();
     },
   );
 

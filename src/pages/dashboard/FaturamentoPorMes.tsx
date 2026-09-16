@@ -39,7 +39,10 @@ function anoDaSerie(meses: FaturamentoMensal[]): string {
  * A escala é o maior mês do ano, não a meta: o que esta barra compara é mês
  * contra mês. A distância até a meta já é o assunto dos velocímetros.
  */
-export function FaturamentoPorMes({ meses, destacar = [] }: FaturamentoPorMesProps) {
+export function FaturamentoPorMes({
+  meses,
+  destacar = [],
+}: FaturamentoPorMesProps) {
   const maior = meses.reduce((maximo, item) => Math.max(maximo, item.total), 0);
   const doTrimestre = new Set(destacar);
   const ano = anoDaSerie(meses);
@@ -47,7 +50,9 @@ export function FaturamentoPorMes({ meses, destacar = [] }: FaturamentoPorMesPro
   return (
     <Card padding="lg">
       <CardTitle>
-        {ano ? `Faturamento por mês — ${ano} (R$ mil)` : "Faturamento por mês (R$ mil)"}
+        {ano
+          ? `Faturamento por mês — ${ano} (R$ mil)`
+          : "Faturamento por mês (R$ mil)"}
       </CardTitle>
 
       {meses.length === 0 ? (
@@ -74,7 +79,8 @@ export function FaturamentoPorMes({ meses, destacar = [] }: FaturamentoPorMesPro
                         : "bg-conteudo-faint"
                     }`}
                     style={{
-                      height: maior > 0 ? `${(item.total / maior) * 100}%` : "0%",
+                      height:
+                        maior > 0 ? `${(item.total / maior) * 100}%` : "0%",
                     }}
                   />
                 </div>

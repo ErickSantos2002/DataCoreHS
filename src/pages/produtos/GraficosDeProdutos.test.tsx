@@ -49,7 +49,13 @@ vi.mock("recharts", async () => {
 
   const grafico =
     (id: string) =>
-    ({ data, children }: { data?: Record<string, unknown>[]; children?: React.ReactNode }) => (
+    ({
+      data,
+      children,
+    }: {
+      data?: Record<string, unknown>[];
+      children?: React.ReactNode;
+    }) => (
       <Grafico.Provider value={{ id, dados: data ?? [] }}>
         <div data-testid={id} data-serie={JSON.stringify(data ?? [])}>
           {children}
@@ -64,7 +70,10 @@ vi.mock("recharts", async () => {
       const { id, dados } = useContext(Grafico);
       const valores = dados.map((ponto) => (dataKey ? ponto[dataKey] : null));
       return (
-        <div data-testid={`${id}-${sufixo}`} data-desenhado={JSON.stringify(valores)} />
+        <div
+          data-testid={`${id}-${sufixo}`}
+          data-desenhado={JSON.stringify(valores)}
+        />
       );
     };
 
@@ -84,7 +93,9 @@ vi.mock("recharts", async () => {
       return (
         <svg>
           {dados.map((ponto, i) => (
-            <g key={i}>{marcar({ x: 0, y: 0, payload: { value: ponto.valor } })}</g>
+            <g key={i}>
+              {marcar({ x: 0, y: 0, payload: { value: ponto.valor } })}
+            </g>
           ))}
         </svg>
       );
@@ -156,7 +167,10 @@ describe("GraficosDeProdutos", () => {
   it("o eixo X da evolucao rotula com o mes, e nao com o ano", () => {
     render(<GraficosDeProdutos evolucao={EVOLUCAO} ranking={RANKING} />);
 
-    expect(desenhado("grafico-evolucao-eixo-x")).toEqual(["jan/2026", "fev/2026"]);
+    expect(desenhado("grafico-evolucao-eixo-x")).toEqual([
+      "jan/2026",
+      "fev/2026",
+    ]);
   });
 
   it("a barra do ranking plota o valor e e rotulada pelo nome do produto", () => {

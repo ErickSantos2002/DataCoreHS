@@ -98,7 +98,8 @@ function montar({
   carregando = false,
 }: Cenario) {
   const configuracoes: { id: number; chave: string; valor: string }[] = [];
-  if (meta !== undefined) configuracoes.push({ id: 1, chave: "META", valor: meta });
+  if (meta !== undefined)
+    configuracoes.push({ id: 1, chave: "META", valor: meta });
   if (animacao !== undefined)
     configuracoes.push({ id: 2, chave: "ANIMACAO_META", valor: animacao });
   if (meses !== undefined)
@@ -318,7 +319,9 @@ describe("Meta do trimestre — estados da tela", () => {
   it("mostra o aviso de carregando no lugar do conteudo", () => {
     montar({ meta: "12000000", carregando: true });
 
-    expect(screen.getByText(/Carregando os dados da meta do trimestre/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Carregando os dados da meta do trimestre/i),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Trimestre Atual")).toBeNull();
   });
 
@@ -404,12 +407,16 @@ describe("Meta do trimestre — projeção de fechamento", () => {
       meta: "12000000",
       meses: "6,7,8",
       total: 2_200_000,
-      totaisAnoAnterior: [0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0],
+      totaisAnoAnterior: [
+        0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0,
+      ],
     });
 
     expect(screen.getByText("R$ 2.933.333,33")).toBeInTheDocument();
     expect(
-      screen.getByText("Na forma do trimestre de 2025, o trimestre fecha no PL de 55%."),
+      screen.getByText(
+        "Na forma do trimestre de 2025, o trimestre fecha no PL de 55%.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -422,7 +429,9 @@ describe("Meta do trimestre — projeção de fechamento", () => {
       meta: "12000000",
       meses: "6,7,8",
       total: 2_200_000,
-      totaisAnoAnterior: [0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0],
+      totaisAnoAnterior: [
+        0, 0, 0, 0, 0, 1_000_000, 800_000, 600_000, 0, 0, 0, 0,
+      ],
     });
 
     expect(
@@ -454,9 +463,7 @@ describe("Meta do trimestre — projeção de fechamento", () => {
     montar({ meta: "12000000", meses: "6,7,8", total: 0 });
 
     expect(screen.getByText("—")).toBeInTheDocument();
-    expect(
-      screen.getByText(/não há ritmo para projetar/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/não há ritmo para projetar/)).toBeInTheDocument();
   });
 
   it("mostra o PL que o realizado de hoje ja garante", () => {
@@ -470,7 +477,9 @@ describe("Meta do trimestre — projeção de fechamento", () => {
     pararORelogioEm(2026, 7, 31);
     montar({ meta: "12000000", meses: "6,7,8", total: 1_000 });
 
-    expect(screen.getByText("Nenhuma faixa garantida ainda")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma faixa garantida ainda"),
+    ).toBeInTheDocument();
   });
 });
 
@@ -560,8 +569,12 @@ describe("Meta do trimestre — faturamento por mes", () => {
     ).filter((barra) => barra.className.includes("rounded-t"));
 
     expect(barras).toHaveLength(7);
-    expect(barras.filter((b) => b.className.includes("bg-primary-500"))).toHaveLength(2);
-    expect(barras.filter((b) => b.className.includes("bg-conteudo-faint"))).toHaveLength(5);
+    expect(
+      barras.filter((b) => b.className.includes("bg-primary-500")),
+    ).toHaveLength(2);
+    expect(
+      barras.filter((b) => b.className.includes("bg-conteudo-faint")),
+    ).toHaveLength(5);
     expect(screen.getByText("Trimestre em apuração")).toBeInTheDocument();
   });
 

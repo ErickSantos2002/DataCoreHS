@@ -13,8 +13,14 @@ import {
   type Usuario,
 } from "../services/api";
 import { CabecalhoUsuarios } from "./usuarios/CabecalhoUsuarios";
-import { ModalCriarUsuario, type DadosDoNovoUsuario } from "./usuarios/ModalCriarUsuario";
-import { ModalEditarUsuario, type DadosDaEdicao } from "./usuarios/ModalEditarUsuario";
+import {
+  ModalCriarUsuario,
+  type DadosDoNovoUsuario,
+} from "./usuarios/ModalCriarUsuario";
+import {
+  ModalEditarUsuario,
+  type DadosDaEdicao,
+} from "./usuarios/ModalEditarUsuario";
 import { ModalExcluirUsuario } from "./usuarios/ModalExcluirUsuario";
 import { ModalTrocarSenha } from "./usuarios/ModalTrocarSenha";
 import { TabelaDeUsuarios } from "./usuarios/TabelaDeUsuarios";

@@ -49,8 +49,8 @@ const Produtos: React.FC = () => {
 
   // Estados da tabela
   const [ordenacao, setOrdenacao] = useState<OrdenacaoDeProdutos>({
-    campo: 'quantidadeVendida',
-    direcao: 'desc'
+    campo: "quantidadeVendida",
+    direcao: "desc",
   });
   const [pesquisaTabela, setPesquisaTabela] = useState("");
 
@@ -72,7 +72,10 @@ const Produtos: React.FC = () => {
     () => opcoes.clientes.map(rotuloDoCliente),
     [opcoes.clientes],
   );
-  const vendedoresUnicos = useMemo(() => opcoes.vendedores, [opcoes.vendedores]);
+  const vendedoresUnicos = useMemo(
+    () => opcoes.vendedores,
+    [opcoes.vendedores],
+  );
   const produtosUnicos = useMemo(
     () => opcoes.produtos.map(rotuloDoProduto),
     [opcoes.produtos],
@@ -103,7 +106,14 @@ const Produtos: React.FC = () => {
         },
         indices,
       ),
-    [filtroEmpresa, filtroVendedor, filtroProduto, dataInicio, dataFim, indices],
+    [
+      filtroEmpresa,
+      filtroVendedor,
+      filtroProduto,
+      dataInicio,
+      dataFim,
+      indices,
+    ],
   );
 
   const { resumo, carregando } = useResumoComercial(recorte);
@@ -123,7 +133,10 @@ const Produtos: React.FC = () => {
   );
 
   // KPIs Calculados
-  const kpis = useMemo(() => calcularKpis(produtosAgregados), [produtosAgregados]);
+  const kpis = useMemo(
+    () => calcularKpis(produtosAgregados),
+    [produtosAgregados],
+  );
 
   // Evolução: itens vendidos por mês. A quantidade vem do banco já com o filtro
   // de produto aplicado no nível do ITEM — que é a distinção que esta tela faz
@@ -159,9 +172,9 @@ const Produtos: React.FC = () => {
 
   // Função para alternar ordenação
   const alternarOrdenacao = (campo: string) => {
-    setOrdenacao(prev => ({
+    setOrdenacao((prev) => ({
       campo,
-      direcao: prev.campo === campo && prev.direcao === 'desc' ? 'asc' : 'desc'
+      direcao: prev.campo === campo && prev.direcao === "desc" ? "asc" : "desc",
     }));
   };
 
@@ -217,7 +230,10 @@ const Produtos: React.FC = () => {
         <KpisDeProdutos kpis={kpis} />
 
         {/* Gráficos */}
-        <GraficosDeProdutos evolucao={dadosEvolucao} ranking={rankingProdutosValor} />
+        <GraficosDeProdutos
+          evolucao={dadosEvolucao}
+          ranking={rankingProdutosValor}
+        />
 
         {/* Tabela de Produtos */}
         <TabelaDeProdutos

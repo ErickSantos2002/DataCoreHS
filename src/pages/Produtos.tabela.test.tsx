@@ -124,7 +124,9 @@ const { NOTAS } = vi.hoisted(() => ({
 // importa é o `por_produto` — é ele que virou a tabela.
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 
@@ -232,7 +234,9 @@ function linhaContendo(texto: string): HTMLElement {
  * checkbox dentro do painel. Mesmo caminho de `Produtos.multiselect.test.tsx`.
  */
 function escolherNoFiltro(rotulo: string, placeholder: string, opcao: RegExp) {
-  fireEvent.click(screen.getByRole("button", { name: `${rotulo} ${placeholder}` }));
+  fireEvent.click(
+    screen.getByRole("button", { name: `${rotulo} ${placeholder}` }),
+  );
   fireEvent.click(screen.getByRole("checkbox", { name: opcao }));
 }
 
@@ -509,7 +513,11 @@ describe("recorte de Produtos", () => {
   it("escolher o produto recorta o agregado por produto", () => {
     render(<Produtos />);
 
-    escolherNoFiltro("Produtos", "Todos os produtos", /Tubo Coletor de Amostra/);
+    escolherNoFiltro(
+      "Produtos",
+      "Todos os produtos",
+      /Tubo Coletor de Amostra/,
+    );
 
     const linhas = linhasDaTabela();
     expect(linhas).toHaveLength(1);

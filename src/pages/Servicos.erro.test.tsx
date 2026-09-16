@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Servicos from "./Servicos";
-import type { PedidoDaTabelaDeServicos, RecorteDeServicos } from "./servicos/useServicos";
+import type {
+  PedidoDaTabelaDeServicos,
+  RecorteDeServicos,
+} from "./servicos/useServicos";
 
 /**
  * O que a tela de Serviços diz quando a busca falha.
@@ -66,7 +69,13 @@ vi.mock("./servicos/useServicos", async (original) => {
     por_cidade: [],
     opcoes: { clientes: [], cidades: [], tipos: [] },
   };
-  const PAGINA_VAZIA = { itens: [], total: 0, valor_total: 0, limite: 0, offset: 0 };
+  const PAGINA_VAZIA = {
+    itens: [],
+    total: 0,
+    valor_total: 0,
+    limite: 0,
+    offset: 0,
+  };
 
   return {
     ...real,
@@ -96,9 +105,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -137,7 +152,9 @@ describe("falha de rede na tela de Serviços", () => {
     render(<Servicos />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(FRASE);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 
   it("as duas falhando, o aviso aparece uma vez so", () => {

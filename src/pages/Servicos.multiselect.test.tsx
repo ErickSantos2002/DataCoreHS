@@ -22,38 +22,38 @@ vi.mock("../hooks/useAuth", () => ({
 
 const { SERVICOS_ENRIQUECIDOS } = vi.hoisted(() => ({
   SERVICOS_ENRIQUECIDOS: [
-  {
-    id: 1,
-    numero_nfse: "1001",
-    data_emissao: "2026-01-10",
-    valor_servico: 1000,
-    razao_social_tomador: "Alfa Mineração",
-    cpf_cnpj_tomador: "11.222.333/0001-44",
-    cidade_tomador: "Recife",
-    uf_tomador: "PE",
-    discriminacao_servico: "Calibração de bafômetro",
-    valor_servico_numero: 1000,
-    mes: "janeiro",
-    ano: 2026,
-  },
-  {
-    id: 2,
-    numero_nfse: "1002",
-    data_emissao: "2026-02-10",
-    valor_servico: 500,
-    razao_social_tomador: "Beta Logística",
-    cpf_cnpj_tomador: "55.666.777/0001-88",
-    cidade_tomador: "Olinda",
-    uf_tomador: "PE",
-    // Número pontuado de propósito: é o que prova a busca numérica no
-    // filtro de tipos (Fix round 1) — "1.234" só bate buscando pelos
-    // dígitos "1234" se a normalização estiver de fato ligada aqui.
-    discriminacao_servico: "Manutenção preventiva 1.234",
-    valor_servico_numero: 500,
-    mes: "fevereiro",
-    ano: 2026,
-  },
-],
+    {
+      id: 1,
+      numero_nfse: "1001",
+      data_emissao: "2026-01-10",
+      valor_servico: 1000,
+      razao_social_tomador: "Alfa Mineração",
+      cpf_cnpj_tomador: "11.222.333/0001-44",
+      cidade_tomador: "Recife",
+      uf_tomador: "PE",
+      discriminacao_servico: "Calibração de bafômetro",
+      valor_servico_numero: 1000,
+      mes: "janeiro",
+      ano: 2026,
+    },
+    {
+      id: 2,
+      numero_nfse: "1002",
+      data_emissao: "2026-02-10",
+      valor_servico: 500,
+      razao_social_tomador: "Beta Logística",
+      cpf_cnpj_tomador: "55.666.777/0001-88",
+      cidade_tomador: "Olinda",
+      uf_tomador: "PE",
+      // Número pontuado de propósito: é o que prova a busca numérica no
+      // filtro de tipos (Fix round 1) — "1.234" só bate buscando pelos
+      // dígitos "1234" se a normalização estiver de fato ligada aqui.
+      discriminacao_servico: "Manutenção preventiva 1.234",
+      valor_servico_numero: 500,
+      mes: "fevereiro",
+      ano: 2026,
+    },
+  ],
 }));
 
 // A tela deixou de ler o `ServicosContext` (item 9.4): os agregados vêm somados
@@ -79,9 +79,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -128,7 +134,9 @@ function containerDoFiltro(rotulo: string, valor: string): HTMLElement {
  * errada.
  */
 function campoDeBusca(rotulo: string, valor: string): HTMLElement {
-  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText("Pesquisar...");
+  return within(containerDoFiltro(rotulo, valor)).getByPlaceholderText(
+    "Pesquisar...",
+  );
 }
 
 describe("MultiSelect em Serviços", () => {
@@ -139,7 +147,9 @@ describe("MultiSelect em Serviços", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa Mineração/ }));
 
     expect(
-      screen.getByRole("button", { name: "Cliente (Tomador) 1 selecionado(s)" }),
+      screen.getByRole("button", {
+        name: "Cliente (Tomador) 1 selecionado(s)",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -151,8 +161,12 @@ describe("MultiSelect em Serviços", () => {
       target: { value: "beta" },
     });
 
-    expect(screen.getByRole("checkbox", { name: /Beta Logística/ })).toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: /Alfa/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Beta Logística/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Alfa/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -201,21 +215,30 @@ describe("MultiSelect em Serviços", () => {
     fireEvent.click(screen.getByRole("button", { name: "Limpar seleção" }));
 
     expect(
-      screen.getByRole("button", { name: "Cliente (Tomador) Todos os clientes" }),
+      screen.getByRole("button", {
+        name: "Cliente (Tomador) Todos os clientes",
+      }),
     ).toBeInTheDocument();
   });
 
   it("clicar fora fecha o dropdown", () => {
     render(<Servicos />);
     abrir("Cliente (Tomador)", "Todos os clientes");
-    const container = containerDoFiltro("Cliente (Tomador)", "Todos os clientes");
-    expect(within(container).getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+    const container = containerDoFiltro(
+      "Cliente (Tomador)",
+      "Todos os clientes",
+    );
+    expect(
+      within(container).getByPlaceholderText("Pesquisar..."),
+    ).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
 
     // O container do filtro continua no DOM (o botão vive nele); o que some
     // ao fechar é só o painel do dropdown, filho dele.
-    expect(within(container).queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      within(container).queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 
   // ── FIX ROUND 1 ──────────────────────────────────────────────────────

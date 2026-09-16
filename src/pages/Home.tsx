@@ -28,11 +28,11 @@ const Home: React.FC = () => {
       }}
     >
       {/* Logo centralizada e responsiva */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
+      <div className="flex flex-1 items-center justify-center overflow-hidden">
         <img
           src={logo}
           alt="Logo Health & Safety"
-          className="max-w-[950px] w-[70%] h-auto object-contain md:w-[60%] sm:w-[80%]"
+          className="h-auto w-[70%] max-w-[950px] object-contain sm:w-[80%] md:w-[60%]"
           style={{
             maxHeight: "80%",
           }}
@@ -40,9 +40,10 @@ const Home: React.FC = () => {
       </div>
 
       {/* Rodapé colado no fundo */}
-      <footer className="w-full bg-surface py-3.5 flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-3 shadow transition-colors text-center px-4">
-        <p className="text-conteudo text-sm sm:text-base font-medium">
-          © {new Date().getFullYear()} Health Safety — Todos os direitos reservados.
+      <footer className="flex w-full flex-col items-center justify-center gap-1 bg-surface px-4 py-3.5 text-center shadow transition-colors sm:flex-row sm:gap-3">
+        <p className="text-sm font-medium text-conteudo sm:text-base">
+          © {new Date().getFullYear()} Health Safety — Todos os direitos
+          reservados.
         </p>
       </footer>
     </div>

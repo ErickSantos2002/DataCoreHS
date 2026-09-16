@@ -99,9 +99,18 @@ const Servicos: React.FC = () => {
   const totalDeServicos = pagina.total;
 
   // As opções dos multiselects vêm do banco, e não de percorrer as notas.
-  const clientesUnicos = useMemo(() => resumo.opcoes.clientes, [resumo.opcoes.clientes]);
-  const cidadesUnicas = useMemo(() => resumo.opcoes.cidades, [resumo.opcoes.cidades]);
-  const tiposServicoUnicos = useMemo(() => resumo.opcoes.tipos, [resumo.opcoes.tipos]);
+  const clientesUnicos = useMemo(
+    () => resumo.opcoes.clientes,
+    [resumo.opcoes.clientes],
+  );
+  const cidadesUnicas = useMemo(
+    () => resumo.opcoes.cidades,
+    [resumo.opcoes.cidades],
+  );
+  const tiposServicoUnicos = useMemo(
+    () => resumo.opcoes.tipos,
+    [resumo.opcoes.tipos],
+  );
 
   // KPIs — somados pelo banco sobre o recorte inteiro.
   const kpis = useMemo(() => kpisDoResumo(resumo), [resumo]);

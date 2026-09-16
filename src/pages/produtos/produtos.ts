@@ -1,5 +1,8 @@
 import type { RecorteComercial } from "../comercial/useComercial";
-import type { FiltrosComerciais, ResumoComercial } from "../../services/notasapi";
+import type {
+  FiltrosComerciais,
+  ResumoComercial,
+} from "../../services/notasapi";
 
 /**
  * A conta pura da tela de Produtos, separada de `Produtos.tsx`.
@@ -88,12 +91,18 @@ export interface OrdenacaoDeProdutos {
  * `FiltrosComerciais`, e a interpolação transforma o nulo no texto "null" —
  * um cliente sem nome aparece na lista como "null (12.345.678/0001-90)".
  */
-export function rotuloDoCliente(c: { nome: string | null; cpf_cnpj: string | null }): string {
+export function rotuloDoCliente(c: {
+  nome: string | null;
+  cpf_cnpj: string | null;
+}): string {
   return `${c.nome} (${c.cpf_cnpj})`;
 }
 
 /** O que o multi-select de produtos mostra — e devolve. */
-export function rotuloDoProduto(p: { descricao: string | null; codigo: string | null }): string {
+export function rotuloDoProduto(p: {
+  descricao: string | null;
+  codigo: string | null;
+}): string {
   return `${p.descricao} (${p.codigo ?? "sem código"})`;
 }
 
@@ -120,7 +129,9 @@ export function indicesDeRotulo(opcoes: FiltrosComerciais): IndicesDeRotulo {
   opcoes.clientes.forEach((c) => idPorRotulo.set(rotuloDoCliente(c), c.id));
 
   const chavePorRotulo = new Map<string, string>();
-  opcoes.produtos.forEach((p) => chavePorRotulo.set(rotuloDoProduto(p), p.chave));
+  opcoes.produtos.forEach((p) =>
+    chavePorRotulo.set(rotuloDoProduto(p), p.chave),
+  );
 
   return { idPorRotulo, chavePorRotulo };
 }
@@ -190,9 +201,13 @@ export function produtosDoResumo(
  * `0/0` porque tem a guarda explícita `totalProdutosVendidos > 0`.
  */
 export function calcularKpis(agregados: ProdutoAgregado[]): KpisDeProduto {
-  const totalProdutosVendidos = agregados.reduce((acc, p) => acc + p.quantidadeVendida, 0);
+  const totalProdutosVendidos = agregados.reduce(
+    (acc, p) => acc + p.quantidadeVendida,
+    0,
+  );
   const totalFaturado = agregados.reduce((acc, p) => acc + p.valorTotal, 0);
-  const ticketMedio = totalProdutosVendidos > 0 ? totalFaturado / totalProdutosVendidos : 0;
+  const ticketMedio =
+    totalProdutosVendidos > 0 ? totalFaturado / totalProdutosVendidos : 0;
 
   // Produto mais vendido (por quantidade)
   const produtoMaisVendido = agregados.reduce(
@@ -227,7 +242,10 @@ export function evolucaoDoResumo(
   const dadosMensais = evolucaoMensal.map((m) => {
     const data = new Date(m.ano, m.mes - 1);
     return {
-      mes: data.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }),
+      mes: data.toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "numeric",
+      }),
       total: m.quantidade,
       ordem: data.getTime(),
       ano: m.ano,
@@ -236,11 +254,14 @@ export function evolucaoDoResumo(
 
   // Se tiver mais de 24 meses, agrupa por ano
   if (dadosMensais.length > 24) {
-    const agrupadoAnual = dadosMensais.reduce((acc: Record<number, number>, item) => {
-      if (!acc[item.ano]) acc[item.ano] = 0;
-      acc[item.ano] += item.total;
-      return acc;
-    }, {});
+    const agrupadoAnual = dadosMensais.reduce(
+      (acc: Record<number, number>, item) => {
+        if (!acc[item.ano]) acc[item.ano] = 0;
+        acc[item.ano] += item.total;
+        return acc;
+      },
+      {},
+    );
 
     return Object.entries(agrupadoAnual)
       .map(([ano, total]) => ({
@@ -260,8 +281,13 @@ export function evolucaoDoResumo(
  * Devolve `ProdutoAgregado[]` — a conversão para a forma que o `BarChart`
  * espera (`{ produto, valor }`) é da tela, não desta conta.
  */
-export function rankingPorValor(agregados: ProdutoAgregado[], limite: number): ProdutoAgregado[] {
-  return [...agregados].sort((a, b) => b.valorTotal - a.valorTotal).slice(0, limite);
+export function rankingPorValor(
+  agregados: ProdutoAgregado[],
+  limite: number,
+): ProdutoAgregado[] {
+  return [...agregados]
+    .sort((a, b) => b.valorTotal - a.valorTotal)
+    .slice(0, limite);
 }
 
 // ── Tabela ─────────────────────────────────────────────────────────────────
@@ -278,7 +304,10 @@ export function ordenarEBuscar(
   if (pesquisa) {
     const termoLower = pesquisa.toLowerCase();
     filtrados = filtrados.filter((p) => {
-      return p.descricao?.toLowerCase().includes(termoLower) || p.codigo?.toLowerCase().includes(termoLower);
+      return (
+        p.descricao?.toLowerCase().includes(termoLower) ||
+        p.codigo?.toLowerCase().includes(termoLower)
+      );
     });
   }
 
