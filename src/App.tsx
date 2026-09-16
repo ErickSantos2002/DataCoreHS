@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./styles/index.css"; // Importa o Tailwind e estilos globais
 import AppRoutes from "./router";
 import { AppShell } from "./design-system/ui/navigation/AppShell";
-import Header from "./components/Header";
+import BotaoDeMenu from "./components/BotaoDeMenu";
+import MenuDoUsuario from "./components/MenuDoUsuario";
 import useNavGroups from "./components/Sidebar";
 import CentralButton from "./components/CentralButton";
 import { ToastProvider } from "./components/ToastProvider";
@@ -40,16 +41,25 @@ const App: React.FC = () => {
           groups={groups}
           activePath={location.pathname}
           onNavigate={(path) => navigate(path)}
-          user={user ? { name: user.username, role: user.role } : undefined}
+          /* Quem desenha o usuário é o `MenuDoUsuario`, no `topbarActions`:
+             ali a foto é gatilho de menu, e não texto fixo. Passar `user`
+             aqui desenharia o bloco do AppShell junto, duplicado. */
           collapsed={sidebarCollapsed}
           mobileMenuOpen={menuCelularAberto}
           onCloseMobileMenu={() => setMenuCelularAberto(false)}
-          topbarActions={
-            <Header
+          topbarStart={
+            <BotaoDeMenu
               collapsed={sidebarCollapsed}
               onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
               onOpenMobileMenu={() => setMenuCelularAberto(true)}
             />
+          }
+          topbarActions={
+            user ? (
+              <MenuDoUsuario
+                usuario={{ name: user.username, role: user.role }}
+              />
+            ) : undefined
           }
         >
           <AppRoutes />

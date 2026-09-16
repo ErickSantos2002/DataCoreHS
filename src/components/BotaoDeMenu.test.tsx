@@ -2,15 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import Header from "./Header";
-
-vi.mock("../hooks/useAuth", () => ({
-  useAuth: () => ({ logout: vi.fn() }),
-}));
-
-vi.mock("../context/ThemeContext", () => ({
-  useTheme: () => ({ darkMode: false, toggleDarkMode: vi.fn() }),
-}));
+import BotaoDeMenu from "./BotaoDeMenu";
 
 /**
  * O botão de menu da topbar faz duas coisas diferentes conforme a largura.
@@ -36,7 +28,7 @@ function montar() {
   const onOpenMobileMenu = vi.fn();
   render(
     <MemoryRouter>
-      <Header
+      <BotaoDeMenu
         collapsed={false}
         onToggleSidebar={onToggleSidebar}
         onOpenMobileMenu={onOpenMobileMenu}
@@ -46,7 +38,7 @@ function montar() {
   return { onToggleSidebar, onOpenMobileMenu };
 }
 
-describe("Header", () => {
+describe("BotaoDeMenu", () => {
   it("no desktop, o botao de menu recolhe a sidebar e nao abre gaveta", () => {
     naLargura(1280);
     const { onToggleSidebar, onOpenMobileMenu } = montar();
@@ -65,14 +57,5 @@ describe("Header", () => {
 
     expect(onOpenMobileMenu).toHaveBeenCalledTimes(1);
     expect(onToggleSidebar).not.toHaveBeenCalled();
-  });
-
-  it("Sair continua com nome acessivel quando o texto some no celular", () => {
-    naLargura(390);
-    montar();
-
-    const sair = screen.getByRole("button", { name: "Sair" });
-    expect(screen.getByText("Sair")).toHaveClass("hidden", "sm:inline");
-    expect(sair).toContainElement(screen.getByText("Sair"));
   });
 });
