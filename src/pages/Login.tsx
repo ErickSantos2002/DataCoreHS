@@ -74,7 +74,7 @@ const Login: React.FC = () => {
             onChange={(e) => setUsername(e.target.value)}
             disabled={loading}
             placeholder="Usuário"
-            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
             required
           />
 
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
             placeholder="Senha"
-            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
+            className="h-[48px] w-full rounded-lg bg-white/20 px-4 text-white placeholder-white/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
             required
           />
 

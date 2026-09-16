@@ -46,3 +46,26 @@ describe("Login", () => {
     expect(screen.getByRole("button", { name: /entrando/i })).toBeDisabled();
   });
 });
+
+describe("anel de foco do Login", () => {
+  /**
+   * Checagem de REGRA, e não de comportamento: o jsdom não pinta anel nenhum.
+   * Os dois campos do login eram `focus:ring-2 focus:ring-blue-400` — `focus:`
+   * em vez de `focus-visible:` (o anel aparecia também no clique de mouse, que
+   * é o que a convenção do repositório evita) e a cor vinha da ponte de
+   * paleta, que está sendo removida. O primitivo `Input` não serve aqui: o
+   * painel do login é escuro nos dois temas, exceção documentada.
+   */
+  it("os campos usam focus-visible e a cor de foco do design system", () => {
+    renderLogin({});
+
+    for (const campo of [
+      screen.getByPlaceholderText("Usuário"),
+      screen.getByPlaceholderText("Senha"),
+    ]) {
+      expect(campo.className).toContain("focus-visible:ring-2");
+      expect(campo.className).toContain("focus-visible:ring-focus");
+      expect(campo.className).not.toContain("ring-blue-400");
+    }
+  });
+});
