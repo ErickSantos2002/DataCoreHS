@@ -1,13 +1,19 @@
-import { forwardRef, useId } from "react";
+import { forwardRef, useId, type ReactNode } from "react";
 
 export interface SwitchProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
-  /** Texto à direita do interruptor. */
-  label?: string;
+  /** O que vem à direita do interruptor. Aceita nó do React, e não só texto,
+   *  para o rótulo poder levar ícone — e o clique nele alternar, porque está
+   *  dentro do `<label>`. */
+  label?: ReactNode;
   disabled?: boolean;
   size?: "sm" | "md";
   id?: string;
+  /** Classe do invólucro, para quem precisa virar a ordem
+   *  (`flex-row-reverse`) ou ocupar a largura de um menu. Soma-se ao que o
+   *  primitivo já põe, não substitui. */
+  className?: string;
 }
 
 const TRACK_CLASSES: Record<NonNullable<SwitchProps["size"]>, string> = {
@@ -32,7 +38,7 @@ const KNOB_CLASSES: Record<NonNullable<SwitchProps["size"]>, string> = {
  * ```
  */
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { checked, onChange, label, disabled = false, size = "md", id },
+  { checked, onChange, label, disabled = false, size = "md", id, className },
   ref,
 ) {
   const idGerado = useId();
@@ -44,7 +50,10 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
       className={[
         "inline-flex items-center gap-3 text-sm text-conteudo",
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
-      ].join(" ")}
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <span className="relative inline-flex shrink-0">
         <input
