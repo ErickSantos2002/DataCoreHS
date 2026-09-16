@@ -46,6 +46,29 @@ function leiturasEm(caminho: string): string[] {
   return achados;
 }
 
+/** O corpo do dono sem comentario e com o espaco em branco achatado.
+ *
+ *  A checagem dos dois papeis era por LINHA: exigia que `window.innerWidth` e
+ *  a palavra `useState` estivessem na mesma. Em 16/09/2026, quando `src/hooks`
+ *  entrou na formatacao, o prettier quebrou as duas linhas em duas cada — o
+ *  codigo nao mudou, e o guarda acusou. Sobre o texto achatado, a quebra de
+ *  linha deixa de importar e o que se exige continua sendo o mesmo: as duas
+ *  leituras, cada uma no seu papel. */
+function corpoDoDono(): string {
+  return readFileSync(DONO, "utf8")
+    .split("\n")
+    .filter((linha) => {
+      const semEspaco = linha.trim();
+      return !(
+        semEspaco.startsWith("//") ||
+        semEspaco.startsWith("*") ||
+        semEspaco.startsWith("/*")
+      );
+    })
+    .join(" ")
+    .replace(/\s+/g, " ");
+}
+
 describe("guarda do useIsMobile", () => {
   it("so o useIsMobile le window.innerWidth", () => {
     const infratores: string[] = [];
@@ -59,17 +82,22 @@ describe("guarda do useIsMobile", () => {
   });
 
   it("o dono le a largura nos DOIS papeis — o inicializador do useState e o listener de resize", () => {
-    // Usa a MESMA função que varre os outros arquivos, e não uma busca de
-    // substring no texto cru: no item 6 esse atalho deixou passar quem
-    // comentasse a linha protegida, e custou um fix round.
+    // Sobre o corpo sem comentário, e não sobre o texto cru: no item 6 a
+    // busca de substring no cru deixou passar quem comentasse a linha
+    // protegida, e custou um fix round.
     //
     // Um `toBeGreaterThan(0)` sozinho não distingue as duas leituras: trocar
     // o inicializador por `useState(false)` ainda deixa a leitura do
     // listener de pé, e o teste passava verde com a regressão dentro
     // (verificado por experimento). Exige as duas nomeadamente, como o
     // guarda-clique-fora.test.ts exige "mousedown" e "touchstart".
-    const leituras = leiturasEm(DONO);
-    expect(leituras.some((l) => /useState/.test(l))).toBe(true);
-    expect(leituras.some((l) => /aoRedimensionar/.test(l))).toBe(true);
+    const corpo = corpoDoDono();
+    expect(corpo).toMatch(/useState\(\s*\(\)\s*=>\s*window\.innerWidth/);
+    expect(corpo).toMatch(
+      /aoRedimensionar\s*=\s*\(\)\s*=>\s*setIsMobile\(\s*window\.innerWidth/,
+    );
+    // E a varredura por linha continua valendo para o resto do arquivo: o
+    // dono lê a largura, e só ele.
+    expect(leiturasEm(DONO).length).toBeGreaterThan(0);
   });
 });
