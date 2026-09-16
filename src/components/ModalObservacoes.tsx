@@ -1,34 +1,36 @@
 import React from "react";
 
+import { Modal } from "../design-system/ui";
+
 interface ModalObservacoesProps {
   observacoes: string | null;
   onClose: () => void;
 }
 
-const ModalObservacoes: React.FC<ModalObservacoesProps> = ({ observacoes, onClose }) => {
+/**
+ * As observações de uma nota de serviço, com o texto já em mãos.
+ *
+ * Gêmeo de `ModalObservacoesDaNota`, que busca o texto ao abrir — aqui a
+ * tabela de Serviços já o tem. Sem texto, não desenha nada: quem chama monta
+ * o componente sempre e conta com isso.
+ *
+ * O `Modal` do design system, e não o `<div className="fixed inset-0">` que
+ * estava aqui: aquele não tinha `role="dialog"` nem nome acessível, não
+ * fechava com Escape, não prendia o foco e o botão era `bg-blue-600`, da
+ * ponte de paleta. Fecha no × do cabeçalho, no Escape e na cortina.
+ */
+const ModalObservacoes: React.FC<ModalObservacoesProps> = ({
+  observacoes,
+  onClose,
+}) => {
   if (!observacoes) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-overlay z-50">
-      <div className="bg-surface rounded-lg shadow-lg p-6 max-w-lg w-full">
-        <h2 className="text-lg font-semibold mb-4 text-conteudo-heading">
-          Observações da Nota
-        </h2>
-
-        <div className="max-h-60 overflow-y-auto text-sm text-conteudo whitespace-pre-line">
-          {observacoes}
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Fechar
-          </button>
-        </div>
+    <Modal open onClose={onClose} title="Observações da Nota" size="lg">
+      <div className="max-h-60 overflow-y-auto whitespace-pre-line text-sm text-conteudo">
+        {observacoes}
       </div>
-    </div>
+    </Modal>
   );
 };
 
