@@ -16,7 +16,7 @@ export interface Periodo {
 }
 
 /**
- * As seis opções do "Período Rápido", na ordem em que aparecem.
+ * As sete opções do "Período Rápido", na ordem em que aparecem.
  *
  * Compartilhada para que o app inteiro ofereça o mesmo menu. Antes eram duas
  * listas: Contas sem "Últimos 7 dias", e as cinco telas sem "Mês atual" — e com
@@ -28,6 +28,7 @@ export const PRESETS_DE_PERIODO = [
   { value: "7dias", label: "Últimos 7 dias" },
   { value: "30dias", label: "Últimos 30 dias" },
   { value: "mesAtual", label: "Mês atual" },
+  { value: "mesPassado", label: "Mês passado" },
   { value: "anoAtual", label: "Ano atual" },
   { value: "custom", label: "Personalizado" },
 ];
@@ -66,6 +67,15 @@ export function periodoDoPreset(preset: string, agora: Date): Periodo | null {
     // sempre foi o ano inteiro; agora os dois combinam.
     case "mesAtual":
       return periodoDoMes(hoje.getFullYear(), hoje.getMonth());
+    // O mês anterior inteiro. A conta parte do DIA 1 do mês corrente, não de
+    // hoje: recuar um mês a partir do dia 31 estoura — 31 de março vira 31 de
+    // fevereiro, que o JavaScript normaliza para 3 de março, e o "mês passado"
+    // devolveria março de novo. Partindo do dia 1, o construtor também resolve
+    // a virada do ano sozinho: mês -1 de 2026 é dezembro de 2025.
+    case "mesPassado": {
+      const mesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+      return periodoDoMes(mesAnterior.getFullYear(), mesAnterior.getMonth());
+    }
     case "anoAtual":
       return {
         inicio: `${hoje.getFullYear()}-01-01`,

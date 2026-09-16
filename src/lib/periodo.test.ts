@@ -60,6 +60,40 @@ describe("periodoDoPreset", () => {
     });
   });
 
+  it("Mês passado é o mês anterior INTEIRO", () => {
+    expect(
+      periodoDoPreset("mesPassado", new Date("2026-03-15T12:00:00Z")),
+    ).toEqual({
+      inicio: "2026-02-01",
+      fim: "2026-02-28",
+    });
+  });
+
+  it("Mês passado atravessa a virada do ano — em janeiro é dezembro do ano anterior", () => {
+    // Com `periodoDoMes(ano, mes - 1)` cru, janeiro viraria o índice -1 e o
+    // rótulo do mês sairia "0": `2026-00-01`, uma data que o `<input type=date>`
+    // recusa em silêncio e deixa o campo vazio.
+    expect(
+      periodoDoPreset("mesPassado", new Date("2026-01-15T12:00:00Z")),
+    ).toEqual({
+      inicio: "2025-12-01",
+      fim: "2025-12-31",
+    });
+  });
+
+  it("Mês passado não escorrega quando hoje é dia 31", () => {
+    // O caminho curto — tomar HOJE e recuar um mês — estoura: 31 de março
+    // recuado vira 31 de fevereiro, que o JavaScript normaliza para 3 de
+    // março, e "mês passado" devolveria março de novo. Por isso a conta parte
+    // do dia 1, não do dia de hoje.
+    expect(
+      periodoDoPreset("mesPassado", new Date("2026-03-31T12:00:00Z")),
+    ).toEqual({
+      inicio: "2026-02-01",
+      fim: "2026-02-28",
+    });
+  });
+
   it("Ano atual pega o ano inteiro", () => {
     expect(periodoDoPreset("anoAtual", AGORA)).toEqual({
       inicio: "2026-01-01",
@@ -90,6 +124,13 @@ describe("periodoDoPreset", () => {
       foraDoUtc
         ? { inicio: "2026-08-24", fim: "2026-08-31" }
         : { inicio: "2026-08-25", fim: "2026-09-01" },
+    );
+    // "Mês passado" anda junto: às 23h de 31/08 em Brasília ainda é julho que
+    // ficou para trás, não agosto.
+    expect(periodoDoPreset("mesPassado", viradaDoMes)).toEqual(
+      foraDoUtc
+        ? { inicio: "2026-07-01", fim: "2026-07-31" }
+        : { inicio: "2026-08-01", fim: "2026-08-31" },
     );
   });
 
