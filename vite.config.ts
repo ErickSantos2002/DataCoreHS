@@ -9,13 +9,13 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '/api': {
-        target: 'https://tinyapi.healthsafetytech.com',
+      "/api": {
+        target: "https://tinyapi.healthsafetytech.com",
         changeOrigin: true,
         secure: true,
-        rewrite: path => path.replace(/^\/api/, ''),
-      }
-    }
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   resolve: {
     alias: {

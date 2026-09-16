@@ -1,13 +1,15 @@
-const { Client } = require('./node_modules/pg');
-const XLSX = require('./node_modules/xlsx');
+const { Client } = require("./node_modules/pg");
+const XLSX = require("./node_modules/xlsx");
 
 if (!process.env.DATABASE_URL) {
-  console.error('Defina DATABASE_URL antes de rodar. Ex.: DATABASE_URL=postgres://usuario:senha@host:porta/banco node gerar_planilha_2025.js');
+  console.error(
+    "Defina DATABASE_URL antes de rodar. Ex.: DATABASE_URL=postgres://usuario:senha@host:porta/banco node gerar_planilha_2025.js",
+  );
   process.exit(1);
 }
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
 });
 
 async function main() {
@@ -53,10 +55,23 @@ async function main() {
     produtos[produto][mes] = qtd;
   }
 
-  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const meses = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
 
   // Montar linhas da planilha
-  const header = ['Produto', ...meses, 'Total Anual'];
+  const header = ["Produto", ...meses, "Total Anual"];
   const rows = [header];
 
   const totaisMensais = new Array(12).fill(0);
@@ -76,22 +91,22 @@ async function main() {
 
   // Linha de totais mensais
   const totalAnualGeral = totaisMensais.reduce((a, b) => a + b, 0);
-  rows.push(['TOTAL', ...totaisMensais, totalAnualGeral]);
+  rows.push(["TOTAL", ...totaisMensais, totalAnualGeral]);
 
   // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
   // Largura das colunas
-  ws['!cols'] = [
+  ws["!cols"] = [
     { wch: 50 }, // Produto
     ...meses.map(() => ({ wch: 8 })),
-    { wch: 12 }  // Total
+    { wch: 12 }, // Total
   ];
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Vendas 2025');
-  XLSX.writeFile(wb, 'D:/GitHub/DataCoreHS/vendas_2025.xlsx');
-  console.log('Planilha gerada: vendas_2025.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, "Vendas 2025");
+  XLSX.writeFile(wb, "D:/GitHub/DataCoreHS/vendas_2025.xlsx");
+  console.log("Planilha gerada: vendas_2025.xlsx");
   console.log(`Total de produtos: ${Object.keys(produtos).length}`);
 }
 

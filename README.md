@@ -69,11 +69,13 @@ Arquivos de configuração principais:
 ## ⚙️ Como Executar o Projeto
 
 1. Instale as dependências:
+
    ```bash
    npm install
    ```
 
 2. Execute o projeto em ambiente de desenvolvimento:
+
    ```bash
    npm run dev
    ```

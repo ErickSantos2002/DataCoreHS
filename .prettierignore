@@ -1,37 +1,24 @@
 dist
 node_modules
 package-lock.json
+
+# `src/design-system` é cópia verbatim do Health & Safety Design System (ver
+# ORIGEM.md): reformatar ali faria o próximo sync divergir por espaço em
+# branco. É a isenção permanente, e há teste travando esta linha
+# (`src/test/prettierignore.test.ts`).
 src/design-system
 
-# Fase 0: `format` roda "prettier --write ." sem filtro. As telas ainda não
-# migraram para o design system — reformatá-las agora destruiria o git blame
-# e o diff das fases seguintes, contra a regra da Fase 0 de não reescrever
-# nenhuma tela. Cada entrada sai daqui quando a Fase 3 migrar a tela
-# correspondente; docs/ e index.html saem quando deixarem de documentar o
-# estado pré-migração.
-# A partir da tela 6 (Financeiro), cada tela migrada sai daqui e passa a ser
-# formatada — a regra entrou na receita para a divida parar de crescer. O
-# padrao precisa ser `src/pages/*`, e nao `src/pages`: pela regra do
-# .gitignore, arquivo dentro de diretorio excluido nao volta por negacao.
-# 16/09/2026: com a Fase 3 concluida, `src/pages` inteiro passa a ser
-# formatado. O padrao precisa ser `!src/pages/**`, e nao `!src/pages/`: a
-# regra do .gitignore nao devolve os FILHOS de um diretorio ja excluido por
-# `src/pages/*` — com a barra sozinha, o `prettier --check` responde
-# "formatado" para arquivo que segue ignorado, que e a mentira do check.
-src/pages/*
-!src/pages/**
-# Os quatro arquivos da OUTRA FRENTE continuam de fora: sao dela, e formatar
-# arquivo de outra sessao vira colisao de diff sem ninguem ter mudado logica.
-# Vem DEPOIS da negacao porque a ultima regra que casa e a que vale.
+# A lista já foi longa. Da Fase 0 até 15/09/2026 ela tinha `src/pages`,
+# `src/components`, `src/context`, `src/services`, `src/hooks`, `docs` e o
+# `index.html`: formatar uma tela ANTES de migrá-la afogaria o diff da
+# migração em espaço em branco, então cada tela saía daqui ao ser migrada.
+# Com a Fase 3 concluída, o resto saiu de uma vez em 16/09/2026, e
+# `prettier --check .` passou a ficar limpo.
+#
+# O que sobra são os quatro arquivos da OUTRA FRENTE de trabalho: formatar
+# arquivo de outra sessão vira colisão de diff sem ninguém ter mudado lógica.
+# Eles saem quando aquela frente quiser.
 src/pages/comercial/useComercial.ts
 src/pages/comercial/hooksFalsos.ts
 src/pages/servicos/useServicos.ts
 src/pages/servicos/hooksFalsos.ts
-
-# 16/09/2026: o resto de `src` entra na formatacao. O que sobra ignorado e
-# `src/design-system`, que e copia verbatim do Health & Safety Design System
-# (ver ORIGEM.md) — reformatar ali faria o proximo sync divergir por espaco em
-# branco, e ha teste travando essa linha.
-# 16/09/2026: `docs` e `index.html` saiam da lista "quando deixarem de
-# documentar o estado pre-migracao" — a Fase 3 acabou, e eles entram na
-# formatacao junto com o resto.
