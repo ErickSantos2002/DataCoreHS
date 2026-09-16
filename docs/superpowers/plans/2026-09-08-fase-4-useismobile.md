@@ -49,18 +49,18 @@ correto entra depois, em commit próprio, com plantação.
 
 ## Estrutura de arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/hooks/useIsMobile.ts` | **Criar.** O hook e a constante do breakpoint. |
-| `src/hooks/useIsMobile.test.ts` | **Criar.** Teste unitário do hook. |
-| `src/pages/Clientes.mobile.test.tsx` | **Criar.** Caracterização do que `isMobile` controla em Clientes. |
-| `src/pages/Estoque.mobile.test.tsx` | **Criar.** Caracterização do que `isMobile` controla em Estoque. |
-| `src/pages/Produtos.tsx:91-102,108` | **Modificar.** Apaga a cópia morta. |
-| `src/pages/Vendas.mobile.test.tsx` | **Criar.** Caracterização do que `isMobile` controla em Vendas. |
-| `src/pages/Vendas.tsx:100-111,824-827` | **Modificar.** Adota o hook e mata as três leituras inline. |
-| `src/pages/Clientes.tsx:72-81,830` | **Modificar.** Adota o hook e mata o `isMobileW`. |
-| `src/pages/Estoque.tsx:71-85` | **Modificar.** Adota o hook. |
-| `src/test/guarda-usemobile.test.ts` | **Criar.** Impede a próxima cópia, hook ou leitura solta. |
+| Arquivo                                | Responsabilidade                                                  |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| `src/hooks/useIsMobile.ts`             | **Criar.** O hook e a constante do breakpoint.                    |
+| `src/hooks/useIsMobile.test.ts`        | **Criar.** Teste unitário do hook.                                |
+| `src/pages/Clientes.mobile.test.tsx`   | **Criar.** Caracterização do que `isMobile` controla em Clientes. |
+| `src/pages/Estoque.mobile.test.tsx`    | **Criar.** Caracterização do que `isMobile` controla em Estoque.  |
+| `src/pages/Produtos.tsx:91-102,108`    | **Modificar.** Apaga a cópia morta.                               |
+| `src/pages/Vendas.mobile.test.tsx`     | **Criar.** Caracterização do que `isMobile` controla em Vendas.   |
+| `src/pages/Vendas.tsx:100-111,824-827` | **Modificar.** Adota o hook e mata as três leituras inline.       |
+| `src/pages/Clientes.tsx:72-81,830`     | **Modificar.** Adota o hook e mata o `isMobileW`.                 |
+| `src/pages/Estoque.tsx:71-85`          | **Modificar.** Adota o hook.                                      |
+| `src/test/guarda-usemobile.test.ts`    | **Criar.** Impede a próxima cópia, hook ou leitura solta.         |
 
 ## Ordem, e por que ela é essa
 
@@ -89,11 +89,13 @@ os testes mockam com `() => null` — um teste copiado do molde existente não v
 nada.
 
 **Arquivos:**
+
 - Criar/Test: `src/pages/Clientes.mobile.test.tsx`
 - Criar/Test: `src/pages/Estoque.mobile.test.tsx`
 - Criar/Test: `src/pages/Vendas.mobile.test.tsx`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: as constantes `DISTRIBUICAO`/`SITUACAO` não existem aqui; cada arquivo
   é independente. A Task 5 volta a `Clientes.mobile.test.tsx` e a
@@ -148,7 +150,12 @@ const NOTAS = [
     nome_vendedor: "Vendedor A",
     tipo: null,
     itens: [
-      { codigo: "P1", descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
+      {
+        codigo: "P1",
+        descricao: "Bafômetro Phoebus",
+        quantidade: "2",
+        valor_total: "1000",
+      },
     ],
     observacoes: null,
   },
@@ -167,13 +174,21 @@ vi.mock("recharts", () => {
   return {
     // Expõe `height` — é a prop que `isMobile` controla, e o dublê dos outros
     // arquivos a descartaria.
-    ResponsiveContainer: ({ children, height }: { children?: ReactNode; height?: number }) => (
+    ResponsiveContainer: ({
+      children,
+      height,
+    }: {
+      children?: ReactNode;
+      height?: number;
+    }) => (
       <div data-testid="grafico" data-height={String(height)}>
         {children}
       </div>
     ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
     Line: semDesenho,
@@ -214,31 +229,49 @@ describe("Clientes — o que muda em tela pequena", () => {
   it("o grafico e mais alto em celular do que no desktop", () => {
     render(<Clientes />);
     // 1024 na jsdom: desktop.
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
 
     redimensionarPara(375);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
   });
 
   it("voltar para o desktop devolve a altura menor", () => {
     render(<Clientes />);
     redimensionarPara(375);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(1024);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 
   it("639 e celular e 640 nao — o limite e exclusivo", () => {
     render(<Clientes />);
 
     redimensionarPara(639);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(640);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 });
 ```
@@ -308,13 +341,21 @@ vi.mock("../context/EstoqueContext", () => ({
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   return {
-    ResponsiveContainer: ({ children, height }: { children?: ReactNode; height?: number }) => (
+    ResponsiveContainer: ({
+      children,
+      height,
+    }: {
+      children?: ReactNode;
+      height?: number;
+    }) => (
       <div data-testid="grafico" data-height={String(height)}>
         {children}
       </div>
     ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     PieChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     Bar: semDesenho,
     Line: semDesenho,
@@ -350,21 +391,33 @@ afterEach(() => {
 describe("Estoque — o que muda em tela pequena", () => {
   it("o grafico e mais alto em celular do que no desktop", () => {
     render(<Estoque />);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
 
     redimensionarPara(375);
 
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
   });
 
   it("639 e celular e 640 nao — o limite e exclusivo", () => {
     render(<Estoque />);
 
     redimensionarPara(639);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "420");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "420",
+    );
 
     redimensionarPara(640);
-    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute("data-height", "300");
+    expect(screen.getAllByTestId("grafico")[0]).toHaveAttribute(
+      "data-height",
+      "300",
+    );
   });
 });
 ```
@@ -395,29 +448,32 @@ e `afterEach`), trocando os mocks pelos de `Vendas` — veja quais em
 E o teste:
 
 ```tsx
-  it("hoje o eixo NAO acompanha o resize — as tres leituras sao do render", () => {
-    render(<Vendas />);
-    const eixo = () => screen.getAllByTestId("eixo-y")[0];
-    expect(eixo()).toHaveAttribute("data-width", "140");
+it("hoje o eixo NAO acompanha o resize — as tres leituras sao do render", () => {
+  render(<Vendas />);
+  const eixo = () => screen.getAllByTestId("eixo-y")[0];
+  expect(eixo()).toHaveAttribute("data-width", "140");
 
-    redimensionarPara(375);
+  redimensionarPara(375);
 
-    // Caracterização do defeito, não do acerto: as três leituras de
-    // `window.innerWidth` em Vendas.tsx:824-827 são avaliadas no render do
-    // gráfico e nada as faz recalcular. A task 5 troca por `isMobile` e este
-    // teste passa a afirmar o contrário.
-    expect(eixo()).toHaveAttribute("data-width", "140");
-  });
+  // Caracterização do defeito, não do acerto: as três leituras de
+  // `window.innerWidth` em Vendas.tsx:824-827 são avaliadas no render do
+  // gráfico e nada as faz recalcular. A task 5 troca por `isMobile` e este
+  // teste passa a afirmar o contrário.
+  expect(eixo()).toHaveAttribute("data-width", "140");
+});
 
-  it("montando ja estreito, o eixo sai compacto", () => {
-    redimensionarPara(375);
-    render(<Vendas />);
+it("montando ja estreito, o eixo sai compacto", () => {
+  redimensionarPara(375);
+  render(<Vendas />);
 
-    // Provando que 80 é alcançável: a leitura acontece no render, então a
-    // largura sai certa quando a janela já está estreita na montagem. É a
-    // assimetria que a task 5 elimina.
-    expect(screen.getAllByTestId("eixo-y")[0]).toHaveAttribute("data-width", "80");
-  });
+  // Provando que 80 é alcançável: a leitura acontece no render, então a
+  // largura sai certa quando a janela já está estreita na montagem. É a
+  // assimetria que a task 5 elimina.
+  expect(screen.getAllByTestId("eixo-y")[0]).toHaveAttribute(
+    "data-width",
+    "80",
+  );
+});
 ```
 
 **Se o segundo teste falhar**, o `redimensionarPara` antes do `render` não está
@@ -432,6 +488,7 @@ npx vitest run src/pages/Clientes.mobile.test.tsx \
                src/pages/Estoque.mobile.test.tsx \
                src/pages/Vendas.mobile.test.tsx
 ```
+
 Esperado: **PASS** — 3 no primeiro, 2 no segundo, 2 no terceiro.
 
 - [ ] **Passo 6: provar que os testes enxergam (plantação)**
@@ -439,7 +496,7 @@ Esperado: **PASS** — 3 no primeiro, 2 no segundo, 2 no terceiro.
 Em `src/pages/Clientes.tsx:75`, troque o comparador para nunca dar verdadeiro:
 
 ```tsx
-    const onResize = () => setIsMobile(false);
+const onResize = () => setIsMobile(false);
 ```
 
 Roda: `npx vitest run src/pages/Clientes.mobile.test.tsx`
@@ -451,7 +508,7 @@ Repita em `src/pages/Estoque.tsx:76` — lá o handler é multi-linha e a atribu
 tem o comentário do emoji na mesma linha. Troque para:
 
 ```tsx
-      setIsMobile(false); // 🔹 abaixo de 640px = mobile
+setIsMobile(false); // 🔹 abaixo de 640px = mobile
 ```
 
 Roda: `npx vitest run src/pages/Estoque.mobile.test.tsx`
@@ -485,9 +542,11 @@ usa a informação por fora do hook. Ela adota na Task 4. Se você se pegar apag
 o `useIsMobile` de `Vendas`, pare — o aviso de lint dela some por outro caminho.
 
 **Arquivos:**
+
 - Modificar: `src/pages/Produtos.tsx:91-102` e `:108`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: nada.
 
@@ -521,7 +580,7 @@ const useIsMobile = () => {
 E apague a linha 108, dentro do componente:
 
 ```tsx
-  const isMobile = useIsMobile();
+const isMobile = useIsMobile();
 ```
 
 Deixe a linha em branco que a cercava sem duplicar.
@@ -543,6 +602,7 @@ npm test 2>&1 | grep -E "Test Files|Tests "
 ```
 
 Esperado:
+
 - `tsc` sem saída
 - lint em **102** — cai exatamente 1 nesta task. O outro ponto cai na Task 4,
   quando `Vendas` passar a usar o `isMobile` que hoje ignora. Se continuar em 103,
@@ -564,10 +624,12 @@ git commit -m "refactor(produtos): apaga o useIsMobile que a tela nunca usou"
 ### Task 3: O hook, nascendo igual às cópias
 
 **Arquivos:**
+
 - Criar: `src/hooks/useIsMobile.ts`
 - Criar/Test: `src/hooks/useIsMobile.test.ts`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: `useIsMobile(): boolean` e a constante `LARGURA_DE_CELULAR = 640` — as Tasks 4 e 5 importam o hook; a constante é exportada para o teste e para quem precisar do mesmo limite.
 
@@ -688,7 +750,8 @@ export function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const aoRedimensionar = () => setIsMobile(window.innerWidth < LARGURA_DE_CELULAR);
+    const aoRedimensionar = () =>
+      setIsMobile(window.innerWidth < LARGURA_DE_CELULAR);
     aoRedimensionar();
     window.addEventListener("resize", aoRedimensionar);
     return () => window.removeEventListener("resize", aoRedimensionar);
@@ -717,11 +780,13 @@ git commit -m "feat(hooks): useIsMobile nasce com o comportamento das quatro cop
 ### Task 4: `Clientes`, `Estoque` e `Vendas` adotam
 
 **Arquivos:**
+
 - Modificar: `src/pages/Clientes.tsx:72-81` e a chamada
 - Modificar: `src/pages/Estoque.tsx:71-85` e a chamada
 - Modificar: `src/pages/Vendas.tsx:100-111` (a chamada da linha 123 **fica**)
 
 **Interfaces:**
+
 - Consome: `useIsMobile()` da Task 3.
 - Produz: nada.
 
@@ -829,6 +894,7 @@ linhas dali. Mesma pergunta, duas respostas, no mesmo componente. E a de baixo
 não reage a `resize`: é lida no instante em que o tooltip renderiza.
 
 **Arquivos:**
+
 - Modificar: `src/pages/Clientes.tsx` (a linha do `isMobileW` e os dois usos)
 - Modificar/Test: `src/pages/Clientes.mobile.test.tsx`
 
@@ -851,18 +917,18 @@ como o `Estoque.popover.test.tsx` faz:
 E acrescente ao `describe`:
 
 ```tsx
-  it("a largura do tooltip acompanha o resize, como o resto da tela", () => {
-    render(<Clientes />);
-    const tooltip = () => screen.getByText("Alfa Mineração").closest("div")!;
-    expect(tooltip()).toHaveStyle({ maxWidth: "280px" });
+it("a largura do tooltip acompanha o resize, como o resto da tela", () => {
+  render(<Clientes />);
+  const tooltip = () => screen.getByText("Alfa Mineração").closest("div")!;
+  expect(tooltip()).toHaveStyle({ maxWidth: "280px" });
 
-    redimensionarPara(375);
+  redimensionarPara(375);
 
-    // Antes desta task o valor saía de um `window.innerWidth` lido no render do
-    // tooltip, e não do `isMobile` do hook: a tela toda reagia ao resize e só
-    // esta caixa ficava para trás.
-    expect(tooltip()).toHaveStyle({ maxWidth: "220px" });
-  });
+  // Antes desta task o valor saía de um `window.innerWidth` lido no render do
+  // tooltip, e não do `isMobile` do hook: a tela toda reagia ao resize e só
+  // esta caixa ficava para trás.
+  expect(tooltip()).toHaveStyle({ maxWidth: "220px" });
+});
 ```
 
 - [ ] **Passo 2: rodar e ver o teste novo**
@@ -921,6 +987,7 @@ npx tsc --noEmit
 npm run lint 2>&1 | grep problems
 npm run lint 2>&1 | grep -c "isMobile"
 ```
+
 Esperado: PASS; `tsc` limpo; **lint em 101** — os dois pontos prometidos caíram; e
 o `grep -c "isMobile"` em **0**, porque `Vendas` passou a usar o valor.
 
@@ -946,22 +1013,23 @@ primeiro render era sempre o de desktop: o gráfico monta com 300px e salta para
 o `trigger` do popover, então por um instante a tela responde ao gesto errado.
 
 **Arquivos:**
+
 - Modificar: `src/hooks/useIsMobile.ts`
 - Modificar/Test: `src/hooks/useIsMobile.test.ts`
 
 - [ ] **Passo 1: escrever o teste que falha**
 
 ```ts
-  it("ja nasce sabendo, sem esperar o efeito", () => {
-    definirLargura(375);
-    const { result } = renderHook(() => useIsMobile());
+it("ja nasce sabendo, sem esperar o efeito", () => {
+  definirLargura(375);
+  const { result } = renderHook(() => useIsMobile());
 
-    // Sem `act` e sem disparar `resize`: o valor tem de estar certo no PRIMEIRO
-    // render. Com `useState(false)` isto falha, porque o efeito só corrige
-    // depois da montagem — e é esse intervalo que faz o grafico saltar de 300
-    // para 420 em celular.
-    expect(result.current).toBe(true);
-  });
+  // Sem `act` e sem disparar `resize`: o valor tem de estar certo no PRIMEIRO
+  // render. Com `useState(false)` isto falha, porque o efeito só corrige
+  // depois da montagem — e é esse intervalo que faz o grafico saltar de 300
+  // para 420 em celular.
+  expect(result.current).toBe(true);
+});
 ```
 
 - [ ] **Passo 2: rodar e ver falhar**
@@ -979,13 +1047,15 @@ um componente que registre os valores de cada render num array e afirme que o
 Troque:
 
 ```ts
-  const [isMobile, setIsMobile] = useState(false);
+const [isMobile, setIsMobile] = useState(false);
 ```
 
 por:
 
 ```ts
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < LARGURA_DE_CELULAR);
+const [isMobile, setIsMobile] = useState(
+  () => window.innerWidth < LARGURA_DE_CELULAR,
+);
 ```
 
 E atualize o docblock: apague o parágrafo que diz que o hook **começa em `false`
@@ -1028,6 +1098,7 @@ git commit -m "fix(usemobile): o primeiro render ja sabe se e celular"
 ### Task 7: O guarda
 
 **Arquivos:**
+
 - Criar/Test: `src/test/guarda-usemobile.test.ts`
 
 - [ ] **Passo 1: escrever o guarda**
@@ -1142,6 +1213,7 @@ git commit -m "test(guarda): trava a sexta copia do useIsMobile"
 ### Task 8: Fechar a Fase 4 na documentação
 
 **Arquivos:**
+
 - Modificar: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 
 - [ ] **Passo 1: medir, antes de os commits desta task entrarem**

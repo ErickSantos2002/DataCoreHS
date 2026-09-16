@@ -39,23 +39,23 @@ de code splitting e ausência total de testes.
 Repositório: `~/github/DataCoreHS` · React 19 + Vite 7 + TypeScript 5.8 +
 Tailwind 3.4.17 · 50 arquivos em `src/`, ~16.000 linhas.
 
-| Sintoma | Número |
-|---|---|
-| Classes `dark:` no JSX | 1.626 |
-| Classes literais de azul (`bg-blue-600`, `text-blue-600`...) | 272 |
-| Hexadecimais arbitrários em classe (`dark:bg-[#0f172a]`...) | 212 |
-| Usos de `bg-primary` / `text-primary` / `border-primary` | **0** |
-| Hexadecimais cravados no JSX | 528 |
-| Páginas acima de 800 linhas | 7 (Vendas 1554, Clientes 1387, Estoque 1362, Vendedores 1361, Servicos 1258, Produtos 1221, ContasPagar 839) |
-| Contexts montados sempre, no `main.tsx` | 12 |
-| Guardas de rota quase idênticos | 6 |
-| Páginas com paginação escrita à mão | 11 |
-| Páginas com tabela própria | 10 |
-| Páginas usando `recharts` | 9 |
-| Ícones carregados de `img.icons8.com` | 19 |
-| `alert()` fazendo papel de feedback | 4 |
-| Code splitting / `lazy` | nenhum |
-| ESLint / Prettier config / testes / CI | nenhum |
+| Sintoma                                                      | Número                                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Classes `dark:` no JSX                                       | 1.626                                                                                                        |
+| Classes literais de azul (`bg-blue-600`, `text-blue-600`...) | 272                                                                                                          |
+| Hexadecimais arbitrários em classe (`dark:bg-[#0f172a]`...)  | 212                                                                                                          |
+| Usos de `bg-primary` / `text-primary` / `border-primary`     | **0**                                                                                                        |
+| Hexadecimais cravados no JSX                                 | 528                                                                                                          |
+| Páginas acima de 800 linhas                                  | 7 (Vendas 1554, Clientes 1387, Estoque 1362, Vendedores 1361, Servicos 1258, Produtos 1221, ContasPagar 839) |
+| Contexts montados sempre, no `main.tsx`                      | 12                                                                                                           |
+| Guardas de rota quase idênticos                              | 6                                                                                                            |
+| Páginas com paginação escrita à mão                          | 11                                                                                                           |
+| Páginas com tabela própria                                   | 10                                                                                                           |
+| Páginas usando `recharts`                                    | 9                                                                                                            |
+| Ícones carregados de `img.icons8.com`                        | 19                                                                                                           |
+| `alert()` fazendo papel de feedback                          | 4                                                                                                            |
+| Code splitting / `lazy`                                      | nenhum                                                                                                       |
+| ESLint / Prettier config / testes / CI                       | nenhum                                                                                                       |
 
 Achados que não são estilo:
 
@@ -179,7 +179,7 @@ Nenhuma tela é reescrita. A cor da marca, a fonte e o tema escuro mudam em tudo
    `--action` — e `slate-*` para as superfícies navy. `darkBlue` permanece como
    alias depreciado apontando para o navy do DS, com comentário dizendo que morre
    na Fase 3. Cada classe de azul é conferida no diff: onde `blue-*` estiver
-   carregando sentido de *info* e não de ação, vai para `--color-info-*`.
+   carregando sentido de _info_ e não de ação, vai para `--color-info-*`.
 5. **Codemod** trocando os 212 hexadecimais arbitrários pelas classes de token,
    preservando o prefixo do utilitário: `[#0f172a]` e `[#0a192f]` viram
    `surface-base`, `[#1e293b]` e `[#1e3a8a]` viram `surface`. Alcança também o
@@ -193,7 +193,7 @@ Nenhuma tela é reescrita. A cor da marca, a fonte e o tema escuro mudam em tudo
 9. ESLint + Prettier, usando o `prettier-plugin-tailwindcss` que já está no
    `package.json` sem configuração.
 10. Limpeza: remover `@tailwindcss/vite` e `@tailwindcss/postcss`; versionar
-   `.env.example` com as duas variáveis hoje comentadas.
+    `.env.example` com as duas variáveis hoje comentadas.
 
 **Pronto quando:** `npm run build` passa, `npm test` passa, o app sobe e as 18
 rotas renderizam. O sistema inteiro está no azul da marca e no navy do DS, nos
@@ -205,13 +205,13 @@ dois temas; nenhum layout se move e nenhuma tela foi reescrita.
 
 **Primitivos portados** para `src/design-system/ui/`:
 
-| Grupo | Componentes |
-|---|---|
-| `core/` | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge`, `Icon`, `Spinner`, `Avatar` |
-| `forms/` | `Input`, `Textarea`, `Select`, `SearchSelect`, `Checkbox`, `Radio`, `Switch` |
-| `data/` | `Table` (+ `TableHead`, `TableBody`, `TableRow`, `TableHeaderCell`, `TableCell`, `TableEmpty`), `Pagination`, `Progress` |
-| `feedback/` | `Alert`, `Modal` (+`ModalFooter`), `Toast` (+`ToastStack`), `Tooltip` |
-| `navigation/` | `Tabs` (+`TabsList`, `TabsTrigger`, `TabsContent`), `AppShell` |
+| Grupo         | Componentes                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `core/`       | `Button`, `Card` (+`CardHeader`, `CardTitle`, `CardBody`), `Badge`, `Icon`, `Spinner`, `Avatar`                          |
+| `forms/`      | `Input`, `Textarea`, `Select`, `SearchSelect`, `Checkbox`, `Radio`, `Switch`                                             |
+| `data/`       | `Table` (+ `TableHead`, `TableBody`, `TableRow`, `TableHeaderCell`, `TableCell`, `TableEmpty`), `Pagination`, `Progress` |
+| `feedback/`   | `Alert`, `Modal` (+`ModalFooter`), `Toast` (+`ToastStack`), `Tooltip`                                                    |
+| `navigation/` | `Tabs` (+`TabsList`, `TabsTrigger`, `TabsContent`), `AppShell`                                                           |
 
 Ficam de fora por YAGNI, com o motivo registrado: `Rating` e `SlaChip` (conceitos
 de HelpHS/ChamadosHS, inexistentes aqui), `Rotulo` e `Colchetes` (pele de console,
@@ -252,13 +252,13 @@ do `body`, e a cor e a margem de `h1`–`h4`.
 **Os papéis dos tokens estão invertidos, e o `AppShell` tem de desfazer isso.**
 O codemod da Fase 0 mapeou por valor de cor, não por papel. O resultado, medido:
 
-| Papel na tela | Classe que o app usa hoje | Valor | Token cujo papel ele ocupa |
-|---|---|---|---|
-| Fundo de página (40 ocorrências) | `dark:bg-darkBlue` | `#132238` | é o valor de `--surface` |
-| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base` | `#0d1b2a` | é o `--bg-base` |
+| Papel na tela                           | Classe que o app usa hoje | Valor     | Token cujo papel ele ocupa |
+| --------------------------------------- | ------------------------- | --------- | -------------------------- |
+| Fundo de página (40 ocorrências)        | `dark:bg-darkBlue`        | `#132238` | é o valor de `--surface`   |
+| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base`    | `#0d1b2a` | é o `--bg-base`            |
 
-O design system diz o contrário: `--bg-base` é *fundo da página*, `--surface` é
-*card, painel, topbar*. Duas consequências.
+O design system diz o contrário: `--bg-base` é _fundo da página_, `--surface` é
+_card, painel, topbar_. Duas consequências.
 
 A primeira já está na tela: card `#0d1b2a` sobre página `#132238` dá **1,09** de
 contraste, contra 1,72 de antes da fase. O card quase deixou de se destacar, e a
@@ -320,16 +320,16 @@ Receita fixa, por tela:
 
 Uma tela = uma branch = um checkpoint humano.
 
-| # | Tela | Linhas | Por que nesta posição |
-|---|---|---|---|
-| 1 | Dashboard | 328 | Vitrine, e o UI kit `templates/datacorehs/` já a desenhou — referência literal |
-| 2 | Locação | 386 | Pequena; exercita tabela + export |
-| 3 | Usuários | 457 | Firma o padrão de modal |
-| 4–5 | ContasReceber · ContasPagar | 802 · 839 | Gêmeas; migrar em par |
-| 6 | Financeiro + CentroCustoTab + MetaTab | 768 + 723 + 442 | Única tela com abas; firma o `Tabs` |
-| 7–10 | Produtos · Serviços · Vendedores · Estoque | 1221–1362 | Mesma anatomia: filtro + tabela + gráfico + export |
-| 11 | Clientes | 1387 | Idem, com dado enriquecido no context |
-| 12 | Vendas | 1554 | Maior e mais crítica; vai por último, com o padrão provado 11 vezes |
+| #    | Tela                                       | Linhas          | Por que nesta posição                                                          |
+| ---- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------ |
+| 1    | Dashboard                                  | 328             | Vitrine, e o UI kit `templates/datacorehs/` já a desenhou — referência literal |
+| 2    | Locação                                    | 386             | Pequena; exercita tabela + export                                              |
+| 3    | Usuários                                   | 457             | Firma o padrão de modal                                                        |
+| 4–5  | ContasReceber · ContasPagar                | 802 · 839       | Gêmeas; migrar em par                                                          |
+| 6    | Financeiro + CentroCustoTab + MetaTab      | 768 + 723 + 442 | Única tela com abas; firma o `Tabs`                                            |
+| 7–10 | Produtos · Serviços · Vendedores · Estoque | 1221–1362       | Mesma anatomia: filtro + tabela + gráfico + export                             |
+| 11   | Clientes                                   | 1387            | Idem, com dado enriquecido no context                                          |
+| 12   | Vendas                                     | 1554            | Maior e mais crítica; vai por último, com o padrão provado 11 vezes            |
 
 **Checklist de tela migrada** (do `adocao.md`):
 
@@ -355,18 +355,18 @@ correto.
 
 **O risco de "azul que significava aviso virou azul de marca" não se
 materializou.** A tabela de riscos deste spec previa que a ponte de paleta
-pudesse repintar de cor de ação algo que carregava sentido de *info*. Nenhum caso
+pudesse repintar de cor de ação algo que carregava sentido de _info_. Nenhum caso
 foi encontrado. O risco está fechado; a linha correspondente da tabela de riscos
 não precisa mais de mitigação.
 
 O que a medição de contraste levantou vira trabalho de tela na Fase 3. São todos
 **pré-existentes** — nenhum foi criado por esta fase:
 
-| Achado | Medido | Onde | Conserto na Fase 3 |
-|---|---|---|---|
-| `text-blue-600` sobre fundo escuro | 3,29:1 | Valores em KPI, várias telas | Trocar por `text-action`, que no escuro inverte para `#47a6e1` e sobe para 6,64:1 |
-| `text-red-600` sobre fundo escuro | 3,60:1 | Percentuais negativos e valores zerados | Usar `--color-danger-400` no escuro, como o design system determina |
-| Botão "Exportar Excel", texto branco sobre `bg-green-600` | 3,30:1 | Barra de ações das listagens | Pareamento correto de cor semântica e texto |
+| Achado                                                    | Medido | Onde                                    | Conserto na Fase 3                                                                |
+| --------------------------------------------------------- | ------ | --------------------------------------- | --------------------------------------------------------------------------------- |
+| `text-blue-600` sobre fundo escuro                        | 3,29:1 | Valores em KPI, várias telas            | Trocar por `text-action`, que no escuro inverte para `#47a6e1` e sobe para 6,64:1 |
+| `text-red-600` sobre fundo escuro                         | 3,60:1 | Percentuais negativos e valores zerados | Usar `--color-danger-400` no escuro, como o design system determina               |
+| Botão "Exportar Excel", texto branco sobre `bg-green-600` | 3,30:1 | Barra de ações das listagens            | Pareamento correto de cor semântica e texto                                       |
 
 Para referência da Fase 3: `text-blue-600` no escuro já reprovava **antes** desta
 fase, com 3,45:1. A ponte o levou a 3,38:1 — e, no tema claro, o melhorou de
@@ -382,8 +382,8 @@ senão o próximo sistema da H&S a adotar a biblioteca tropeça no mesmo.
 crava `aria-hidden="true"` **antes** de espalhar `{...rest}`. Quem passa
 `aria-label` fica com os dois atributos ao mesmo tempo: o ícone é rotulado e
 escondido de uma vez, e o leitor de tela ignora o rótulo. É exatamente o caso que
-a regra de iconografia do design system quer cobrir — *"ícone que é o único
-conteúdo de um botão leva `aria-label`"*. No port do DataCoreHS o `aria-hidden`
+a regra de iconografia do design system quer cobrir — _"ícone que é o único
+conteúdo de um botão leva `aria-label`"_. No port do DataCoreHS o `aria-hidden`
 passou a ser derivado: só é emitido quando não há `aria-label` nem
 `aria-labelledby`.
 
@@ -483,13 +483,13 @@ Nenhuma trava o início. Cada uma é trazida de volta quando sua fase chegar.
 
 ## Riscos
 
-| Risco | Mitigação |
-|---|---|
-| Regressão silenciosa em cálculo fiscal ao refatorar tela de 1.500 linhas | Teste de caracterização antes de cada tela (Decisão 2) |
-| Mudança de permissão liberar acesso indevido | Teste papel × rota na Fase 2, antes de qualquer tela grande |
-| Tokens divergirem de novo entre os 8 sistemas | `ORIGEM.md` com projectId e data; Decisão 3 revisitada quando o segundo sistema entrar na fila |
-| Ponte de paleta pintar de azul-marca algo que significava *info* | Conferência classe a classe no diff da Fase 0; `blue-*` semântico vai para `--color-info-*` |
-| Quebrar produção durante a migração | Branch por fase e por tela; nada em `main` sem revisão |
+| Risco                                                                    | Mitigação                                                                                      |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Regressão silenciosa em cálculo fiscal ao refatorar tela de 1.500 linhas | Teste de caracterização antes de cada tela (Decisão 2)                                         |
+| Mudança de permissão liberar acesso indevido                             | Teste papel × rota na Fase 2, antes de qualquer tela grande                                    |
+| Tokens divergirem de novo entre os 8 sistemas                            | `ORIGEM.md` com projectId e data; Decisão 3 revisitada quando o segundo sistema entrar na fila |
+| Ponte de paleta pintar de azul-marca algo que significava _info_         | Conferência classe a classe no diff da Fase 0; `blue-*` semântico vai para `--color-info-*`    |
+| Quebrar produção durante a migração                                      | Branch por fase e por tela; nada em `main` sem revisão                                         |
 
 ## Referências
 
@@ -570,13 +570,13 @@ disso.
 
 ### Números
 
-| | Antes da Fase 2 | Depois |
-|---|---|---|
-| Suíte | 184 testes / 47 arquivos | **489 / 55** |
-| Lint | 190 problemas | **176** |
-| `router.tsx` | 255 linhas, 6 guardas dentro | **190 linhas, zero** |
-| Providers globais | 10 | **2** |
-| Build | 1 chunk, 1.697 kB | **41 chunks, entrada 305 kB** |
+|                   | Antes da Fase 2              | Depois                        |
+| ----------------- | ---------------------------- | ----------------------------- |
+| Suíte             | 184 testes / 47 arquivos     | **489 / 55**                  |
+| Lint              | 190 problemas                | **176**                       |
+| `router.tsx`      | 255 linhas, 6 guardas dentro | **190 linhas, zero**          |
+| Providers globais | 10                           | **2**                         |
+| Build             | 1 chunk, 1.697 kB            | **41 chunks, entrada 305 kB** |
 
 ---
 
@@ -591,16 +591,16 @@ build em 6,4 s.
 
 ### Telas da Fase 3
 
-| # | Tela | Estado |
-|---|---|---|
-| 1 | Dashboard (Meta do trimestre) | **feita** — 330 → 110 linhas |
-| 2 | Locação | **feita** — 386 → 108 linhas |
-| 3 | Usuários | **feita** — 457 → 167; firmou o padrão de modal |
-| 4–5 | ContasReceber · ContasPagar | **feitas** — 802 → 73 e 839 → 65; unificadas |
-| 6 | Financeiro + CentroCustoTab + MetaTab | próxima; única com abas |
-| 7–10 | Produtos · Serviços · Vendedores · Estoque | mesma anatomia |
-| 11 | Clientes | idem, com dado enriquecido |
-| 12 | Vendas | maior e mais crítica, por último |
+| #    | Tela                                       | Estado                                          |
+| ---- | ------------------------------------------ | ----------------------------------------------- |
+| 1    | Dashboard (Meta do trimestre)              | **feita** — 330 → 110 linhas                    |
+| 2    | Locação                                    | **feita** — 386 → 108 linhas                    |
+| 3    | Usuários                                   | **feita** — 457 → 167; firmou o padrão de modal |
+| 4–5  | ContasReceber · ContasPagar                | **feitas** — 802 → 73 e 839 → 65; unificadas    |
+| 6    | Financeiro + CentroCustoTab + MetaTab      | próxima; única com abas                         |
+| 7–10 | Produtos · Serviços · Vendedores · Estoque | mesma anatomia                                  |
+| 11   | Clientes                                   | idem, com dado enriquecido                      |
+| 12   | Vendas                                     | maior e mais crítica, por último                |
 
 ### A receita, provada em cinco telas
 
@@ -638,11 +638,11 @@ Cada tela virou uma casca de ~70 linhas sobre `src/pages/contas/`. As **duas
 divergências de domínio viraram um `DialetoDeContas`** de três campos, em vez de
 um `if` repetido em seis lugares:
 
-| | Contas a Receber | Contas a Pagar |
-|---|---|---|
-| `situacoesQuitadas` | `["recebido", "pago"]` | `["pago"]` |
-| `campoDaEmissao` | `"data"` | `"data_emissao"` |
-| `chaveQuitado` | `"recebido"` | `"pago"` |
+|                     | Contas a Receber       | Contas a Pagar   |
+| ------------------- | ---------------------- | ---------------- |
+| `situacoesQuitadas` | `["recebido", "pago"]` | `["pago"]`       |
+| `campoDaEmissao`    | `"data"`               | `"data_emissao"` |
+| `chaveQuitado`      | `"recebido"`           | `"pago"`         |
 
 `campoDaEmissao` guarda o **nome** do campo, não um acessador: a tabela precisa
 do nome para ordenar, e antes o nome vivia na lista de colunas e o acessador no
@@ -939,12 +939,12 @@ migrações de Produtos e Serviços não podiam ser mergeadas: tinham de ser
 de `revert`, nada de "a versão antiga era melhor". Cada leva nasceu de uma
 branch criada a partir do `origin/main` e subiu em **fast-forward**.
 
-| Branch | O que levou |
-|---|---|
-| `fase-4-hooks-sobre-origin` | `useCliqueFora` e `useIsMobile`, os dois guardas, e Clientes/Produtos/Vendas consumindo o hook |
-| `fase-3-produtos-sobre-origin` | Produtos reaplicado — 16 commits, casca 920 → 239 linhas |
+| Branch                              | O que levou                                                                                               |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `fase-4-hooks-sobre-origin`         | `useCliqueFora` e `useIsMobile`, os dois guardas, e Clientes/Produtos/Vendas consumindo o hook            |
+| `fase-3-produtos-sobre-origin`      | Produtos reaplicado — 16 commits, casca 920 → 239 linhas                                                  |
 | `fase-4-testes-mobile-sobre-origin` | as specs e planos da Fase 4, e os testes `Clientes.mobile` e `Vendas.mobile`, que tinham ficado para trás |
-| `fase-3-servicos-sobre-origin` | Serviços reaplicado — 16 commits, casca 909 → 277 linhas |
+| `fase-3-servicos-sobre-origin`      | Serviços reaplicado — 16 commits, casca 909 → 277 linhas                                                  |
 
 **O `main` local está esgotado.** O que resta nele e não está no `origin/main`
 são três contexts (`DataContext`, `ServicosContext`, `ContasReceberContext`) que
@@ -994,7 +994,7 @@ Os padrões que enganam, todos encontrados aqui:
 - **`within(linha).getByText(valor)`** prova que o valor está na linha, não na
   célula certa. Trocar duas colunas de lugar passava verde.
 - **Troca simétrica entre dois campos** escapa de qualquer asserção que só olhe
-  o *conjunto* de valores presentes. Mexer num lado falha; trocar os dois, não.
+  o _conjunto_ de valores presentes. Mexer num lado falha; trocar os dois, não.
 - **Exportação verificada por `Object.keys` e `toHaveLength`** não verifica nada.
 - **Gráfico testado pelo que recebe** não prova o que desenha.
 - **`getByRole("button")` aceita um `<th role="button">`**, que continua
@@ -1013,13 +1013,13 @@ placar de 19 plantações verdes para 6.
 
 Além de restaurar a decomposição, as duas telas saíram melhores do que entraram:
 
-| Tela | Defeito | Consequência |
-|---|---|---|
-| Produtos | item sem código colidia na `key` do React | duas linhas reconciliadas como uma; reordenar embaralhava o conteúdo |
-| Produtos | eixo Y do ranking em 11px | abaixo do mínimo do checklist — e era **incoberto por construção**, porque o dublê de recharts descartava a render-prop |
-| Serviços | **data de emissão um dia atrás na planilha e no PDF** | a tela mostrava 15/03 e o documento exportado, 14/03 — em Brasília. Em `TZ=UTC` o defeito **some**, e foi assim que atravessou meses |
-| Serviços | a tela não tinha estado de erro | API caída = KPIs zerados e "Nenhum resultado encontrado.", sem dizer que a rede falhou |
-| Ambas | cabeçalho ordenável inalcançável por teclado, exportar habilitado com tabela vazia | |
+| Tela     | Defeito                                                                            | Consequência                                                                                                                         |
+| -------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Produtos | item sem código colidia na `key` do React                                          | duas linhas reconciliadas como uma; reordenar embaralhava o conteúdo                                                                 |
+| Produtos | eixo Y do ranking em 11px                                                          | abaixo do mínimo do checklist — e era **incoberto por construção**, porque o dublê de recharts descartava a render-prop              |
+| Serviços | **data de emissão um dia atrás na planilha e no PDF**                              | a tela mostrava 15/03 e o documento exportado, 14/03 — em Brasília. Em `TZ=UTC` o defeito **some**, e foi assim que atravessou meses |
+| Serviços | a tela não tinha estado de erro                                                    | API caída = KPIs zerados e "Nenhum resultado encontrado.", sem dizer que a rede falhou                                               |
+| Ambas    | cabeçalho ordenável inalcançável por teclado, exportar habilitado com tabela vazia |                                                                                                                                      |
 
 O defeito de fuso merece nota: `new Date("2026-03-15")` é lido como meia-noite em
 **UTC**, e a oeste de Greenwich isso ainda é o dia anterior. `dataDeCalendario`
@@ -1030,16 +1030,16 @@ dois fusos.
 
 ### Telas da Fase 3 — 8 de 12
 
-| # | Tela | Estado |
-|---|---|---|
-| 1–5 | Dashboard · Locação · Usuários · ContasReceber · ContasPagar | **feitas** (agosto) |
-| 6 | Financeiro + CentroCustoTab + MetaTab | **feita** — a única com abas |
-| 7 | Produtos | **feita**, e **reaplicada** sobre a fonte agregada |
-| 8 | Serviços | **feita**, e **reaplicada** sobre a fonte agregada e paginada |
-| 9 | Vendedores | próxima |
-| 10 | Estoque | |
-| 11 | Clientes | dado enriquecido; já consome o `useIsMobile` |
-| 12 | Vendas | maior e mais crítica, por último |
+| #   | Tela                                                         | Estado                                                        |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| 1–5 | Dashboard · Locação · Usuários · ContasReceber · ContasPagar | **feitas** (agosto)                                           |
+| 6   | Financeiro + CentroCustoTab + MetaTab                        | **feita** — a única com abas                                  |
+| 7   | Produtos                                                     | **feita**, e **reaplicada** sobre a fonte agregada            |
+| 8   | Serviços                                                     | **feita**, e **reaplicada** sobre a fonte agregada e paginada |
+| 9   | Vendedores                                                   | próxima                                                       |
+| 10  | Estoque                                                      |                                                               |
+| 11  | Clientes                                                     | dado enriquecido; já consome o `useIsMobile`                  |
+| 12  | Vendas                                                       | maior e mais crítica, por último                              |
 
 `PENDENTES_FASE_3` tem hoje quatro entradas: `Clientes`, `Estoque`, `Vendas`,
 `Vendedores`.
@@ -1051,7 +1051,7 @@ insubstituível — nenhum teste responde por ele. Acumulado:
 
 1. Os três gráficos de Serviços, nos dois temas.
 2. **Abrir a planilha exportada** de Serviços com um período estreito: as colunas
-   e o número de linhas têm de bater com a tela. A rede prende o *pedido*, não a
+   e o número de linhas têm de bater com a tela. A rede prende o _pedido_, não a
    contagem — o falso é da outra frente e não se toca.
 3. **Abrir o PDF**, conferindo o cabeçalho contra o corpo.
 4. Derrubar a API e ver o aviso novo de Serviços aparecer.
@@ -1116,13 +1116,13 @@ o rótulo vem pronto do resumo do Postgres (`useServicos.ts`, que não é nosso)
 
 ### Defeitos encontrados e ainda abertos
 
-1. ✅ *Consertado em `1dfc8646` — ver abaixo.* **Trocar o tema não repinta os gráficos.** `chartTheme` lê a custom property
+1. ✅ _Consertado em `1dfc8646` — ver abaixo._ **Trocar o tema não repinta os gráficos.** `chartTheme` lê a custom property
    no render, e a troca de tema não provoca render nos gráficos: grade e texto de
    eixo ficam com a cor do tema anterior até recarregar. No claro, a grade fica
    `#1e3a5f` — o azul-marinho do escuro. Medido no DOM: claro recarregado dá
    `#e2e8f0`, e depois da troca continua `#e2e8f0` no escuro. É compartilhado —
    atinge toda tela com recharts.
-2. ✅ *Consertado em `511555e3` — ver abaixo.* **A casca não tem celular.** O `AppShell` não recolhe a sidebar em tela
+2. ✅ _Consertado em `511555e3` — ver abaixo._ **A casca não tem celular.** O `AppShell` não recolhe a sidebar em tela
    estreita: em 390px ela ocupa 256px e sobra 128px para a página. Em Estoque as
    pizzas nem renderizam nessa largura. O `useIsMobile` das telas não compensa
    uma casca que não sabe dele.
@@ -1203,15 +1203,15 @@ Suíte em **1712 testes / 131 arquivos**, verde nos dois fusos; lint **47** (era
 
 ### Os consertos
 
-| Commit | Defeito |
-|---|---|
+| Commit     | Defeito                                                                                                                                                                                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `150fabb0` | **O filtro de produto mandava o rótulo** ("Kit (K1)") onde o servidor filtra pela chave ("K1") — escolher qualquer produto zerava a tela. O comentário ao lado dizia que o multiselect "já guarda a chave". Conferido contra a API real: 4336 → 627 notas com um produto escolhido. |
-| `4035d3a2` | Falha de rede silenciosa — mesmo defeito e mesmo conserto de Serviços. A frase é da tela: a do hook (`useComercial.ts`, da outra frente) vem sem acento. |
-| `e06dfe11` | Ordenar era só de mouse (`onClick` no `<th>`); agora botão com nome e `aria-sort`. |
-| `d9df17bf` | Abrir a edição do tipo era `<div onClick>`; salvar e cancelar eram só ícone. |
-| `756c9d74` | Exportar não desabilitava durante a busca nem com a tabela vazia. |
-| `953417ed` | "Carregando suas vendas..." → frase com ponto. |
-| `66539a53` | Gráfico sem dado era moldura muda → `ChartEmpty`. |
+| `4035d3a2` | Falha de rede silenciosa — mesmo defeito e mesmo conserto de Serviços. A frase é da tela: a do hook (`useComercial.ts`, da outra frente) vem sem acento.                                                                                                                            |
+| `e06dfe11` | Ordenar era só de mouse (`onClick` no `<th>`); agora botão com nome e `aria-sort`.                                                                                                                                                                                                  |
+| `d9df17bf` | Abrir a edição do tipo era `<div onClick>`; salvar e cancelar eram só ícone.                                                                                                                                                                                                        |
+| `756c9d74` | Exportar não desabilitava durante a busca nem com a tabela vazia.                                                                                                                                                                                                                   |
+| `953417ed` | "Carregando suas vendas..." → frase com ponto.                                                                                                                                                                                                                                      |
+| `66539a53` | Gráfico sem dado era moldura muda → `ChartEmpty`.                                                                                                                                                                                                                                   |
 
 E um de apresentação, visto só no navegador (`ffd9a9cb`): a tabela media 1192px
 numa caixa de 1080, e a coluna **Tipo da Nota — a de ação — ficava atrás da
@@ -1284,25 +1284,25 @@ falso de seis produtos com todo campo distinto (`estoque/produtosFalsos.ts`).
 1. **Caracterização**: três arquivos novos (topo e filtros, gráficos, tabela), 68
    testes com os quatro que existiam. **23 plantações — duas saíram cegas** na
    primeira rodada: só a opção "Inativo" do filtro de situação estava testada, e o
-   teste do modal filtrava pela *pesquisa*, que não chega na lista que o modal
+   teste do modal filtrava pela _pesquisa_, que não chega na lista que o modal
    recebe. Os dois testes foram refeitos e as duas plantações replantadas.
 2. **Decompor num commit** (`7f23ab63`), 68 testes sem uma edição.
 3. **Dez consertos**, um commit cada, teste vermelho antes, plantação depois.
 
 ### Os consertos
 
-| Commit | Defeito |
-|---|---|
+| Commit     | Defeito                                                                                                                                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `a69e2dfe` | **"NaN%" no balão da pizza de situação** — o balão lia `percent` do dado da fatia, onde o recharts não o põe. **O teste de popover escondia**: o dublê dele põe `percent` justamente ali. Teste novo com dublê fiel. |
-| `cdfa4008` | Falha de rede silenciosa — o `EstoqueContext` só escrevia no console; agora devolve `erro`, e a tela mostra o `Alert`. |
-| `1a600bda` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta (a lição de Vendedores aplicada antes de aparecer). |
-| `f013cc27` | Exportar não desabilitava com a tabela vazia. |
-| `04fbf3ca` | Gráfico sem produto era moldura muda → `ChartEmpty`. |
-| `f32f04aa` | Estatísticas com ponto decimal (`toFixed`) ao lado de cartões em pt-BR. |
-| `d6f394e8` | "Produto Top" sem produto saía "R$ ()". |
-| `43633713` | Frase de carregando com reticências. |
-| `06a896f2` | **Código-SKU ordenava como texto** ("900" antes de "163"), e o comparador nunca devolvia 0 — empate sem regra. Agora ordem natural, e empate pelo nome. |
-| `57dcb7e0` | **Visto só no navegador**: o Tiny devolve nome com espaço nas pontas (" VIDRO - PHOEBUS "), e esse produto abria a tabela. A comparação ignora o espaço das pontas. |
+| `cdfa4008` | Falha de rede silenciosa — o `EstoqueContext` só escrevia no console; agora devolve `erro`, e a tela mostra o `Alert`.                                                                                               |
+| `1a600bda` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta (a lição de Vendedores aplicada antes de aparecer).                                                                                                   |
+| `f013cc27` | Exportar não desabilitava com a tabela vazia.                                                                                                                                                                        |
+| `04fbf3ca` | Gráfico sem produto era moldura muda → `ChartEmpty`.                                                                                                                                                                 |
+| `f32f04aa` | Estatísticas com ponto decimal (`toFixed`) ao lado de cartões em pt-BR.                                                                                                                                              |
+| `d6f394e8` | "Produto Top" sem produto saía "R$ ()".                                                                                                                                                                              |
+| `43633713` | Frase de carregando com reticências.                                                                                                                                                                                 |
+| `06a896f2` | **Código-SKU ordenava como texto** ("900" antes de "163"), e o comparador nunca devolvia 0 — empate sem regra. Agora ordem natural, e empate pelo nome.                                                              |
+| `57dcb7e0` | **Visto só no navegador**: o Tiny devolve nome com espaço nas pontas (" VIDRO - PHOEBUS "), e esse produto abria a tabela. A comparação ignora o espaço das pontas.                                                  |
 
 ### Uma lição de processo
 
@@ -1369,19 +1369,19 @@ observável de ponta a ponta, sobre uma carteira falsa de doze clientes
 
 ### Os consertos
 
-| Commit | Defeito |
-|---|---|
+| Commit     | Defeito                                                                                                                                                                                                                                                   |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `68b4b50c` | **Última compra da tabela em UTC**: a leste de Greenwich mostrava um dia a menos que a planilha (`TZ=Asia/Tokyo`: 09/09 para 10/09). Em Brasília não aparece, então a suíte não fica vermelha; quem trava é o guarda de planilha, cuja lista ficou vazia. |
-| `bb7eea14` | Falha de rede silenciosa — mesmo defeito e conserto de Serviços e Vendedores. |
-| `84f06e14` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta. |
-| `622700fc` | Exportar (Excel e PDF) não desabilitava com a tabela vazia. |
-| `871e908d` | Top 10 sem cliente era grade e eixos em branco → `ChartEmpty`. |
-| `a0381fa2` | Frase de carregando com reticências. |
-| `139c5911` | Comparador que nunca devolvia 0, e nome por `toLowerCase`: "Ágil" ia para depois de "Zeta", e o espaço da frente abria a tabela. As regras de Estoque. |
-| `dc99b08c` | Taxa de ativação "75.0%" ao lado de "R$ 123.456,78". |
-| `5a0e4338` | Total do PDF "R$ 50000.50". |
-| `ee69ab69` | Nota do Top Cliente era o valor abreviado do eixo ("R$ 50.0K"), e "R$ 0" sem cliente. |
-| `01817b69` | **Visto só no navegador**: seis colunas de filtro em ~1080px quebravam "Todos os vendedores" em duas linhas. Duas colunas em `md`, três em `lg`, seis em `2xl`; conferido de 800 a 1920px. |
+| `bb7eea14` | Falha de rede silenciosa — mesmo defeito e conserto de Serviços e Vendedores.                                                                                                                                                                             |
+| `84f06e14` | Ordenar só de mouse → botão com nome, `aria-sort` e caixa alta.                                                                                                                                                                                           |
+| `622700fc` | Exportar (Excel e PDF) não desabilitava com a tabela vazia.                                                                                                                                                                                               |
+| `871e908d` | Top 10 sem cliente era grade e eixos em branco → `ChartEmpty`.                                                                                                                                                                                            |
+| `a0381fa2` | Frase de carregando com reticências.                                                                                                                                                                                                                      |
+| `139c5911` | Comparador que nunca devolvia 0, e nome por `toLowerCase`: "Ágil" ia para depois de "Zeta", e o espaço da frente abria a tabela. As regras de Estoque.                                                                                                    |
+| `dc99b08c` | Taxa de ativação "75.0%" ao lado de "R$ 123.456,78".                                                                                                                                                                                                      |
+| `5a0e4338` | Total do PDF "R$ 50000.50".                                                                                                                                                                                                                               |
+| `ee69ab69` | Nota do Top Cliente era o valor abreviado do eixo ("R$ 50.0K"), e "R$ 0" sem cliente.                                                                                                                                                                     |
+| `01817b69` | **Visto só no navegador**: seis colunas de filtro em ~1080px quebravam "Todos os vendedores" em duas linhas. Duas colunas em `md`, três em `lg`, seis em `2xl`; conferido de 800 a 1920px.                                                                |
 
 ### Decisão tomada na decomposição
 
@@ -1464,20 +1464,20 @@ paginada no servidor (`comercial/useComercial.ts`, da outra frente). A tabela pr
 
 ### Os consertos
 
-| Commit | Defeito |
-|---|---|
-| `752e83f9` | Falha de rede silenciosa nos dois hooks → um `Alert`. |
-| `cfc3b27b` | **A planilha saía com um dia a menos em Brasília**: `new Date("2026-03-05")` é meia-noite em UTC. O teste só fica vermelho em `TZ=America/Sao_Paulo`. Conferido no arquivo exportado da API real: 04/09, igual à tabela. |
-| `7d835194` | Ordenar só de mouse → botões com `aria-sort`. |
-| `a03b666b` | Exportar não desabilitava durante o laço (dois cliques, duas planilhas) nem sem nota. |
-| `8f043afa` | Falha ao exportar só escrevia no console → toast. |
-| `41d7cb39` | Os quatro gráficos sem venda eram moldura muda → `ChartEmpty`. |
-| `600bb3b5` | Frase de carregando com reticências. |
-| `7ebf2eea` | **Acima de 24 meses o comparativo comparava ANOS sob "Variação último mês", "Melhor mês" e "Média mensal"** — e com o período "Todos" produção já passa de 24 meses: era o que a tela mostrava por padrão. Agora "Comparativo Anual"; e com menos de dois pontos o cartão explica em vez de ficar mudo. |
-| `07cfb7a8` · `20b8873d` | Média de itens ("2.6") e variação ("-20.0%") com ponto. |
-| `98bd4f3f` | **Navegador**: seis colunas de filtro quebravam "Todos os vendedores". |
-| `6abea0c7` | **Navegador**: "R$ 10.0M" quebrava no eixo da evolução, e o nome inclinado do Top 5 Produtos saía cortado ("TRO PHOEB..."). Conferido medindo cada rótulo contra a caixa do gráfico. |
-| `5cdee458` | **Navegador**: "Ver Observações" quebrava em duas linhas e dobrava a altura da linha. |
+| Commit                  | Defeito                                                                                                                                                                                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `752e83f9`              | Falha de rede silenciosa nos dois hooks → um `Alert`.                                                                                                                                                                                                                                                   |
+| `cfc3b27b`              | **A planilha saía com um dia a menos em Brasília**: `new Date("2026-03-05")` é meia-noite em UTC. O teste só fica vermelho em `TZ=America/Sao_Paulo`. Conferido no arquivo exportado da API real: 04/09, igual à tabela.                                                                                |
+| `7d835194`              | Ordenar só de mouse → botões com `aria-sort`.                                                                                                                                                                                                                                                           |
+| `a03b666b`              | Exportar não desabilitava durante o laço (dois cliques, duas planilhas) nem sem nota.                                                                                                                                                                                                                   |
+| `8f043afa`              | Falha ao exportar só escrevia no console → toast.                                                                                                                                                                                                                                                       |
+| `41d7cb39`              | Os quatro gráficos sem venda eram moldura muda → `ChartEmpty`.                                                                                                                                                                                                                                          |
+| `600bb3b5`              | Frase de carregando com reticências.                                                                                                                                                                                                                                                                    |
+| `7ebf2eea`              | **Acima de 24 meses o comparativo comparava ANOS sob "Variação último mês", "Melhor mês" e "Média mensal"** — e com o período "Todos" produção já passa de 24 meses: era o que a tela mostrava por padrão. Agora "Comparativo Anual"; e com menos de dois pontos o cartão explica em vez de ficar mudo. |
+| `07cfb7a8` · `20b8873d` | Média de itens ("2.6") e variação ("-20.0%") com ponto.                                                                                                                                                                                                                                                 |
+| `98bd4f3f`              | **Navegador**: seis colunas de filtro quebravam "Todos os vendedores".                                                                                                                                                                                                                                  |
+| `6abea0c7`              | **Navegador**: "R$ 10.0M" quebrava no eixo da evolução, e o nome inclinado do Top 5 Produtos saía cortado ("TRO PHOEB..."). Conferido medindo cada rótulo contra a caixa do gráfico.                                                                                                                    |
+| `5cdee458`              | **Navegador**: "Ver Observações" quebrava em duas linhas e dobrava a altura da linha.                                                                                                                                                                                                                   |
 
 ### Três lições
 
@@ -1550,13 +1550,13 @@ já escritas apontarem para a marca sem editar tela nenhuma. Com as doze telas m
 sobravam **quatro consumidores fora das telas** — eles saíram primeiro, um commit cada,
 e só então o andaime caiu.
 
-| Commit | O quê |
-|---|---|
+| Commit                  | O quê                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `75ed9fc1` · `bffc3315` | Os dois modais de observação (o que busca o texto, de Vendas e Vendedores, e o que o recebe, de Serviços) eram `<div className="fixed inset-0">` à mão: **sem `role="dialog"`, sem nome acessível, sem Escape e sem prender o foco** — quem navegava por teclado seguia tabulando na tabela atrás. Agora são o `Modal` do design system. O botão "Fechar" do rodapé saiu: o × do cabeçalho já se chama assim, e dois controles com o mesmo nome acessível no mesmo diálogo é ruído. O `ModalObservacoes` ganhou teste próprio, que não tinha. |
-| `c326b687` | O Login usava `focus:ring-2 focus:ring-blue-400` — `focus:` em vez de `focus-visible:`, e a cor da ponte. O primitivo `Input` não serve ali: o painel é escuro nos dois temas, exceção documentada. |
-| `051e4bc6` | `CentralButton`: borda e pulso em `border-action`/`bg-action`. Ganhou teste, que não tinha. |
-| `e44a25c5` | **A ponte deletada.** O teste do config deixa de travar os valores dela e passa a travar a ausência; o hexadecimal do `login` fica, que nunca foi ponte. |
-| `820dfb07` | Os quatro arquivos saem do `.prettierignore`. |
+| `c326b687`              | O Login usava `focus:ring-2 focus:ring-blue-400` — `focus:` em vez de `focus-visible:`, e a cor da ponte. O primitivo `Input` não serve ali: o painel é escuro nos dois temas, exceção documentada.                                                                                                                                                                                                                                                                                                                                           |
+| `051e4bc6`              | `CentralButton`: borda e pulso em `border-action`/`bg-action`. Ganhou teste, que não tinha.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `e44a25c5`              | **A ponte deletada.** O teste do config deixa de travar os valores dela e passa a travar a ausência; o hexadecimal do `login` fica, que nunca foi ponte.                                                                                                                                                                                                                                                                                                                                                                                      |
+| `820dfb07`              | Os quatro arquivos saem do `.prettierignore`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ### O guarda ganhou uma regra: nome de token não é classe
 

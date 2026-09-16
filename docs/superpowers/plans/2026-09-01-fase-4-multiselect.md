@@ -49,6 +49,7 @@ edição**; se precisar de outra, a unificação mudou algo que não devia.
 ## Estrutura de arquivos
 
 **Criar**
+
 - `src/design-system/ui/forms/MultiSelect.tsx` — o primitivo.
 - `src/design-system/ui/forms/buscaDeMultiSelect.ts` — as quatro estratégias,
   puras e testáveis sozinhas.
@@ -58,6 +59,7 @@ edição**; se precisar de outra, a unificação mudou algo que não devia.
   caracterização do bloco onde ele vive.
 
 **Modificar**
+
 - `src/design-system/ui/forms/index.ts` — exporta o primitivo.
 - As seis telas: apagam a cópia e consomem o primitivo.
 
@@ -69,9 +71,11 @@ edição**; se precisar de outra, a unificação mudou algo que não devia.
 e busca só por texto.
 
 **Arquivos:**
+
 - Criar: `src/pages/Produtos.multiselect.test.tsx`
 
 **Interfaces:**
+
 - Produz: o molde de teste que as tasks 2–6 seguem — abrir pelo botão do
   placeholder, digitar em "Pesquisar...", ler os `checkbox` por nome.
 
@@ -102,7 +106,12 @@ const NOTAS = [
     cliente: { nome: "Alfa Mineração", cpf_cnpj: "11.222.333/0001-44" },
     nome_vendedor: "Vendedor A",
     itens: [
-      { codigo: "P1", descricao: "Bafômetro Phoebus", quantidade: "2", valor_total: "1000" },
+      {
+        codigo: "P1",
+        descricao: "Bafômetro Phoebus",
+        quantidade: "2",
+        valor_total: "1000",
+      },
     ],
   },
   {
@@ -112,7 +121,12 @@ const NOTAS = [
     cliente: { nome: "Beta Logística", cpf_cnpj: "55.666.777/0001-88" },
     nome_vendedor: "Vendedor B",
     itens: [
-      { codigo: "P2", descricao: "Tubo descartável", quantidade: "10", valor_total: "500" },
+      {
+        codigo: "P2",
+        descricao: "Tubo descartável",
+        quantidade: "10",
+        valor_total: "500",
+      },
     ],
   },
 ];
@@ -146,8 +160,12 @@ describe("MultiSelect em Produtos", () => {
       target: { value: "beta" },
     });
 
-    expect(screen.getByRole("checkbox", { name: /Beta Logística/ })).toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: /Alfa/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Beta Logística/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Alfa/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
@@ -196,7 +214,9 @@ describe("MultiSelect em Produtos", () => {
 
     fireEvent.mouseDown(document.body);
 
-    expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 });
 ```
@@ -237,9 +257,11 @@ git commit -m "test(produtos): caracteriza o MultiSelect antes de extrair"
 Serviços busca por texto **e por número**, normalizando a opção inteira.
 
 **Arquivos:**
+
 - Criar: `src/pages/Servicos.multiselect.test.tsx`
 
 **Interfaces:**
+
 - Consome: o molde da Task 1.
 - Produz: o comportamento "acha por número" que a estratégia
   `buscaPorTextoOuNumero` (Task 7) tem de reproduzir.
@@ -251,18 +273,18 @@ placeholder e o contexto que a tela consome — mais o teste que separa Serviço
 de Produtos:
 
 ```tsx
-  it("acha pelo número digitado sem pontuação", () => {
-    render(<Servicos />);
-    abrir("Todos os clientes");
+it("acha pelo número digitado sem pontuação", () => {
+  render(<Servicos />);
+  abrir("Todos os clientes");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-      target: { value: "11222333" },
-    });
-
-    expect(
-      screen.getByRole("checkbox", { name: /Alfa Mineração/ }),
-    ).toBeInTheDocument();
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    target: { value: "11222333" },
   });
+
+  expect(
+    screen.getByRole("checkbox", { name: /Alfa Mineração/ }),
+  ).toBeInTheDocument();
+});
 ```
 
 - [ ] **Passo 2: rodar até passar contra o código de hoje**
@@ -290,6 +312,7 @@ Vendedores extrai o CNPJ **dos parênteses** e só normaliza o termo quando ele 
 todo dígito — é a terceira das quatro buscas.
 
 **Arquivos:**
+
 - Criar: `src/pages/Vendedores.multiselect.test.tsx`
 
 - [ ] **Passo 1: escrever o teste**
@@ -297,31 +320,31 @@ todo dígito — é a terceira das quatro buscas.
 Molde da Task 1, mais os dois que separam Vendedores de Serviços:
 
 ```tsx
-  it("acha pelo CNPJ que está entre parênteses, digitado sem pontuação", () => {
-    render(<Vendedores />);
-    abrir("Todas as empresas");
+it("acha pelo CNPJ que está entre parênteses, digitado sem pontuação", () => {
+  render(<Vendedores />);
+  abrir("Todas as empresas");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-      target: { value: "11222333" },
-    });
-
-    expect(
-      screen.getByRole("checkbox", { name: /Alfa Mineração/ }),
-    ).toBeInTheDocument();
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    target: { value: "11222333" },
   });
 
-  it("termo com letra não vira busca numérica", () => {
-    // A normalização só acontece quando o termo é todo dígito: "a11" procura
-    // o texto "a11", e não o número 11.
-    render(<Vendedores />);
-    abrir("Todas as empresas");
+  expect(
+    screen.getByRole("checkbox", { name: /Alfa Mineração/ }),
+  ).toBeInTheDocument();
+});
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-      target: { value: "a11" },
-    });
+it("termo com letra não vira busca numérica", () => {
+  // A normalização só acontece quando o termo é todo dígito: "a11" procura
+  // o texto "a11", e não o número 11.
+  render(<Vendedores />);
+  abrir("Todas as empresas");
 
-    expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    target: { value: "a11" },
   });
+
+  expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+});
 ```
 
 - [ ] **Passo 2: rodar até passar contra o código de hoje**
@@ -342,6 +365,7 @@ Estoque é o primeiro com `options: { value, label }[]`, e busca só pelo
 `label`.
 
 **Arquivos:**
+
 - Criar: `src/pages/Estoque.multiselect.test.tsx`
 
 - [ ] **Passo 1: escrever o teste**
@@ -349,31 +373,31 @@ Estoque é o primeiro com `options: { value, label }[]`, e busca só pelo
 Molde da Task 1, com dois acréscimos:
 
 ```tsx
-  it("o checkbox mostra o rótulo, e o que é guardado é o código", () => {
-    // A opção é um par: o texto que aparece é o `label`, e o que entra em
-    // `selected` é o `value`. Confundir os dois filtra pelo texto errado.
-    render(<Estoque />);
-    abrir("Todos os produtos");
+it("o checkbox mostra o rótulo, e o que é guardado é o código", () => {
+  // A opção é um par: o texto que aparece é o `label`, e o que entra em
+  // `selected` é o `value`. Confundir os dois filtra pelo texto errado.
+  render(<Estoque />);
+  abrir("Todos os produtos");
 
-    fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /Bafômetro Phoebus/ }));
 
-    expect(
-      screen.getByRole("button", { name: "1 selecionado(s)" }),
-    ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "1 selecionado(s)" }),
+  ).toBeInTheDocument();
+});
+
+// ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
+// Estoque, como Produtos, não acha por número.
+it("não acha pelo código digitado como número (defeito preservado)", () => {
+  render(<Estoque />);
+  abrir("Todos os produtos");
+
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+    target: { value: "1" },
   });
 
-  // ── DEFEITO PRESERVADO ───────────────────────────────────────────────────
-  // Estoque, como Produtos, não acha por número.
-  it("não acha pelo código digitado como número (defeito preservado)", () => {
-    render(<Estoque />);
-    abrir("Todos os produtos");
-
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-      target: { value: "1" },
-    });
-
-    expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
-  });
+  expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
+});
 ```
 
 - [ ] **Passo 2: rodar até passar contra o código de hoje**
@@ -394,6 +418,7 @@ Clientes é a quarta busca: casa `label`, casa `value` cru **e** casa número no
 `value`.
 
 **Arquivos:**
+
 - Criar: `src/pages/Clientes.multiselect.test.tsx`
 
 - [ ] **Passo 1: escrever o teste**
@@ -401,24 +426,24 @@ Clientes é a quarta busca: casa `label`, casa `value` cru **e** casa número no
 Molde da Task 1, mais:
 
 ```tsx
-  it("acha pelo rótulo, pelo valor cru e pelo número do valor", () => {
-    render(<Clientes />);
+it("acha pelo rótulo, pelo valor cru e pelo número do valor", () => {
+  render(<Clientes />);
 
-    for (const [termo, achado] of [
-      ["alfa", true],
-      ["11.222", true],
-      ["11222333", true],
-      ["zeta", false],
-    ] as const) {
-      abrir("Todos os clientes");
-      fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
-        target: { value: termo },
-      });
-      const achou = screen.queryByRole("checkbox", { name: /Alfa Mineração/ });
-      expect(Boolean(achou)).toBe(achado);
-      fireEvent.mouseDown(document.body);
-    }
-  });
+  for (const [termo, achado] of [
+    ["alfa", true],
+    ["11.222", true],
+    ["11222333", true],
+    ["zeta", false],
+  ] as const) {
+    abrir("Todos os clientes");
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: termo },
+    });
+    const achou = screen.queryByRole("checkbox", { name: /Alfa Mineração/ });
+    expect(Boolean(achou)).toBe(achado);
+    fireEvent.mouseDown(document.body);
+  }
+});
 ```
 
 - [ ] **Passo 2: rodar até passar contra o código de hoje**
@@ -441,6 +466,7 @@ arquivos que a fase de divergências vai comparar, e "é igual ao outro" não é
 coisa que se afirme sem teste.
 
 **Arquivos:**
+
 - Criar: `src/pages/Vendas.multiselect.test.tsx`
 
 - [ ] **Passo 1: escrever o teste** — molde da Task 1 mais os dois testes de
@@ -464,10 +490,12 @@ Antes do componente, a parte que decide o que a busca acha. Pura, sem React,
 testável sozinha — é onde moram as quatro divergências.
 
 **Arquivos:**
+
 - Criar: `src/design-system/ui/forms/buscaDeMultiSelect.ts`
 - Criar: `src/design-system/ui/forms/buscaDeMultiSelect.test.ts`
 
 **Interfaces:**
+
 - Produz:
   - `interface OpcaoDeMultiSelect { valor: string; rotulo: string }`
   - `type EstrategiaDeBusca = (opcao: OpcaoDeMultiSelect, termo: string) => boolean`
@@ -488,7 +516,10 @@ import {
   deTextos,
 } from "./buscaDeMultiSelect";
 
-const ALFA = { valor: "Alfa Mineração (11.222.333/0001-44)", rotulo: "Alfa Mineração (11.222.333/0001-44)" };
+const ALFA = {
+  valor: "Alfa Mineração (11.222.333/0001-44)",
+  rotulo: "Alfa Mineração (11.222.333/0001-44)",
+};
 const PRODUTO = { valor: "P1", rotulo: "Bafômetro Phoebus" };
 
 describe("deTextos", () => {
@@ -593,7 +624,10 @@ export const buscaPorTexto: EstrategiaDeBusca = (opcao, termo) =>
 export const buscaPorTextoOuNumero: EstrategiaDeBusca = (opcao, termo) => {
   if (buscaPorTexto(opcao, termo)) return true;
   const digitosDoTermo = soDigitos(termo);
-  return digitosDoTermo.length > 0 && soDigitos(opcao.rotulo).includes(digitosDoTermo);
+  return (
+    digitosDoTermo.length > 0 &&
+    soDigitos(opcao.rotulo).includes(digitosDoTermo)
+  );
 };
 
 /**
@@ -602,7 +636,10 @@ export const buscaPorTextoOuNumero: EstrategiaDeBusca = (opcao, termo) => {
  * Só normaliza quando o termo é TODO dígito: "a11" procura o texto "a11", e
  * não o número 11.
  */
-export const buscaPorCnpjEntreParenteses: EstrategiaDeBusca = (opcao, termo) => {
+export const buscaPorCnpjEntreParenteses: EstrategiaDeBusca = (
+  opcao,
+  termo,
+) => {
   if (buscaPorTexto(opcao, termo)) return true;
   if (!/^\d+$/.test(termo)) return false;
   const entreParenteses = opcao.rotulo.match(/\((.*?)\)/);
@@ -611,12 +648,17 @@ export const buscaPorCnpjEntreParenteses: EstrategiaDeBusca = (opcao, termo) => 
 };
 
 /** Clientes: rótulo, valor cru, ou os dígitos do valor. */
-export const buscaPorRotuloValorOuNumero: EstrategiaDeBusca = (opcao, termo) => {
+export const buscaPorRotuloValorOuNumero: EstrategiaDeBusca = (
+  opcao,
+  termo,
+) => {
   const termoMinusculo = termo.toLowerCase();
   if (opcao.rotulo.toLowerCase().includes(termoMinusculo)) return true;
   if (opcao.valor.toLowerCase().includes(termoMinusculo)) return true;
   const digitosDoTermo = soDigitos(termo);
-  return digitosDoTermo.length > 0 && soDigitos(opcao.valor).includes(digitosDoTermo);
+  return (
+    digitosDoTermo.length > 0 && soDigitos(opcao.valor).includes(digitosDoTermo)
+  );
 };
 ```
 
@@ -637,11 +679,13 @@ git commit -m "feat(ds): as quatro buscas do MultiSelect, puras e nomeadas"
 ### Task 8: o primitivo `MultiSelect`
 
 **Arquivos:**
+
 - Criar: `src/design-system/ui/forms/MultiSelect.tsx`
 - Criar: `src/design-system/ui/forms/MultiSelect.test.tsx`
 - Modificar: `src/design-system/ui/forms/index.ts`
 
 **Interfaces:**
+
 - Consome: `OpcaoDeMultiSelect`, `EstrategiaDeBusca`, `buscaPorTexto` da Task 7.
 - Produz: `<MultiSelect opcoes selecionados onChange placeholder buscarPor? />`,
   com `buscarPor` valendo `buscaPorTexto` por padrão.
@@ -663,20 +707,39 @@ const OPCOES = deTextos([
 describe("MultiSelect", () => {
   it("fechado, mostra o placeholder; com escolha, mostra a contagem", () => {
     const { rerender } = render(
-      <MultiSelect opcoes={OPCOES} selecionados={[]} onChange={vi.fn()} placeholder="Todas as empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={vi.fn()}
+        placeholder="Todas as empresas"
+      />,
     );
-    expect(screen.getByRole("button", { name: "Todas as empresas" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Todas as empresas" }),
+    ).toBeInTheDocument();
 
     rerender(
-      <MultiSelect opcoes={OPCOES} selecionados={[OPCOES[0].valor]} onChange={vi.fn()} placeholder="Todas as empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[OPCOES[0].valor]}
+        onChange={vi.fn()}
+        placeholder="Todas as empresas"
+      />,
     );
-    expect(screen.getByRole("button", { name: "1 selecionado(s)" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "1 selecionado(s)" }),
+    ).toBeInTheDocument();
   });
 
   it("marcar acrescenta e marcar de novo tira", () => {
     const onChange = vi.fn();
     render(
-      <MultiSelect opcoes={OPCOES} selecionados={[]} onChange={onChange} placeholder="Empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={onChange}
+        placeholder="Empresas"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
 
@@ -690,14 +753,26 @@ describe("MultiSelect", () => {
     // página, o estado sobrevive.
     const onChange = vi.fn();
     const { rerender } = render(
-      <MultiSelect opcoes={OPCOES} selecionados={[]} onChange={onChange} placeholder="Empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={onChange}
+        placeholder="Empresas"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "alfa" } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "alfa" },
+    });
     fireEvent.click(screen.getByRole("checkbox", { name: /Alfa/ }));
 
     rerender(
-      <MultiSelect opcoes={OPCOES} selecionados={[OPCOES[0].valor]} onChange={onChange} placeholder="Empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[OPCOES[0].valor]}
+        onChange={onChange}
+        placeholder="Empresas"
+      />,
     );
 
     expect(screen.getByPlaceholderText("Pesquisar...")).toHaveValue("alfa");
@@ -715,16 +790,27 @@ describe("MultiSelect", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "11222333" } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "11222333" },
+    });
 
     expect(screen.getByRole("checkbox", { name: /Alfa/ })).toBeInTheDocument();
   });
 
   it("sem resultado, diz que não achou", () => {
-    render(<MultiSelect opcoes={OPCOES} selecionados={[]} onChange={vi.fn()} placeholder="Empresas" />);
+    render(
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={vi.fn()}
+        placeholder="Empresas"
+      />,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), { target: { value: "gama" } });
+    fireEvent.change(screen.getByPlaceholderText("Pesquisar..."), {
+      target: { value: "gama" },
+    });
 
     expect(screen.getByText("Nenhum resultado encontrado")).toBeInTheDocument();
   });
@@ -732,7 +818,12 @@ describe("MultiSelect", () => {
   it("'Limpar seleção' devolve lista vazia", () => {
     const onChange = vi.fn();
     render(
-      <MultiSelect opcoes={OPCOES} selecionados={[OPCOES[0].valor]} onChange={onChange} placeholder="Empresas" />,
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[OPCOES[0].valor]}
+        onChange={onChange}
+        placeholder="Empresas"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "1 selecionado(s)" }));
 
@@ -742,12 +833,21 @@ describe("MultiSelect", () => {
   });
 
   it("clicar fora fecha", () => {
-    render(<MultiSelect opcoes={OPCOES} selecionados={[]} onChange={vi.fn()} placeholder="Empresas" />);
+    render(
+      <MultiSelect
+        opcoes={OPCOES}
+        selecionados={[]}
+        onChange={vi.fn()}
+        placeholder="Empresas"
+      />,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Empresas" }));
 
     fireEvent.mouseDown(document.body);
 
-    expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("Pesquisar..."),
+    ).not.toBeInTheDocument();
   });
 });
 ```
@@ -760,6 +860,7 @@ Esperado: FAIL, "Failed to resolve import".
 - [ ] **Passo 3: implementar o primitivo**
 
 Portar a cópia de `src/pages/Produtos.tsx:454-575` trocando:
+
 - `options: string[]` → `opcoes: OpcaoDeMultiSelect[]`
 - `selected`/`onChange` → `selecionados`/`onChange`, operando em `valor`
 - o `filter` interno → `opcoes.filter((opcao) => buscarPor(opcao, termo))`
@@ -800,14 +901,14 @@ git commit -m "feat(ds): MultiSelect vira primitivo, com a busca por estrategia"
 Quantos `MultiSelect` cada tela tem e com que placeholder — o executor troca
 todos, não só o primeiro:
 
-| Tela | Filtros |
-|---|---|
-| Produtos | "Todas as empresas", "Todos os produtos", "Todos os vendedores" |
-| Serviços | "Todos os clientes", "Todas as cidades", "Todos os tipos" |
-| Vendedores | "Todas as empresas", "Todos os produtos" |
-| Estoque | "Todos os produtos" |
-| Clientes | "Todos os clientes", "Todos os produtos", "Todos os vendedores" |
-| Vendas | "Todas as empresas", "Todos os produtos", "Todos os vendedores" |
+| Tela       | Filtros                                                         |
+| ---------- | --------------------------------------------------------------- |
+| Produtos   | "Todas as empresas", "Todos os produtos", "Todos os vendedores" |
+| Serviços   | "Todos os clientes", "Todas as cidades", "Todos os tipos"       |
+| Vendedores | "Todas as empresas", "Todos os produtos"                        |
+| Estoque    | "Todos os produtos"                                             |
+| Clientes   | "Todos os clientes", "Todos os produtos", "Todos os vendedores" |
+| Vendas     | "Todas as empresas", "Todos os produtos", "Todos os vendedores" |
 
 ---
 
@@ -818,10 +919,12 @@ passa sem uma edição** — exceto o do dropdown que fecha ao marcar, autorizad
 no topo deste plano.
 
 **Arquivos:**
+
 - Modificar: `src/pages/Produtos.tsx` (apaga `454-575`, importa o primitivo)
 - Modificar: `src/pages/Produtos.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos`, `buscaPorTexto` das tasks 7 e 8.
 
 - [ ] **Passo 1: trocar a cópia pelo primitivo**
@@ -859,10 +962,12 @@ git commit -m "refactor(produtos): consome o MultiSelect do design system"
 ### Task 10: Serviços passa a consumir o primitivo
 
 **Arquivos:**
+
 - Modificar: `src/pages/Servicos.tsx` (apaga a cópia do `MultiSelect`)
 - Modificar: `src/pages/Servicos.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos` e as estratégias das tasks 7 e 8.
 - Nesta tela: **opções** — `deTextos(lista)` nos três filtros. **Busca** — `buscaPorTextoOuNumero` no filtro de clientes; os outros dois ficam no padrão.
 
@@ -887,10 +992,12 @@ git commit -m "refactor(servicos): consome o MultiSelect do design system"
 ### Task 11: Vendedores passa a consumir o primitivo
 
 **Arquivos:**
+
 - Modificar: `src/pages/Vendedores.tsx` (apaga a cópia do `MultiSelect`)
 - Modificar: `src/pages/Vendedores.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos` e as estratégias das tasks 7 e 8.
 - Nesta tela: **opções** — `deTextos(lista)` nos dois filtros. **Busca** — `buscaPorCnpjEntreParenteses` no filtro de empresas; o de produtos fica no padrão.
 
@@ -915,10 +1022,12 @@ git commit -m "refactor(vendedores): consome o MultiSelect do design system"
 ### Task 12: Estoque passa a consumir o primitivo
 
 **Arquivos:**
+
 - Modificar: `src/pages/Estoque.tsx` (apaga a cópia do `MultiSelect`)
 - Modificar: `src/pages/Estoque.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos` e as estratégias das tasks 7 e 8.
 - Nesta tela: **opções** — a lista já é par — trocar `{ value, label }` por `{ valor: o.value, rotulo: o.label }`. **Busca** — padrão, sem passar `buscarPor`.
 
@@ -943,10 +1052,12 @@ git commit -m "refactor(estoque): consome o MultiSelect do design system"
 ### Task 13: Clientes passa a consumir o primitivo
 
 **Arquivos:**
+
 - Modificar: `src/pages/Clientes.tsx` (apaga a cópia do `MultiSelect`)
 - Modificar: `src/pages/Clientes.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos` e as estratégias das tasks 7 e 8.
 - Nesta tela: **opções** — a lista já é par — mesma troca de nomes do Estoque. **Busca** — `buscaPorRotuloValorOuNumero` no filtro de clientes; os outros dois no padrão.
 
@@ -971,10 +1082,12 @@ git commit -m "refactor(clientes): consome o MultiSelect do design system"
 ### Task 14: Vendas passa a consumir o primitivo
 
 **Arquivos:**
+
 - Modificar: `src/pages/Vendas.tsx` (apaga a cópia do `MultiSelect`)
 - Modificar: `src/pages/Vendas.multiselect.test.tsx` (só o teste autorizado)
 
 **Interfaces:**
+
 - Consome: `MultiSelect`, `deTextos` e as estratégias das tasks 7 e 8.
 - Nesta tela: **opções** — `deTextos(lista)` nos três filtros. **Busca** — `buscaPorCnpjEntreParenteses` no filtro de empresas; os outros dois no padrão.
 
@@ -999,6 +1112,7 @@ git commit -m "refactor(vendas): consome o MultiSelect do design system"
 ### Task 15: fechar a conta
 
 **Arquivos:**
+
 - Criar: `docs/superpowers/2026-09-01-multiselect-divergencias.md`
 
 - [ ] **Passo 1: conferir que nenhuma cópia sobrou**

@@ -81,12 +81,12 @@ por uma incoerência de fato, porque marcar várias caixas é o que a peça faz.
 
 ```tsx
 interface MultiSelectProps {
-  rotulo: string;                 // NOVO, obrigatório
+  rotulo: string; // NOVO, obrigatório
   opcoes: OpcaoDeMultiSelect[];
   selecionados: string[];
   onChange: (selecionados: string[]) => void;
   placeholder: string;
-  buscarPor?: EstrategiaDeBusca;  // default buscaPorTexto
+  buscarPor?: EstrategiaDeBusca; // default buscaPorTexto
 }
 ```
 
@@ -165,7 +165,7 @@ sem uma edição.**
 A ordem contraintuitiva é a acessibilidade vir **antes** da fusão. O instinto
 diz o contrário — unificar primeiro, corrigir depois, que foi a regra da fase
 anterior. Aqui ela se inverte por um motivo concreto: se a fusão viesse antes,
-Contas *perderia* o rótulo acessível durante um movimento inteiro, a
+Contas _perderia_ o rótulo acessível durante um movimento inteiro, a
 caracterização do M1 quebraria, e consertá-la exigiria editar o teste que existe
 justamente para não ser editado. Invertendo, o M3 é uma fusão de verdade sem
 mudança de comportamento, porque a essa altura o primitivo já faz tudo o que a

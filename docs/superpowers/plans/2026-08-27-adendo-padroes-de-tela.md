@@ -37,11 +37,13 @@ ele reimplementa algo que temos, use o que temos.
 Os dois menores, sem dependência, e o `Chip` destrava a Task 3.
 
 **Files:**
+
 - Create: `src/design-system/ui/core/Chip.tsx`, `src/design-system/ui/data/KpiCard.tsx`
 - Modify: os `index.ts` de `core/` e `data/`
 - Test: `Chip.test.tsx`, `KpiCard.test.tsx` ao lado de cada
 
 **`Chip`** — pílula usada como filtro aplicado e como visão salva. Duas variantes:
+
 - `aplicado`: altura 26px, padding `0 10px`, `rounded-full`, fundo `bg-action-tint`,
   texto `text-action`, e um `×` que remove — o `×` é um `<button>` com
   `aria-label={"Remover filtro " + rótulo}` e `focus-visible`
@@ -50,6 +52,7 @@ Os dois menores, sem dependência, e o `Chip` destrava a Task 3.
 Quando não há `onRemove`, o `×` não aparece.
 
 **`KpiCard`** — cartão de indicador, três linhas de anatomia fixa:
+
 - rótulo: 11px, `font-semibold`, caixa alta, `tracking-[0.1em]`, `text-conteudo-faint`
 - valor: `font-mono`, `font-bold`, `whitespace-nowrap`, tamanho `clamp(16px, 2.1vw, 24px)`;
   cor por `tone`: `acao` (`text-action`), `positivo` (`text-success`),
@@ -77,6 +80,7 @@ O achado mais reaproveitável do levantamento: aparece em Vendas, Locação e nu
 painel genérico compartilhado por Serviços, Clientes e as duas telas de Contas.
 
 **Files:**
+
 - Create: `src/design-system/ui/feedback/Drawer.tsx`
 - Modify: `src/design-system/ui/feedback/index.ts`
 - Test: `Drawer.test.tsx`
@@ -89,6 +93,7 @@ Leia o `Modal.tsx` e reaproveite o mecanismo — se compensar, extraia o que os 
 compartilham; se não, replique com o mesmo cuidado e diga por quê no relatório.
 
 Anatomia, do levantamento:
+
 - envolvente `fixed inset-0 z-overlay`; cortina `bg-overlay backdrop-blur-[4px]`,
   fecha ao clique
 - painel: largura 420–460px, `max-w-[92vw]`, encostado à direita, altura total,
@@ -117,11 +122,13 @@ O maior ganho de consistência: o padrão se repete em oito das doze telas grand
 e hoje **não existe nada parecido** no código.
 
 **Files:**
+
 - Create: `src/design-system/ui/data/FilterBar.tsx`
 - Modify: `src/design-system/ui/data/index.ts`
 - Test: `FilterBar.test.tsx`
 
 Anatomia, do levantamento:
+
 - Um `Card` só. Primeira linha: campos em `flex items-end gap-3 flex-wrap`, com
   largura fixa por campo. Um bloco com `ml-auto` empurra ações para a direita
   quando sobra espaço.
@@ -157,6 +164,7 @@ Os campos vêm como `children`, para a tela compor com `SearchSelect`, `Select` 
 Os dois "quase componentes" que o levantamento identificou como baratos.
 
 **Files:**
+
 - Create: `src/design-system/ui/data/RankedList.tsx`, `DataList.tsx`
 - Modify: `src/design-system/ui/data/index.ts`
 - Test: um ao lado de cada

@@ -45,38 +45,38 @@ Tailwind 3.4.17, design system em `src/design-system/`.
 
 **Criar:**
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/hooks/usePaginacao.ts` | estado da página, corte da lista e o reset ao trocar de lista |
-| `src/hooks/usePaginacao.test.ts` | teste do hook isolado |
-| `src/pages/<Tela>.paginacao.test.tsx` (×6) | caracterização do rodapé de cada tela |
+| Arquivo                                    | Responsabilidade                                              |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| `src/hooks/usePaginacao.ts`                | estado da página, corte da lista e o reset ao trocar de lista |
+| `src/hooks/usePaginacao.test.ts`           | teste do hook isolado                                         |
+| `src/pages/<Tela>.paginacao.test.tsx` (×6) | caracterização do rodapé de cada tela                         |
 
 **Modificar:**
 
-| Arquivo | O quê |
-|---|---|
-| `src/design-system/ui/data/Pagination.tsx` | ganha a forma compacta abaixo de `md` |
-| `src/design-system/ui/data/Pagination.test.tsx` | testes da forma compacta |
-| `src/pages/Clientes.tsx` | rodapé → primitivo; `TableEmpty`; hook |
-| `src/pages/Estoque.tsx` | idem |
-| `src/pages/Produtos.tsx` | idem |
-| `src/pages/Servicos.tsx` | idem |
-| `src/pages/Vendas.tsx` | idem |
-| `src/pages/Vendedores.tsx` | idem |
-| `docs/superpowers/2026-09-01-multiselect-divergencias.md` | as divergências novas |
+| Arquivo                                                   | O quê                                  |
+| --------------------------------------------------------- | -------------------------------------- |
+| `src/design-system/ui/data/Pagination.tsx`                | ganha a forma compacta abaixo de `md`  |
+| `src/design-system/ui/data/Pagination.test.tsx`           | testes da forma compacta               |
+| `src/pages/Clientes.tsx`                                  | rodapé → primitivo; `TableEmpty`; hook |
+| `src/pages/Estoque.tsx`                                   | idem                                   |
+| `src/pages/Produtos.tsx`                                  | idem                                   |
+| `src/pages/Servicos.tsx`                                  | idem                                   |
+| `src/pages/Vendas.tsx`                                    | idem                                   |
+| `src/pages/Vendedores.tsx`                                | idem                                   |
+| `docs/superpowers/2026-09-01-multiselect-divergencias.md` | as divergências novas                  |
 
 ## A tabela que todas as tasks consultam
 
 Os números por tela, medidos. **Errar um destes é errar a task inteira.**
 
-| Tela | `pageSize` | `itemLabel` | `colSpan` | Lista da tabela | Contexto mockado |
-|---|---|---|---|---|---|
-| Clientes | 15 | *(default)* | 5 | `clientesTabela` | `../context/DataContext` |
-| Estoque | 15 | *(default)* | 7 | `produtosTabela` | `../context/EstoqueContext` |
-| Produtos | 10 | `"produtos"` | 6 | `produtosTabela` | `../context/DataContext` |
-| Serviços | 15 | *(default)* | 6 | `servicosTabela` | `../context/ServicosContext` |
-| Vendas | 10 | *(default)* | 6 | `notasTabela` | `../context/DataContext` |
-| Vendedores | 10 | *(default)* | 7 | `notasTabela` | `../context/DataContext` |
+| Tela       | `pageSize` | `itemLabel`  | `colSpan` | Lista da tabela  | Contexto mockado             |
+| ---------- | ---------- | ------------ | --------- | ---------------- | ---------------------------- |
+| Clientes   | 15         | _(default)_  | 5         | `clientesTabela` | `../context/DataContext`     |
+| Estoque    | 15         | _(default)_  | 7         | `produtosTabela` | `../context/EstoqueContext`  |
+| Produtos   | 10         | `"produtos"` | 6         | `produtosTabela` | `../context/DataContext`     |
+| Serviços   | 15         | _(default)_  | 6         | `servicosTabela` | `../context/ServicosContext` |
+| Vendas     | 10         | _(default)_  | 6         | `notasTabela`    | `../context/DataContext`     |
+| Vendedores | 10         | _(default)_  | 7         | `notasTabela`    | `../context/DataContext`     |
 
 O `colSpan` é a contagem de `<td>` de uma linha do corpo. **Não** use
 `grep -c "<th"`: ele conta o `<thead>` junto e devolve um a mais.
@@ -95,10 +95,12 @@ uma a uma antes de plugar o hook.
 ### Task 1: o `Pagination` aprende a forma compacta de celular
 
 **Files:**
+
 - Modify: `src/design-system/ui/data/Pagination.tsx`
 - Test: `src/design-system/ui/data/Pagination.test.tsx`
 
 **Interfaces:**
+
 - Consumes: nada — é o primeiro movimento.
 - Produces: o `Pagination` passa a renderizar **dois** blocos de controle no
   DOM: o completo (`hidden md:flex`) e o compacto (`flex md:hidden`). Em jsdom
@@ -116,61 +118,69 @@ Acrescentar ao fim do `describe` existente em
 `src/design-system/ui/data/Pagination.test.tsx`:
 
 ```tsx
-  /**
-   * A forma compacta de celular.
-   *
-   * Em jsdom não há media query: `hidden md:flex` e `flex md:hidden` são só
-   * classes, e os DOIS blocos existem na árvore. Por isso estes testes acham
-   * os botões compactos pelo `aria-label`, e os do bloco completo pelo texto
-   * "Anterior"/"Próxima" — misturar os dois é o erro fácil aqui.
-   */
-  it("mostra a pagina atual entre dois botoes compactos", () => {
-    render(
-      <Pagination page={3} pageSize={10} total={84} onPageChange={() => {}} />,
-    );
+/**
+ * A forma compacta de celular.
+ *
+ * Em jsdom não há media query: `hidden md:flex` e `flex md:hidden` são só
+ * classes, e os DOIS blocos existem na árvore. Por isso estes testes acham
+ * os botões compactos pelo `aria-label`, e os do bloco completo pelo texto
+ * "Anterior"/"Próxima" — misturar os dois é o erro fácil aqui.
+ */
+it("mostra a pagina atual entre dois botoes compactos", () => {
+  render(
+    <Pagination page={3} pageSize={10} total={84} onPageChange={() => {}} />,
+  );
 
-    expect(screen.getByRole("button", { name: "Página anterior" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Próxima página" })).toBeInTheDocument();
-    expect(screen.getByTestId("pagina-atual-compacta")).toHaveTextContent("3");
-  });
+  expect(
+    screen.getByRole("button", { name: "Página anterior" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Próxima página" }),
+  ).toBeInTheDocument();
+  expect(screen.getByTestId("pagina-atual-compacta")).toHaveTextContent("3");
+});
 
-  it("os botoes compactos andam de pagina", () => {
-    const aoTrocar = vi.fn();
-    render(
-      <Pagination page={3} pageSize={10} total={84} onPageChange={aoTrocar} />,
-    );
+it("os botoes compactos andam de pagina", () => {
+  const aoTrocar = vi.fn();
+  render(
+    <Pagination page={3} pageSize={10} total={84} onPageChange={aoTrocar} />,
+  );
 
-    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
-    expect(aoTrocar).toHaveBeenCalledWith(4);
+  fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+  expect(aoTrocar).toHaveBeenCalledWith(4);
 
-    fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
-    expect(aoTrocar).toHaveBeenCalledWith(2);
-  });
+  fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
+  expect(aoTrocar).toHaveBeenCalledWith(2);
+});
 
-  it("os botoes compactos desabilitam nos extremos", () => {
-    const { rerender } = render(
-      <Pagination page={1} pageSize={10} total={84} onPageChange={() => {}} />,
-    );
-    expect(screen.getByRole("button", { name: "Página anterior" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Próxima página" })).toBeEnabled();
+it("os botoes compactos desabilitam nos extremos", () => {
+  const { rerender } = render(
+    <Pagination page={1} pageSize={10} total={84} onPageChange={() => {}} />,
+  );
+  expect(
+    screen.getByRole("button", { name: "Página anterior" }),
+  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Próxima página" })).toBeEnabled();
 
-    rerender(
-      <Pagination page={9} pageSize={10} total={84} onPageChange={() => {}} />,
-    );
-    expect(screen.getByRole("button", { name: "Página anterior" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Próxima página" })).toBeDisabled();
-  });
+  rerender(
+    <Pagination page={9} pageSize={10} total={84} onPageChange={() => {}} />,
+  );
+  expect(screen.getByRole("button", { name: "Página anterior" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Próxima página" })).toBeDisabled();
+});
 
-  it("a frase de contagem aparece uma vez so, nao uma por forma", () => {
-    // A frase é irmã dos dois blocos, não filha de um deles. Se alguém
-    // duplicá-la para "arrumar" o layout do celular, o leitor de tela passa
-    // a ouvir a contagem duas vezes.
-    render(
-      <Pagination page={1} pageSize={10} total={84} onPageChange={() => {}} />,
-    );
+it("a frase de contagem aparece uma vez so, nao uma por forma", () => {
+  // A frase é irmã dos dois blocos, não filha de um deles. Se alguém
+  // duplicá-la para "arrumar" o layout do celular, o leitor de tela passa
+  // a ouvir a contagem duas vezes.
+  render(
+    <Pagination page={1} pageSize={10} total={84} onPageChange={() => {}} />,
+  );
 
-    expect(screen.getAllByText("Mostrando 1 a 10 de 84 registros")).toHaveLength(1);
-  });
+  expect(screen.getAllByText("Mostrando 1 a 10 de 84 registros")).toHaveLength(
+    1,
+  );
+});
 ```
 
 Se `fireEvent` ou `vi` ainda não estiverem importados no arquivo, acrescentar
@@ -197,7 +207,8 @@ O bloco que já existe ganha `hidden` e `md:flex` no lugar de `flex`:
 E, logo depois de fechar esse bloco, antes de fechar o `<div>` externo:
 
 ```tsx
-      {/*
+{
+  /*
         Forma compacta de celular.
 
         A janela de cinco números mais Anterior e Próxima passa de 370px e não
@@ -211,41 +222,42 @@ E, logo depois de fechar esse bloco, antes de fechar o `<div>` externo:
         de uma unificação, e entraria como uma edição a mais na caracterização
         do M2. O nome acessível, esse sim, é frase inteira: `<` sozinho não diz
         nada em leitor de tela.
-      */}
-      <div className="flex items-center gap-2 md:hidden">
-        <button
-          type="button"
-          aria-label="Página anterior"
-          disabled={emPrimeira}
-          onClick={() => onPageChange(page - 1)}
-          className={[
-            "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-            "disabled:cursor-not-allowed disabled:opacity-40",
-          ].join(" ")}
-        >
-          {"<"}
-        </button>
-        <span
-          data-testid="pagina-atual-compacta"
-          className="rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo"
-        >
-          {page}
-        </span>
-        <button
-          type="button"
-          aria-label="Próxima página"
-          disabled={emUltima}
-          onClick={() => onPageChange(page + 1)}
-          className={[
-            "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-            "disabled:cursor-not-allowed disabled:opacity-40",
-          ].join(" ")}
-        >
-          {">"}
-        </button>
-      </div>
+      */
+}
+<div className="flex items-center gap-2 md:hidden">
+  <button
+    type="button"
+    aria-label="Página anterior"
+    disabled={emPrimeira}
+    onClick={() => onPageChange(page - 1)}
+    className={[
+      "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
+      "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+      "disabled:cursor-not-allowed disabled:opacity-40",
+    ].join(" ")}
+  >
+    {"<"}
+  </button>
+  <span
+    data-testid="pagina-atual-compacta"
+    className="rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo"
+  >
+    {page}
+  </span>
+  <button
+    type="button"
+    aria-label="Próxima página"
+    disabled={emUltima}
+    onClick={() => onPageChange(page + 1)}
+    className={[
+      "rounded-lg border border-borda bg-surface px-3 py-1.5 text-sm font-medium text-conteudo transition-colors",
+      "focus:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+      "disabled:cursor-not-allowed disabled:opacity-40",
+    ].join(" ")}
+  >
+    {">"}
+  </button>
+</div>;
 ```
 
 Acrescentar ao docblock do componente, depois do parágrafo que fala do
@@ -281,6 +293,7 @@ Sem as duas quebras plantadas e revertidas, a task não está entregue.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 85 arquivos verdes (1373 + 4 = **1377 testes**), lint **≤ 119**,
 `tsc` sem saída.
 
@@ -296,10 +309,12 @@ git commit -m "feat(ds): Pagination ganha a forma compacta de celular"
 ### Task 2: caracterizar o rodapé de Produtos
 
 **Files:**
+
 - Create: `src/pages/Produtos.paginacao.test.tsx`
 - Read (para copiar o preâmbulo de mocks): `src/pages/Produtos.multiselect.test.tsx:1-75`
 
 **Interfaces:**
+
 - Consumes: nada do código de produção — caracteriza o que já existe.
 - Produces: o **molde** que as Tasks 3 a 7 repetem. E o critério de aceitação
   do M2: estes testes têm de passar depois da Task 8 sem edição, fora as duas
@@ -363,9 +378,15 @@ vi.mock("recharts", () => {
     ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => (
       <div>{children}</div>
     ),
-    BarChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    LineChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    PieChart: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -469,6 +490,7 @@ Reverter. Rodar de novo e ver verde. **Sem essa prova a task não está entregue
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: **86 arquivos**, 1377 + 5 = **1382 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 5: commit**
@@ -483,6 +505,7 @@ git commit -m "test(produtos): caracteriza a paginacao antes de adotar o primiti
 ### Task 3: caracterizar o rodapé das outras cinco telas
 
 **Files:**
+
 - Create: `src/pages/Clientes.paginacao.test.tsx`
 - Create: `src/pages/Estoque.paginacao.test.tsx`
 - Create: `src/pages/Servicos.paginacao.test.tsx`
@@ -491,6 +514,7 @@ git commit -m "test(produtos): caracteriza a paginacao antes de adotar o primiti
 - Read (preâmbulo de mocks de cada uma): `src/pages/<Tela>.multiselect.test.tsx`
 
 **Interfaces:**
+
 - Consumes: o molde da Task 2 — as cinco repetem a mesma estrutura de
   `describe`, o mesmo helper `linhasDaTabela()` e as mesmas cinco asserções.
 - Produces: a rede completa das seis telas, que a Task 8 não pode editar.
@@ -501,13 +525,13 @@ do tipo que aquele contexto entrega, com N = `pageSize + 2`.
 
 **Por tela, o que muda no molde da Task 2** (o resto é idêntico):
 
-| Tela | Mock do contexto | Fixture | `pageSize` | Frase esperada na 1ª página |
-|---|---|---|---|---|
-| Clientes | `../context/DataContext` → `{ clientes, clientesEnriquecidos, notas, carregando: false }` | 17 clientes | 15 | `Mostrando 1 a 15 de 17 registros` |
-| Estoque | `../context/EstoqueContext` → `{ produtos, carregando: false }` | 17 produtos | 15 | `Mostrando 1 a 15 de 17 registros` |
-| Serviços | `../context/ServicosContext` → `{ servicos, servicosEnriquecidos, carregando: false }` | 17 serviços | 15 | `Mostrando 1 a 15 de 17 registros` |
-| Vendas | `../context/DataContext` → `{ notas, carregando: false }` | 12 notas | 10 | `Mostrando 1 a 10 de 12 registros` |
-| Vendedores | `../context/DataContext` → `{ notas, notasVendedor, carregando: false, atualizarTipoNota: vi.fn(), vendedorLogado: null }` | 12 notas | 10 | `Mostrando 1 a 10 de 12 registros` |
+| Tela       | Mock do contexto                                                                                                           | Fixture     | `pageSize` | Frase esperada na 1ª página        |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | ---------------------------------- |
+| Clientes   | `../context/DataContext` → `{ clientes, clientesEnriquecidos, notas, carregando: false }`                                  | 17 clientes | 15         | `Mostrando 1 a 15 de 17 registros` |
+| Estoque    | `../context/EstoqueContext` → `{ produtos, carregando: false }`                                                            | 17 produtos | 15         | `Mostrando 1 a 15 de 17 registros` |
+| Serviços   | `../context/ServicosContext` → `{ servicos, servicosEnriquecidos, carregando: false }`                                     | 17 serviços | 15         | `Mostrando 1 a 15 de 17 registros` |
+| Vendas     | `../context/DataContext` → `{ notas, carregando: false }`                                                                  | 12 notas    | 10         | `Mostrando 1 a 10 de 12 registros` |
+| Vendedores | `../context/DataContext` → `{ notas, notasVendedor, carregando: false, atualizarTipoNota: vi.fn(), vendedorLogado: null }` | 12 notas    | 10         | `Mostrando 1 a 10 de 12 registros` |
 
 Nas cinco o substantivo é **"registros"**, não o nome da entidade — só Produtos
 diz "produtos".
@@ -598,6 +622,7 @@ outras — foi assim que a lista de divergências do MultiSelect ganhou o item 4
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: **91 arquivos**, 1382 + 25 = **1407 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 5: commit, um por tela**
@@ -616,10 +641,12 @@ E assim para Estoque, Servicos, Vendas e Vendedores.
 ### Task 4: `usePaginacao` — o hook, sozinho
 
 **Files:**
+
 - Create: `src/hooks/usePaginacao.ts`
 - Test: `src/hooks/usePaginacao.test.ts`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces:
 
@@ -628,7 +655,7 @@ export function usePaginacao<T>(
   itens: T[],
   tamanhoDaPagina: number,
 ): {
-  pagina: number;                          // 1-based
+  pagina: number; // 1-based
   setPagina: (pagina: number) => void;
   itensDaPagina: T[];
   total: number;
@@ -805,6 +832,7 @@ mesmo que errado.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: **92 arquivos**, 1407 + 6 = **1413 testes**, lint ≤ 119, `tsc` limpo.
 
 `renderHook` está disponível: `@testing-library/react` aqui é **16.3.2**
@@ -823,10 +851,12 @@ git commit -m "feat(hooks): usePaginacao com o reset ao trocar de lista"
 ### Task 5: Produtos adota o `Pagination`
 
 **Files:**
+
 - Modify: `src/pages/Produtos.tsx` — bloco do rodapé em `983-1086`, e o import
 - Test: `src/pages/Produtos.paginacao.test.tsx` (**não editar**, fora as exceções)
 
 **Interfaces:**
+
 - Consumes: `Pagination` de `../design-system/ui` (Task 1), a caracterização da
   Task 2.
 - Produces: o molde que a Task 6 repete nas outras cinco.
@@ -850,22 +880,24 @@ Em `src/pages/Produtos.tsx`, apagar o bloco inteiro `{totalPaginas > 1 && ( ...
 )}` (linhas 983 a 1086 na medição) e pôr no lugar:
 
 ```tsx
-          {/*
+{
+  /*
             O `Pagination` do design system, e não as 104 linhas que estavam
             aqui. As que saíram escondiam a frase de contagem dentro do
             `{totalPaginas > 1 && ...}`: quem tinha 10 produtos ou menos não
             lia contagem nenhuma. É o mesmo defeito 1.7 que a Fase 1 corrigiu
             em Contas, e ele morre junto com o bloco.
-          */}
-          <div className="mt-4">
-            <Pagination
-              page={paginaAtual}
-              pageSize={itensPorPagina}
-              total={produtosTabela.length}
-              itemLabel="produtos"
-              onPageChange={setPaginaAtual}
-            />
-          </div>
+          */
+}
+<div className="mt-4">
+  <Pagination
+    page={paginaAtual}
+    pageSize={itensPorPagina}
+    total={produtosTabela.length}
+    itemLabel="produtos"
+    onPageChange={setPaginaAtual}
+  />
+</div>;
 ```
 
 Acrescentar ao import do design system no topo do arquivo (ou criar a linha se
@@ -899,6 +931,7 @@ vazou para fora do rodapé.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 92 arquivos, **1413 testes**, lint **abaixo** de 119 (saíram ~104
 linhas de JSX), `tsc` limpo.
 
@@ -914,6 +947,7 @@ git commit -m "refactor(produtos): consome o Pagination do design system"
 ### Task 6: as outras cinco telas adotam o `Pagination`
 
 **Files:**
+
 - Modify: `src/pages/Clientes.tsx` (rodapé em `1147-1257`)
 - Modify: `src/pages/Estoque.tsx` (`1138-1242`)
 - Modify: `src/pages/Servicos.tsx` (`1025-1128`)
@@ -922,6 +956,7 @@ git commit -m "refactor(produtos): consome o Pagination do design system"
 - Test: os cinco `<Tela>.paginacao.test.tsx` (**não editar**, fora a exceção 1)
 
 **Interfaces:**
+
 - Consumes: o molde da Task 5, a caracterização da Task 3.
 - Produces: `grep -rn "totalPaginas" src/pages/` passa a devolver zero.
 
@@ -933,21 +968,23 @@ passa `"produtos"`.
 Mesmo movimento da Task 5, com os nomes daquela tela. Em Clientes, por exemplo:
 
 ```tsx
-          {/*
+{
+  /*
             O `Pagination` do design system, e não as 111 linhas que estavam
             aqui. As que saíram escondiam a frase de contagem dentro do
             `{totalPaginas > 1 && ...}`: quem tinha 15 clientes ou menos não
             lia contagem nenhuma. É o mesmo defeito 1.7 que a Fase 1 corrigiu
             em Contas, e ele morre junto com o bloco.
-          */}
-          <div className="mt-4">
-            <Pagination
-              page={paginaAtual}
-              pageSize={itensPorPagina}
-              total={clientesTabela.length}
-              onPageChange={setPaginaAtual}
-            />
-          </div>
+          */
+}
+<div className="mt-4">
+  <Pagination
+    page={paginaAtual}
+    pageSize={itensPorPagina}
+    total={clientesTabela.length}
+    onPageChange={setPaginaAtual}
+  />
+</div>;
 ```
 
 Trocando `clientesTabela` por `produtosTabela` em Estoque, `servicosTabela` em
@@ -976,6 +1013,7 @@ Expected: PASS sem edição, nas cinco.
 ```bash
 grep -rn "totalPaginas" src/
 ```
+
 Expected: **nenhuma saída.**
 
 - [ ] **Passo 5: suíte inteira, lint e tsc**
@@ -983,6 +1021,7 @@ Expected: **nenhuma saída.**
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 92 arquivos, 1413 testes, lint **bem abaixo** de 119 (saíram ~523
 linhas de JSX nas cinco), `tsc` limpo.
 
@@ -1000,10 +1039,12 @@ E assim para Estoque, Servicos, Vendas e Vendedores.
 ### Task 7: `TableEmpty` nas seis telas
 
 **Files:**
+
 - Modify: os seis `src/pages/<Tela>.tsx`, no `<tbody>`
 - Test: os seis `src/pages/<Tela>.paginacao.test.tsx`, um `it` novo em cada
 
 **Interfaces:**
+
 - Consumes: `TableEmpty` de `../design-system/ui`.
 - Produces: com zero resultados, a tabela **diz** que está vazia.
 
@@ -1024,16 +1065,16 @@ vazio num arquivo `<Tela>.vazio.test.tsx`? **Não** — em vez disso, usar a
 pesquisa da própria tela para esvaziar a lista, que é o caminho real da pessoa:
 
 ```tsx
-  it("com filtro que nao casa nada, a tabela diz que esta vazia", () => {
-    render(<Produtos />);
+it("com filtro que nao casa nada, a tabela diz que esta vazia", () => {
+  render(<Produtos />);
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
-      target: { value: "zzzzz-nao-existe" },
-    });
-
-    expect(linhasDaTabela()).toHaveLength(1);
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
+    target: { value: "zzzzz-nao-existe" },
   });
+
+  expect(linhasDaTabela()).toHaveLength(1);
+  expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+});
 ```
 
 `linhasDaTabela()` devolve 1 porque o `TableEmpty` **é** um `<tr>`.
@@ -1108,9 +1149,11 @@ git commit -m "fix(produtos): a tabela vazia passa a dizer que esta vazia"
 ### Task 8: conferir os seis `useMemo` antes de plugar o hook
 
 **Files:**
+
 - Read: os seis `src/pages/<Tela>.tsx`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: a certeza de que a Task 9 é segura, ou a lista do que impede.
 
@@ -1149,10 +1192,12 @@ Não há commit de código nesta task. O resultado vai na mensagem de conclusão
 ### Task 9: as seis consomem o `usePaginacao`
 
 **Files:**
+
 - Modify: os seis `src/pages/<Tela>.tsx`
 - Test: os seis `src/pages/<Tela>.paginacao.test.tsx`, um `it` novo em cada
 
 **Interfaces:**
+
 - Consumes: `usePaginacao` (Task 4), a conferência da Task 8.
 - Produces: `grep -rn "paginaAtual" src/pages/` devolve zero; nenhuma das seis
   declara `useState` de página nem `useMemo` de `slice`.
@@ -1160,22 +1205,22 @@ Não há commit de código nesta task. O resultado vai na mensagem de conclusão
 - [ ] **Passo 1: escrever o teste que falha, em cada uma das seis**
 
 ```tsx
-  it("filtrar volta para a primeira pagina", () => {
-    // O defeito 3: quem estava na pagina 2 e filtrava continuava na 2, com a
-    // tabela em branco e o rodape escrevendo um intervalo invertido — algo
-    // como "Mostrando 11 a 3 de 3 produtos".
-    render(<Produtos />);
+it("filtrar volta para a primeira pagina", () => {
+  // O defeito 3: quem estava na pagina 2 e filtrava continuava na 2, com a
+  // tabela em branco e o rodape escrevendo um intervalo invertido — algo
+  // como "Mostrando 11 a 3 de 3 produtos".
+  render(<Produtos />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 11 a 12");
+  fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+  expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 11 a 12");
 
-    fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
-      target: { value: "Produto 0" },
-    });
-
-    expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 1 a ");
-    expect(linhasDaTabela().length).toBeGreaterThan(0);
+  fireEvent.change(screen.getByPlaceholderText("Pesquisar produto..."), {
+    target: { value: "Produto 0" },
   });
+
+  expect(screen.getByText(/Mostrando/)).toHaveTextContent("Mostrando 1 a ");
+  expect(linhasDaTabela().length).toBeGreaterThan(0);
+});
 ```
 
 Ajustar o termo de busca e o placeholder por tela, de modo que o filtro deixe
@@ -1201,12 +1246,12 @@ Apagar, em Produtos:
 E pôr, logo depois da declaração de `produtosTabela`:
 
 ```tsx
-  const {
-    pagina: paginaAtual,
-    setPagina: setPaginaAtual,
-    itensDaPagina: produtosPaginados,
-    total: totalDeProdutos,
-  } = usePaginacao(produtosTabela, 10);
+const {
+  pagina: paginaAtual,
+  setPagina: setPaginaAtual,
+  itensDaPagina: produtosPaginados,
+  total: totalDeProdutos,
+} = usePaginacao(produtosTabela, 10);
 ```
 
 Import:
@@ -1234,6 +1279,7 @@ Expected: 92 arquivos, 1419 + 6 = **1425 testes**, verdes.
 ```bash
 grep -rn "itensPorPagina\|paginaAtual" src/pages/
 ```
+
 Expected: só as ocorrências dentro da desestruturação do hook (`pagina:
 paginaAtual`), nenhuma `useState`.
 
@@ -1266,6 +1312,7 @@ git commit -m "fix(produtos): filtrar volta para a primeira pagina"
 ### Task 10: fechar a conta
 
 **Files:**
+
 - Modify: `docs/superpowers/2026-09-01-multiselect-divergencias.md`
 - Modify: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 

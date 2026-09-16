@@ -47,39 +47,39 @@ seção "Checklist de tela migrada" do spec.
 
 ## Estrutura de arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/pages/produtos/produtos.ts` | **Criar.** A conta pura, sem React. |
-| `src/pages/produtos/produtos.test.ts` | **Criar.** Teste da conta pura. |
-| `src/pages/produtos/CabecalhoProdutos.tsx` | **Criar.** Título e subtítulo. |
-| `src/pages/produtos/FiltrosDeProdutos.tsx` | **Criar.** Os seis filtros. |
-| `src/pages/produtos/KpisDeProdutos.tsx` | **Criar.** Os quatro cartões. |
-| `src/pages/produtos/GraficosDeProdutos.tsx` | **Criar.** Os dois gráficos. |
-| `src/pages/produtos/TabelaDeProdutos.tsx` | **Criar.** Busca, exportação, tabela, paginação. |
-| `src/pages/Produtos.kpis.test.tsx` | **Criar.** Caracterização dos KPIs. |
-| `src/pages/Produtos.tabela.test.tsx` | **Criar.** Caracterização da tabela. |
-| `src/pages/Produtos.tsx` | **Modificar.** Vira casca. |
-| `src/test/guarda-cores.test.ts` | **Modificar.** Tirar `Produtos.tsx` do `PENDENTES_FASE_3`. |
-| `.prettierignore` | **Modificar.** Abrir exceção para a tela. |
+| Arquivo                                     | Responsabilidade                                           |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| `src/pages/produtos/produtos.ts`            | **Criar.** A conta pura, sem React.                        |
+| `src/pages/produtos/produtos.test.ts`       | **Criar.** Teste da conta pura.                            |
+| `src/pages/produtos/CabecalhoProdutos.tsx`  | **Criar.** Título e subtítulo.                             |
+| `src/pages/produtos/FiltrosDeProdutos.tsx`  | **Criar.** Os seis filtros.                                |
+| `src/pages/produtos/KpisDeProdutos.tsx`     | **Criar.** Os quatro cartões.                              |
+| `src/pages/produtos/GraficosDeProdutos.tsx` | **Criar.** Os dois gráficos.                               |
+| `src/pages/produtos/TabelaDeProdutos.tsx`   | **Criar.** Busca, exportação, tabela, paginação.           |
+| `src/pages/Produtos.kpis.test.tsx`          | **Criar.** Caracterização dos KPIs.                        |
+| `src/pages/Produtos.tabela.test.tsx`        | **Criar.** Caracterização da tabela.                       |
+| `src/pages/Produtos.tsx`                    | **Modificar.** Vira casca.                                 |
+| `src/test/guarda-cores.test.ts`             | **Modificar.** Tirar `Produtos.tsx` do `PENDENTES_FASE_3`. |
+| `.prettierignore`                           | **Modificar.** Abrir exceção para a tela.                  |
 
 ## O mapa da tela de hoje
 
 Os comentários da própria tela já marcam as fronteiras. Use-os:
 
-| Linhas | Bloco | Vai para |
-|---|---|---|
-| 122-151 | listas únicas para os filtros | fica na casca (alimenta os filtros) |
-| 153-179 | `notasFiltradas` | `produtos.ts` |
-| 180-228 | `produtosAgregados` | `produtos.ts` |
-| 229-257 | `kpis` | `produtos.ts` |
-| 258-313 | `dadosEvolucao` | `produtos.ts` |
-| 314-324 | `rankingProdutosValor` | `produtos.ts` |
-| 325-373 | `produtosTabela` (busca + ordenação) | `produtos.ts` |
-| 434-449 | cabeçalho | `CabecalhoProdutos.tsx` |
-| 450-550 | filtros | `FiltrosDeProdutos.tsx` |
-| 551-625 | KPIs (4 cartões) | `KpisDeProdutos.tsx` |
-| 626-750 | gráficos (2) | `GraficosDeProdutos.tsx` |
-| 751-975 | tabela | `TabelaDeProdutos.tsx` |
+| Linhas  | Bloco                                | Vai para                            |
+| ------- | ------------------------------------ | ----------------------------------- |
+| 122-151 | listas únicas para os filtros        | fica na casca (alimenta os filtros) |
+| 153-179 | `notasFiltradas`                     | `produtos.ts`                       |
+| 180-228 | `produtosAgregados`                  | `produtos.ts`                       |
+| 229-257 | `kpis`                               | `produtos.ts`                       |
+| 258-313 | `dadosEvolucao`                      | `produtos.ts`                       |
+| 314-324 | `rankingProdutosValor`               | `produtos.ts`                       |
+| 325-373 | `produtosTabela` (busca + ordenação) | `produtos.ts`                       |
+| 434-449 | cabeçalho                            | `CabecalhoProdutos.tsx`             |
+| 450-550 | filtros                              | `FiltrosDeProdutos.tsx`             |
+| 551-625 | KPIs (4 cartões)                     | `KpisDeProdutos.tsx`                |
+| 626-750 | gráficos (2)                         | `GraficosDeProdutos.tsx`            |
+| 751-975 | tabela                               | `TabelaDeProdutos.tsx`              |
 
 ## Ordem, e por que ela é essa
 
@@ -104,7 +104,7 @@ saber se foi a extração ou a troca de classe.
 componentes e só limpar as classes no fim, na Task 10. Isso esbarrou numa regra
 dura do repositório: o `guarda-cores` não aceita arquivo novo com paleta crua, e
 cada componente extraído nascia sujo — obrigando a **acrescentar** linha ao
-`PENDENTES_FASE_3`, cuja regra é que ele *só encolhe*.
+`PENDENTES_FASE_3`, cuja regra é que ele _só encolhe_.
 
 Com a ordem original a lista chegaria a **onze** entradas antes de voltar a
 cinco. Agora cada task que extrai um componente **também o limpa, em commit
@@ -122,9 +122,11 @@ com a limpeza retroativa** do `CabecalhoProdutos` e do `FiltrosDeProdutos`.
 ### Task 1: Caracterização dos KPIs
 
 **Arquivos:**
+
 - Criar/Test: `src/pages/Produtos.kpis.test.tsx`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: os dublês e o molde que a Task 2 reaproveita.
 
@@ -178,9 +180,11 @@ git commit -m "test(produtos): caracteriza os quatro KPIs antes de migrar"
 ### Task 2: Caracterização da tabela
 
 **Arquivos:**
+
 - Criar/Test: `src/pages/Produtos.tabela.test.tsx`
 
 **Interfaces:**
+
 - Consome: o molde de mocks da Task 1.
 - Produz: nada que outra task importe.
 
@@ -239,11 +243,13 @@ git commit -m "test(produtos): caracteriza colunas, busca e ordenacao da tabela"
 ### Task 3: A conta pura sai para `produtos.ts`
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/produtos.ts`
 - Criar/Test: `src/pages/produtos/produtos.test.ts`
 - Modificar: `src/pages/Produtos.tsx` (passa a importar)
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz — as Tasks 4 a 9 importam estas funções, com estes nomes:
   - `filtrarNotas(notas, filtros): Nota[]`
@@ -320,10 +326,12 @@ git commit -m "refactor(produtos): a conta pura sai para pages/produtos/produtos
 ### Task 4: `CabecalhoProdutos`
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/CabecalhoProdutos.tsx`
 - Modificar: `src/pages/Produtos.tsx:434-449`
 
 **Interfaces:**
+
 - Consome: nada de `produtos.ts`.
 - Produz: `<CabecalhoProdutos />` — sem props, se o bloco não tiver estado; com as
   props que o bloco de fato usa, se tiver.
@@ -354,10 +362,12 @@ git commit -m "refactor(produtos): o cabecalho vira componente"
 ### Task 5: `FiltrosDeProdutos`
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/FiltrosDeProdutos.tsx`
 - Modificar: `src/pages/Produtos.tsx:450-550`
 
 **Interfaces:**
+
 - Consome: `PRESETS_DE_PERIODO` de `src/lib/periodo.ts`, que a tela já usa.
 - Produz: `<FiltrosDeProdutos />` com as props que o bloco precisa — as listas
   únicas (empresas, vendedores, produtos), os valores selecionados e os
@@ -391,10 +401,12 @@ git commit -m "refactor(produtos): os filtros viram componente"
 ### Task 6: `KpisDeProdutos`
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/KpisDeProdutos.tsx`
 - Modificar: `src/pages/Produtos.tsx:551-625`
 
 **Interfaces:**
+
 - Consome: o tipo `KpisDeProduto` de `produtos.ts`.
 - Produz: `<KpisDeProdutos kpis={kpis} />`.
 
@@ -423,10 +435,12 @@ git commit -m "refactor(produtos): os KPIs viram componente"
 mover código.
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/GraficosDeProdutos.tsx`
 - Modificar: `src/pages/Produtos.tsx:626-750`, `:69-78` (`CORES`) e `:80-89` (`CORES_GRAFICO`, morto)
 
 **Interfaces:**
+
 - Consome: `chartTheme` e `corDaSerie` de `src/design-system/chartTheme`; os tipos
   `PontoDeEvolucao` e `ProdutoAgregado` de `produtos.ts`.
 - Produz: `<GraficosDeProdutos evolucao={...} ranking={...} />`.
@@ -450,8 +464,8 @@ git commit -m "refactor(produtos): os graficos viram componente"
 - [ ] **Passo 4: agora sim, trocar os hexadecimais por `chartTheme`**
 
 **Leia `src/pages/contas/GraficosDeContas.tsx` primeiro** — ele já faz exatamente
-isto, e o docblock do `chartTheme.ts` explica por quê: *"o recharts recebe cor por
-prop, não por classe, e prop não enxerga classe do Tailwind"*.
+isto, e o docblock do `chartTheme.ts` explica por quê: _"o recharts recebe cor por
+prop, não por classe, e prop não enxerga classe do Tailwind"_.
 
 Os 21 hexadecimais estão em três lugares, e **um deles é código morto**:
 
@@ -496,10 +510,12 @@ git commit -m "fix(produtos): as cores do grafico saem do chartTheme, nao de hex
 ### Task 8: `TabelaDeProdutos`
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/TabelaDeProdutos.tsx`
 - Modificar: `src/pages/Produtos.tsx:751-975`
 
 **Interfaces:**
+
 - Consome: `Pagination`, `TableEmpty` do design system (a tela já os importa);
   `ProdutoAgregado` de `produtos.ts`; `baixarPlanilha` de `src/lib/planilha.ts`,
   que a tela já usa para exportar.
@@ -529,6 +545,7 @@ git commit -m "refactor(produtos): a tabela vira componente"
 ### Task 9: A casca
 
 **Arquivos:**
+
 - Modificar: `src/pages/Produtos.tsx`
 
 - [ ] **Passo 1: medir o que sobrou**
@@ -580,6 +597,7 @@ arquivo de `src/pages/produtos/` pode sobrar nela, e `src/pages/Produtos.tsx`
 também sai.
 
 **Arquivos:**
+
 - Modificar: os cinco componentes em `src/pages/produtos/` e `src/pages/Produtos.tsx`
 - Modificar: `src/test/guarda-cores.test.ts` (a lista `PENDENTES_FASE_3`)
 
@@ -645,22 +663,23 @@ A receita exige responder o checklist **item a item**, não em bloco. Cada respo
 é "sim, e aqui está onde" ou "não, e este é o motivo".
 
 **Arquivos:**
+
 - Modificar: os arquivos que o checklist apontar.
 
 - [ ] **Passo 1: responder, com evidência**
 
-| # | Item | Como verificar |
-|---|---|---|
-| 1 | Nenhum hexadecimal cravado no JSX | `grep -c '#[0-9a-fA-F]\{3,8\}'` nos seis arquivos → 0 |
-| 2 | Nenhum `dark:` onde existe token equivalente | `grep -c "dark:"` → 0 |
-| 3 | Azul de ação é `--action`, não o azul da marca | procurar `text-action`/`bg-action` nos botões |
-| 4 | Botão primário: um por bloco de decisão | contar os botões primários por bloco |
-| 5 | Texto abaixo de 12px: nenhum | procurar `text-[10px]`, `text-[11px]`, `fontSize: 10/11` |
-| 6 | Estado vazio com frase completa e ação | conferir o `TableEmpty` da tabela |
-| 7 | Ícone é componente, não emoji nem caractere | `grep` por emoji nos seis arquivos |
-| 8 | Contagem de paginação em frase | o `Pagination` do design system já faz |
-| 9 | `focus-visible` com anel de 2px, não `focus` | `grep -c "focus:"` → 0; `focus-visible:ring-2` presente |
-| 10 | Nada animando em laço fora spinner | procurar `animate-` que não seja de carregamento |
+| #   | Item                                           | Como verificar                                           |
+| --- | ---------------------------------------------- | -------------------------------------------------------- |
+| 1   | Nenhum hexadecimal cravado no JSX              | `grep -c '#[0-9a-fA-F]\{3,8\}'` nos seis arquivos → 0    |
+| 2   | Nenhum `dark:` onde existe token equivalente   | `grep -c "dark:"` → 0                                    |
+| 3   | Azul de ação é `--action`, não o azul da marca | procurar `text-action`/`bg-action` nos botões            |
+| 4   | Botão primário: um por bloco de decisão        | contar os botões primários por bloco                     |
+| 5   | Texto abaixo de 12px: nenhum                   | procurar `text-[10px]`, `text-[11px]`, `fontSize: 10/11` |
+| 6   | Estado vazio com frase completa e ação         | conferir o `TableEmpty` da tabela                        |
+| 7   | Ícone é componente, não emoji nem caractere    | `grep` por emoji nos seis arquivos                       |
+| 8   | Contagem de paginação em frase                 | o `Pagination` do design system já faz                   |
+| 9   | `focus-visible` com anel de 2px, não `focus`   | `grep -c "focus:"` → 0; `focus-visible:ring-2` presente  |
+| 10  | Nada animando em laço fora spinner             | procurar `animate-` que não seja de carregamento         |
 
 - [ ] **Passo 2: corrigir o que falhar**
 
@@ -678,6 +697,7 @@ Uma linha por item. **Item que não se aplica também é resposta** — diga por
 e afogaria qualquer outra mudança no diff.
 
 **Arquivos:**
+
 - Modificar: `.prettierignore`
 - Modificar: os seis arquivos (só formatação)
 
@@ -720,6 +740,7 @@ git commit -m "style(produtos): tira a tela do prettierignore e formata"
 ### Task 13: Fechar a tela na documentação
 
 **Arquivos:**
+
 - Modificar: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 
 - [ ] **Passo 1: medir, antes dos commits desta task**

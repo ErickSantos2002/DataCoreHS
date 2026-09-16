@@ -55,11 +55,13 @@ sobrevivem intactos.
 ### Task 1: A rede de segurança — caracterizar antes de mover uma linha
 
 **Arquivos:**
+
 - Criar: `src/pages/Produtos.kpis.test.tsx`
 - Criar: `src/pages/Produtos.tabela.test.tsx`
 - **Não tocar** em `src/pages/Produtos.tsx` (a não ser para plantar e reverter)
 
 **Interfaces:**
+
 - Consome: `criarHooksFalsos`, `resumoDeProdutos` de `./comercial/hooksFalsos`
 - Produz: dois arquivos de teste que os passos seguintes usam como rede
 
@@ -85,7 +87,9 @@ git checkout main -- src/pages/Produtos.kpis.test.tsx src/pages/Produtos.tabela.
 Sai o mock do `DataContext`:
 
 ```ts
-vi.mock("../context/DataContext", () => ({ useData: () => ({ notas: NOTAS, carregando: false }) }));
+vi.mock("../context/DataContext", () => ({
+  useData: () => ({ notas: NOTAS, carregando: false }),
+}));
 ```
 
 Entra o padrão dela:
@@ -93,7 +97,9 @@ Entra o padrão dela:
 ```ts
 vi.mock("./comercial/useComercial", async (original) => {
   const real = await original<typeof import("./comercial/useComercial")>();
-  const { criarHooksFalsos, resumoDeProdutos } = await import("./comercial/hooksFalsos");
+  const { criarHooksFalsos, resumoDeProdutos } = await import(
+    "./comercial/hooksFalsos"
+  );
   return { ...real, ...criarHooksFalsos(NOTAS, resumoDeProdutos) };
 });
 ```
@@ -132,6 +138,7 @@ enxergar — **conserte o teste**, não a plantação, e plante de novo.
 ```bash
 git status --porcelain
 ```
+
 Só os dois arquivos novos. Se `Produtos.tsx` aparecer, a reversão da plantação
 falhou.
 
@@ -147,10 +154,12 @@ git commit -m "test(produtos): caracterizacao dos kpis e da tabela sobre a fonte
 ### Task 2: Mover — a decomposição em cima da fonte nova
 
 **Arquivos:**
+
 - Criar: `src/pages/produtos/` (cinco componentes + `produtos.ts` + `produtos.test.ts`)
 - Modificar: `src/pages/Produtos.tsx` (920 linhas → casca de ~200)
 
 **Interfaces:**
+
 - Consome: `useFiltrosComerciais`, `useResumoComercial`, `RecorteComercial` de
   `./comercial/useComercial`; `useIsMobile` de `../hooks/useIsMobile`
 - Produz: `src/pages/produtos/produtos.ts` com as funções listadas no Passo 3
@@ -176,11 +185,11 @@ onde o dado veio. Confirme lendo-os antes de assumir.
 
 Estas morrem, porque o Postgres passou a fazer a conta:
 
-| Função | Quem faz agora |
-|---|---|
-| `opcoesDeFiltro(notas)` | `useFiltrosComerciais().opcoes` |
-| `filtrarNotas(...)` | o `recorte` que vai para o servidor |
-| `agregarProdutos(...)` | `resumo.por_produto` |
+| Função                  | Quem faz agora                      |
+| ----------------------- | ----------------------------------- |
+| `opcoesDeFiltro(notas)` | `useFiltrosComerciais().opcoes`     |
+| `filtrarNotas(...)`     | o `recorte` que vai para o servidor |
+| `agregarProdutos(...)`  | `resumo.por_produto`                |
 
 A interface `Nota` morre junto se ninguém mais a usar — confira com `grep` antes
 de apagar.
@@ -218,6 +227,7 @@ diferença: onde ela lia `useData()` e chamava `opcoesDeFiltro`/`filtrarNotas`/
 `agregarProdutos`, agora chama os hooks do Comercial e as funções do Passo 3.
 
 Preservar, da versão atual desta branch, **sem reescrever**:
+
 - os comentários que explicam por que a tabela pagina no navegador e por que a
   agregação passou a incluir item sem código;
 - `const isMobile = useIsMobile()` e todos os consumos dele;
@@ -270,6 +280,7 @@ git commit -m "refactor(produtos): a tela vira casca sobre pages/produtos, lendo
 ### Task 3: Tapar os cinco buracos que a revisão achou na rede
 
 **Arquivos:**
+
 - Modificar: `src/pages/Produtos.tabela.test.tsx`, `src/pages/Produtos.kpis.test.tsx`
 - Criar ou modificar: `src/pages/produtos/produtos.test.ts`
 
@@ -352,6 +363,7 @@ git add -A && git commit -m "test(produtos): a rede passa a ver o recorte, o ran
 ### Task 4: Os cinco consertos, um commit cada
 
 **Arquivos:**
+
 - Modificar: `src/pages/produtos/TabelaDeProdutos.tsx`,
   `src/pages/produtos/GraficosDeProdutos.tsx`
 - Modificar: `src/pages/Produtos.tabela.test.tsx` (as asserções de defeito preservado)
@@ -404,7 +416,7 @@ Em `GraficosDeProdutos.tsx`. Commit:
 Achado novo, levantado na Task 2. **Não é defeito da nossa decomposição:** a
 versão dela no `origin/main` tem exatamente o mesmo `key={produto.codigo}`
 (linha 844) e o mesmo `codigo: p.codigo ?? ""` (linha 185). O defeito ficou
-*vivo* quando a agregação dela passou a incluir item sem código — que a versão
+_vivo_ quando a agregação dela passou a incluir item sem código — que a versão
 anterior descartava, e que ela documentou como 36 itens, 0,12% do valor.
 
 O que acontece: todo item sem código vira `codigo: ""`, e o React recebe duas
@@ -434,6 +446,7 @@ npm run lint 2>&1 | grep problems
 ### Task 5: A planilha vira conta pura, e a tela sai de `PENDENTES_FASE_3`
 
 **Arquivos:**
+
 - Modificar: `src/pages/produtos/produtos.ts`, `src/pages/Produtos.tsx`
 - Modificar: `src/test/guarda-cores.test.ts`
 
@@ -500,6 +513,7 @@ npx prettier --write src/pages/Produtos.tsx src/pages/produtos/ \
 git diff --stat
 git diff -w --stat
 ```
+
 O segundo tem de vir **vazio**. Se não vier, o prettier mudou conteúdo — pare e
 reporte.
 

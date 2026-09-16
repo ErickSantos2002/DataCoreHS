@@ -34,12 +34,12 @@ nome de variável e comentário, e num detalhe de estilo: `Clientes` escreve
 Diferente do item 6, aqui **não há divergência de comportamento entre as cópias**.
 A divergência está em outro lugar:
 
-| Tela | Declara | Usa `isMobile`? | Lê `innerWidth` inline? |
-|---|---|---|---|
-| `Clientes` | sim | **sim** — 5 pontos | **sim** — 1 (`isMobileW`) |
-| `Estoque` | sim | **sim** — 11 pontos | não |
-| `Vendas` | sim | **não** | **sim** — 3 |
-| `Produtos` | sim | **não** | não |
+| Tela       | Declara | Usa `isMobile`?     | Lê `innerWidth` inline?   |
+| ---------- | ------- | ------------------- | ------------------------- |
+| `Clientes` | sim     | **sim** — 5 pontos  | **sim** — 1 (`isMobileW`) |
+| `Estoque`  | sim     | **sim** — 11 pontos | não                       |
+| `Vendas`   | sim     | **não**             | **sim** — 3               |
+| `Produtos` | sim     | **não**             | não                       |
 
 Todos os usos estão **dentro de componentes do recharts**, e isso decide como o
 item se prova — ver "Como se prova" abaixo.

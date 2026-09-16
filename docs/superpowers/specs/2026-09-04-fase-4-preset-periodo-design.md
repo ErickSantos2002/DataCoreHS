@@ -31,12 +31,12 @@ diverge em `Servicos`, e está tratado mais abaixo.
 Isso é diferente do `MultiSelect`, que eram seis peças que discordavam entre si.
 Aqui **toda a divergência é contra Contas**:
 
-| | As cinco telas | Contas (`periodoDoPreset`) |
-|---|---|---|
-| Chave `30dias` | rotulada **"Mês atual"**, devolve 1º do mês → hoje | rotulada **"Últimos 30 dias"**, devolve 30 dias atrás → hoje |
-| `mesAtual` | não existe | mês **inteiro**, dia 1 ao último |
-| `anoAtual` | 01/01 → **hoje** | 01/01 → **31/12** |
-| `todos`, `custom` | iguais | iguais |
+|                   | As cinco telas                                     | Contas (`periodoDoPreset`)                                   |
+| ----------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+| Chave `30dias`    | rotulada **"Mês atual"**, devolve 1º do mês → hoje | rotulada **"Últimos 30 dias"**, devolve 30 dias atrás → hoje |
+| `mesAtual`        | não existe                                         | mês **inteiro**, dia 1 ao último                             |
+| `anoAtual`        | 01/01 → **hoje**                                   | 01/01 → **31/12**                                            |
+| `todos`, `custom` | iguais                                             | iguais                                                       |
 
 O rótulo que mente é o achado que o documento de divergências já registrava: a
 pessoa lê "Mês atual", o valor da opção é `"30dias"`, e o ramo do `switch` monta
@@ -45,8 +45,8 @@ corrente, não trinta dias atrás. **A interface não mente para quem usa; o có
 mente para quem lê.**
 
 Contas resolveu isso separando os dois em opções distintas, e registrou no
-docblock por que o mês passou a terminar no último dia: *"uma conta emitida dia
-20 sumia do 'mês atual' enquanto hoje fosse dia 15"*.
+docblock por que o mês passou a terminar no último dia: _"uma conta emitida dia
+20 sumia do 'mês atual' enquanto hoje fosse dia 15"_.
 
 ## O defeito — e o que parecia ser um segundo, e não era
 

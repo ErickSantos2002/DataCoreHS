@@ -32,5 +32,6 @@ src/pages/servicos/hooksFalsos.ts
 # `src/design-system`, que e copia verbatim do Health & Safety Design System
 # (ver ORIGEM.md) — reformatar ali faria o proximo sync divergir por espaco em
 # branco, e ha teste travando essa linha.
-docs
-index.html
+# 16/09/2026: `docs` e `index.html` saiam da lista "quando deixarem de
+# documentar o estado pre-migracao" — a Fase 3 acabou, e eles entram na
+# formatacao junto com o resto.

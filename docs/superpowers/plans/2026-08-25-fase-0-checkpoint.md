@@ -14,15 +14,15 @@ não pega.
 Estes itens estão medidos, registrados e endereçados. Se aparecerem, é o
 esperado.
 
-| O que você vai ver | Por quê | Quando se resolve |
-|---|---|---|
-| Tela de login continua escura no tema claro | Painel escuro deliberado; o design system registra login escuro como exceção | Fase 1, ao migrar o Login |
-| No escuro, o card quase não se separa do fundo da página | Os papéis dos tokens estão invertidos: contraste caiu de 1,72 para 1,09 | Fase 1, no `AppShell` — está escrito no spec |
-| Barra de rolagem continua com o desenho antigo | Regra do design system perde na cascata para a que já existia | Fase 1, no `AppShell` |
-| Links não têm a cor do design system | Perdem para o preflight do Tailwind | Fase 1, no `AppShell` |
-| Valor em azul sobre fundo escuro parece apagado | `text-blue-600` dá 3,29:1 no escuro — já reprovava antes da fase (3,45) | Fase 3, ao trocar para `text-action`, que sobe para 6,64 |
-| Botão verde "Exportar Excel" com texto branco | 3,30:1, pré-existente, a fase não tocou em verde | Fase 3 |
-| Percentual em vermelho apagado | `text-red-600`, 3,60:1, pré-existente | Fase 3 |
+| O que você vai ver                                       | Por quê                                                                      | Quando se resolve                                        |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Tela de login continua escura no tema claro              | Painel escuro deliberado; o design system registra login escuro como exceção | Fase 1, ao migrar o Login                                |
+| No escuro, o card quase não se separa do fundo da página | Os papéis dos tokens estão invertidos: contraste caiu de 1,72 para 1,09      | Fase 1, no `AppShell` — está escrito no spec             |
+| Barra de rolagem continua com o desenho antigo           | Regra do design system perde na cascata para a que já existia                | Fase 1, no `AppShell`                                    |
+| Links não têm a cor do design system                     | Perdem para o preflight do Tailwind                                          | Fase 1, no `AppShell`                                    |
+| Valor em azul sobre fundo escuro parece apagado          | `text-blue-600` dá 3,29:1 no escuro — já reprovava antes da fase (3,45)      | Fase 3, ao trocar para `text-action`, que sobe para 6,64 |
+| Botão verde "Exportar Excel" com texto branco            | 3,30:1, pré-existente, a fase não tocou em verde                             | Fase 3                                                   |
+| Percentual em vermelho apagado                           | `text-red-600`, 3,60:1, pré-existente                                        | Fase 3                                                   |
 
 ---
 

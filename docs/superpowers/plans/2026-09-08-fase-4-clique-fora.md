@@ -39,16 +39,16 @@ cada uma em commit próprio com plantação.
 
 ## Estrutura de arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/hooks/useCliqueFora.ts` | **Criar.** O hook, e o docblock que explica os dois defeitos. |
-| `src/hooks/useCliqueFora.test.ts` | **Criar.** Teste unitário do hook. |
-| `src/design-system/ui/forms/SearchSelect.test.tsx` | **Modificar.** Ganha a caracterização de clique fora que não existe. |
-| `src/pages/Estoque.popover.test.tsx` | **Criar.** Caracterização dos dois popovers de pizza. |
-| `src/design-system/ui/forms/MultiSelect.tsx:91-99` | **Modificar.** Adota o hook. |
-| `src/design-system/ui/forms/SearchSelect.tsx:75-84` | **Modificar.** Adota o hook. |
-| `src/pages/Estoque.tsx:109-131` | **Modificar.** Adota o hook (duas chamadas) e ganha `Escape`. |
-| `src/test/guarda-clique-fora.test.ts` | **Criar.** Impede a quarta implementação. |
+| Arquivo                                             | Responsabilidade                                                     |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/hooks/useCliqueFora.ts`                        | **Criar.** O hook, e o docblock que explica os dois defeitos.        |
+| `src/hooks/useCliqueFora.test.ts`                   | **Criar.** Teste unitário do hook.                                   |
+| `src/design-system/ui/forms/SearchSelect.test.tsx`  | **Modificar.** Ganha a caracterização de clique fora que não existe. |
+| `src/pages/Estoque.popover.test.tsx`                | **Criar.** Caracterização dos dois popovers de pizza.                |
+| `src/design-system/ui/forms/MultiSelect.tsx:91-99`  | **Modificar.** Adota o hook.                                         |
+| `src/design-system/ui/forms/SearchSelect.tsx:75-84` | **Modificar.** Adota o hook.                                         |
+| `src/pages/Estoque.tsx:109-131`                     | **Modificar.** Adota o hook (duas chamadas) e ganha `Escape`.        |
+| `src/test/guarda-clique-fora.test.ts`               | **Criar.** Impede a quarta implementação.                            |
 
 ## Ordem, e por que ela é essa
 
@@ -65,9 +65,11 @@ O `SearchSelect` tem quatro testes e **nenhum** cobre clique fora. Sem isto, a
 task 5 mexe num arquivo sem rede.
 
 **Arquivos:**
+
 - Modificar/Test: `src/design-system/ui/forms/SearchSelect.test.tsx`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: nada que outra task importe.
 
@@ -78,18 +80,18 @@ fecha. Note o `fireEvent` no import — o arquivo hoje importa só `render` e
 `screen`:
 
 ```tsx
-  it("clicar fora fecha a lista", async () => {
-    render(<SearchSelect label="Cliente" options={CLIENTES} searchable />);
-    await userEvent.click(screen.getByLabelText("Cliente"));
-    expect(screen.getByRole("listbox")).toBeInTheDocument();
+it("clicar fora fecha a lista", async () => {
+  render(<SearchSelect label="Cliente" options={CLIENTES} searchable />);
+  await userEvent.click(screen.getByLabelText("Cliente"));
+  expect(screen.getByRole("listbox")).toBeInTheDocument();
 
-    // `mouseDown`, e não `click`: o componente fecha no `mousedown` do
-    // documento. `fireEvent.click` não dispara `mousedown`, entao o teste
-    // passaria mesmo com o listener removido.
-    fireEvent.mouseDown(document.body);
+  // `mouseDown`, e não `click`: o componente fecha no `mousedown` do
+  // documento. `fireEvent.click` não dispara `mousedown`, entao o teste
+  // passaria mesmo com o listener removido.
+  fireEvent.mouseDown(document.body);
 
-    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
-  });
+  expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+});
 ```
 
 E trocar a primeira linha do arquivo para incluir `fireEvent`:
@@ -110,7 +112,7 @@ Em `src/design-system/ui/forms/SearchSelect.tsx:82`, comentar a linha do
 listener:
 
 ```tsx
-    // document.addEventListener("mousedown", aoClicarFora);
+// document.addEventListener("mousedown", aoClicarFora);
 ```
 
 Roda: `npx vitest run src/design-system/ui/forms/SearchSelect.test.tsx`
@@ -143,9 +145,11 @@ copiado do molde existente não veria nada. Este arquivo precisa de um dublê qu
 honre `content` e exponha o `onClick` do `PieChart`.
 
 **Arquivos:**
+
 - Criar/Test: `src/pages/Estoque.popover.test.tsx`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: nada que outra task importe.
 
@@ -210,27 +214,47 @@ vi.mock("../context/EstoqueContext", () => ({
  *  `(percent * 100).toFixed(0)` estourar dentro do componente. */
 const FATIA = {
   payload: [
-    { payload: { fullName: "Bafômetro Phoebus", name: "Ativo", value: 2500, percent: 0.5 } },
+    {
+      payload: {
+        fullName: "Bafômetro Phoebus",
+        name: "Ativo",
+        value: 2500,
+        percent: 0.5,
+      },
+    },
   ],
 };
 
 vi.mock("recharts", () => {
   const semDesenho = () => null;
   return {
-    ResponsiveContainer: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     BarChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    LineChart: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    LineChart: ({ children }: { children?: ReactNode }) => (
+      <div>{children}</div>
+    ),
     // Expõe o `onClick` que abre o popover no tap. O `data-testid` é costura
     // de teste deliberada: o dublê não reproduz a árvore do recharts, então
     // alcançar o nó por CSS seria alcançar um detalhe do próprio dublê.
-    PieChart: ({ children, onClick }: { children?: ReactNode; onClick?: () => void }) => (
+    PieChart: ({
+      children,
+      onClick,
+    }: {
+      children?: ReactNode;
+      onClick?: () => void;
+    }) => (
       <div data-testid="pie-chart" onClick={onClick}>
         {children}
       </div>
     ),
     // Chama `content` como o recharts chamaria com o ponteiro sobre a fatia.
-    Tooltip: ({ content }: { content?: (p: typeof FATIA & { active: boolean }) => ReactNode }) =>
-      content ? <>{content({ active: true, ...FATIA })}</> : null,
+    Tooltip: ({
+      content,
+    }: {
+      content?: (p: typeof FATIA & { active: boolean }) => ReactNode;
+    }) => (content ? <>{content({ active: true, ...FATIA })}</> : null),
     Bar: semDesenho,
     Line: semDesenho,
     Pie: semDesenho,
@@ -301,7 +325,7 @@ o `FATIA` não traz. O contrato que importa é **clicar no `PieChart` abre,
 Em `src/pages/Estoque.tsx:124`, comentar a linha do `mousedown`:
 
 ```tsx
-  // document.addEventListener("mousedown", onDocClick);
+// document.addEventListener("mousedown", onDocClick);
 ```
 
 Roda: `npx vitest run src/pages/Estoque.popover.test.tsx`
@@ -327,10 +351,12 @@ git commit -m "test(estoque): caracteriza os dois popovers de pizza antes de ext
 ### Task 3: O hook, nascendo com o defeito
 
 **Arquivos:**
+
 - Criar: `src/hooks/useCliqueFora.ts`
 - Criar/Test: `src/hooks/useCliqueFora.test.ts`
 
 **Interfaces:**
+
 - Consome: nada.
 - Produz: `useCliqueFora(ref: RefObject<HTMLElement | null>, aoFechar: () => void, ativo: boolean): void` — as tasks 4, 5 e 6 importam esta assinatura. O terceiro parâmetro **existe desde já e é ignorado** até a task 8; ver o passo 3.
 
@@ -379,7 +405,9 @@ describe("useCliqueFora", () => {
   it("desregistra o listener ao desmontar", () => {
     const dentro = document.createElement("div");
     const aoFechar = vi.fn();
-    const { unmount } = renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
+    const { unmount } = renderHook(() =>
+      useCliqueFora(refPara(dentro), aoFechar, true),
+    );
 
     unmount();
     fireEvent.mouseDown(document.body);
@@ -468,9 +496,11 @@ git commit -m "feat(hooks): useCliqueFora nasce com o comportamento das tres cop
 ### Task 4: `MultiSelect` adota o hook
 
 **Arquivos:**
+
 - Modificar: `src/design-system/ui/forms/MultiSelect.tsx:91-99`
 
 **Interfaces:**
+
 - Consome: `useCliqueFora(ref, aoFechar, ativo)` da task 3.
 - Produz: nada.
 
@@ -479,21 +509,24 @@ git commit -m "feat(hooks): useCliqueFora nasce com o comportamento das tres cop
 Apagar o bloco inteiro das linhas 91-99:
 
 ```tsx
-  useEffect(() => {
-    function aoClicarFora(evento: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(evento.target as Node)) {
-        setAberto(false);
-      }
+useEffect(() => {
+  function aoClicarFora(evento: MouseEvent) {
+    if (
+      containerRef.current &&
+      !containerRef.current.contains(evento.target as Node)
+    ) {
+      setAberto(false);
     }
-    document.addEventListener("mousedown", aoClicarFora);
-    return () => document.removeEventListener("mousedown", aoClicarFora);
-  }, []);
+  }
+  document.addEventListener("mousedown", aoClicarFora);
+  return () => document.removeEventListener("mousedown", aoClicarFora);
+}, []);
 ```
 
 e pôr no lugar:
 
 ```tsx
-  useCliqueFora(containerRef, () => setAberto(false), aberto);
+useCliqueFora(containerRef, () => setAberto(false), aberto);
 ```
 
 Acrescentar o import:
@@ -549,9 +582,11 @@ git commit -m "refactor(multiselect): o clique fora vem de useCliqueFora"
 ### Task 5: `SearchSelect` adota o hook
 
 **Arquivos:**
+
 - Modificar: `src/design-system/ui/forms/SearchSelect.tsx:75-84`
 
 **Interfaces:**
+
 - Consome: `useCliqueFora(ref, aoFechar, ativo)` da task 3.
 - Produz: nada.
 
@@ -560,22 +595,22 @@ git commit -m "refactor(multiselect): o clique fora vem de useCliqueFora"
 Apagar as linhas 75-84:
 
 ```tsx
-  useEffect(() => {
-    if (!aberto) return;
-    function aoClicarFora(evento: MouseEvent) {
-      if (!containerRef.current?.contains(evento.target as Node)) {
-        fechar();
-      }
+useEffect(() => {
+  if (!aberto) return;
+  function aoClicarFora(evento: MouseEvent) {
+    if (!containerRef.current?.contains(evento.target as Node)) {
+      fechar();
     }
-    document.addEventListener("mousedown", aoClicarFora);
-    return () => document.removeEventListener("mousedown", aoClicarFora);
-  }, [aberto]);
+  }
+  document.addEventListener("mousedown", aoClicarFora);
+  return () => document.removeEventListener("mousedown", aoClicarFora);
+}, [aberto]);
 ```
 
 e pôr no lugar:
 
 ```tsx
-  useCliqueFora(containerRef, fechar, aberto);
+useCliqueFora(containerRef, fechar, aberto);
 ```
 
 Import:
@@ -616,9 +651,11 @@ git commit -m "refactor(searchselect): o clique fora vem de useCliqueFora"
 ### Task 6: `Estoque` adota o hook, duas vezes
 
 **Arquivos:**
+
 - Modificar: `src/pages/Estoque.tsx:108-131`
 
 **Interfaces:**
+
 - Consome: `useCliqueFora(ref, aoFechar, ativo)` da task 3.
 - Produz: nada.
 
@@ -629,10 +666,18 @@ Apagar o bloco das linhas 108-131 (o comentário
 `addEventListener`/`removeEventListener`) e pôr no lugar:
 
 ```tsx
-  // Uma chamada por popover: cada um é avaliado contra a própria ref, que é
-  // o que o `onDocClick` daqui já fazia com dois `if` dentro de um handler só.
-  useCliqueFora(pizzaDistribRef, () => setShowPizzaDistribuicao(false), showPizzaDistribuicao);
-  useCliqueFora(pizzaSituacaoRef, () => setShowPizzaSituacao(false), showPizzaSituacao);
+// Uma chamada por popover: cada um é avaliado contra a própria ref, que é
+// o que o `onDocClick` daqui já fazia com dois `if` dentro de um handler só.
+useCliqueFora(
+  pizzaDistribRef,
+  () => setShowPizzaDistribuicao(false),
+  showPizzaDistribuicao,
+);
+useCliqueFora(
+  pizzaSituacaoRef,
+  () => setShowPizzaSituacao(false),
+  showPizzaSituacao,
+);
 ```
 
 Import:
@@ -700,6 +745,7 @@ fecha o dropdown. O `MultiSelect` é consumido por sete arquivos, então é
 defeito de sete telas.
 
 **Arquivos:**
+
 - Modificar: `src/hooks/useCliqueFora.ts`
 - Modificar/Test: `src/hooks/useCliqueFora.test.ts`
 - Modificar/Test: `src/design-system/ui/forms/MultiSelect.test.tsx`
@@ -710,42 +756,50 @@ defeito de sete telas.
 No `src/hooks/useCliqueFora.test.ts`, acrescentar dentro do `describe`:
 
 ```ts
-  it("chama aoFechar quando o touchstart cai fora da ref", () => {
-    const dentro = document.createElement("div");
-    const aoFechar = vi.fn();
-    renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
+it("chama aoFechar quando o touchstart cai fora da ref", () => {
+  const dentro = document.createElement("div");
+  const aoFechar = vi.fn();
+  renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
 
-    fireEvent.touchStart(document.body);
+  fireEvent.touchStart(document.body);
 
-    expect(aoFechar).toHaveBeenCalledTimes(1);
-  });
+  expect(aoFechar).toHaveBeenCalledTimes(1);
+});
 
-  it("NAO chama aoFechar quando o touchstart cai dentro da ref", () => {
-    const dentro = document.createElement("div");
-    const filho = document.createElement("button");
-    dentro.appendChild(filho);
-    const aoFechar = vi.fn();
-    renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
+it("NAO chama aoFechar quando o touchstart cai dentro da ref", () => {
+  const dentro = document.createElement("div");
+  const filho = document.createElement("button");
+  dentro.appendChild(filho);
+  const aoFechar = vi.fn();
+  renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
 
-    fireEvent.touchStart(filho);
+  fireEvent.touchStart(filho);
 
-    expect(aoFechar).not.toHaveBeenCalled();
-  });
+  expect(aoFechar).not.toHaveBeenCalled();
+});
 ```
 
 No `src/design-system/ui/forms/MultiSelect.test.tsx`, acrescentar ao final do
 `describe`:
 
 ```tsx
-  it("tocar fora fecha — no celular, mousedown nao vem", () => {
-    render(<MultiSelect rotulo="Produto" opcoes={OPCOES} selecionados={[]} onChange={vi.fn()} placeholder="Empresas" />);
-    fireEvent.click(screen.getByRole("button", { name: "Produto Empresas" }));
-    expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+it("tocar fora fecha — no celular, mousedown nao vem", () => {
+  render(
+    <MultiSelect
+      rotulo="Produto"
+      opcoes={OPCOES}
+      selecionados={[]}
+      onChange={vi.fn()}
+      placeholder="Empresas"
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Produto Empresas" }));
+  expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
-    fireEvent.touchStart(document.body);
+  fireEvent.touchStart(document.body);
 
-    expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
-  });
+  expect(screen.queryByPlaceholderText("Pesquisar...")).not.toBeInTheDocument();
+});
 ```
 
 E em `src/pages/Estoque.popover.test.tsx`, tirar o `.skip` e o comentário que
@@ -768,19 +822,19 @@ Em `src/hooks/useCliqueFora.ts`, dentro do `useEffect`, trocar as duas linhas
 de registro por:
 
 ```ts
-    document.addEventListener("mousedown", aoClicarFora);
-    // `touchstart` também: em toque o navegador dispara touchstart → touchend
-    // → um `click` sintetizado, e `mousedown` não vem. Sem esta linha, tocar
-    // fora não fechava o dropdown em nenhuma das sete telas que usam o
-    // `MultiSelect` — o painel ficava por cima do conteúdo até a pessoa tocar
-    // no gatilho de novo. `passive: true` porque o handler não chama
-    // `preventDefault`, e sem a flag o navegador segura a rolagem esperando
-    // para ver se ele chamaria.
-    document.addEventListener("touchstart", aoClicarFora, { passive: true });
-    return () => {
-      document.removeEventListener("mousedown", aoClicarFora);
-      document.removeEventListener("touchstart", aoClicarFora);
-    };
+document.addEventListener("mousedown", aoClicarFora);
+// `touchstart` também: em toque o navegador dispara touchstart → touchend
+// → um `click` sintetizado, e `mousedown` não vem. Sem esta linha, tocar
+// fora não fechava o dropdown em nenhuma das sete telas que usam o
+// `MultiSelect` — o painel ficava por cima do conteúdo até a pessoa tocar
+// no gatilho de novo. `passive: true` porque o handler não chama
+// `preventDefault`, e sem a flag o navegador segura a rolagem esperando
+// para ver se ele chamaria.
+document.addEventListener("touchstart", aoClicarFora, { passive: true });
+return () => {
+  document.removeEventListener("mousedown", aoClicarFora);
+  document.removeEventListener("touchstart", aoClicarFora);
+};
 ```
 
 E atualizar o docblock do hook: onde ele diz que nasceu com o comportamento
@@ -825,28 +879,29 @@ pelo menos dois handlers sempre rodam `contains` à toa a cada `mousedown` da
 página.
 
 **Arquivos:**
+
 - Modificar: `src/hooks/useCliqueFora.ts`
 - Modificar/Test: `src/hooks/useCliqueFora.test.ts`
 
 - [ ] **Passo 1: escrever o teste que falha**
 
 ```ts
-  it("nao registra listener nenhum enquanto ativo for falso", () => {
-    const dentro = document.createElement("div");
-    const aoFechar = vi.fn();
-    const registrar = vi.spyOn(document, "addEventListener");
+it("nao registra listener nenhum enquanto ativo for falso", () => {
+  const dentro = document.createElement("div");
+  const aoFechar = vi.fn();
+  const registrar = vi.spyOn(document, "addEventListener");
 
-    renderHook(() => useCliqueFora(refPara(dentro), aoFechar, false));
+  renderHook(() => useCliqueFora(refPara(dentro), aoFechar, false));
 
-    const registrados = registrar.mock.calls.map(([evento]) => evento);
-    expect(registrados).not.toContain("mousedown");
-    expect(registrados).not.toContain("touchstart");
+  const registrados = registrar.mock.calls.map(([evento]) => evento);
+  expect(registrados).not.toContain("mousedown");
+  expect(registrados).not.toContain("touchstart");
 
-    fireEvent.mouseDown(document.body);
-    expect(aoFechar).not.toHaveBeenCalled();
+  fireEvent.mouseDown(document.body);
+  expect(aoFechar).not.toHaveBeenCalled();
 
-    registrar.mockRestore();
-  });
+  registrar.mockRestore();
+});
 ```
 
 - [ ] **Passo 2: rodar e ver falhar**
@@ -941,6 +996,7 @@ O único ponto em que o `Escape` falta. Os dois primitivos já tratam, por
 `onKeyDown` no container, e é a forma certa — não mexer neles.
 
 **Arquivos:**
+
 - Modificar: `src/pages/Estoque.tsx`
 - Modificar/Test: `src/pages/Estoque.popover.test.tsx`
 
@@ -954,28 +1010,29 @@ Em `src/pages/Estoque.popover.test.tsx`, dentro do `describe`:
  *  `div.relative > div (ResponsiveContainer) > div[data-testid=pie-chart]`,
  *  então o container é o avô do gráfico. */
 function containerDo(indice: number) {
-  return screen.getAllByTestId("pie-chart")[indice].parentElement!.parentElement!;
+  return screen.getAllByTestId("pie-chart")[indice].parentElement!
+    .parentElement!;
 }
 
-  it("Escape fecha o popover de distribuicao", () => {
-    render(<Estoque />);
-    fireEvent.click(screen.getAllByTestId("pie-chart")[DISTRIBUICAO]);
-    expect(screen.getByText("valor: R$ 2.500,00")).toBeInTheDocument();
+it("Escape fecha o popover de distribuicao", () => {
+  render(<Estoque />);
+  fireEvent.click(screen.getAllByTestId("pie-chart")[DISTRIBUICAO]);
+  expect(screen.getByText("valor: R$ 2.500,00")).toBeInTheDocument();
 
-    fireEvent.keyDown(containerDo(DISTRIBUICAO), { key: "Escape" });
+  fireEvent.keyDown(containerDo(DISTRIBUICAO), { key: "Escape" });
 
-    expect(screen.queryByText("valor: R$ 2.500,00")).not.toBeInTheDocument();
-  });
+  expect(screen.queryByText("valor: R$ 2.500,00")).not.toBeInTheDocument();
+});
 
-  it("Escape fecha o popover de situacao", () => {
-    render(<Estoque />);
-    fireEvent.click(screen.getAllByTestId("pie-chart")[SITUACAO]);
-    expect(screen.getByText("Quantidade: 2500")).toBeInTheDocument();
+it("Escape fecha o popover de situacao", () => {
+  render(<Estoque />);
+  fireEvent.click(screen.getAllByTestId("pie-chart")[SITUACAO]);
+  expect(screen.getByText("Quantidade: 2500")).toBeInTheDocument();
 
-    fireEvent.keyDown(containerDo(SITUACAO), { key: "Escape" });
+  fireEvent.keyDown(containerDo(SITUACAO), { key: "Escape" });
 
-    expect(screen.queryByText("Quantidade: 2500")).not.toBeInTheDocument();
-  });
+  expect(screen.queryByText("Quantidade: 2500")).not.toBeInTheDocument();
+});
 ```
 
 A função `containerDo` vai **fora** do `describe`, junto das constantes
@@ -1045,6 +1102,7 @@ Impede a quarta implementação de nascer, que é exatamente a porta por onde as
 três entraram.
 
 **Arquivos:**
+
 - Criar/Test: `src/test/guarda-clique-fora.test.ts`
 
 - [ ] **Passo 1: escrever o guarda**
@@ -1133,7 +1191,7 @@ Primeiro: em `src/pages/Estoque.tsx`, acrescentar uma linha solta dentro de
 qualquer `useEffect`:
 
 ```tsx
-    document.addEventListener("mousedown", () => {});
+document.addEventListener("mousedown", () => {});
 ```
 
 Roda: `npx vitest run src/test/guarda-clique-fora.test.ts`
@@ -1171,6 +1229,7 @@ git commit -m "test(guarda): trava a quarta implementacao de clique fora"
 ### Task 11: Fechar o item na documentação
 
 **Arquivos:**
+
 - Modificar: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 
 - [ ] **Passo 1: medir de verdade, antes de escrever**

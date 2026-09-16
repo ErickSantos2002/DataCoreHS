@@ -54,12 +54,12 @@ O primitivo recebe a estratégia por injeção — a prop `buscarPor`, com
 `src/design-system/ui/forms/buscaDeMultiSelect.ts`, puras e testadas em
 separado.
 
-| Estratégia | Telas | Acha por |
-|---|---|---|
-| `buscaPorTexto` (padrão) | Produtos, Estoque | só o rótulo, sem diferenciar maiúscula |
-| `buscaPorTextoOuNumero` | Serviços | rótulo, ou os dígitos do rótulo contra os dígitos do termo |
+| Estratégia                    | Telas              | Acha por                                                                          |
+| ----------------------------- | ------------------ | --------------------------------------------------------------------------------- |
+| `buscaPorTexto` (padrão)      | Produtos, Estoque  | só o rótulo, sem diferenciar maiúscula                                            |
+| `buscaPorTextoOuNumero`       | Serviços           | rótulo, ou os dígitos do rótulo contra os dígitos do termo                        |
 | `buscaPorCnpjEntreParenteses` | Vendedores, Vendas | rótulo, ou o CNPJ entre parênteses — normalizando só quando o termo é todo dígito |
-| `buscaPorRotuloValorOuNumero` | Clientes | rótulo, valor cru, ou os dígitos do valor |
+| `buscaPorRotuloValorOuNumero` | Clientes           | rótulo, valor cru, ou os dígitos do valor                                         |
 
 A pergunta que este item põe: **unificar tudo na busca mais rica** — rótulo,
 valor e dígitos — significa que Produtos e Estoque passam a achar por número, o
@@ -99,7 +99,7 @@ em silêncio essa forma de opção.
 **O ramo morto de `buscaPorCnpjEntreParenteses` é morto pela matemática.** As
 cópias de Vendedores e Vendas tinham uma terceira condição —
 `cnpj.toLowerCase().includes(termo)`, o CNPJ ainda pontuado contra o termo cru —
-que é morta para *qualquer* entrada possível. O CNPJ é extraído do próprio
+que é morta para _qualquer_ entrada possível. O CNPJ é extraído do próprio
 rótulo por `rotulo.match(/\((.*?)\)/)`, então é sempre substring literal dele;
 tudo que essa condição casa, a condição do rótulo já casou antes. Isso não
 depende de dado nenhum: não há como torná-la alcançável sem mudar a forma da
@@ -236,7 +236,7 @@ Vendedores é um terceiro formato, e vale explicar por que ele **não** conta co
 problema: `produtosUnicos` (`Vendedores.tsx:136`) guarda pares, e o uso descarta
 o valor com `deTextos(produtosUnicos.map(p => p.label))` (`:517`). Nada se perde
 — o rótulo já carrega o código (`descricao (codigo)`, montado em `:142`) e o
-filtro da tabela casa exatamente essa string (`:158`), então o rótulo *é* a
+filtro da tabela casa exatamente essa string (`:158`), então o rótulo _é_ a
 identidade. E o par não tem função nenhuma: a chave de deduplicação do `Map` é
 `i.codigo` (`Vendedores.tsx:141`), e o par é só o **valor** — exatamente como em
 `Produtos.tsx:179` e `Vendas.tsx:189`, que deduplicam pela mesma chave e guardam
@@ -285,7 +285,7 @@ mudança autorizada numa afirmação.
 E a mudança é mais larga do que "não fecha ao marcar" registra. A causa raiz
 não é a marcação: é que o componente deixou de ser declarado dentro da
 página. Nas seis cópias, `onChange` recriava o componente a cada render do
-pai e ele remontava do zero, resetando `isOpen` — e *qualquer* render do pai
+pai e ele remontava do zero, resetando `isOpen` — e _qualquer_ render do pai
 disparava isso, não só o de marcar uma opção. Medido contra a base: com o
 dropdown de empresas aberto em Vendas, digitar na busca **da tabela**
 (um filtro que não tem nada a ver com o dropdown) fechava o painel antes, e
@@ -306,7 +306,7 @@ Os dois originais estão em `src/pages/Clientes.multiselect.test.tsx`: a linha
 **205** diz "A busca (~linha 592)" e a **225** diz `Clientes.tsx:601`. A busca
 não mora mais em `Clientes.tsx` em linha nenhuma — mora em
 `buscaDeMultiSelect.ts`, e quem seguir o ponteiro cai no cabeçalho do bloco de
-filtros. As linhas 228 e 234 do mesmo arquivo *parecem* ponteiros mas não são:
+filtros. As linhas 228 e 234 do mesmo arquivo _parecem_ ponteiros mas não são:
 narram o que a Task 5 fez com `Clientes.tsx` na época, e continuam verdadeiras.
 
 Os outros seis, conferidos um a um, afirmam no presente e apontam para código
@@ -436,14 +436,14 @@ fechado.
 
 O resto é tipografia e acabamento, na mesma direção:
 
-| onde | peça velha | primitivo |
-|---|---|---|
-| `<span>` da opção | `text-sm text-conteudo` | `text-conteudo` |
-| `<label>` da opção | `transition-colors` (`MultiSelectDeContas.tsx:138`) | sem `transition-colors` (`MultiSelect.tsx:176`) |
-| estado vazio | `<p>` com `text-sm text-conteudo-muted` | `<div>` sem `text-sm` |
-| campo de busca | `bg-surface-base`, `rounded-md`, `text-sm`, `placeholder:text-conteudo-faint` | `bg-surface`, `rounded`, sem `text-sm`, sem regra de placeholder |
-| checkbox | `accent-action` | sem `accent-*` |
-| "Limpar seleção" | `rounded-md` com `transition-colors` | `rounded`, sem `transition-colors` |
+| onde               | peça velha                                                                    | primitivo                                                        |
+| ------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `<span>` da opção  | `text-sm text-conteudo`                                                       | `text-conteudo`                                                  |
+| `<label>` da opção | `transition-colors` (`MultiSelectDeContas.tsx:138`)                           | sem `transition-colors` (`MultiSelect.tsx:176`)                  |
+| estado vazio       | `<p>` com `text-sm text-conteudo-muted`                                       | `<div>` sem `text-sm`                                            |
+| campo de busca     | `bg-surface-base`, `rounded-md`, `text-sm`, `placeholder:text-conteudo-faint` | `bg-surface`, `rounded`, sem `text-sm`, sem regra de placeholder |
+| checkbox           | `accent-action`                                                               | sem `accent-*`                                                   |
+| "Limpar seleção"   | `rounded-md` com `transition-colors`                                          | `rounded`, sem `transition-colors`                               |
 
 Os ponteiros para `MultiSelect.tsx` desta seção valem a partir de `c0040d2b`; os
 de `MultiSelectDeContas.tsx` são o conteúdo dela em `488c5c80~1`, o último commit
@@ -473,10 +473,10 @@ que este item existe. **Geometria não se prova com a suíte.**
 
 Descoberto na fusão do item 7. Eram três formas da mesma cópia:
 
-| peça | texto |
-|---|---|
-| `MultiSelect` (primitivo) | `Nenhum resultado encontrado` |
-| `MultiSelectDeContas` (apagada) | `Nenhum resultado` |
+| peça                                               | texto                          |
+| -------------------------------------------------- | ------------------------------ |
+| `MultiSelect` (primitivo)                          | `Nenhum resultado encontrado`  |
+| `MultiSelectDeContas` (apagada)                    | `Nenhum resultado`             |
 | `Table` (`MENSAGEM_VAZIO_PADRAO`) e `SearchSelect` | `Nenhum resultado encontrado.` |
 
 Na fusão o texto do primitivo ganhou — 15 usos contra 3, e ele já estava
@@ -517,14 +517,14 @@ buscas do `MultiSelect`.
 Duas divergências foram preservadas, com o comportamento atual fixado em
 teste nas seis:
 
-| Tela | Itens por página | Substantivo da contagem |
-|---|---|---|
-| Clientes | 15 | registros |
-| Estoque | 15 | registros |
-| Produtos | 10 | **produtos** |
-| Serviços | 15 | registros |
-| Vendas | 10 | registros |
-| Vendedores | 10 | registros |
+| Tela       | Itens por página | Substantivo da contagem |
+| ---------- | ---------------- | ----------------------- |
+| Clientes   | 15               | registros               |
+| Estoque    | 15               | registros               |
+| Produtos   | 10               | **produtos**            |
+| Serviços   | 15               | registros               |
+| Vendas     | 10               | registros               |
+| Vendedores | 10               | registros               |
 
 **Tamanho de página.** `pageSize` é prop do primitivo — unificar o componente
 não obrigou a uniformizar o número, e as seis continuam pesando 10 ou 15 exatamente
@@ -601,12 +601,12 @@ saía de `toISOString()`, que devolve o dia em **UTC**: às 23h de 28/08 em
 Brasília já são 02h de 29/08 em UTC, e quem exportava à noite arquivava com a
 data do dia seguinte. Onze ocorrências, em oito arquivos:
 
-| Onde | Formato | Como estava |
-|---|---|---|
-| Produtos, Vendas, Vendedores | `.xlsx` | `new Date().toISOString()` |
-| Clientes, Estoque, Serviços | `.xlsx` **e** `.pdf` | `new Date().toISOString()` |
-| `locacao/notasDeLocacao.ts` | `.xlsx` | `hoje.toISOString()`, parâmetro |
-| `components/SolicitacaoComprasModal.tsx` | `.pdf` | `new Date().toISOString()` |
+| Onde                                     | Formato              | Como estava                     |
+| ---------------------------------------- | -------------------- | ------------------------------- |
+| Produtos, Vendas, Vendedores             | `.xlsx`              | `new Date().toISOString()`      |
+| Clientes, Estoque, Serviços              | `.xlsx` **e** `.pdf` | `new Date().toISOString()`      |
+| `locacao/notasDeLocacao.ts`              | `.xlsx`              | `hoje.toISOString()`, parâmetro |
+| `components/SolicitacaoComprasModal.tsx` | `.pdf`               | `new Date().toISOString()`      |
 
 Sete das nove telas que exportam tinham o defeito. As duas que não tinham —
 Contas e a aba de Comissão — já haviam sido consertadas na Fase 3, e é por isso
@@ -733,7 +733,7 @@ mas não é o formato que essas duas telas recebem.
 
 **A lição, registrada para não se repetir:** verificar o mecanismo não é
 verificar o defeito. Um defeito só é defeito depois de alguém seguir o dado
-real da API até o ponto de comparação — não até onde o código *parece* poder
+real da API até o ponto de comparação — não até onde o código _parece_ poder
 quebrar.
 
 ### Três achados colaterais, de fora deste item

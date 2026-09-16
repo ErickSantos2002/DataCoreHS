@@ -29,9 +29,11 @@
 ## Estrutura de arquivos
 
 **Criar**
+
 - `src/pages/contas/FiltrosDeContas.multiselect.test.tsx` — caracterização dos três filtros de Contas contra `MultiSelectDeContas` (Task 1).
 
 **Modificar**
+
 - `src/design-system/ui/forms/MultiSelect.tsx` — Escape (Task 2); `rotulo`, `aria-labelledby`, `role="group"`, `aria-label` na busca (Task 3).
 - `src/design-system/ui/forms/MultiSelect.test.tsx` — testes do Escape (Task 2) e da acessibilidade (Task 3).
 - `src/pages/{Produtos,Servicos,Vendedores,Estoque,Clientes,Vendas}.tsx` — passam `rotulo`, apagam o `<label>` (Task 3).
@@ -40,6 +42,7 @@
 - `docs/superpowers/2026-09-01-multiselect-divergencias.md` — item 7 resolvido (Task 5).
 
 **Apagar**
+
 - `src/pages/contas/MultiSelectDeContas.tsx` (Task 4).
 
 ---
@@ -48,23 +51,23 @@
 
 O `rotulo` recebe **exatamente** o texto do `<label>` que sai. Não é ocasião de renomear.
 
-| Tela | rótulo | placeholder |
-|---|---|---|
-| Produtos | `Empresas` | `Todas as empresas` |
-| Produtos | `Vendedores` | `Todos os vendedores` |
-| Produtos | `Produtos` | `Todos os produtos` |
-| Serviços | `Cliente (Tomador)` | `Todos os clientes` |
-| Serviços | `Cidade do Serviço` | `Todas as cidades` |
-| Serviços | `Tipo de Serviço` | `Todos os tipos` |
-| Vendedores | `Empresas` | `Todas as empresas` |
-| Vendedores | `Produtos` | `Todos os produtos` |
-| Estoque | `Produtos` | `Todos os produtos` |
-| Clientes | `Cliente` | `Todos os clientes` |
-| Clientes | `Vendedor` | `Todos os vendedores` |
-| Clientes | `Produto` | `Todos os produtos` |
-| Vendas | `Empresas` | `Todas as empresas` |
-| Vendas | `Vendedores` | `Todos os vendedores` |
-| Vendas | `Produtos` | `Todos os produtos` |
+| Tela       | rótulo              | placeholder           |
+| ---------- | ------------------- | --------------------- |
+| Produtos   | `Empresas`          | `Todas as empresas`   |
+| Produtos   | `Vendedores`        | `Todos os vendedores` |
+| Produtos   | `Produtos`          | `Todos os produtos`   |
+| Serviços   | `Cliente (Tomador)` | `Todos os clientes`   |
+| Serviços   | `Cidade do Serviço` | `Todas as cidades`    |
+| Serviços   | `Tipo de Serviço`   | `Todos os tipos`      |
+| Vendedores | `Empresas`          | `Todas as empresas`   |
+| Vendedores | `Produtos`          | `Todos os produtos`   |
+| Estoque    | `Produtos`          | `Todos os produtos`   |
+| Clientes   | `Cliente`           | `Todos os clientes`   |
+| Clientes   | `Vendedor`          | `Todos os vendedores` |
+| Clientes   | `Produto`           | `Todos os produtos`   |
+| Vendas     | `Empresas`          | `Todas as empresas`   |
+| Vendas     | `Vendedores`        | `Todos os vendedores` |
+| Vendas     | `Produtos`          | `Todos os produtos`   |
 
 Em Vendedores o filtro rotulado `Empresas` é alimentado por `clientesUnicos`. **É como a tela é hoje; não consertar** — seria mudança de comportamento fora do escopo.
 
@@ -72,14 +75,14 @@ Em Vendedores o filtro rotulado `Empresas` é alimentado por `clientesUnicos`. *
 
 Acrescentar `aria-labelledby` **muda o nome acessível do gatilho**. Medido com sonda: `"Todos os produtos"` deixa de casar e o nome vira `"Empresas Todos os produtos"` — rótulo, espaço, valor.
 
-| Arquivo | consultas a atualizar |
-|---|---|
-| `Clientes.multiselect.test.tsx` | 6 |
-| `Estoque.multiselect.test.tsx` | 6 |
-| `Vendas.multiselect.test.tsx` | 6 |
-| `Produtos.multiselect.test.tsx` | 4 |
-| `Servicos.multiselect.test.tsx` | 4 |
-| `Vendedores.multiselect.test.tsx` | 4 |
+| Arquivo                           | consultas a atualizar |
+| --------------------------------- | --------------------- |
+| `Clientes.multiselect.test.tsx`   | 6                     |
+| `Estoque.multiselect.test.tsx`    | 6                     |
+| `Vendas.multiselect.test.tsx`     | 6                     |
+| `Produtos.multiselect.test.tsx`   | 4                     |
+| `Servicos.multiselect.test.tsx`   | 4                     |
+| `Vendedores.multiselect.test.tsx` | 4                     |
 
 Total **30**. As consultas a `getByRole("button", { name: "Limpar seleção" })` — uma por arquivo, seis ao todo — **não** são afetadas, porque aquele botão não tem `aria-labelledby`.
 
@@ -94,9 +97,11 @@ Total **30**. As consultas a `getByRole("button", { name: "Limpar seleção" })`
 `FiltrosDeContas` é um componente de props puras: renderiza direto, sem mock de contexto. Isso também evita a colisão que o comentário dele registra (as palavras "Situação" e "Categoria" aparecem no filtro e na coluna da tabela) — renderizando só a barra, a tabela não existe.
 
 **Files:**
+
 - Create: `src/pages/contas/FiltrosDeContas.multiselect.test.tsx`
 
 **Interfaces:**
+
 - Consome: `FiltrosDeContas` de `src/pages/contas/FiltrosDeContas.tsx`, com as props `{ rotuloDaContraparte: string; opcoes: { situacao: string[]; categoria: string[]; contraparte: string[] }; valores: { situacao: string[]; categoria: string[]; contraparte: string[]; dataInicio: string; dataFim: string }; preset: string; onSituacao; onCategoria; onContraparte; onPreset; onDataInicio; onDataFim }`.
 - Produz: o arquivo de teste que a Task 4 tem que fazer passar **sem uma edição**.
 
@@ -138,7 +143,9 @@ const VALORES_VAZIOS = {
   dataFim: "",
 };
 
-function montar(sobrescreve: Partial<Parameters<typeof FiltrosDeContas>[0]> = {}) {
+function montar(
+  sobrescreve: Partial<Parameters<typeof FiltrosDeContas>[0]> = {},
+) {
   const props = {
     rotuloDaContraparte: "Cliente",
     opcoes: OPCOES,
@@ -192,8 +199,12 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     montar();
     abrir("Situação", "Todas");
     const dentro = within(painel("Situação", "Todas"));
-    expect(dentro.getByRole("checkbox", { name: "Em aberto" })).toBeInTheDocument();
-    expect(dentro.getByRole("checkbox", { name: "Quitado" })).toBeInTheDocument();
+    expect(
+      dentro.getByRole("checkbox", { name: "Em aberto" }),
+    ).toBeInTheDocument();
+    expect(
+      dentro.getByRole("checkbox", { name: "Quitado" }),
+    ).toBeInTheDocument();
     expect(dentro.queryByRole("checkbox", { name: "Materiais" })).toBeNull();
   });
 
@@ -204,8 +215,12 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     fireEvent.change(dentro.getByPlaceholderText("Pesquisar..."), {
       target: { value: "mater" },
     });
-    expect(dentro.getByRole("checkbox", { name: "Materiais" })).toBeInTheDocument();
-    expect(dentro.queryByRole("checkbox", { name: "Servicos prestados" })).toBeNull();
+    expect(
+      dentro.getByRole("checkbox", { name: "Materiais" }),
+    ).toBeInTheDocument();
+    expect(
+      dentro.queryByRole("checkbox", { name: "Servicos prestados" }),
+    ).toBeNull();
   });
 
   it("sem resultado, diz que nao achou", () => {
@@ -222,7 +237,9 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     const props = montar();
     abrir("Situação", "Todas");
     fireEvent.click(
-      within(painel("Situação", "Todas")).getByRole("checkbox", { name: "Quitado" }),
+      within(painel("Situação", "Todas")).getByRole("checkbox", {
+        name: "Quitado",
+      }),
     );
     expect(props.onSituacao).toHaveBeenCalledWith(["Quitado"]);
   });
@@ -261,7 +278,9 @@ describe("MultiSelect na barra de filtros de Contas", () => {
     ).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
     expect(
-      within(painel("Situação", "Todas")).queryByPlaceholderText("Pesquisar..."),
+      within(painel("Situação", "Todas")).queryByPlaceholderText(
+        "Pesquisar...",
+      ),
     ).toBeNull();
   });
 });
@@ -306,10 +325,12 @@ git commit -m "test(contas): caracteriza os tres MultiSelect antes de fundir"
 Independente do rótulo, e por isso vem sozinho: é a única parte do bloco de acessibilidade que não muda o nome acessível de nada, então não mexe em teste nenhum das seis telas.
 
 **Files:**
+
 - Modify: `src/design-system/ui/forms/MultiSelect.tsx`
 - Modify: `src/design-system/ui/forms/MultiSelect.test.tsx`
 
 **Interfaces:**
+
 - Consome: nada novo.
 - Produz: nenhuma mudança de API. `MultiSelectProps` continua igual.
 
@@ -318,24 +339,24 @@ Independente do rótulo, e por isso vem sozinho: é a única parte do bloco de a
 Acrescentar a `src/design-system/ui/forms/MultiSelect.test.tsx`:
 
 ```tsx
-  it("Escape fecha o painel e devolve o foco ao gatilho", () => {
-    render(
-      <MultiSelect
-        opcoes={OPCOES}
-        selecionados={[]}
-        onChange={() => {}}
-        placeholder="Todos"
-      />,
-    );
-    const gatilho = screen.getByRole("button", { name: "Todos" });
-    fireEvent.click(gatilho);
-    expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
+it("Escape fecha o painel e devolve o foco ao gatilho", () => {
+  render(
+    <MultiSelect
+      opcoes={OPCOES}
+      selecionados={[]}
+      onChange={() => {}}
+      placeholder="Todos"
+    />,
+  );
+  const gatilho = screen.getByRole("button", { name: "Todos" });
+  fireEvent.click(gatilho);
+  expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
 
-    fireEvent.keyDown(gatilho, { key: "Escape" });
+  fireEvent.keyDown(gatilho, { key: "Escape" });
 
-    expect(screen.queryByPlaceholderText("Pesquisar...")).toBeNull();
-    expect(document.activeElement).toBe(gatilho);
-  });
+  expect(screen.queryByPlaceholderText("Pesquisar...")).toBeNull();
+  expect(document.activeElement).toBe(gatilho);
+});
 ```
 
 - [ ] **Passo 2: rodar e ver falhar pelo motivo certo**
@@ -348,15 +369,15 @@ Esperado: FALHA — o painel continua aberto, porque nada escuta a tecla.
 Em `src/design-system/ui/forms/MultiSelect.tsx`, dar um ref ao gatilho e escutar a tecla no container:
 
 ```tsx
-  const containerRef = useRef<HTMLDivElement>(null);
-  const gatilhoRef = useRef<HTMLButtonElement>(null);
+const containerRef = useRef<HTMLDivElement>(null);
+const gatilhoRef = useRef<HTMLButtonElement>(null);
 
-  function aoTeclar(evento: React.KeyboardEvent<HTMLDivElement>) {
-    if (evento.key === "Escape" && aberto) {
-      setAberto(false);
-      gatilhoRef.current?.focus();
-    }
+function aoTeclar(evento: React.KeyboardEvent<HTMLDivElement>) {
+  if (evento.key === "Escape" && aberto) {
+    setAberto(false);
+    gatilhoRef.current?.focus();
   }
+}
 ```
 
 O container passa a ser:
@@ -397,12 +418,14 @@ git commit -m "feat(ds): MultiSelect fecha com Escape e devolve o foco"
 **É uma task só, e é atômica por construção:** `rotulo` obrigatório quebra os 15 call sites no mesmo instante em que é declarado, então o primitivo, as seis telas e as 30 consultas de teste andam juntos ou o `tsc` fica vermelho.
 
 **Files:**
+
 - Modify: `src/design-system/ui/forms/MultiSelect.tsx`
 - Modify: `src/design-system/ui/forms/MultiSelect.test.tsx`
 - Modify: `src/pages/Produtos.tsx`, `Servicos.tsx`, `Vendedores.tsx`, `Estoque.tsx`, `Clientes.tsx`, `Vendas.tsx`
 - Modify: os seis `src/pages/*.multiselect.test.tsx`
 
 **Interfaces:**
+
 - Produz: `MultiSelectProps` ganha `rotulo: string` obrigatório, primeira prop. As demais não mudam. A Task 4 consome exatamente essa assinatura.
 
 - [ ] **Passo 1: escrever os testes que falham**
@@ -410,57 +433,59 @@ git commit -m "feat(ds): MultiSelect fecha com Escape e devolve o foco"
 Acrescentar a `src/design-system/ui/forms/MultiSelect.test.tsx` (o `rotulo` passa a ser obrigatório em todos os `render` do arquivo — acrescentar `rotulo="Produto"` aos existentes, que é edição autorizada por a prop ser nova e obrigatória):
 
 ```tsx
-  it("o nome acessivel do gatilho soma o rotulo e o estado", () => {
-    render(
-      <MultiSelect
-        rotulo="Produto"
-        opcoes={OPCOES}
-        selecionados={[]}
-        onChange={() => {}}
-        placeholder="Todos"
-      />,
-    );
-    // O rotulo sozinho SUBSTITUIRIA o estado se fosse `htmlFor`; `aria-labelledby`
-    // com os dois ids soma as duas coisas, que e o que interessa a quem usa
-    // leitor de tela: "Produto, Todos".
-    expect(screen.getByRole("button", { name: "Produto Todos" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Todos" })).toBeNull();
-  });
+it("o nome acessivel do gatilho soma o rotulo e o estado", () => {
+  render(
+    <MultiSelect
+      rotulo="Produto"
+      opcoes={OPCOES}
+      selecionados={[]}
+      onChange={() => {}}
+      placeholder="Todos"
+    />,
+  );
+  // O rotulo sozinho SUBSTITUIRIA o estado se fosse `htmlFor`; `aria-labelledby`
+  // com os dois ids soma as duas coisas, que e o que interessa a quem usa
+  // leitor de tela: "Produto, Todos".
+  expect(
+    screen.getByRole("button", { name: "Produto Todos" }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Todos" })).toBeNull();
+});
 
-  it("o painel e um grupo rotulado, e nao um listbox", () => {
-    render(
-      <MultiSelect
-        rotulo="Produto"
-        opcoes={OPCOES}
-        selecionados={[]}
-        onChange={() => {}}
-        placeholder="Todos"
-      />,
-    );
-    const gatilho = screen.getByRole("button", { name: "Produto Todos" });
-    fireEvent.click(gatilho);
+it("o painel e um grupo rotulado, e nao um listbox", () => {
+  render(
+    <MultiSelect
+      rotulo="Produto"
+      opcoes={OPCOES}
+      selecionados={[]}
+      onChange={() => {}}
+      placeholder="Todos"
+    />,
+  );
+  const gatilho = screen.getByRole("button", { name: "Produto Todos" });
+  fireEvent.click(gatilho);
 
-    // Um botao que abre um painel de checkboxes e disclosure, nao listbox.
-    // A peca de Contas prometia `aria-haspopup="listbox"` e entregava um <div>
-    // com checkboxes dentro; a promessa nao e portada.
-    expect(gatilho).not.toHaveAttribute("aria-haspopup");
-    expect(screen.getByRole("group", { name: "Produto" })).toBeInTheDocument();
-    expect(screen.queryByRole("listbox")).toBeNull();
-  });
+  // Um botao que abre um painel de checkboxes e disclosure, nao listbox.
+  // A peca de Contas prometia `aria-haspopup="listbox"` e entregava um <div>
+  // com checkboxes dentro; a promessa nao e portada.
+  expect(gatilho).not.toHaveAttribute("aria-haspopup");
+  expect(screen.getByRole("group", { name: "Produto" })).toBeInTheDocument();
+  expect(screen.queryByRole("listbox")).toBeNull();
+});
 
-  it("o campo de busca diz em que campo se esta buscando", () => {
-    render(
-      <MultiSelect
-        rotulo="Produto"
-        opcoes={OPCOES}
-        selecionados={[]}
-        onChange={() => {}}
-        placeholder="Todos"
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Produto Todos" }));
-    expect(screen.getByLabelText("Pesquisar em Produto")).toBeInTheDocument();
-  });
+it("o campo de busca diz em que campo se esta buscando", () => {
+  render(
+    <MultiSelect
+      rotulo="Produto"
+      opcoes={OPCOES}
+      selecionados={[]}
+      onChange={() => {}}
+      placeholder="Todos"
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Produto Todos" }));
+  expect(screen.getByLabelText("Pesquisar em Produto")).toBeInTheDocument();
+});
 ```
 
 - [ ] **Passo 2: rodar e ver falhar**
@@ -491,14 +516,14 @@ export interface MultiSelectProps {
 3. Dentro do componente, os dois ids:
 
 ```tsx
-  // O gatilho é um `<button>`, não um campo de formulário. `<label for>` até é
-  // HTML válido apontando para um botão, mas ele SUBSTITUI o nome acessível:
-  // quem usa leitor de tela ouviria "Empresas" e perderia "3 selecionado(s)",
-  // que é o estado do filtro. `aria-labelledby` com os dois ids soma as duas
-  // coisas — "Empresas, 3 selecionado(s)".
-  const id = useId();
-  const idDoRotulo = `${id}-rotulo`;
-  const idDoValor = `${id}-valor`;
+// O gatilho é um `<button>`, não um campo de formulário. `<label for>` até é
+// HTML válido apontando para um botão, mas ele SUBSTITUI o nome acessível:
+// quem usa leitor de tela ouviria "Empresas" e perderia "3 selecionado(s)",
+// que é o estado do filtro. `aria-labelledby` com os dois ids soma as duas
+// coisas — "Empresas, 3 selecionado(s)".
+const id = useId();
+const idDoRotulo = `${id}-rotulo`;
+const idDoValor = `${id}-valor`;
 ```
 
 4. A raiz passa a ser a da peça velha, com o `<label>` como primeiro filho. **O botão e o painel continuam irmãos dentro dessa mesma `div`** — é disso que os `within(botao.parentElement!)` dos testes dependem:
@@ -539,26 +564,28 @@ bloco ser copiável inteiro. **Não mudar classe nenhuma nesta task.**
 6. O painel ganha o papel — o `role="group"` vai no `<div>` que **envolve as opções**, não no painel inteiro, para não englobar a busca e o "Limpar seleção":
 
 ```tsx
-          <div role="group" aria-label={rotulo}>
-            {opcoesFiltradas.length > 0 ? (
-              opcoesFiltradas.map((opcao) => (
-                <label
-                  key={opcao.valor}
-                  className="flex cursor-pointer items-center px-4 py-2 hover:bg-surface-elevated"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selecionados.includes(opcao.valor)}
-                    onChange={() => alternar(opcao.valor)}
-                    className="mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                  />
-                  <span className="text-conteudo">{opcao.rotulo}</span>
-                </label>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-conteudo-muted">Nenhum resultado encontrado</div>
-            )}
-          </div>
+<div role="group" aria-label={rotulo}>
+  {opcoesFiltradas.length > 0 ? (
+    opcoesFiltradas.map((opcao) => (
+      <label
+        key={opcao.valor}
+        className="flex cursor-pointer items-center px-4 py-2 hover:bg-surface-elevated"
+      >
+        <input
+          type="checkbox"
+          checked={selecionados.includes(opcao.valor)}
+          onChange={() => alternar(opcao.valor)}
+          className="mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        />
+        <span className="text-conteudo">{opcao.rotulo}</span>
+      </label>
+    ))
+  ) : (
+    <div className="px-4 py-2 text-conteudo-muted">
+      Nenhum resultado encontrado
+    </div>
+  )}
+</div>
 ```
 
 O miolo é o que já existe, sem uma alteração — a mudança é só a `<div role="group">`
@@ -654,10 +681,12 @@ git commit -m "feat(ds): MultiSelect e dono do proprio rotulo acessivel"
 ### Task 4: Contas consome o primitivo, e a peça velha é apagada
 
 **Files:**
+
 - Modify: `src/pages/contas/FiltrosDeContas.tsx`
 - Delete: `src/pages/contas/MultiSelectDeContas.tsx`
 
 **Interfaces:**
+
 - Consome: `MultiSelect` e `deTextos` de `../../design-system/ui`, com a assinatura que a Task 3 produziu.
 
 - [ ] **Passo 1: trocar os três usos**
@@ -667,25 +696,25 @@ Em `src/pages/contas/FiltrosDeContas.tsx`, trocar o import de `MultiSelectDeCont
 De:
 
 ```tsx
-        <MultiSelectDeContas
-          rotulo="Situação"
-          opcoes={opcoes.situacao}
-          selecionadas={valores.situacao}
-          onChange={onSituacao}
-          placeholder="Todas"
-        />
+<MultiSelectDeContas
+  rotulo="Situação"
+  opcoes={opcoes.situacao}
+  selecionadas={valores.situacao}
+  onChange={onSituacao}
+  placeholder="Todas"
+/>
 ```
 
 para:
 
 ```tsx
-        <MultiSelect
-          rotulo="Situação"
-          opcoes={deTextos(opcoes.situacao)}
-          selecionados={valores.situacao}
-          onChange={onSituacao}
-          placeholder="Todas"
-        />
+<MultiSelect
+  rotulo="Situação"
+  opcoes={deTextos(opcoes.situacao)}
+  selecionados={valores.situacao}
+  onChange={onSituacao}
+  placeholder="Todas"
+/>
 ```
 
 Idem para `Categoria` (placeholder "Todas") e para a contraparte (`rotulo={rotuloDaContraparte}`, placeholder "Todos").
@@ -734,6 +763,7 @@ git commit -m "refactor(contas): consome o MultiSelect do design system"
 ### Task 5: fechar a conta
 
 **Files:**
+
 - Modify: `docs/superpowers/2026-09-01-multiselect-divergencias.md`
 
 - [ ] **Passo 1: conferir os critérios do spec, um por um**

@@ -34,11 +34,11 @@ Cada primitivo do design system tem três arquivos de referência, que o
 controlador baixa para `.superpowers/sdd/2026-08-25-fase-1-casca-primitivos/referencia/`
 antes de despachar a task. Cada um serve para uma coisa:
 
-| Arquivo | O que dele se usa |
-|---|---|
-| `<Nome>.d.ts` | A interface de props, **verbatim**. Nomes, tipos, opcionalidade e os comentários de doc. Só o bloco `@startingPoint` não vem. |
-| `<Nome>.prompt.md` | A semântica: quando usar cada variante, o que cada uma significa. Vira o comentário de doc do componente. |
-| `<Nome>.jsx` | As **medidas**: padding, tamanho de fonte, raio, gap. São traduzidas de valor inline para classe Tailwind equivalente. |
+| Arquivo            | O que dele se usa                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `<Nome>.d.ts`      | A interface de props, **verbatim**. Nomes, tipos, opcionalidade e os comentários de doc. Só o bloco `@startingPoint` não vem. |
+| `<Nome>.prompt.md` | A semântica: quando usar cada variante, o que cada uma significa. Vira o comentário de doc do componente.                     |
+| `<Nome>.jsx`       | As **medidas**: padding, tamanho de fonte, raio, gap. São traduzidas de valor inline para classe Tailwind equivalente.        |
 
 **As sete regras do port:**
 
@@ -92,6 +92,7 @@ foco, sem as tintas semânticas o `Badge` não tem fundo, sem `--overlay` o
 `Modal` não tem cortina. Esta task abre o caminho para todas as outras.
 
 **Files:**
+
 - Modify: `tailwind.config.js` (bloco `theme.extend`)
 - Create: `src/design-system/ui/core/Icon.tsx`
 - Create: `src/design-system/ui/core/Spinner.tsx`
@@ -100,6 +101,7 @@ foco, sem as tintas semânticas o `Badge` não tem fundo, sem `--overlay` o
 - Test: `src/test/tailwind-config.test.ts` (ampliar), `src/design-system/ui/core/Icon.test.tsx`, `src/design-system/ui/core/Spinner.test.tsx`, `src/test/guarda-primitivos.test.ts`
 
 **Interfaces:**
+
 - Consumes: as custom properties de `src/design-system/tokens/`, instaladas na Fase 0.
 - Produces: as classes `ring-focus`, `bg-overlay`, `bg-tint-{primary,success,danger,warning,info,neutral}`, `text-on-tint-{...}`, `shadow-{sm,md,lg,xl}`, `rounded-{sm,md,full}`, `w-sidebar`, `w-sidebar-collapsed`, `h-topbar`. E os componentes `Icon` e `Spinner`, consumidos por `Button`, `Alert`, `Modal` e `AppShell`.
 
@@ -116,7 +118,14 @@ describe("tokens que os primitivos consomem", () => {
   });
 
   it("as tintas semanticas e seus pares de texto existem", () => {
-    for (const nome of ["primary", "success", "danger", "warning", "info", "neutral"]) {
+    for (const nome of [
+      "primary",
+      "success",
+      "danger",
+      "warning",
+      "info",
+      "neutral",
+    ]) {
       expect(cores.tint[nome]).toBe(`var(--tint-${nome})`);
       expect(cores["on-tint"][nome]).toBe(`var(--on-tint-${nome})`);
     }
@@ -124,7 +133,9 @@ describe("tokens que os primitivos consomem", () => {
 
   it("as medidas da casca saem de token", () => {
     expect(config.theme.extend.width.sidebar).toBe("var(--sidebar-width)");
-    expect(config.theme.extend.width["sidebar-collapsed"]).toBe("var(--sidebar-width-collapsed)");
+    expect(config.theme.extend.width["sidebar-collapsed"]).toBe(
+      "var(--sidebar-width-collapsed)",
+    );
     expect(config.theme.extend.height.topbar).toBe("var(--topbar-height)");
   });
 
@@ -313,7 +324,10 @@ import { Icon } from "./Icon";
 describe("Icon", () => {
   it("e decorativo por padrao, invisivel para leitor de tela", () => {
     const { container } = render(<Icon name="check" />);
-    expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector("svg")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
   });
 
   it("aceita rotulo quando carrega significado sozinho", () => {
@@ -375,11 +389,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 2: `Button`, `Badge` e `Avatar`
 
 **Files:**
+
 - Create: `src/design-system/ui/core/Button.tsx`, `Badge.tsx`, `Avatar.tsx`
 - Modify: `src/design-system/ui/core/index.ts`
 - Test: `src/design-system/ui/core/Button.test.tsx`, `Badge.test.tsx`, `Avatar.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Spinner` da Task 1 (o `Button` o usa quando `loading`), e as classes `bg-tint-*` / `text-on-tint-*` que a Task 1 criou (o `Badge` as usa).
 - Produces: `Button`, `Badge`, `StatusBadge`, `PriorityBadge`, `TagBadge`, `Avatar`. O `Button` é consumido por praticamente toda tela da Fase 3; o `Badge` pelas listagens.
 
@@ -482,7 +498,9 @@ describe("Avatar", () => {
 
   it("mostra a imagem com texto alternativo quando ha", () => {
     render(<Avatar name="Erick Santos" src="/foto.png" />);
-    expect(screen.getByRole("img", { name: "Erick Santos" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Erick Santos" }),
+    ).toBeInTheDocument();
   });
 });
 ```
@@ -524,11 +542,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 3: `Card`
 
 **Files:**
+
 - Create: `src/design-system/ui/core/Card.tsx`
 - Modify: `src/design-system/ui/core/index.ts`
 - Test: `src/design-system/ui/core/Card.test.tsx`
 
 **Interfaces:**
+
 - Consumes: nada das tasks anteriores.
 - Produces: `Card`, `CardHeader`, `CardTitle`, `CardBody`. Consumidos pelo `AppShell` e por toda tela com painel.
 
@@ -570,7 +590,9 @@ describe("Card", () => {
         </CardHeader>
       </Card>,
     );
-    expect(screen.getByRole("heading", { name: "Faturamento" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Faturamento" }),
+    ).toBeInTheDocument();
   });
 
   it("se separa do fundo por borda, nao por sombra", () => {
@@ -612,11 +634,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 4: Campos simples — `Input`, `Textarea`, `Checkbox`, `Radio`, `Switch`
 
 **Files:**
+
 - Create: `src/design-system/ui/forms/Input.tsx`, `Textarea.tsx`, `Checkbox.tsx`, `Radio.tsx`, `Switch.tsx`, `index.ts`
 - Modify: `src/design-system/ui/index.ts`
 - Test: um `.test.tsx` ao lado de cada
 
 **Interfaces:**
+
 - Consumes: nada das tasks anteriores.
 - Produces: `Input`, `Textarea`, `Checkbox`, `Radio`, `RadioGroup`, `Switch`. Consumidos pelos formulários da Fase 3 e pela tela de Configurações na Task 14.
 
@@ -661,7 +685,10 @@ describe("Input", () => {
   it("anuncia o erro junto do campo", () => {
     render(<Input label="CNPJ" error="CNPJ já cadastrado." />);
     expect(screen.getByText("CNPJ já cadastrado.")).toBeInTheDocument();
-    expect(screen.getByLabelText("CNPJ")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("CNPJ")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 });
 ```
@@ -796,11 +823,13 @@ Os dois mais complicados da família de formulário: têm lista que abre, navega
 por teclado e, no `SearchSelect`, busca.
 
 **Files:**
+
 - Create: `src/design-system/ui/forms/Select.tsx`, `SearchSelect.tsx`
 - Modify: `src/design-system/ui/forms/index.ts`
 - Test: `Select.test.tsx`, `SearchSelect.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Icon` da Task 1 (a seta do seletor).
 - Produces: `Select`, `SearchSelect`. O `SearchSelect` unifica os três dropdowns que o HelpHS tinha separados: `variant="form"` é campo de formulário, `variant="filter"` é a versão compacta de barra de filtros, `searchable` liga a busca.
 
@@ -870,20 +899,24 @@ describe("SearchSelect", () => {
     await userEvent.click(screen.getByLabelText("Cliente"));
     await userEvent.keyboard("ELEM");
     expect(screen.getByText("ELEMENTIS SPECIALTIES")).toBeVisible();
-    expect(screen.queryByText("INTERCEMENT BRASIL S.A")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("INTERCEMENT BRASIL S.A"),
+    ).not.toBeInTheDocument();
   });
 
   it("diz quando a busca nao acha nada, em frase completa", async () => {
     render(<SearchSelect label="Cliente" options={CLIENTES} searchable />);
     await userEvent.click(screen.getByLabelText("Cliente"));
     await userEvent.keyboard("zzzz");
-    expect(screen.getByText("Nenhum resultado encontrado.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum resultado encontrado."),
+    ).toBeInTheDocument();
   });
 });
 ```
 
 O texto do estado vazio vem do `readme.md` do design system, seção "Erros":
-*"Nenhum resultado encontrado."*, com ponto final. Se o `.jsx` original trouxer
+_"Nenhum resultado encontrado."_, com ponto final. Se o `.jsx` original trouxer
 outro texto, use o do original e ajuste o teste — mas registre a divergência no
 relatório, porque o design system é explícito sobre essa frase.
 
@@ -918,11 +951,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 6: Dados — `Table`, `Pagination`, `Progress`
 
 **Files:**
+
 - Create: `src/design-system/ui/data/Table.tsx`, `Pagination.tsx`, `Progress.tsx`, `index.ts`
 - Modify: `src/design-system/ui/index.ts`
 - Test: um `.test.tsx` ao lado de cada
 
 **Interfaces:**
+
 - Consumes: `Icon` da Task 1 (setas de ordenação e de paginação).
 - Produces: `Table`, `TableHead`, `TableBody`, `TableRow`, `TableHeaderCell`, `TableCell`, `TableEmpty`, `Pagination`, `Progress`. São o coração das dez telas de listagem da Fase 3.
 
@@ -936,8 +971,8 @@ são o que apaga essa duplicação.
 
 - **Cabeçalho de tabela é caixa alta**, e é uma das duas únicas exceções à regra
   de sentence case (a outra é rótulo estrutural monoespaçado).
-- **Contagem de paginação vem em frase**, nunca `1-10 / 84`. É *"Mostrando 1 a 10
-  de 84 notas"*. O substantivo é parametrizável, porque a tela de Vendas conta
+- **Contagem de paginação vem em frase**, nunca `1-10 / 84`. É _"Mostrando 1 a 10
+  de 84 notas"_. O substantivo é parametrizável, porque a tela de Vendas conta
   notas e a de Clientes conta clientes.
 
 - [ ] **Step 1: Escrever os testes**
@@ -976,7 +1011,9 @@ describe("Table", () => {
       </Table>,
     );
     expect(screen.getByRole("table")).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Número" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Número" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "1500" })).toBeInTheDocument();
   });
 
@@ -1004,15 +1041,29 @@ import { Pagination } from "./Pagination";
 describe("Pagination", () => {
   it("conta em frase, nao em fracao", () => {
     render(
-      <Pagination page={1} pageSize={10} total={84} noun="notas" onPageChange={() => {}} />,
+      <Pagination
+        page={1}
+        pageSize={10}
+        total={84}
+        noun="notas"
+        onPageChange={() => {}}
+      />,
     );
-    expect(screen.getByText(/Mostrando 1 a 10 de 84 notas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mostrando 1 a 10 de 84 notas/),
+    ).toBeInTheDocument();
   });
 
   it("nao deixa voltar da primeira pagina", async () => {
     const aoMudar = vi.fn();
     render(
-      <Pagination page={1} pageSize={10} total={84} noun="notas" onPageChange={aoMudar} />,
+      <Pagination
+        page={1}
+        pageSize={10}
+        total={84}
+        noun="notas"
+        onPageChange={aoMudar}
+      />,
     );
     await userEvent.click(screen.getByRole("button", { name: /anterior/i }));
     expect(aoMudar).not.toHaveBeenCalled();
@@ -1021,7 +1072,13 @@ describe("Pagination", () => {
   it("avanca de pagina", async () => {
     const aoMudar = vi.fn();
     render(
-      <Pagination page={1} pageSize={10} total={84} noun="notas" onPageChange={aoMudar} />,
+      <Pagination
+        page={1}
+        pageSize={10}
+        total={84}
+        noun="notas"
+        onPageChange={aoMudar}
+      />,
     );
     await userEvent.click(screen.getByRole("button", { name: /pr[óo]xima/i }));
     expect(aoMudar).toHaveBeenCalledWith(2);
@@ -1029,9 +1086,17 @@ describe("Pagination", () => {
 
   it("na ultima pagina a contagem nao passa do total", () => {
     render(
-      <Pagination page={9} pageSize={10} total={84} noun="notas" onPageChange={() => {}} />,
+      <Pagination
+        page={9}
+        pageSize={10}
+        total={84}
+        noun="notas"
+        onPageChange={() => {}}
+      />,
     );
-    expect(screen.getByText(/Mostrando 81 a 84 de 84 notas/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mostrando 81 a 84 de 84 notas/),
+    ).toBeInTheDocument();
   });
 });
 ```
@@ -1092,11 +1157,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 7: Retorno — `Alert`, `Tooltip` e `Modal`
 
 **Files:**
+
 - Create: `src/design-system/ui/feedback/Alert.tsx`, `Tooltip.tsx`, `Modal.tsx`, `index.ts`
 - Modify: `src/design-system/ui/index.ts`
 - Test: um `.test.tsx` ao lado de cada
 
 **Interfaces:**
+
 - Consumes: `Icon` da Task 1, `Button` da Task 2 (o `ModalFooter` compõe os botões).
 - Produces: `Alert`, `Tooltip`, `Modal`, `ModalFooter`. O `Modal` é consumido por sete telas na Fase 3.
 
@@ -1126,7 +1193,9 @@ import { Alert } from "./Alert";
 
 describe("Alert", () => {
   it("se anuncia para leitor de tela", () => {
-    render(<Alert variant="danger">Não foi possível carregar seus chamados.</Alert>);
+    render(
+      <Alert variant="danger">Não foi possível carregar seus chamados.</Alert>,
+    );
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Não foi possível carregar seus chamados.",
     );
@@ -1155,7 +1224,9 @@ describe("Tooltip", () => {
       </Tooltip>,
     );
     await userEvent.tab();
-    expect(await screen.findByRole("tooltip")).toHaveTextContent("Recolher menu");
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "Recolher menu",
+    );
   });
 });
 ```
@@ -1185,7 +1256,9 @@ describe("Modal", () => {
         conteúdo
       </Modal>,
     );
-    expect(screen.getByRole("dialog", { name: "Trocar senha" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Trocar senha" }),
+    ).toBeInTheDocument();
   });
 
   it("Esc fecha", async () => {
@@ -1255,6 +1328,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Esta é a única task de primitivo que encosta em tela.
 
 **Files:**
+
 - Create: `src/design-system/ui/feedback/Toast.tsx`
 - Modify: `src/design-system/ui/feedback/index.ts`
 - Modify: `src/App.tsx` (montar o `ToastStack`)
@@ -1262,6 +1336,7 @@ Esta é a única task de primitivo que encosta em tela.
 - Test: `src/design-system/ui/feedback/Toast.test.tsx`, `src/test/guarda-alert.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Icon` da Task 1.
 - Produces: `Toast`, `ToastStack` e o gancho que dispara um toast — nome exato conforme o `.d.ts` do design system. Consumido pelas telas da Fase 3 no lugar de `alert()`.
 
@@ -1269,12 +1344,12 @@ Referência em `.superpowers/sdd/2026-08-25-fase-1-casca-primitivos/referencia/f
 
 **Os quatro `alert()` e o que cada um vira:**
 
-| Onde | Texto de hoje | Vira |
-|---|---|---|
-| `ModalTrocarSenha.tsx:21` | `"As senhas não coincidem!"` | toast de erro: **"As senhas não coincidem."** |
-| `Dashboard.tsx:224` | mensagem de sucesso do fluxo | toast de sucesso |
-| `Dashboard.tsx:228` | `"Falha ao tentar acionar o fluxo: " + err` | toast de erro: **"Não foi possível acionar o fluxo."** |
-| `Vendedores.tsx:396` | `"Erro ao salvar o tipo da nota"` | toast de erro: **"Não foi possível salvar o tipo da nota."** |
+| Onde                      | Texto de hoje                               | Vira                                                         |
+| ------------------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| `ModalTrocarSenha.tsx:21` | `"As senhas não coincidem!"`                | toast de erro: **"As senhas não coincidem."**                |
+| `Dashboard.tsx:224`       | mensagem de sucesso do fluxo                | toast de sucesso                                             |
+| `Dashboard.tsx:228`       | `"Falha ao tentar acionar o fluxo: " + err` | toast de erro: **"Não foi possível acionar o fluxo."**       |
+| `Vendedores.tsx:396`      | `"Erro ao salvar o tipo da nota"`           | toast de erro: **"Não foi possível salvar o tipo da nota."** |
 
 **Duas regras do design system aplicadas aqui.** Erro fala o que aconteceu, em
 frase completa, com ponto final, e **não expõe código HTTP nem nome de exceção** —
@@ -1311,7 +1386,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const arquivos = readdirSync("src", { recursive: true, encoding: "utf8" })
-  .filter((c) => /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"))
+  .filter(
+    (c) =>
+      /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"),
+  )
   .map((c) => `src/${c}`);
 
 describe("guarda de retorno ao usuario", () => {
@@ -1382,11 +1460,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 9: `Tabs`
 
 **Files:**
+
 - Create: `src/design-system/ui/navigation/Tabs.tsx`, `index.ts`
 - Modify: `src/design-system/ui/index.ts`
 - Test: `src/design-system/ui/navigation/Tabs.test.tsx`
 
 **Interfaces:**
+
 - Consumes: nada das tasks anteriores.
 - Produces: `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`. Consumidos pela tela de Financeiro na Fase 3, a única com abas hoje (`CentroCustoTab`, `MetaTab`).
 
@@ -1471,10 +1551,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 10: `chartTheme.ts` — um tema de gráfico para as nove telas
 
 **Files:**
+
 - Create: `src/design-system/chartTheme.ts`
 - Test: `src/design-system/chartTheme.test.ts`
 
 **Interfaces:**
+
 - Consumes: as custom properties dos tokens.
 - Produces: `chartTheme`, um objeto com `axis`, `grid`, `tooltip` e `series`, e a função `corDaSerie(indice: number): string`. Consumidos pelas nove telas com recharts na Fase 3.
 
@@ -1624,21 +1706,23 @@ dela. **Nenhuma outra task pode ser executada entre as duas** — separadas, ela
 quebram a tela; juntas, ela fica certa.
 
 **Files:**
+
 - Modify: todos os `src/**/*.tsx` com `dark:bg-surface-base` ou `dark:bg-darkBlue`
 - Test: `src/test/guarda-papeis-token.test.ts`
 
 **Interfaces:**
+
 - Consumes: as classes `bg-surface` e `bg-surface-base` do `tailwind.config.js`.
 - Produces: um app onde `--surface` é card e `--bg-base` é fundo de página, que é o que o `AppShell` da Task 12 assume.
 
-**O problema, medido.** O design system define `--bg-base` como *fundo da página*
-e `--surface` como *card, painel, topbar*. O codemod da Fase 0 mapeou por valor de
+**O problema, medido.** O design system define `--bg-base` como _fundo da página_
+e `--surface` como _card, painel, topbar_. O codemod da Fase 0 mapeou por valor de
 cor, não por papel, e o app hoje faz o contrário:
 
-| Papel na tela | Classe de hoje | Valor | Token cujo papel ele ocupa |
-|---|---|---|---|
-| Fundo de página (40 ocorrências) | `dark:bg-darkBlue` | `#132238` | é o valor de `--surface` |
-| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base` | `#0d1b2a` | é o `--bg-base` |
+| Papel na tela                           | Classe de hoje         | Valor     | Token cujo papel ele ocupa |
+| --------------------------------------- | ---------------------- | --------- | -------------------------- |
+| Fundo de página (40 ocorrências)        | `dark:bg-darkBlue`     | `#132238` | é o valor de `--surface`   |
+| Card, header, sidebar (165 ocorrências) | `dark:bg-surface-base` | `#0d1b2a` | é o `--bg-base`            |
 
 Consequência já visível: card sobre página dá **1,09** de contraste, contra 1,72
 antes da Fase 0 — o card quase deixou de se destacar, e a elevação lê ao
@@ -1671,7 +1755,9 @@ const telas = readdirSync("src", { recursive: true, encoding: "utf8" })
 
 describe("papeis dos tokens de superficie", () => {
   it("darkBlue nao existe mais: era alias depreciado da Fase 0", () => {
-    const infratores = telas.filter((c) => /darkBlue/.test(readFileSync(c, "utf8")));
+    const infratores = telas.filter((c) =>
+      /darkBlue/.test(readFileSync(c, "utf8")),
+    );
     expect(infratores).toEqual([]);
   });
 
@@ -1758,6 +1844,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 12: `AppShell` — a casca refeita
 
 **Files:**
+
 - Create: `src/design-system/ui/navigation/AppShell.tsx`
 - Modify: `src/design-system/ui/navigation/index.ts`
 - Rewrite: `src/components/Header.tsx`, `src/components/Sidebar.tsx`
@@ -1765,6 +1852,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 - Test: `src/design-system/ui/navigation/AppShell.test.tsx`, `src/test/guarda-icones.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Icon`, `Tooltip`, `Avatar`, `Button` das tasks anteriores, e os papéis de token corrigidos na Task 11.
 - Produces: `AppShell`, consumido pelo `App.tsx`.
 
@@ -1776,23 +1864,23 @@ por querystring. É rede no caminho da navegação e some se o icons8 cair. Todo
 viram `lucide-react`, que já é dependência e já é usada em 15 arquivos. O
 mapeamento sai do `alt=` de cada um:
 
-| `alt` de hoje | Ícone lucide |
-|---|---|
-| Início | `Home` |
-| Dashboard | `LayoutDashboard` |
-| Vendas | `ShoppingCart` |
-| Clientes | `Users` |
-| Estoque | `Package` |
-| Serviços | `Wrench` |
-| Produtos | `Tag` |
-| Vendedores | `UserCheck` |
-| Financeiro | `Wallet` |
-| Usuários | `UserCog` |
-| Configurações | `Settings` |
-| Sair | `LogOut` |
-| Modo Escuro | `Moon` |
-| Modo Claro | `Sun` |
-| Usuário | `User` |
+| `alt` de hoje | Ícone lucide      |
+| ------------- | ----------------- |
+| Início        | `Home`            |
+| Dashboard     | `LayoutDashboard` |
+| Vendas        | `ShoppingCart`    |
+| Clientes      | `Users`           |
+| Estoque       | `Package`         |
+| Serviços      | `Wrench`          |
+| Produtos      | `Tag`             |
+| Vendedores    | `UserCheck`       |
+| Financeiro    | `Wallet`          |
+| Usuários      | `UserCog`         |
+| Configurações | `Settings`        |
+| Sair          | `LogOut`          |
+| Modo Escuro   | `Moon`            |
+| Modo Claro    | `Sun`             |
+| Usuário       | `User`            |
 
 O `alt="Logo"` e `alt="Logo Health & Safety"` **não** são ícone — são a imagem da
 marca em `src/assets/`, e ficam como estão.
@@ -1823,7 +1911,10 @@ import { describe, expect, it } from "vitest";
 // Nasce restrito a src/components/ de proposito: o ultimo icone remoto vive em
 // src/pages/Login.tsx e so sai na Task 14, que amplia esta varredura para src/
 // inteiro. Suite que fica vermelha de proposito e suite que ninguem olha.
-const telas = readdirSync("src/components", { recursive: true, encoding: "utf8" })
+const telas = readdirSync("src/components", {
+  recursive: true,
+  encoding: "utf8",
+})
   .filter((c) => c.endsWith(".tsx") && !c.endsWith(".test.tsx"))
   .map((c) => `src/components/${c}`);
 
@@ -1836,7 +1927,8 @@ describe("guarda de icones", () => {
     for (const caminho of telas) {
       const conteudo = readFileSync(caminho, "utf8");
       conteudo.split("\n").forEach((linha, i) => {
-        if (/img\.icons8\.com/.test(linha)) infratores.push(`${caminho}:${i + 1}`);
+        if (/img\.icons8\.com/.test(linha))
+          infratores.push(`${caminho}:${i + 1}`);
       });
     }
     expect(infratores).toEqual([]);
@@ -1960,10 +2052,12 @@ As quatro somam 125 linhas. São o primeiro teste real do contrato que a Fase 3
 vai usar doze vezes.
 
 **Files:**
+
 - Rewrite: `src/pages/NotFound.tsx` (19 linhas), `src/pages/Bloqueio.tsx` (26), `src/pages/EmConstrucao.tsx` (27), `src/pages/Home.tsx` (53)
 - Test: um `.test.tsx` ao lado de cada
 
 **Interfaces:**
+
 - Consumes: `Card`, `Button`, `Alert` e `Icon` das tasks anteriores.
 - Produces: nada que outras tasks consumam. É prova de contrato.
 
@@ -2048,12 +2142,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 14: Telas piloto — `Configuracoes` e `Login`
 
 **Files:**
+
 - Rewrite: `src/pages/Configuracoes.tsx` (147 linhas), `src/pages/Login.tsx` (116)
 - Modify: `src/test/guarda-icones.test.ts` (ampliar de `src/components/` para `src/`)
 - Modify: `src/test/guarda-cores.test.ts` (remover a exceção do `Login.tsx`)
 - Test: `src/pages/Configuracoes.test.tsx`, `src/pages/Login.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Input`, `Switch`, `Button`, `Card`, `Alert` das tasks anteriores.
 - Produces: nada que outras tasks consumam.
 
@@ -2194,19 +2290,19 @@ Mostrar o resultado nos dois temas. Nada de `git push` sem autorização.
 
 ## Cobertura do spec
 
-| Entrega da Fase 1 no spec | Task |
-|---|---|
-| Primitivos de `core/` | 1, 2, 3 |
-| Primitivos de `forms/` | 4, 5 |
-| Primitivos de `data/` | 6 |
-| Primitivos de `feedback/` | 7, 8 |
-| Primitivos de `navigation/` | 9, 12 |
-| `AppShell` com ícones locais e medidas de token | 12 |
-| `chartTheme.ts` | 10 |
+| Entrega da Fase 1 no spec                                                                                                                                                                                                                                                                                                           | Task                  |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| Primitivos de `core/`                                                                                                                                                                                                                                                                                                               | 1, 2, 3               |
+| Primitivos de `forms/`                                                                                                                                                                                                                                                                                                              | 4, 5                  |
+| Primitivos de `data/`                                                                                                                                                                                                                                                                                                               | 6                     |
+| Primitivos de `feedback/`                                                                                                                                                                                                                                                                                                           | 7, 8                  |
+| Primitivos de `navigation/`                                                                                                                                                                                                                                                                                                         | 9, 12                 |
+| `AppShell` com ícones locais e medidas de token                                                                                                                                                                                                                                                                                     | 12                    |
+| `chartTheme.ts`                                                                                                                                                                                                                                                                                                                     | 10                    |
 | Duas das três colisões de cascata do spec (`body` e `::-webkit-scrollbar`); a terceira (`a { color: var(--text-link) }` perdendo para o preflight) foi trocada, sem registro, pela remoção do `bg-gray-100` de `index.html` — só fechada de fato nas correções finais da Fase 1, editando o `@layer base` de `src/styles/index.css` | 12 (correções finais) |
-| A inversão de papéis dos tokens documentada no spec | 11 |
-| Telas piloto | 13, 14 |
-| "Pronto quando" da fase | 15 |
+| A inversão de papéis dos tokens documentada no spec                                                                                                                                                                                                                                                                                 | 11                    |
+| Telas piloto                                                                                                                                                                                                                                                                                                                        | 13, 14                |
+| "Pronto quando" da fase                                                                                                                                                                                                                                                                                                             | 15                    |
 
 **Fora de escopo, por decisão registrada no spec:** `Rating` e `SlaChip` (conceitos
 de HelpHS e ChamadosHS, inexistentes aqui), `Rotulo` e `Colchetes` (pele de

@@ -23,12 +23,12 @@ eixos**. Não é o caso do item 4, em que os cinco blocos eram byte a byte
 idênticos e toda a divergência era contra uma sexta implementação certa. Aqui
 cada uma acerta uma coisa que as outras erram:
 
-| | `MultiSelect` | `SearchSelect` | `Estoque` |
-|---|---|---|---|
-| `mousedown` | sim | sim | sim |
-| `touchstart` | **não** | **não** | **sim** |
+|                           | `MultiSelect`  | `SearchSelect`       | `Estoque`      |
+| ------------------------- | -------------- | -------------------- | -------------- |
+| `mousedown`               | sim            | sim                  | sim            |
+| `touchstart`              | **não**        | **não**              | **sim**        |
 | Registra só quando aberto | **não** (`[]`) | **sim** (`[aberto]`) | **não** (`[]`) |
-| `Escape` fecha | sim | sim | **não** |
+| `Escape` fecha            | sim            | sim                  | **não**        |
 
 Nenhuma das três está inteira. A peça unificada é a interseção dos acertos, não
 a cópia de uma delas — e é isso que separa este item do item 4.
@@ -55,7 +55,7 @@ celular no `Pagination` desde o item 2: o app **é** usado em tela pequena, isso
 não é hipótese.
 
 O Estoque é a única das três que acerta, e o comentário no código mostra que foi
-deliberado: *"Aceita mouse OU touch"*. **A implementação que ninguém promoveu a
+deliberado: _"Aceita mouse OU touch"_. **A implementação que ninguém promoveu a
 primitivo é a que estava certa** — o inverso do que aconteceu no item 4, em que
 Contas, a implementação certa, era a única já testada.
 
@@ -103,7 +103,7 @@ useCliqueFora(ref, aoFechar, ativo);
 O Estoque chama duas vezes, uma por popover. A alternativa — uma lista de refs e
 um listener só — espelharia o `onDocClick` de hoje, mas os dois primitivos
 passariam array de um elemento à toa, e a semântica fica ambígua: com duas refs,
-o alvo dentro de uma delas deveria impedir o fechamento *da outra*? Hoje não
+o alvo dentro de uma delas deveria impedir o fechamento _da outra_? Hoje não
 impede — o Estoque avalia cada popover contra a própria ref, dentro de um
 handler só. Uma ref por chamada expressa isso sem o `if` duplo.
 
@@ -148,12 +148,12 @@ chamadas).
 
 ### O que já tem rede, e o que não tem
 
-| Alvo | Teste de clique fora hoje |
-|---|---|
-| `MultiSelect` primitivo | **sim** — `MultiSelect.test.tsx:109` |
-| `MultiSelect` nas telas | **sim** — 6 arquivos, todos com `fireEvent.mouseDown(document.body)` |
-| `SearchSelect` | **não** |
-| Popovers de pizza do Estoque | **não** |
+| Alvo                         | Teste de clique fora hoje                                            |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `MultiSelect` primitivo      | **sim** — `MultiSelect.test.tsx:109`                                 |
+| `MultiSelect` nas telas      | **sim** — 6 arquivos, todos com `fireEvent.mouseDown(document.body)` |
+| `SearchSelect`               | **não**                                                              |
+| Popovers de pizza do Estoque | **não**                                                              |
 
 Sete arquivos cobrem o `MultiSelect`; **dois dos três alvos estão descobertos**.
 A receita é clara: teste de caracterização antes de mover uma linha, e a prova de
@@ -201,8 +201,8 @@ o mesmo mecanismo do `guarda-planilha`, que travou os defeitos do item 3.
 ## Riscos
 
 **O `touchstart` pode fechar o painel antes do toque ser processado.** Tocar num
-checkbox *dentro* do painel não fecha, porque o container contém o alvo. Mas
-tocar num elemento interativo *fora* passa a fechar o painel **e** acionar o
+checkbox _dentro_ do painel não fecha, porque o container contém o alvo. Mas
+tocar num elemento interativo _fora_ passa a fechar o painel **e** acionar o
 elemento no mesmo gesto — que é o comportamento desejado e o que o Estoque já
 faz hoje. O risco real é o inverso: um painel que renderiza em portal ficaria
 fora do `contains` e fecharia sozinho. **Nenhum dos três renderiza em portal** —

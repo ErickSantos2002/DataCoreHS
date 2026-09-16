@@ -4,7 +4,7 @@
 
 **Goal:** Instalar os tokens do Design System H&S, o ferramental de teste e lint, e a ponte de paleta que faz o sistema inteiro adotar a cor da marca sem que nenhuma tela seja reescrita.
 
-**Architecture:** Os tokens do DS entram como cópia fiel em `src/design-system/`, importados antes das diretivas do Tailwind. O `tailwind.config.js` ganha duas camadas: classes de token novas (`bg-action`, `bg-surface`, `text-conteudo`) apontando para `var(--...)`, e uma *ponte de paleta* que redefine `blue-*`, `slate-*` e `darkBlue` para os valores da rampa do DS em hexadecimal literal — assim as 272 classes literais de azul e as 132 de slate que já existem no JSX passam a pintar a marca sem edição. Os 212 hexadecimais arbitrários dentro de classe, que configuração nenhuma alcança, são trocados por um codemod e travados por teste de guarda.
+**Architecture:** Os tokens do DS entram como cópia fiel em `src/design-system/`, importados antes das diretivas do Tailwind. O `tailwind.config.js` ganha duas camadas: classes de token novas (`bg-action`, `bg-surface`, `text-conteudo`) apontando para `var(--...)`, e uma _ponte de paleta_ que redefine `blue-*`, `slate-*` e `darkBlue` para os valores da rampa do DS em hexadecimal literal — assim as 272 classes literais de azul e as 132 de slate que já existem no JSX passam a pintar a marca sem edição. Os 212 hexadecimais arbitrários dentro de classe, que configuração nenhuma alcança, são trocados por um codemod e travados por teste de guarda.
 
 **Tech Stack:** React 19, Vite 7, TypeScript 5.8, Tailwind CSS 3.4.17, Vitest, React Testing Library, ESLint 9, Prettier 3.
 
@@ -28,6 +28,7 @@
 Nada nas tasks seguintes pode ser verificado sem isto. Vem primeiro.
 
 **Files:**
+
 - Modify: `package.json` (deps de dev e scripts)
 - Modify: `vite.config.ts` (bloco `test`)
 - Modify: `tsconfig.json` (tipos dos matchers)
@@ -35,6 +36,7 @@ Nada nas tasks seguintes pode ser verificado sem isto. Vem primeiro.
 - Test: `src/test/fumaca.test.tsx`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: o comando `npm test` (executa `vitest run`), o ambiente `jsdom` e os matchers de `@testing-library/jest-dom`. Todas as tasks seguintes dependem disso.
 
@@ -147,12 +149,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 2: ESLint + Prettier
 
 **Files:**
+
 - Create: `eslint.config.mjs`
 - Create: `.prettierrc.json`
 - Create: `.prettierignore`
 - Modify: `package.json` (deps de dev e scripts)
 
 **Interfaces:**
+
 - Consumes: nada da Task 1.
 - Produces: os comandos `npm run lint` e `npm run format`.
 
@@ -268,6 +272,7 @@ Substituir `N` pelo número anotado no Step 6.
 ### Task 3: Copiar os tokens do Design System
 
 **Files:**
+
 - Create: `src/design-system/styles.css`
 - Create: `src/design-system/tokens/colors.css`
 - Create: `src/design-system/tokens/typography.css`
@@ -280,6 +285,7 @@ Substituir `N` pelo número anotado no Step 6.
 - Test: `src/design-system/tokens.test.ts`
 
 **Interfaces:**
+
 - Consumes: `npm test` da Task 1.
 - Produces: as custom properties CSS que a Task 4 consome por nome — `--color-primary-50` a `--color-primary-900`, `--action`, `--action-hover`, `--action-tint`, `--bg-base`, `--surface`, `--surface-elevated`, `--border-color`, `--border-muted`, `--border-strong`, `--text-body`, `--text-heading`, `--text-muted`, `--text-faint`, `--color-success-500`, `--color-danger-500`, `--color-warning-500`, `--color-info-500`, `--font-sans`, `--font-mono`, `--radius-lg`, `--radius-xl`, `--radius-2xl`.
 
@@ -347,15 +353,15 @@ Expected: FAIL — `ENOENT: no such file or directory, open 'src/design-system/s
 
 Usar a ferramenta `DesignSync`, método `get_file`, com `projectId` `ef9f35f6-3af0-4651-9dee-45d08884432a`, para cada caminho abaixo, gravando o conteúdo **verbatim** no destino:
 
-| Caminho no Design System | Destino no repo |
-|---|---|
-| `styles.css` | `src/design-system/styles.css` |
-| `tokens/colors.css` | `src/design-system/tokens/colors.css` |
-| `tokens/typography.css` | `src/design-system/tokens/typography.css` |
-| `tokens/spacing.css` | `src/design-system/tokens/spacing.css` |
-| `tokens/shape.css` | `src/design-system/tokens/shape.css` |
-| `tokens/motion.css` | `src/design-system/tokens/motion.css` |
-| `tokens/base.css` | `src/design-system/tokens/base.css` |
+| Caminho no Design System | Destino no repo                           |
+| ------------------------ | ----------------------------------------- |
+| `styles.css`             | `src/design-system/styles.css`            |
+| `tokens/colors.css`      | `src/design-system/tokens/colors.css`     |
+| `tokens/typography.css`  | `src/design-system/tokens/typography.css` |
+| `tokens/spacing.css`     | `src/design-system/tokens/spacing.css`    |
+| `tokens/shape.css`       | `src/design-system/tokens/shape.css`      |
+| `tokens/motion.css`      | `src/design-system/tokens/motion.css`     |
+| `tokens/base.css`        | `src/design-system/tokens/base.css`       |
 
 Não editar, não reformatar, não traduzir comentário. É cópia fiel — é isso que permite comparar com a origem num sync futuro.
 
@@ -442,10 +448,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 O coração da fase. Duas camadas num arquivo só.
 
 **Files:**
+
 - Modify: `tailwind.config.js` (substituição integral)
 - Test: `src/test/tailwind-config.test.ts`
 
 **Interfaces:**
+
 - Consumes: as custom properties da Task 3.
 - Produces: as classes `bg-action`, `bg-surface`, `bg-surface-base`, `bg-surface-elevated`, `border-borda`, `text-conteudo`, `text-conteudo-muted` e a rampa `primary-*`, todas consumidas pela Fase 1. Produz também a ponte: `blue-*`, `slate-700/800/900` e `darkBlue` remapeados.
 
@@ -660,7 +668,7 @@ inteiro.
 Run: `npm run dev`
 Abrir `http://localhost:5174/login`, entrar, e percorrer Início, Dashboard e Vendas nos dois temas. O que se espera: azul da marca no lugar do azul antigo, tudo legível, nenhum elemento sumido ou branco-sobre-branco.
 
-Se alguma classe `blue-*` estiver carregando sentido de *info* (um aviso azul que não é ação), anotar arquivo e linha — **não corrigir agora**. Vira item da tela correspondente na Fase 3.
+Se alguma classe `blue-*` estiver carregando sentido de _info_ (um aviso azul que não é ação), anotar arquivo e linha — **não corrigir agora**. Vira item da tela correspondente na Fase 3.
 
 - [ ] **Step 7: Commit**
 
@@ -691,6 +699,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Valor arbitrário dentro de classe (`dark:bg-[#0f172a]`) não responde a configuração. É o que sobra depois da ponte.
 
 **Files:**
+
 - Modify: todos os `src/**/*.tsx` que contenham `[#`, **exceto `src/pages/Login.tsx`**
 - Modify: `src/styles/index.css` (a regra `.input-cc`)
 - Test: `src/test/guarda-cores.test.ts`
@@ -705,6 +714,7 @@ claro. Ficam como estão e são resolvidas na Fase 1, que migra o Login como tel
 piloto. São 210 conversões, não 212.
 
 **Interfaces:**
+
 - Consumes: as classes `surface` e `surface-base` da Task 4.
 - Produces: nenhuma interface nova. Produz a garantia, travada por teste, de que não há hexadecimal arbitrário em classe.
 
@@ -811,10 +821,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 6: Plus Jakarta Sans
 
 **Files:**
+
 - Modify: `index.html`
 - Test: `src/test/fonte.test.ts`
 
 **Interfaces:**
+
 - Consumes: `--font-sans` de `src/design-system/tokens/typography.css` (Task 3) e o `fontFamily` do `tailwind.config.js` (Task 4).
 - Produces: a família tipográfica carregada **cedo**, com preconnect.
 
@@ -848,7 +860,9 @@ describe("Plus Jakarta Sans", () => {
 
   it("index.html faz preconnect nos dois hosts do Google Fonts", () => {
     const html = readFileSync("index.html", "utf8");
-    expect(html).toContain('rel="preconnect" href="https://fonts.googleapis.com"');
+    expect(html).toContain(
+      'rel="preconnect" href="https://fonts.googleapis.com"',
+    );
     expect(html).toContain('rel="preconnect" href="https://fonts.gstatic.com"');
   });
 
@@ -869,12 +883,12 @@ Expected: FAIL nos dois primeiros casos — `index.html` ainda não carrega font
 Dentro de `<head>`, **antes** da linha `<link rel="stylesheet" href="/src/styles/index.css" />`:
 
 ```html
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+  rel="stylesheet"
+/>
 ```
 
 - [ ] **Step 4: Rodar e confirmar que passa**
@@ -911,11 +925,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 7: Limpeza — dependências mortas e `.env.example`
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `.env.example`
 - Test: `src/test/dependencias.test.ts`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces: nada. É higiene.
 
@@ -1030,7 +1046,7 @@ Expected: as únicas linhas alteradas são as do codemod da Task 5 — troca de 
 
 - [ ] **Step 4: Registrar o que ficou para a Fase 3**
 
-Juntar as anotações do Step 6 da Task 4 (classes `blue-*` que carregavam sentido de *info*) e do Step 6 da Task 5 (problemas de contraste no escuro) numa lista por tela, e anexá-la ao spec, na seção "Perguntas em aberto". Cada item vira trabalho da tela correspondente.
+Juntar as anotações do Step 6 da Task 4 (classes `blue-*` que carregavam sentido de _info_) e do Step 6 da Task 5 (problemas de contraste no escuro) numa lista por tela, e anexá-la ao spec, na seção "Perguntas em aberto". Cada item vira trabalho da tela correspondente.
 
 - [ ] **Step 5: Checkpoint com o Erick**
 
@@ -1040,16 +1056,16 @@ Mostrar o resultado nos dois temas e confirmar antes de abrir o plano da Fase 1.
 
 ## Cobertura do spec
 
-| Entrega da Fase 0 no spec | Task |
-|---|---|
-| 1 · `src/design-system/` com tokens e `ORIGEM.md` | 3 |
-| 2 · Import antes das diretivas `@tailwind` | 3 |
-| 3 · `tailwind.config.js` do `adocao.md` | 4 |
-| 4 · Ponte de paleta | 4 |
-| 5 · Codemod dos hexadecimais arbitrários | 5 |
-| 6 · Plus Jakarta Sans | 6 |
-| 7 · Tema escuro navy por token | 3 + 4 + 5 |
-| 8 · Vitest + React Testing Library | 1 |
-| 9 · ESLint + Prettier | 2 |
-| 10 · Limpeza de dependências e `.env.example` | 7 |
-| "Pronto quando" da fase | 8 |
+| Entrega da Fase 0 no spec                         | Task      |
+| ------------------------------------------------- | --------- |
+| 1 · `src/design-system/` com tokens e `ORIGEM.md` | 3         |
+| 2 · Import antes das diretivas `@tailwind`        | 3         |
+| 3 · `tailwind.config.js` do `adocao.md`           | 4         |
+| 4 · Ponte de paleta                               | 4         |
+| 5 · Codemod dos hexadecimais arbitrários          | 5         |
+| 6 · Plus Jakarta Sans                             | 6         |
+| 7 · Tema escuro navy por token                    | 3 + 4 + 5 |
+| 8 · Vitest + React Testing Library                | 1         |
+| 9 · ESLint + Prettier                             | 2         |
+| 10 · Limpeza de dependências e `.env.example`     | 7         |
+| "Pronto quando" da fase                           | 8         |

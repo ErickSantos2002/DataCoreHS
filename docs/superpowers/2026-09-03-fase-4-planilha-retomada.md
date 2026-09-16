@@ -18,13 +18,13 @@ ignorado pelo git e é apagado quando o plano termina. O que está aqui sobreviv
 
 Branch **`fase-4-planilha`**, 16 commits a partir de `020b54c7`, árvore limpa.
 
-| | |
-|---|---|
-| Suíte | **1433 testes / 93 arquivos**, verdes em `TZ=UTC` e `TZ=America/Sao_Paulo` |
-| Lint | **118** (o baseline era 119 — caiu, um import morto de `XLSX` saiu) |
-| `tsc --noEmit` | limpo |
-| Merge | **nada mergeado na `main`** |
-| Push | **nada enviado ao `origin`** |
+|                |                                                                            |
+| -------------- | -------------------------------------------------------------------------- |
+| Suíte          | **1433 testes / 93 arquivos**, verdes em `TZ=UTC` e `TZ=America/Sao_Paulo` |
+| Lint           | **118** (o baseline era 119 — caiu, um import morto de `XLSX` saiu)        |
+| `tsc --noEmit` | limpo                                                                      |
+| Merge          | **nada mergeado na `main`**                                                |
+| Push           | **nada enviado ao `origin`**                                               |
 
 Os documentos que governam:
 
@@ -109,7 +109,7 @@ passava como `Record<string, unknown>[]`, e a primeira solução foi acrescentar
 `[coluna: string]: string | number` à interface — o que a abriria para qualquer
 chave e mataria o travamento das sete colunas que o docblock promete. Alias de
 tipo de objeto ganha índice de string implícito no TypeScript; interface não,
-porque é aberta a *declaration merging*. Trocar a palavra-chave resolveu o `tsc`
+porque é aberta a _declaration merging_. Trocar a palavra-chave resolveu o `tsc`
 sem abrir o tipo.
 
 A justificativa original da mudança citava um precedente em `contas.ts` que

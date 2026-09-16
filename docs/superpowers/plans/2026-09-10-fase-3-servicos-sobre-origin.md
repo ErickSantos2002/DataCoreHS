@@ -59,7 +59,7 @@ Task 1**:
   célula certa.** Trocar duas colunas de lugar passava verde.
 - **Troca simétrica entre dois campos escapa de qualquer asserção que só olhe o
   conjunto de valores presentes.** Mexer num lado falha; trocar os dois, não.
-  Ao escrever teste, pergunte: *que troca simétrica ainda passaria por isso?*
+  Ao escrever teste, pergunte: _que troca simétrica ainda passaria por isso?_
 - **Exportação verificada só por `Object.keys` e `toHaveLength` não verifica
   nada.** O conteúdo de cada coluna precisa ser afirmado.
 - **Gráfico testado pelo que recebe não prova o que desenha.** Trocar o
@@ -72,6 +72,7 @@ Task 1**:
 ### Task 1: A rede de segurança, sobre a fonte nova
 
 **Arquivos:**
+
 - Criar: `src/pages/Servicos.kpis.test.tsx`, `src/pages/Servicos.tabela.test.tsx`
 - **Não tocar** em `src/pages/Servicos.tsx` (a não ser para plantar e reverter)
 
@@ -111,6 +112,7 @@ mais fácil.
 - [ ] **Passo 5: Fechar os buracos que Produtos ensinou, já aqui**
 
 Estes não estavam nos arquivos originais e entram agora, cada um com plantação:
+
 - cada coluna da tabela prende **valor a rótulo** (troque duas de lugar e veja
   falhar);
 - cada KPI prende **valor a rótulo** — e teste a troca **simétrica** entre dois
@@ -120,6 +122,7 @@ Estes não estavam nos arquivos originais e entram agora, cada um com plantaçã
 
 A plantação abaixo é **sugestão, não fato**: se passar verde, ache outra que
 derrube. Em `src/pages/Servicos.tsx`:
+
 - para o `kpis.test`: troque `totalFaturado` e `ticketMedio` entre si;
 - para o `tabela.test`: troque duas colunas de lugar.
 
@@ -138,6 +141,7 @@ git commit -m "test(servicos): caracterizacao dos kpis e da tabela sobre a fonte
 ### Task 2: Mover — a decomposição sobre a fonte nova
 
 **Arquivos:**
+
 - Criar: `src/pages/servicos/CabecalhoServicos.tsx`, `FiltrosDeServicos.tsx`,
   `KpisDeServicos.tsx`, `GraficosDeServicos.tsx`, `TabelaDeServicos.tsx`
 - Criar: `src/pages/servicos/servicos.ts`, `servicos.test.ts`
@@ -166,14 +170,14 @@ tocados.
 
 - [ ] **Passo 2: Podar de `servicos.ts` o que o banco assumiu**
 
-| Função | Quem faz agora |
-|---|---|
-| `opcoesDeFiltro` | `resumo.opcoes` |
-| `filtrarServicos` | o `recorte` que vai para o servidor |
-| `ordenarEBuscar` | `usePaginaDeServicos` (busca e ordem no Postgres) |
-| `rankingDeClientes` | `resumo.por_cliente` |
-| `distribuicaoPorCidade` | `resumo.por_cidade` |
-| `calcularKpis` | `resumo.kpis` (só a leitura do topo sobrevive) |
+| Função                  | Quem faz agora                                    |
+| ----------------------- | ------------------------------------------------- |
+| `opcoesDeFiltro`        | `resumo.opcoes`                                   |
+| `filtrarServicos`       | o `recorte` que vai para o servidor               |
+| `ordenarEBuscar`        | `usePaginaDeServicos` (busca e ordem no Postgres) |
+| `rankingDeClientes`     | `resumo.por_cliente`                              |
+| `distribuicaoPorCidade` | `resumo.por_cidade`                               |
+| `calcularKpis`          | `resumo.kpis` (só a leitura do topo sobrevive)    |
 
 `evolucaoPorMes` **não morre inteira**: a metade que percorre os serviços
 somando por mês morre; a que agrupa por ano acima de 24 meses **fica**.
@@ -184,6 +188,7 @@ serviço, agora vindas da página do servidor. Confira com `grep` antes de decid
 - [ ] **Passo 3: Mover para `servicos.ts` as contas puras da versão dela**
 
 Ler `origin/main:src/pages/Servicos.tsx` e mover — movendo, não reescrevendo:
+
 - `recorteDeServicos(filtros)` — monta o `RecorteDeServicos`;
 - `kpisDoResumo(resumo)` — os quatro números do topo, incluindo o
   `topCliente` que sai de `resumo.por_cliente[0]`;
@@ -199,6 +204,7 @@ Sobrevivem sem edição: `formatarValorAbreviado`, `linhasDaPlanilha`,
 Referência: `91bb7412:src/pages/Servicos.tsx` (227 linhas).
 
 **Preservar da versão dela, sem reescrever:**
+
 - o estado `paginaAtual` e o efeito que o devolve a 1 quando recorte, busca ou
   ordem mudam — **não** voltar a usar `usePaginacao` aqui;
 - `todosOsServicos` na exportação, buscando o recorte inteiro e não a página;
@@ -268,12 +274,12 @@ teste de foco de verdade** — `getByRole("button")` aceitaria um
 Commit: `fix(servicos): cabecalho ordenavel ganha foco de teclado`
 
 - [ ] **3.2 — Os botões de exportar não desabilitam com a tabela vazia**
-(original: `a26f2354`) — os **dois**, Excel e PDF.
+      (original: `a26f2354`) — os **dois**, Excel e PDF.
 
 Commit: `fix(servicos): botoes de exportar desabilitam com a tabela vazia`
 
 - [ ] **3.3 — A data de emissão sai um dia atrás na Excel e no PDF**
-(original: `935b8ba3`)
+      (original: `935b8ba3`)
 
 **Este é um defeito vivo no `origin/main` agora, e sai de casa em documento.**
 Em `origin/main:src/pages/Servicos.tsx`, a exportação faz
@@ -281,11 +287,11 @@ Em `origin/main:src/pages/Servicos.tsx`, a exportação faz
 PDF). `data_emissao` é `YYYY-MM-DD`, que o ECMAScript lê como meia-noite em
 **UTC** — e a oeste de Greenwich isso ainda é o dia anterior. Verificado:
 
-| Onde | 2026-03-15 vira |
-|---|---|
-| tabela na tela (`split("-").reverse()`) | 15/03/2026 ✅ |
-| Excel e PDF, em `TZ=America/Sao_Paulo` | **14/03/2026** ❌ |
-| qualquer um em `TZ=UTC` | 15/03/2026 — o defeito **some** |
+| Onde                                    | 2026-03-15 vira                 |
+| --------------------------------------- | ------------------------------- |
+| tabela na tela (`split("-").reverse()`) | 15/03/2026 ✅                   |
+| Excel e PDF, em `TZ=America/Sao_Paulo`  | **14/03/2026** ❌               |
+| qualquer um em `TZ=UTC`                 | 15/03/2026 — o defeito **some** |
 
 O conserto é `dataDeCalendario`, de `src/lib/datas.ts`, que existe para isto.
 
@@ -363,9 +369,9 @@ git add -A && git commit -m "refactor(servicos): a tela sai de PENDENTES_FASE_3"
 ### Task 5: O prettier, em commit próprio
 
 - [ ] **Passo 1:** conferir se `.prettierignore` menciona a tela; se mencionar,
-  apagar a linha.
+      apagar a linha.
 - [ ] **Passo 2:** `npx prettier --write` na tela, na pasta e nos testes.
 - [ ] **Passo 3:** `git diff -w --stat` tem de vir **vazio** — se não vier, o
-  prettier mudou conteúdo: pare e reporte.
+      prettier mudou conteúdo: pare e reporte.
 - [ ] **Passo 4:** suíte nos dois fusos, `tsc`, lint, e commit
-  `style(servicos): prettier na tela e nos componentes`.
+      `style(servicos): prettier na tela e nos componentes`.

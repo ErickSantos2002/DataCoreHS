@@ -11,14 +11,14 @@ maior que a tela 6 inteira.
 
 Medindo antes de começar, apareceu o que elas têm em comum, e é muito:
 
-| Repetido em | O quê | Tamanho |
-|---|---|---|
-| 6 telas | `MultiSelect` | **737 linhas** |
-| 7 arquivos | exportação para Excel | montada à mão em cada uma |
-| 6 telas | paginação própria | e o primitivo `Pagination` já existe, sem uso |
-| 6 telas | fechar dropdown ao clicar fora | o mesmo `useEffect` copiado |
-| 5 telas | preset de período | com o mesmo defeito nas cinco |
-| 4 telas | `useIsMobile` | 12 linhas idênticas |
+| Repetido em | O quê                          | Tamanho                                       |
+| ----------- | ------------------------------ | --------------------------------------------- |
+| 6 telas     | `MultiSelect`                  | **737 linhas**                                |
+| 7 arquivos  | exportação para Excel          | montada à mão em cada uma                     |
+| 6 telas     | paginação própria              | e o primitivo `Pagination` já existe, sem uso |
+| 6 telas     | fechar dropdown ao clicar fora | o mesmo `useEffect` copiado                   |
+| 5 telas     | preset de período              | com o mesmo defeito nas cinco                 |
+| 4 telas     | `useIsMobile`                  | 12 linhas idênticas                           |
 
 Só o `MultiSelect` é 9% de tudo o que falta migrar.
 
@@ -47,23 +47,23 @@ dimensões, e é isso que torna a unificação uma decisão e não um `git mv`.
 
 **A forma da opção:**
 
-| Telas | `options` |
-|---|---|
+| Telas                                  | `options`                              |
+| -------------------------------------- | -------------------------------------- |
 | Produtos, Serviços, Vendedores, Vendas | `string[]`, no formato `"Nome (CNPJ)"` |
-| Estoque, Clientes | `{ value, label }[]` |
+| Estoque, Clientes                      | `{ value, label }[]`                   |
 
 Nas quatro primeiras o CNPJ é extraído do texto por regex nos parênteses. Nas
 duas últimas ele vem separado, no `value`.
 
 **A busca — quatro estratégias diferentes:**
 
-| Tela | Acha por |
-|---|---|
-| Produtos | só texto |
-| Estoque | só texto, pelo `label` |
-| Serviços | texto, e número normalizando a opção inteira |
+| Tela               | Acha por                                                                                 |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Produtos           | só texto                                                                                 |
+| Estoque            | só texto, pelo `label`                                                                   |
+| Serviços           | texto, e número normalizando a opção inteira                                             |
 | Vendedores, Vendas | texto, e CNPJ extraído dos parênteses — normalizando o termo só quando ele é todo dígito |
-| Clientes | `label`, `value` e número no `value` |
+| Clientes           | `label`, `value` e número no `value`                                                     |
 
 Em Produtos ainda existe um `normalizar` **declarado e nunca usado**: alguém
 começou a portar a busca numérica e parou. É a assinatura do problema — a

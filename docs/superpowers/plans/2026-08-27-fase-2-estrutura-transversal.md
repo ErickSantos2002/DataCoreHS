@@ -95,15 +95,15 @@ qualquer matriz.
 
 ## Estrutura de arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/auth/permissoes.ts` | A matriz `rota → papéis` e as funções que a consultam. Fonte única. |
-| `src/auth/permissoes.test.ts` | A matriz contra cada papel — a lógica mais perigosa do refactor. |
-| `src/auth/RequirePermissao.tsx` | O guarda parametrizado que substitui os seis. |
-| `src/router.tsx` | Só rotas. Sem definição de guarda, sem import no meio do arquivo. |
-| `src/components/Sidebar.tsx` | Deriva o menu da matriz; deixa de ter predicado próprio. |
-| `src/main.tsx` | Só `ThemeProvider`, `AuthProvider`, `BrowserRouter`. |
-| `src/services/http.ts` | Fábrica de instância `axios` com o interceptor compartilhado. |
+| Arquivo                         | Responsabilidade                                                    |
+| ------------------------------- | ------------------------------------------------------------------- |
+| `src/auth/permissoes.ts`        | A matriz `rota → papéis` e as funções que a consultam. Fonte única. |
+| `src/auth/permissoes.test.ts`   | A matriz contra cada papel — a lógica mais perigosa do refactor.    |
+| `src/auth/RequirePermissao.tsx` | O guarda parametrizado que substitui os seis.                       |
+| `src/router.tsx`                | Só rotas. Sem definição de guarda, sem import no meio do arquivo.   |
+| `src/components/Sidebar.tsx`    | Deriva o menu da matriz; deixa de ter predicado próprio.            |
+| `src/main.tsx`                  | Só `ThemeProvider`, `AuthProvider`, `BrowserRouter`.                |
+| `src/services/http.ts`          | Fábrica de instância `axios` com o interceptor compartilhado.       |
 
 ---
 
@@ -119,23 +119,23 @@ mudar estrutura com prova de que o acesso continuou igual.
 Ler `src/router.tsx` inteiro e montar a tabela de quem entra em cada rota. O
 resultado esperado, já conferido — confirme antes de usar:
 
-| Rota | Guarda | Quem entra |
-|---|---|---|
-| `/login` | nenhum | todos |
-| `/inicio` | `ProtectedRoute` | autenticado |
-| `/dashboard` | `ProtectedRoute` | autenticado |
-| `/estoque` | `ProtectedRoute` | autenticado |
-| `/clientes` | `RequireVendas` | admin, vendas, financeiro |
-| `/vendas` | `RequireVendas` | admin, vendas, financeiro |
-| `/produtos` | `RequireVendas` | admin, vendas, financeiro |
-| `/vendedores` | `RequireVendedores` | admin, vendas, financeiro |
-| `/servicos` | `RequireServicos` | admin, servicos, financeiro |
-| `/contas-pagar` | `RequireContasPagar` | admin, financeiro |
-| `/contas-receber` | `RequireContasPagar` | admin, financeiro |
-| `/usuarios` | `RequireAdmin` | admin |
-| `/configuracoes` | `RequireAdmin` | admin |
-| `/financeiro` | `RequireFinanceiro` | **id ∈ {1,3,4}** |
-| `/locacao` | `RequireFinanceiro` | **id ∈ {1,3,4}** |
+| Rota              | Guarda               | Quem entra                  |
+| ----------------- | -------------------- | --------------------------- |
+| `/login`          | nenhum               | todos                       |
+| `/inicio`         | `ProtectedRoute`     | autenticado                 |
+| `/dashboard`      | `ProtectedRoute`     | autenticado                 |
+| `/estoque`        | `ProtectedRoute`     | autenticado                 |
+| `/clientes`       | `RequireVendas`      | admin, vendas, financeiro   |
+| `/vendas`         | `RequireVendas`      | admin, vendas, financeiro   |
+| `/produtos`       | `RequireVendas`      | admin, vendas, financeiro   |
+| `/vendedores`     | `RequireVendedores`  | admin, vendas, financeiro   |
+| `/servicos`       | `RequireServicos`    | admin, servicos, financeiro |
+| `/contas-pagar`   | `RequireContasPagar` | admin, financeiro           |
+| `/contas-receber` | `RequireContasPagar` | admin, financeiro           |
+| `/usuarios`       | `RequireAdmin`       | admin                       |
+| `/configuracoes`  | `RequireAdmin`       | admin                       |
+| `/financeiro`     | `RequireFinanceiro`  | **id ∈ {1,3,4}**            |
+| `/locacao`        | `RequireFinanceiro`  | **id ∈ {1,3,4}**            |
 
 - [x] **Passo 2: escrever o teste que percorre a tabela**
 
@@ -179,7 +179,7 @@ export type Regra =
   | { tipo: "publico" }
   | { tipo: "autenticado" }
   | { tipo: "papeis"; papeis: readonly Papel[] }
-  | { tipo: "usuarios"; ids: readonly number[] };  // liberação nominal — ver abaixo
+  | { tipo: "usuarios"; ids: readonly number[] }; // liberação nominal — ver abaixo
 
 export const PERMISSOES: Record<string, Regra>;
 export function podeAcessar(rota: string, user: Usuario | null): boolean;

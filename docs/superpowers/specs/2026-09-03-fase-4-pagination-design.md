@@ -27,14 +27,14 @@ Seis implementações da mesma paginação, cada uma declarada dentro da própri
 página, com o mesmo formato: uma frase de contagem, um bloco completo para
 desktop e um bloco compacto para celular.
 
-| Tela | Bloco de markup | Itens/página | Substantivo | Colunas |
-|---|---|---|---|---|
-| Clientes | 111 linhas | 15 | registros | 5 |
-| Estoque | 105 | 15 | registros | 7 |
-| Produtos | 104 | **10** | **produtos** | 6 |
-| Serviços | 104 | 15 | registros | 6 |
-| Vendas | 104 | **10** | registros | 6 |
-| Vendedores | 99 | **10** | registros | 7 |
+| Tela       | Bloco de markup | Itens/página | Substantivo  | Colunas |
+| ---------- | --------------- | ------------ | ------------ | ------- |
+| Clientes   | 111 linhas      | 15           | registros    | 5       |
+| Estoque    | 105             | 15           | registros    | 7       |
+| Produtos   | 104             | **10**       | **produtos** | 6       |
+| Serviços   | 104             | 15           | registros    | 6       |
+| Vendas     | 104             | **10**       | registros    | 6       |
+| Vendedores | 99              | **10**       | registros    | 7       |
 
 São **627 linhas de markup**, mais cerca de 60 de estado e `slice` — perto de
 **687 no total**, quase o tamanho do `MultiSelect` (737) que o item 1 apagou.
@@ -132,7 +132,10 @@ dito no docblock, com o defeito concreto que evita.
 
 ```tsx
 // src/hooks/usePaginacao.ts
-const { pagina, setPagina, itensDaPagina, total } = usePaginacao(produtosTabela, 10);
+const { pagina, setPagina, itensDaPagina, total } = usePaginacao(
+  produtosTabela,
+  10,
+);
 ```
 
 ```tsx
@@ -141,7 +144,7 @@ const { pagina, setPagina, itensDaPagina, total } = usePaginacao(produtosTabela,
   page={pagina}
   pageSize={10}
   total={total}
-  itemLabel="produtos"      // só Produtos; as outras cinco usam o default
+  itemLabel="produtos" // só Produtos; as outras cinco usam o default
   onPageChange={setPagina}
 />
 ```

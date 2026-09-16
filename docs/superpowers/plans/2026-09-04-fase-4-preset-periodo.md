@@ -40,6 +40,7 @@ período primeiro, visto falhar, depois a troca.
 ### Task 1: `src/lib/periodo.ts` nasce, e Contas passa a importar de lá
 
 **Files:**
+
 - Create: `src/lib/periodo.ts`
 - Create: `src/lib/periodo.test.ts`
 - Modify: `src/pages/contas/contas.ts` (remove `Periodo`, `periodoDoPreset`,
@@ -48,6 +49,7 @@ período primeiro, visto falhar, depois a troca.
 - Modify: `src/pages/contas/contas.test.ts` (tira os casos que subiram)
 
 **Interfaces:**
+
 - Consumes: `diaLocal` de `src/lib/datas.ts`.
 - Produces: `Periodo` (`{ inicio: string; fim: string }`),
   `periodoDoPreset(preset: string, agora: Date): Periodo | null`,
@@ -104,11 +106,15 @@ describe("periodoDoPreset", () => {
   });
 
   it("Mês atual é o mês INTEIRO, do dia 1 ao último — e não até hoje", () => {
-    expect(periodoDoPreset("mesAtual", new Date("2026-03-15T12:00:00Z"))).toEqual({
+    expect(
+      periodoDoPreset("mesAtual", new Date("2026-03-15T12:00:00Z")),
+    ).toEqual({
       inicio: "2026-03-01",
       fim: "2026-03-31",
     });
-    expect(periodoDoPreset("mesAtual", new Date("2026-02-10T12:00:00Z"))).toEqual({
+    expect(
+      periodoDoPreset("mesAtual", new Date("2026-02-10T12:00:00Z")),
+    ).toEqual({
       inicio: "2026-02-01",
       fim: "2026-02-28",
     });
@@ -255,7 +261,10 @@ export function periodoDoPreset(preset: string, agora: Date): Periodo | null {
     case "mesAtual":
       return periodoDoMes(hoje.getFullYear(), hoje.getMonth());
     case "anoAtual":
-      return { inicio: `${hoje.getFullYear()}-01-01`, fim: `${hoje.getFullYear()}-12-31` };
+      return {
+        inicio: `${hoje.getFullYear()}-01-01`,
+        fim: `${hoje.getFullYear()}-12-31`,
+      };
     case "todos":
     default:
       return { inicio: "", fim: "" };
@@ -276,6 +285,7 @@ export function periodoDoMes(ano: number, indiceDoMes: number): Periodo {
 TZ=UTC npx vitest run src/lib/periodo.test.ts
 TZ=America/Sao_Paulo npx vitest run src/lib/periodo.test.ts
 ```
+
 Expected: PASS nos dois, 9 testes.
 
 - [ ] **Passo 5: tirar as três de `contas.ts` e importar de `lib`**
@@ -292,7 +302,9 @@ Trocar a linha 28:
 ```ts
 import { dataDeCalendario, diaLocal } from "../../lib/datas";
 ```
+
 por:
+
 ```ts
 import { dataDeCalendario, diaLocal } from "../../lib/datas";
 import { periodoDoMes, type Periodo } from "../../lib/periodo";
@@ -326,6 +338,7 @@ houver um separado. Tirar `periodoDoPreset` da lista de imports da linha ~22.
 ```bash
 TZ=UTC npm test && TZ=America/Sao_Paulo npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: verde nos dois. A contagem de arquivos sobe 1 (`lib/periodo.test.ts`);
 a de testes fica perto de 1437, porque os casos mudaram de arquivo e um nasceu
 (o `7dias`). Lint ≤ 118.
@@ -346,9 +359,11 @@ git commit -m "refactor(periodo): a conta dos presets sobe para lib/periodo"
 ### Task 2: `FiltrosDeContas` consome a lista compartilhada, e Contas ganha "Últimos 7 dias"
 
 **Files:**
+
 - Modify: `src/pages/contas/FiltrosDeContas.tsx:1-13`
 
 **Interfaces:**
+
 - Consumes: `PRESETS_DE_PERIODO` (Task 1).
 - Produces: nenhuma lista de presets fora de `lib/periodo.ts`.
 
@@ -386,6 +401,7 @@ só `PRESETS_DE_PERIODO`.
 ```bash
 npx vitest run src/pages/ContasReceber.test.tsx src/pages/ContasPagar.test.tsx
 ```
+
 Expected: PASS. Os testes escolhem o preset pelo **valor** (`escolherPreset("30dias")`),
 não pela posição na lista, então acrescentar uma opção não os quebra.
 
@@ -571,16 +587,16 @@ exercitando a tela.
 **O bloco que substitui o `useEffect`**, idêntico nas cinco:
 
 ```tsx
-  // O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
-  // que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
-  // cinco montavam a data com `toISOString` (UTC) — a partir das 21h de
-  // Brasília o "ano atual" virava o ano seguinte.
-  useEffect(() => {
-    const periodo = periodoDoPreset(presetPeriodo, new Date());
-    if (!periodo) return;
-    setDataInicio(periodo.inicio);
-    setDataFim(periodo.fim);
-  }, [presetPeriodo]);
+// O preset impõe as duas datas. A conta mora em `lib/periodo.ts`, a mesma
+// que Contas usa: eram cinco cópias byte a byte idênticas deste bloco, e as
+// cinco montavam a data com `toISOString` (UTC) — a partir das 21h de
+// Brasília o "ano atual" virava o ano seguinte.
+useEffect(() => {
+  const periodo = periodoDoPreset(presetPeriodo, new Date());
+  if (!periodo) return;
+  setDataInicio(periodo.inicio);
+  setDataFim(periodo.fim);
+}, [presetPeriodo]);
 ```
 
 O `if (!periodo) return` substitui o `if (presetPeriodo !== "custom")` do bloco
@@ -590,11 +606,13 @@ escrita uma vez só.
 **O bloco que substitui as `<option>`**, idêntico nas cinco:
 
 ```tsx
-                {PRESETS_DE_PERIODO.map((preset) => (
-                  <option key={preset.value} value={preset.value}>
-                    {preset.label}
-                  </option>
-                ))}
+{
+  PRESETS_DE_PERIODO.map((preset) => (
+    <option key={preset.value} value={preset.value}>
+      {preset.label}
+    </option>
+  ));
+}
 ```
 
 **O import**, idêntico nas cinco (todas estão em `src/pages/`):
@@ -608,11 +626,13 @@ import { PRESETS_DE_PERIODO, periodoDoPreset } from "../lib/periodo";
 ### Task 3: Produtos adota — a primeira das cinco
 
 **Files:**
+
 - Create: `src/pages/Produtos.periodo.test.tsx`
 - Modify: `src/pages/Produtos.tsx:124-155` (o `useEffect`), `:541-545` (o
   `<select>`), e os imports do topo
 
 **Interfaces:**
+
 - Consumes: `periodoDoPreset`, `PRESETS_DE_PERIODO` (Task 1).
 
 **O comportamento muda de propósito.** "Mês atual" deixa de ser a chave `30dias`
@@ -656,6 +676,7 @@ Junto dos outros imports relativos do topo de `Produtos.tsx`.
 TZ=UTC npx vitest run src/pages/Produtos.periodo.test.tsx
 TZ=America/Sao_Paulo npx vitest run src/pages/Produtos.periodo.test.tsx
 ```
+
 Expected: PASS nos dois, 7 testes.
 
 - [ ] **Passo 7: conferir que os testes vizinhos de Produtos seguem verdes**
@@ -663,6 +684,7 @@ Expected: PASS nos dois, 7 testes.
 ```bash
 npx vitest run src/pages/Produtos.paginacao.test.tsx src/pages/Produtos.multiselect.test.tsx
 ```
+
 Expected: PASS. Eles não escolhem preset, então a mudança não deveria alcançá-los.
 
 - [ ] **Passo 8: suíte inteira, lint e tsc**
@@ -683,11 +705,13 @@ git commit -m "refactor(produtos): o preset de periodo vem de lib/periodo"
 ### Task 4: Clientes adota
 
 **Files:**
+
 - Create: `src/pages/Clientes.periodo.test.tsx`
 - Modify: `src/pages/Clientes.tsx:106-137` (o `useEffect`), `:655-659` (o
   `<select>`), e os imports do topo
 
 **Interfaces:**
+
 - Consumes: `periodoDoPreset`, `PRESETS_DE_PERIODO` (Task 1).
 
 Segue a seção **"O molde do teste de período"**. O cabeçalho de mocks é **cópia
@@ -738,11 +762,13 @@ git commit -m "refactor(clientes): o preset de periodo vem de lib/periodo"
 ### Task 5: Vendas adota
 
 **Files:**
+
 - Create: `src/pages/Vendas.periodo.test.tsx`
 - Modify: `src/pages/Vendas.tsx:140-171` (o `useEffect`), `:567-571` (o
   `<select>`), e os imports do topo
 
 **Interfaces:**
+
 - Consumes: `periodoDoPreset`, `PRESETS_DE_PERIODO` (Task 1).
 
 Cabeçalho de mocks: **cópia verbatim do topo de
@@ -791,11 +817,13 @@ git commit -m "refactor(vendas): o preset de periodo vem de lib/periodo"
 ### Task 6: Vendedores adota
 
 **Files:**
+
 - Create: `src/pages/Vendedores.periodo.test.tsx`
 - Modify: `src/pages/Vendedores.tsx:97-128` (o `useEffect`), `:548-552` (o
   `<select>`), e os imports do topo
 
 **Interfaces:**
+
 - Consumes: `periodoDoPreset`, `PRESETS_DE_PERIODO` (Task 1).
 
 Cabeçalho de mocks: **cópia verbatim do topo de
@@ -844,11 +872,13 @@ git commit -m "refactor(vendedores): o preset de periodo vem de lib/periodo"
 ### Task 7: Serviços adota — a última, e a de contexto diferente
 
 **Files:**
+
 - Create: `src/pages/Servicos.periodo.test.tsx`
 - Modify: `src/pages/Servicos.tsx:98-129` (o `useEffect`), `:542-546` (o
   `<select>`), e os imports do topo
 
 **Interfaces:**
+
 - Consumes: `periodoDoPreset`, `PRESETS_DE_PERIODO` (Task 1).
 - Produces: nenhum `switch (presetPeriodo)` em `src/pages/`.
 
@@ -889,6 +919,7 @@ npx vitest run src/pages/Servicos.paginacao.test.tsx src/pages/Servicos.multisel
 grep -rn "switch (presetPeriodo)" src/pages/
 grep -rn "Gerenciador de presets de período" src/pages/
 ```
+
 Expected: **nenhuma saída** nos dois.
 
 - [ ] **Passo 6: suíte inteira, lint e tsc**
@@ -909,11 +940,13 @@ git commit -m "refactor(servicos): o preset de periodo vem de lib/periodo"
 ### Task 8: o `PENDENTES_UTC` zera, e a conta fecha nos documentos
 
 **Files:**
+
 - Modify: `src/test/guarda-planilha.test.ts`
 - Modify: `docs/superpowers/2026-09-01-multiselect-divergencias.md`
 - Modify: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 
 **Interfaces:**
+
 - Consumes: o resultado das Tasks 3 a 7.
 
 - [ ] **Passo 1: conferir que a lista ficou obsoleta**
@@ -952,6 +985,7 @@ Atualizar o comentário do segundo teste, que hoje diz que as cinco da lista
 npx vitest run src/test/guarda-planilha.test.ts
 TZ=UTC npm test && TZ=America/Sao_Paulo npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: os quatro testes do guarda verdes.
 
 - [ ] **Passo 4: conferir os critérios do spec, um a um**

@@ -39,17 +39,17 @@ derivado. **Isso continua em cada tela** — não é duplicação, é o conteúd
 UTC. Quem exporta depois das 21h no horário de Brasília arquiva com a data do dia
 seguinte.
 
-| Arquivo | Nome do arquivo | Estado |
-|---|---|---|
-| `Clientes.tsx` | `toISOString()` | **UTC** |
-| `Estoque.tsx` | `toISOString()` | **UTC** |
-| `Produtos.tsx` | `toISOString()` | **UTC** |
-| `Servicos.tsx` | `toISOString()` | **UTC** |
-| `Vendas.tsx` | `toISOString()` | **UTC** |
-| `Vendedores.tsx` | `toISOString()` | **UTC** |
-| `locacao/notasDeLocacao.ts` | `toISOString()` | **UTC** — e é tela migrada |
-| `contas/contas.ts` | `diaLocal(agora)` | correto |
-| `financeiro/AbaComissao.tsx` | `dataDeHoje()` | correto |
+| Arquivo                      | Nome do arquivo   | Estado                     |
+| ---------------------------- | ----------------- | -------------------------- |
+| `Clientes.tsx`               | `toISOString()`   | **UTC**                    |
+| `Estoque.tsx`                | `toISOString()`   | **UTC**                    |
+| `Produtos.tsx`               | `toISOString()`   | **UTC**                    |
+| `Servicos.tsx`               | `toISOString()`   | **UTC**                    |
+| `Vendas.tsx`                 | `toISOString()`   | **UTC**                    |
+| `Vendedores.tsx`             | `toISOString()`   | **UTC**                    |
+| `locacao/notasDeLocacao.ts`  | `toISOString()`   | **UTC** — e é tela migrada |
+| `contas/contas.ts`           | `diaLocal(agora)` | correto                    |
+| `financeiro/AbaComissao.tsx` | `dataDeHoje()`    | correto                    |
 
 É o mesmo defeito registrado em `2026-08-31-contas-achados.md` — "o nome do
 arquivo exportado saía em UTC; quem exporta à noite arquiva com a data do dia
@@ -62,8 +62,8 @@ defeito. Os testes dela não o pegam, por dois motivos diferentes, e os dois
 merecem ficar registrados:
 
 - `Locacao.test.tsx:545` calcula a data esperada com o **mesmo**
-  `new Date().toISOString()` que a tela usa, e o comentário admite: *"A tela usa
-  `new Date().toISOString()`, que é UTC — o mesmo cálculo aqui."* O teste
+  `new Date().toISOString()` que a tela usa, e o comentário admite: _"A tela usa
+  `new Date().toISOString()`, que é UTC — o mesmo cálculo aqui."_ O teste
   concorda com a tela por construção, certa ou errada. É uma tautologia, e
   **estava certo escrevê-lo assim**: caracterização fixa o que existe, não o que
   deveria existir. O que faltou foi o passo seguinte.
@@ -127,7 +127,10 @@ export function baixarPlanilha(abas: AbaDePlanilha[], arquivo: string): void;
 
 ```ts
 // oito consumidores, no lugar das quatro linhas
-baixarPlanilha([{ nome: "Produtos", linhas: dadosExport }], `produtos_${diaLocal(new Date())}.xlsx`);
+baixarPlanilha(
+  [{ nome: "Produtos", linhas: dadosExport }],
+  `produtos_${diaLocal(new Date())}.xlsx`,
+);
 
 // AbaComissao, que sempre montou duas abas no mesmo arquivo
 baixarPlanilha(

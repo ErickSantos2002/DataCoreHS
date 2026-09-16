@@ -39,41 +39,41 @@ biblioteca `xlsx` (SheetJS).
 
 **Criar:**
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `src/lib/planilha.ts` | o esqueleto do `xlsx`: monta o livro, anexa as abas, baixa |
-| `src/lib/planilha.test.ts` | teste do esqueleto, incluindo o caso de duas abas |
+| Arquivo                    | Responsabilidade                                           |
+| -------------------------- | ---------------------------------------------------------- |
+| `src/lib/planilha.ts`      | o esqueleto do `xlsx`: monta o livro, anexa as abas, baixa |
+| `src/lib/planilha.test.ts` | teste do esqueleto, incluindo o caso de duas abas          |
 
 **Modificar:**
 
-| Arquivo | O quê |
-|---|---|
-| `src/lib/datas.ts` | ganha `diaLocal` |
-| `src/lib/datas.test.ts` | ganha o teste de `diaLocal`, com virada de dia |
-| `src/pages/contas/contas.ts` | deixa de declarar `diaLocal`, passa a importar |
-| `src/pages/financeiro/AbaComissao.tsx` | apaga `dataDeHoje`, usa `diaLocal`; duas abas |
-| `src/pages/contas/TelaDeContas.tsx` | consome `baixarPlanilha` |
-| `src/pages/locacao/notasDeLocacao.ts` | `nomeDoArquivo` passa a usar `diaLocal` |
-| `src/pages/Locacao.tsx` | consome `baixarPlanilha` |
-| `src/pages/{Clientes,Estoque,Produtos,Servicos,Vendas,Vendedores}.tsx` | idem, e o conserto do UTC |
-| `src/pages/Locacao.test.tsx` | **uma edição autorizada** (M3) |
-| `src/pages/locacao/notasDeLocacao.test.ts` | **uma edição autorizada** (M3) |
+| Arquivo                                                                | O quê                                          |
+| ---------------------------------------------------------------------- | ---------------------------------------------- |
+| `src/lib/datas.ts`                                                     | ganha `diaLocal`                               |
+| `src/lib/datas.test.ts`                                                | ganha o teste de `diaLocal`, com virada de dia |
+| `src/pages/contas/contas.ts`                                           | deixa de declarar `diaLocal`, passa a importar |
+| `src/pages/financeiro/AbaComissao.tsx`                                 | apaga `dataDeHoje`, usa `diaLocal`; duas abas  |
+| `src/pages/contas/TelaDeContas.tsx`                                    | consome `baixarPlanilha`                       |
+| `src/pages/locacao/notasDeLocacao.ts`                                  | `nomeDoArquivo` passa a usar `diaLocal`        |
+| `src/pages/Locacao.tsx`                                                | consome `baixarPlanilha`                       |
+| `src/pages/{Clientes,Estoque,Produtos,Servicos,Vendas,Vendedores}.tsx` | idem, e o conserto do UTC                      |
+| `src/pages/Locacao.test.tsx`                                           | **uma edição autorizada** (M3)                 |
+| `src/pages/locacao/notasDeLocacao.test.ts`                             | **uma edição autorizada** (M3)                 |
 
 ## As nove exportações, medidas
 
 **Errar uma destas é errar a task.** Cada linha é o estado de hoje.
 
-| # | Arquivo | Linhas | Aba | Nome do arquivo hoje | UTC? |
-|---|---|---|---|---|---|
-| 1 | `Clientes.tsx` | `dadosExport` | `"Clientes"` | `` `clientes_${…}.xlsx` `` | **sim** |
-| 2 | `Estoque.tsx` | `dadosExport` | `"Estoque"` | `` `estoque_${…}.xlsx` `` | **sim** |
-| 3 | `Produtos.tsx` | `dadosExport` | `"Produtos"` | `` `produtos_${…}.xlsx` `` | **sim** |
-| 4 | `Servicos.tsx` | `dadosExport` | `"Serviços"` | `` `servicos_${…}.xlsx` `` | **sim** |
-| 5 | `Vendas.tsx` | `dadosExport` | `"Vendas"` | `` `vendas_${…}.xlsx` `` | **sim** |
-| 6 | `Vendedores.tsx` | `dadosExport` | `"Minhas Vendas"` | `` `vendas_${vendedorLogado}_${…}.xlsx` `` | **sim** |
-| 7 | `locacao/notasDeLocacao.ts` | `linhasDaPlanilha(...)` | `ABA_DA_PLANILHA` | `nomeDoArquivo()` | **sim** |
-| 8 | `contas/TelaDeContas.tsx` | `linhasDaPlanilha(...)` | `configuracao.planilha.aba` | `nomeDoArquivo(prefixo, new Date())` | não |
-| 9 | `financeiro/AbaComissao.tsx` | duas listas | `"Vendas"` e `"Serviço"` | `` `comissao-${dataDeHoje()}.xlsx` `` | não |
+| #   | Arquivo                      | Linhas                  | Aba                         | Nome do arquivo hoje                       | UTC?    |
+| --- | ---------------------------- | ----------------------- | --------------------------- | ------------------------------------------ | ------- |
+| 1   | `Clientes.tsx`               | `dadosExport`           | `"Clientes"`                | `` `clientes_${…}.xlsx` ``                 | **sim** |
+| 2   | `Estoque.tsx`                | `dadosExport`           | `"Estoque"`                 | `` `estoque_${…}.xlsx` ``                  | **sim** |
+| 3   | `Produtos.tsx`               | `dadosExport`           | `"Produtos"`                | `` `produtos_${…}.xlsx` ``                 | **sim** |
+| 4   | `Servicos.tsx`               | `dadosExport`           | `"Serviços"`                | `` `servicos_${…}.xlsx` ``                 | **sim** |
+| 5   | `Vendas.tsx`                 | `dadosExport`           | `"Vendas"`                  | `` `vendas_${…}.xlsx` ``                   | **sim** |
+| 6   | `Vendedores.tsx`             | `dadosExport`           | `"Minhas Vendas"`           | `` `vendas_${vendedorLogado}_${…}.xlsx` `` | **sim** |
+| 7   | `locacao/notasDeLocacao.ts`  | `linhasDaPlanilha(...)` | `ABA_DA_PLANILHA`           | `nomeDoArquivo()`                          | **sim** |
+| 8   | `contas/TelaDeContas.tsx`    | `linhasDaPlanilha(...)` | `configuracao.planilha.aba` | `nomeDoArquivo(prefixo, new Date())`       | não     |
+| 9   | `financeiro/AbaComissao.tsx` | duas listas             | `"Vendas"` e `"Serviço"`    | `` `comissao-${dataDeHoje()}.xlsx` ``      | não     |
 
 `${…}` é sempre `new Date().toISOString().split('T')[0]` nas seis primeiras.
 
@@ -91,11 +91,11 @@ biblioteca `xlsx` (SheetJS).
 Quatro arquivos de teste mockam o módulo `xlsx` e capturam o que foi mandado
 para ele. **Eles são o critério de aceitação do M2** e não podem ser editados lá:
 
-| Teste | Captura |
-|---|---|
-| `src/pages/Locacao.test.tsx` | `{ linhas, aba, arquivo }` |
-| `src/pages/ContasPagar.test.tsx` | idem |
-| `src/pages/ContasReceber.test.tsx` | idem |
+| Teste                                       | Captura                               |
+| ------------------------------------------- | ------------------------------------- |
+| `src/pages/Locacao.test.tsx`                | `{ linhas, aba, arquivo }`            |
+| `src/pages/ContasPagar.test.tsx`            | idem                                  |
+| `src/pages/ContasReceber.test.tsx`          | idem                                  |
 | `src/pages/financeiro/AbaComissao.test.tsx` | `{ abas: [{nome, linhas}], arquivo }` |
 
 O mock é de **módulo** (`vi.mock("xlsx", ...)`), então ele intercepta a chamada
@@ -107,15 +107,17 @@ acontecer sem tocar nesses arquivos.
 ### Task 1: `diaLocal` sobe para `src/lib/datas.ts`
 
 **Files:**
+
 - Modify: `src/lib/datas.ts`
 - Test: `src/lib/datas.test.ts`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces:
 
 ```ts
-export function diaLocal(instante: Date): string;  // "YYYY-MM-DD" no fuso local
+export function diaLocal(instante: Date): string; // "YYYY-MM-DD" no fuso local
 ```
 
 As Tasks 2, 4 e 6 a 12 importam de `../lib/datas` ou `../../lib/datas`.
@@ -191,6 +193,7 @@ export function diaLocal(instante: Date): string {
 TZ=UTC npx vitest run src/lib/datas.test.ts
 TZ=America/Sao_Paulo npx vitest run src/lib/datas.test.ts
 ```
+
 Expected: PASS nos dois.
 
 - [ ] **Passo 5: provar que os testes enxergam**
@@ -210,6 +213,7 @@ existe para evitar.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 92 arquivos, 1426 + 3 = **1429 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 7: commit**
@@ -224,10 +228,12 @@ git commit -m "feat(lib): diaLocal sobe para lib/datas com teste de virada de di
 ### Task 2: os dois donos antigos passam a importar `diaLocal`
 
 **Files:**
+
 - Modify: `src/pages/contas/contas.ts` (apagar a declaração em `:258`, importar)
 - Modify: `src/pages/financeiro/AbaComissao.tsx` (apagar `dataDeHoje` em `:34`)
 
 **Interfaces:**
+
 - Consumes: `diaLocal` de `src/lib/datas.ts` (Task 1).
 - Produces: `diaLocal` e `dataDeHoje` não existem mais fora de `src/lib/datas.ts`.
 
@@ -269,6 +275,7 @@ import { diaLocal } from "../../lib/datas";
 ```bash
 npx vitest run src/pages/contas/ src/pages/financeiro/ src/pages/ContasPagar.test.tsx src/pages/ContasReceber.test.tsx
 ```
+
 Expected: PASS **sem editar nenhum teste**. `diaLocal` e `dataDeHoje` tinham
 corpos equivalentes, então nada de comportamento muda. Se algum teste quebrar,
 os corpos não eram equivalentes — **pare e reporte a diferença**.
@@ -278,6 +285,7 @@ os corpos não eram equivalentes — **pare e reporte a diferença**.
 ```bash
 grep -rn "function diaLocal\|function dataDeHoje" src/
 ```
+
 Expected: só `src/lib/datas.ts`.
 
 - [ ] **Passo 5: suíte inteira, lint e tsc**
@@ -285,6 +293,7 @@ Expected: só `src/lib/datas.ts`.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 92 arquivos, **1429 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 6: commit**
@@ -299,10 +308,12 @@ git commit -m "refactor(datas): contas e comissao consomem o diaLocal de lib"
 ### Task 3: `baixarPlanilha` — o esqueleto, sozinho
 
 **Files:**
+
 - Create: `src/lib/planilha.ts`
 - Test: `src/lib/planilha.test.ts`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces:
 
@@ -495,6 +506,7 @@ abas, que afirma a ordem. Reverter.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: **93 arquivos**, 1429 + 4 = **1433 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 7: commit**
@@ -509,6 +521,7 @@ git commit -m "feat(lib): baixarPlanilha concentra o esqueleto do xlsx"
 ### Task 4: as três telas com teste passam a consumir `baixarPlanilha`
 
 **Files:**
+
 - Modify: `src/pages/contas/TelaDeContas.tsx`
 - Modify: `src/pages/Locacao.tsx`
 - Modify: `src/pages/financeiro/AbaComissao.tsx`
@@ -516,6 +529,7 @@ git commit -m "feat(lib): baixarPlanilha concentra o esqueleto do xlsx"
   `financeiro/AbaComissao.test.tsx` — **nenhum pode ser editado**
 
 **Interfaces:**
+
 - Consumes: `baixarPlanilha` e `AbaDePlanilha` (Task 3).
 - Produces: o molde que as Tasks 5 a 10 repetem.
 
@@ -532,13 +546,13 @@ ajuste o teste.
 Trocar o corpo do `exportar`:
 
 ```tsx
-  const exportar = useCallback(() => {
-    const linhas = linhasDaPlanilha(daTabela, dialeto, configuracao.planilha);
-    baixarPlanilha(
-      [{ nome: configuracao.planilha.aba, linhas }],
-      nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()),
-    );
-  }, [daTabela, dialeto, configuracao.planilha]);
+const exportar = useCallback(() => {
+  const linhas = linhasDaPlanilha(daTabela, dialeto, configuracao.planilha);
+  baixarPlanilha(
+    [{ nome: configuracao.planilha.aba, linhas }],
+    nomeDoArquivo(configuracao.planilha.prefixoDoArquivo, new Date()),
+  );
+}, [daTabela, dialeto, configuracao.planilha]);
 ```
 
 Import: `import { baixarPlanilha } from "../../lib/planilha";`
@@ -547,10 +561,10 @@ Apagar o import de `XLSX` se ele ficar sem uso no arquivo.
 - [ ] **Passo 2: `Locacao.tsx`**
 
 ```tsx
-    baixarPlanilha(
-      [{ nome: ABA_DA_PLANILHA, linhas: linhasDaPlanilha(notasTabela) }],
-      nomeDoArquivo(),
-    );
+baixarPlanilha(
+  [{ nome: ABA_DA_PLANILHA, linhas: linhasDaPlanilha(notasTabela) }],
+  nomeDoArquivo(),
+);
 ```
 
 Import: `import { baixarPlanilha } from "../lib/planilha";`
@@ -559,34 +573,34 @@ Import: `import { baixarPlanilha } from "../lib/planilha";`
 - [ ] **Passo 3: `AbaComissao.tsx`, que tem duas abas**
 
 ```tsx
-    baixarPlanilha(
-      [
-        {
-          nome: "Vendas",
-          linhas: fechamentoDeVendas.linhas.map((linha) => ({
-            Vendedor: linha.nome,
-            "Total faturado": linha.total,
-            "Alíquota inbound": linha.aliquotas.inbound,
-            "Alíquota recompra": linha.aliquotas.recompra,
-            "Alíquota outbound": linha.aliquotas.outbound,
-            Comissão: linha.comissao,
-            Bônus: linha.bonus,
-            Rateio: linha.rateio,
-            Recebe: linha.recebe,
-            "Pelo mínimo garantido": linha.peloRateio ? "sim" : "não",
-          })),
-        },
-        {
-          nome: "Serviço",
-          linhas: fechamentoDeServico.linhas.map((linha) => ({
-            Pessoa: linha.nome,
-            "% do papel": linha.percentual,
-            Valor: linha.valor,
-          })),
-        },
-      ],
-      `comissao-${diaLocal(new Date())}.xlsx`,
-    );
+baixarPlanilha(
+  [
+    {
+      nome: "Vendas",
+      linhas: fechamentoDeVendas.linhas.map((linha) => ({
+        Vendedor: linha.nome,
+        "Total faturado": linha.total,
+        "Alíquota inbound": linha.aliquotas.inbound,
+        "Alíquota recompra": linha.aliquotas.recompra,
+        "Alíquota outbound": linha.aliquotas.outbound,
+        Comissão: linha.comissao,
+        Bônus: linha.bonus,
+        Rateio: linha.rateio,
+        Recebe: linha.recebe,
+        "Pelo mínimo garantido": linha.peloRateio ? "sim" : "não",
+      })),
+    },
+    {
+      nome: "Serviço",
+      linhas: fechamentoDeServico.linhas.map((linha) => ({
+        Pessoa: linha.nome,
+        "% do papel": linha.percentual,
+        Valor: linha.valor,
+      })),
+    },
+  ],
+  `comissao-${diaLocal(new Date())}.xlsx`,
+);
 ```
 
 As duas montagens acima são **cópia verbatim** do que hoje vai para
@@ -599,6 +613,7 @@ da planilha sai diferente e o teste de `AbaComissao` pega.
 ```bash
 npx vitest run src/pages/Locacao.test.tsx src/pages/ContasPagar.test.tsx src/pages/ContasReceber.test.tsx src/pages/financeiro/AbaComissao.test.tsx
 ```
+
 Expected: PASS, **sem editar nenhum deles**. É o critério de aceitação do M2.
 
 - [ ] **Passo 5: suíte inteira, lint e tsc**
@@ -606,6 +621,7 @@ Expected: PASS, **sem editar nenhum deles**. É o critério de aceitação do M2
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 93 arquivos, **1433 testes**, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 6: commit, um por arquivo**
@@ -622,9 +638,11 @@ E assim para `Locacao.tsx` e `AbaComissao.tsx`.
 ### Task 5: Produtos consome `baixarPlanilha`
 
 **Files:**
+
 - Modify: `src/pages/Produtos.tsx`
 
 **Interfaces:**
+
 - Consumes: `baixarPlanilha` (Task 3), o molde da Task 4.
 - Produces: o molde que as Tasks 6 a 10 repetem nas telas sem rede.
 
@@ -637,19 +655,19 @@ validado onde havia teste.
 No lugar de:
 
 ```tsx
-    const ws = XLSX.utils.json_to_sheet(dadosExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Produtos");
-    XLSX.writeFile(wb, `produtos_${new Date().toISOString().split('T')[0]}.xlsx`);
+const ws = XLSX.utils.json_to_sheet(dadosExport);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+XLSX.writeFile(wb, `produtos_${new Date().toISOString().split("T")[0]}.xlsx`);
 ```
 
 pôr:
 
 ```tsx
-    baixarPlanilha(
-      [{ nome: "Produtos", linhas: dadosExport }],
-      `produtos_${new Date().toISOString().split("T")[0]}.xlsx`,
-    );
+baixarPlanilha(
+  [{ nome: "Produtos", linhas: dadosExport }],
+  `produtos_${new Date().toISOString().split("T")[0]}.xlsx`,
+);
 ```
 
 **O nome do arquivo continua em UTC de propósito** — o conserto é a Task 11.
@@ -664,6 +682,7 @@ Apagar o import de `XLSX` se ficar sem uso.
 npx vitest run src/pages/Produtos.paginacao.test.tsx src/pages/Produtos.multiselect.test.tsx
 npx tsc --noEmit
 ```
+
 Expected: PASS. Esses testes não olham exportação, mas pegam quebra de render.
 
 - [ ] **Passo 3: suíte inteira e lint**
@@ -671,6 +690,7 @@ Expected: PASS. Esses testes não olham exportação, mas pegam quebra de render
 ```bash
 npm test && npm run lint
 ```
+
 Expected: 93 arquivos, 1433 testes, lint ≤ 119.
 
 - [ ] **Passo 4: commit**
@@ -685,33 +705,35 @@ git commit -m "refactor(produtos): consome o baixarPlanilha de lib"
 ### Task 6: Clientes, Estoque, Serviços e Vendas consomem `baixarPlanilha`
 
 **Files:**
+
 - Modify: `src/pages/Clientes.tsx`
 - Modify: `src/pages/Estoque.tsx`
 - Modify: `src/pages/Servicos.tsx`
 - Modify: `src/pages/Vendas.tsx`
 
 **Interfaces:**
+
 - Consumes: `baixarPlanilha` (Task 3), o molde da Task 5.
 - Produces: das nove, só `Vendedores` fica sem trocar.
 
 Mesmo movimento da Task 5, quatro vezes. **Os valores por tela:**
 
-| Tela | Aba | Nome do arquivo (mantido como está) |
-|---|---|---|
+| Tela     | Aba          | Nome do arquivo (mantido como está)                             |
+| -------- | ------------ | --------------------------------------------------------------- |
 | Clientes | `"Clientes"` | `` `clientes_${new Date().toISOString().split("T")[0]}.xlsx` `` |
-| Estoque | `"Estoque"` | `` `estoque_${new Date().toISOString().split("T")[0]}.xlsx` `` |
+| Estoque  | `"Estoque"`  | `` `estoque_${new Date().toISOString().split("T")[0]}.xlsx` ``  |
 | Serviços | `"Serviços"` | `` `servicos_${new Date().toISOString().split("T")[0]}.xlsx` `` |
-| Vendas | `"Vendas"` | `` `vendas_${new Date().toISOString().split("T")[0]}.xlsx` `` |
+| Vendas   | `"Vendas"`   | `` `vendas_${new Date().toISOString().split("T")[0]}.xlsx` ``   |
 
 A lista é `dadosExport` nas quatro.
 
 - [ ] **Passo 1: em cada uma, trocar as quatro linhas**
 
 ```tsx
-    baixarPlanilha(
-      [{ nome: "<a aba daquela tela>", linhas: dadosExport }],
-      `<o nome daquela tela>`,
-    );
+baixarPlanilha(
+  [{ nome: "<a aba daquela tela>", linhas: dadosExport }],
+  `<o nome daquela tela>`,
+);
 ```
 
 Import: `import { baixarPlanilha } from "../lib/planilha";`
@@ -744,9 +766,11 @@ E assim para Estoque, Servicos e Vendas.
 ### Task 7: Vendedores consome `baixarPlanilha` com `ajustar`
 
 **Files:**
+
 - Modify: `src/pages/Vendedores.tsx` (a exportação começa por volta de `:436`)
 
 **Interfaces:**
+
 - Consumes: `baixarPlanilha` e `AbaDePlanilha.ajustar` (Task 3).
 - Produces: `json_to_sheet`, `book_new` e `book_append_sheet` deixam de existir
   em `src/pages/`.
@@ -760,40 +784,40 @@ O que existe hoje (larguras + laço formatando as colunas E e F) vira o corpo do
 `ajustar`, **sem reescrever a lógica**:
 
 ```tsx
-    baixarPlanilha(
-      [
-        {
-          nome: "Minhas Vendas",
-          linhas: dadosExport,
-          // Largura de coluna e formato contabil nas colunas de valor. So esta
-          // tela faz isso entre as nove; sem o `t`/`z` o valor sai como texto
-          // e o Excel nao soma a coluna.
-          ajustar: (folha) => {
-            folha["!cols"] = [
-              { wch: 10 },
-              { wch: 12 },
-              { wch: 40 },
-              { wch: 18 },
-              { wch: 15 },
-              { wch: 15 },
-              { wch: 15 },
-              { wch: 20 },
-              { wch: 50 },
-            ];
-            for (const celula in folha) {
-              if (celula[0] === "E" || celula[0] === "F") {
-                const alvo = folha[celula];
-                if (alvo && typeof alvo.v === "number") {
-                  alvo.t = "n";
-                  alvo.z = "#,##0.00";
-                }
-              }
+baixarPlanilha(
+  [
+    {
+      nome: "Minhas Vendas",
+      linhas: dadosExport,
+      // Largura de coluna e formato contabil nas colunas de valor. So esta
+      // tela faz isso entre as nove; sem o `t`/`z` o valor sai como texto
+      // e o Excel nao soma a coluna.
+      ajustar: (folha) => {
+        folha["!cols"] = [
+          { wch: 10 },
+          { wch: 12 },
+          { wch: 40 },
+          { wch: 18 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 20 },
+          { wch: 50 },
+        ];
+        for (const celula in folha) {
+          if (celula[0] === "E" || celula[0] === "F") {
+            const alvo = folha[celula];
+            if (alvo && typeof alvo.v === "number") {
+              alvo.t = "n";
+              alvo.z = "#,##0.00";
             }
-          },
-        },
-      ],
-      `vendas_${vendedorLogado}_${new Date().toISOString().split("T")[0]}.xlsx`,
-    );
+          }
+        }
+      },
+    },
+  ],
+  `vendas_${vendedorLogado}_${new Date().toISOString().split("T")[0]}.xlsx`,
+);
 ```
 
 As nove larguras e o laço são **cópia do que está lá** — confira uma a uma
@@ -805,11 +829,13 @@ nenhum teste pega.
 ```bash
 grep -rn "json_to_sheet\|book_new\|book_append_sheet" src/pages/
 ```
+
 Expected: **nenhuma saída** fora de arquivos de teste que mockam o `xlsx`.
 
 ```bash
 grep -rn "XLSX.writeFile" src/
 ```
+
 Expected: só `src/lib/planilha.ts`.
 
 - [ ] **Passo 3: suíte inteira, lint e tsc**
@@ -817,6 +843,7 @@ Expected: só `src/lib/planilha.ts`.
 ```bash
 npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 93 arquivos, 1433 testes, lint ≤ 119, `tsc` limpo.
 
 - [ ] **Passo 4: commit**
@@ -831,9 +858,11 @@ git commit -m "refactor(vendedores): consome o baixarPlanilha com ajustar"
 ### Task 8: o conserto do UTC nas seis telas sem rede
 
 **Files:**
+
 - Modify: `src/pages/{Clientes,Estoque,Produtos,Servicos,Vendas,Vendedores}.tsx`
 
 **Interfaces:**
+
 - Consumes: `diaLocal` (Task 1), `baixarPlanilha` (Task 3).
 - Produces: `toISOString` não aparece mais em `src/pages/`.
 
@@ -852,7 +881,7 @@ precisa provar é que cada tela **passou a chamar** `diaLocal` — e isso o
 // antes
 `produtos_${new Date().toISOString().split("T")[0]}.xlsx`
 // depois
-`produtos_${diaLocal(new Date())}.xlsx`
+`produtos_${diaLocal(new Date())}.xlsx`;
 ```
 
 Import em cada uma: `import { diaLocal } from "../lib/datas";`
@@ -866,6 +895,7 @@ Os seis prefixos, para não trocar por engano: `clientes_`, `estoque_`,
 ```bash
 grep -rn "toISOString" src/pages/
 ```
+
 Expected: **nenhuma saída**. Se sobrar alguma, ou é uma tela esquecida ou é uso
 legítimo fora de nome de arquivo — reporte qual, não apague no escuro.
 
@@ -874,6 +904,7 @@ legítimo fora de nome de arquivo — reporte qual, não apague no escuro.
 ```bash
 TZ=UTC npm test && TZ=America/Sao_Paulo npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 93 arquivos, 1433 testes, verdes nos dois; lint ≤ 119.
 
 - [ ] **Passo 4: commit, um por tela**
@@ -890,12 +921,14 @@ E assim para as outras cinco.
 ### Task 9: o conserto do UTC em Locação, com as duas edições autorizadas
 
 **Files:**
+
 - Modify: `src/pages/locacao/notasDeLocacao.ts` (`nomeDoArquivo`, `:209`)
 - Test: `src/pages/locacao/notasDeLocacao.test.ts:93` — **edição autorizada 1**
 - Test: `src/pages/Locacao.test.tsx:545` — **edição autorizada 2**
 - Create: `src/test/guarda-planilha.test.ts` — o guarda que trava os dois defeitos
 
 **Interfaces:**
+
 - Consumes: `diaLocal` (Task 1).
 - Produces: nenhuma geração de nome de arquivo usa `toISOString` no repositório.
 
@@ -908,16 +941,16 @@ estão escritas aqui, antes de começar, para não serem inventadas depois.
 Em `src/pages/locacao/notasDeLocacao.test.ts:93`:
 
 ```ts
-  it("o arquivo se chama locacao_ mais o dia local", () => {
-    // O instante anterior deste teste era "2026-08-28T12:00:00Z" — meio-dia,
-    // que cai no mesmo dia em Sao Paulo e em UTC, e por isso nunca exercitou a
-    // virada. Um teste de data que escolhe o meio-dia nao testa fuso.
-    //
-    // Este e construido em hora LOCAL, entao a asserção vale nos dois fusos: o
-    // dia local de um instante local e sempre o mesmo dia.
-    const vinteETresHoras = new Date(2026, 7, 28, 23, 0, 0);
-    expect(nomeDoArquivo(vinteETresHoras)).toBe("locacao_2026-08-28.xlsx");
-  });
+it("o arquivo se chama locacao_ mais o dia local", () => {
+  // O instante anterior deste teste era "2026-08-28T12:00:00Z" — meio-dia,
+  // que cai no mesmo dia em Sao Paulo e em UTC, e por isso nunca exercitou a
+  // virada. Um teste de data que escolhe o meio-dia nao testa fuso.
+  //
+  // Este e construido em hora LOCAL, entao a asserção vale nos dois fusos: o
+  // dia local de um instante local e sempre o mesmo dia.
+  const vinteETresHoras = new Date(2026, 7, 28, 23, 0, 0);
+  expect(nomeDoArquivo(vinteETresHoras)).toBe("locacao_2026-08-28.xlsx");
+});
 ```
 
 - [ ] **Passo 2: rodar e ver falhar — a prova de que o teste deixou de ser cego**
@@ -955,12 +988,12 @@ TZ=America/Sao_Paulo npx vitest run src/pages/locacao/notasDeLocacao.test.ts
 Em `src/pages/Locacao.test.tsx:545`:
 
 ```tsx
-    // Antes, este teste calculava a data esperada com o mesmo
-    // `new Date().toISOString()` que a tela usava — concordava com a tela por
-    // construcao, certa ou errada. Agora afirma o dia local, que e o
-    // comportamento que a tela deve ter.
-    const hoje = diaLocal(new Date());
-    expect(planilha.arquivo).toBe(`locacao_${hoje}.xlsx`);
+// Antes, este teste calculava a data esperada com o mesmo
+// `new Date().toISOString()` que a tela usava — concordava com a tela por
+// construcao, certa ou errada. Agora afirma o dia local, que e o
+// comportamento que a tela deve ter.
+const hoje = diaLocal(new Date());
+expect(planilha.arquivo).toBe(`locacao_${hoje}.xlsx`);
 ```
 
 Import: `import { diaLocal } from "../lib/datas";`
@@ -970,6 +1003,7 @@ Import: `import { diaLocal } from "../lib/datas";`
 ```bash
 TZ=UTC npm test && TZ=America/Sao_Paulo npm test && npm run lint && npx tsc --noEmit
 ```
+
 Expected: 93 arquivos, 1433 testes, verdes nos dois.
 
 - [ ] **Passo 7: conferir o critério final do spec**
@@ -977,6 +1011,7 @@ Expected: 93 arquivos, 1433 testes, verdes nos dois.
 ```bash
 grep -rn "toISOString" src/
 ```
+
 Expected: nenhuma geração de nome de arquivo. Se aparecer `toISOString` em
 outro contexto (data para API, por exemplo), tudo bem — reporte onde.
 
@@ -989,7 +1024,10 @@ existe em `src/test/` (`guarda-cores`, `guarda-alert`, `guarda-primitivos`…):
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const arquivosDeCodigo = readdirSync("src", { recursive: true, encoding: "utf8" })
+const arquivosDeCodigo = readdirSync("src", {
+  recursive: true,
+  encoding: "utf8",
+})
   .filter(
     (c) =>
       /\.tsx?$/.test(c) && !c.endsWith(".test.tsx") && !c.endsWith(".test.ts"),
@@ -1007,7 +1045,9 @@ describe("guarda de planilha", () => {
       if (caminho === "src/lib/planilha.ts") continue;
       const conteudo = readFileSync(caminho, "utf8");
       conteudo.split("\n").forEach((linha, i) => {
-        if (/json_to_sheet|book_new|book_append_sheet|XLSX\.writeFile/.test(linha)) {
+        if (
+          /json_to_sheet|book_new|book_append_sheet|XLSX\.writeFile/.test(linha)
+        ) {
           infratores.push(`${caminho}:${i + 1}`);
         }
       });
@@ -1070,6 +1110,7 @@ git commit -m "fix(locacao): nome do arquivo exportado sai no fuso local"
 ### Task 10: fechar a conta
 
 **Files:**
+
 - Modify: `docs/superpowers/2026-09-01-multiselect-divergencias.md`
 - Modify: `docs/superpowers/specs/2026-08-25-datacorehs-design-system-design.md`
 
