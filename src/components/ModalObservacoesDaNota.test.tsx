@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ModalObservacoesDaNota from "./ModalObservacoesDaNota";
@@ -77,5 +77,41 @@ describe("ModalObservacoesDaNota", () => {
       expect(screen.queryByText("da PRIMEIRA nota")).not.toBeInTheDocument();
     });
     expect(screen.getByText("da segunda nota")).toBeInTheDocument();
+  });
+});
+
+describe("ModalObservacoesDaNota como dialogo", () => {
+  // Era um `<div className="fixed inset-0">` à mão: sem `role="dialog"`, sem
+  // nome acessível, sem Escape e sem prender o foco — quem navega por teclado
+  // continuava tabulando na tabela atrás, e o leitor de tela nem sabia que
+  // algo tinha aberto. O `Modal` do design system traz os quatro.
+  it("e um dialogo com nome acessivel", async () => {
+    fetchObservacoesDaVenda.mockResolvedValue("Entregue na portaria.");
+    render(<ModalObservacoesDaNota idNota={1} onClose={vi.fn()} />);
+
+    expect(
+      await screen.findByRole("dialog", { name: "Observações da Nota" }),
+    ).toBeInTheDocument();
+  });
+
+  it("Escape fecha", async () => {
+    fetchObservacoesDaVenda.mockResolvedValue("Entregue na portaria.");
+    const fechar = vi.fn();
+    render(<ModalObservacoesDaNota idNota={1} onClose={fechar} />);
+    await screen.findByRole("dialog");
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+    expect(fechar).toHaveBeenCalled();
+  });
+
+  it("o botao Fechar continua fechando", async () => {
+    fetchObservacoesDaVenda.mockResolvedValue("Entregue na portaria.");
+    const fechar = vi.fn();
+    render(<ModalObservacoesDaNota idNota={1} onClose={fechar} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Fechar" }));
+
+    expect(fechar).toHaveBeenCalled();
   });
 });

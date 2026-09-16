@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { fetchObservacoesDaVenda } from "../services/notasapi";
+import { Modal } from "../design-system/ui";
 
 interface Props {
   /** A nota cujas observações abrir. */
@@ -55,36 +56,30 @@ const ModalObservacoesDaNota: React.FC<Props> = ({ idNota, onClose }) => {
   const carregando = resposta === null || resposta.idNota !== idNota;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-overlay z-50">
-      <div className="bg-surface rounded-lg shadow-lg p-6 max-w-lg w-full">
-        <h2 className="text-lg font-semibold mb-4 text-conteudo-heading">
-          Observações da Nota
-        </h2>
-
-        <div className="max-h-60 overflow-y-auto text-sm text-conteudo whitespace-pre-line">
-          {carregando && (
-            <span className="text-conteudo-muted">Carregando…</span>
-          )}
-          {!carregando && resposta.erro && (
-            <span className="text-conteudo-muted">
-              Não foi possível carregar as observações desta nota.
-            </span>
-          )}
-          {!carregando &&
-            !resposta.erro &&
-            (resposta.texto || "Esta nota não tem observações.")}
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Fechar
-          </button>
-        </div>
+    /*
+     * O `Modal` do design system, e não o `<div className="fixed inset-0">`
+     * que estava aqui: aquele não tinha `role="dialog"` nem nome acessível,
+     * não fechava com Escape, não prendia o foco (quem navegava por teclado
+     * seguia tabulando na tabela atrás) e o botão era `bg-blue-600` da ponte
+     * de paleta. `open` é sempre `true` porque quem abre monta o componente.
+     *
+     * Sem botão "Fechar" no rodapé: o × do cabeçalho já se chama assim, e dois
+     * controles com o mesmo nome acessível no mesmo diálogo é ruído para quem
+     * ouve a tela. Fecha no ×, no Escape e na cortina.
+     */
+    <Modal open onClose={onClose} title="Observações da Nota" size="lg">
+      <div className="max-h-60 overflow-y-auto whitespace-pre-line text-sm text-conteudo">
+        {carregando && <span className="text-conteudo-muted">Carregando…</span>}
+        {!carregando && resposta.erro && (
+          <span className="text-conteudo-muted">
+            Não foi possível carregar as observações desta nota.
+          </span>
+        )}
+        {!carregando &&
+          !resposta.erro &&
+          (resposta.texto || "Esta nota não tem observações.")}
       </div>
-    </div>
+    </Modal>
   );
 };
 
