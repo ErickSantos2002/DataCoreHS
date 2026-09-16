@@ -1684,3 +1684,52 @@ volta na foto. Em 400px: só a foto no gatilho, e o painel cabendo na tela (160�
 A prop `user` do `AppShell` **deixou de ser usada por este app** — ela desenha nome, papel
 e avatar como texto fixo, e passar junto duplicaria o bloco. Continua no primitivo para
 quem quiser o desenho simples.
+
+## Estado em 16/09/2026 — o preset "Mês passado"
+
+Pedido do Erick: mais uma opção no "Período Rápido", que pegasse **apenas o mês passado**.
+
+### Por que ela faltava
+
+As seis opções davam duas leituras do presente ("mês atual", "ano atual") e duas janelas
+móveis ("7 dias", "30 dias"), e nenhuma do **mês fechado**. Quem olha o resultado de julho
+no dia 5 de agosto caía em "Últimos 30 dias", que arrasta os primeiros dias de agosto para
+dentro da conta, ou digitava as duas datas na mão toda vez.
+
+### O que a lista compartilhada provou
+
+O menu mora em `src/lib/periodo.ts` desde 04/09, e a barra de filtros ainda é um
+componente por tela. Acrescentar a opção na lista foi **uma linha**, e a prova de que ela
+chega em todo lugar veio do vermelho: atualizar a asserção da lista derrubou os cinco
+testes de tela de uma vez — Clientes, Produtos, Serviços, Vendas e Vendedores —, sem uma
+edição nos seis `FiltrosDe*.tsx`. É a ponte de paleta ao contrário: dessa vez a coisa
+compartilhada pagou.
+
+Contas não afirma a lista (nasceu antes dela), então ganhou teste próprio nas gêmeas.
+
+### As duas armadilhas da conta, cada uma com plantação
+
+A conta parte do **dia 1 do mês corrente**, nunca de hoje:
+
+1. **O dia 31 escorrega.** Recuar um mês a partir de 31 de março dá 31 de fevereiro, que o
+   JavaScript normaliza para 3 de março — e "mês passado" devolveria março de novo.
+2. **O índice cru estoura na virada do ano.** `periodoDoMes(ano, mes - 1)` em janeiro vira
+   o índice −1, e o rótulo sai `2026-00-01`: uma data que o `<input type="date">` recusa em
+   silêncio, deixando o campo vazio sem dizer por quê.
+
+Partindo do dia 1, o construtor `new Date(ano, mes - 1, 1)` resolve as duas. Cada
+plantação foi rodada e derrubou exatamente o teste que a descreve, e mais nenhum.
+
+E o preset anda com o **dia local**, como os outros cinco: às 23h de 31/08 em Brasília,
+"mês passado" é julho, não agosto.
+
+### Conferência no navegador (16/09)
+
+Vendas (claro) e Contas a receber (escuro), contra a API de produção, com o relógio em
+16/09: as sete opções no menu, e "Mês passado" escrevendo 01/08 a 31/08 nos dois campos,
+com os números recarregando (64 vendas, R$ 883.569,30 em Vendas; a Evolução Mensal de
+Contas com a barra única de agosto).
+
+⚠️ **O Vite serviu um transform velho** de `periodo.ts` durante a conferência: o disco e o
+commit já tinham a opção, e o navegador mostrava seis. Um `touch` no arquivo reinvalidou.
+Se a tela discordar do arquivo, desconfiar do cache antes de desconfiar do código.
