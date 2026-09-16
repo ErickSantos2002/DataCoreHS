@@ -130,13 +130,14 @@ function escolherPreset(valor: string): void {
 }
 
 describe("preset de periodo em Produtos", () => {
-  it("oferece as seis opcoes, na ordem da lista compartilhada", () => {
+  it("oferece as sete opcoes, na ordem da lista compartilhada", () => {
     render(<Produtos />);
     expect(Array.from(seletorDePreset().options).map((o) => o.value)).toEqual([
       "todos",
       "7dias",
       "30dias",
       "mesAtual",
+      "mesPassado",
       "anoAtual",
       "custom",
     ]);

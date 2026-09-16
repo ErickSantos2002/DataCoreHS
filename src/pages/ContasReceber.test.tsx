@@ -1261,6 +1261,24 @@ describe("Contas a Receber — presets de período", () => {
     expect(idsNaTela()).toEqual(["1", "2"]);
   });
 
+  it("Mês passado é o mês anterior inteiro — julho, com o relógio em agosto", async () => {
+    // O preset que fecha o mês: quem olha o resultado de julho no dia 5 de
+    // agosto não quer "últimos 30 dias", que arrasta os primeiros dias de
+    // agosto para dentro da conta. As duas pontas do mês anterior, e nada fora
+    // dele — por isso o 30/06 e o 01/08 ficam de fora.
+    await montar([
+      conta({ id: 1, data: "2026-06-30" }),
+      conta({ id: 2, data: "2026-07-01" }),
+      conta({ id: 3, data: "2026-07-31" }),
+      conta({ id: 4, data: "2026-08-01" }),
+    ]);
+    await escolherPreset("mesPassado");
+
+    expect(campoDeData("Data Início").value).toBe("2026-07-01");
+    expect(campoDeData("Data Fim").value).toBe("2026-07-31");
+    expect(idsNaTela()).toEqual(["2", "3"]);
+  });
+
   it("Ano atual vai de 01/01 a 31/12 — o único preset que olha para a frente", async () => {
     await montar([
       conta({ id: 1, data: "2025-12-31" }),
