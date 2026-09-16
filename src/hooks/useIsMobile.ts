@@ -33,10 +33,13 @@ export const LARGURA_DE_CELULAR = 640;
  * exatamente a razão pela qual o padrão `useState(false)` existe no mundo.
  */
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < LARGURA_DE_CELULAR);
+  const [isMobile, setIsMobile] = useState(
+    () => window.innerWidth < LARGURA_DE_CELULAR,
+  );
 
   useEffect(() => {
-    const aoRedimensionar = () => setIsMobile(window.innerWidth < LARGURA_DE_CELULAR);
+    const aoRedimensionar = () =>
+      setIsMobile(window.innerWidth < LARGURA_DE_CELULAR);
     // Chamada imediata: cobre o resize que acontecer ENTRE o render (onde o
     // inicializador preguiçoso já leu `window.innerWidth` acima) e o commit
     // deste efeito — janela estreita, mas real. É um `setState` em corpo de

@@ -79,7 +79,11 @@ export function ToastProvider({ children }: { children?: ReactNode }) {
       {children}
       <ToastStack>
         {itens.map((item) => (
-          <Toast key={item.id} variant={item.variante} onClose={() => remover(item.id)}>
+          <Toast
+            key={item.id}
+            variant={item.variante}
+            onClose={() => remover(item.id)}
+          >
             {item.mensagem}
           </Toast>
         ))}

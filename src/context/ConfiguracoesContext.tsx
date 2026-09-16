@@ -25,7 +25,11 @@ export const ConfiguracoesContext = createContext<ConfiguracoesContextType>({
   criarConfiguracao: async () => {},
 });
 
-export const ConfiguracoesProvider = ({ children }: { children: React.ReactNode }) => {
+export const ConfiguracoesProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [configuracoes, setConfiguracoes] = useState<Configuracao[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -46,7 +50,7 @@ export const ConfiguracoesProvider = ({ children }: { children: React.ReactNode 
   const editarConfiguracao = async (chave: string, valor: string) => {
     await updateConfiguracao(chave, valor);
     setConfiguracoes((prev) =>
-      prev.map((c) => (c.chave === chave ? { ...c, valor } : c))
+      prev.map((c) => (c.chave === chave ? { ...c, valor } : c)),
     );
   };
 
@@ -57,7 +61,12 @@ export const ConfiguracoesProvider = ({ children }: { children: React.ReactNode 
 
   return (
     <ConfiguracoesContext.Provider
-      value={{ configuracoes, carregando, editarConfiguracao, criarConfiguracao }}
+      value={{
+        configuracoes,
+        carregando,
+        editarConfiguracao,
+        criarConfiguracao,
+      }}
     >
       {children}
     </ConfiguracoesContext.Provider>

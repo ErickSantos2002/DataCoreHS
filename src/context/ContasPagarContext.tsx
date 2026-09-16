@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { fetchContasPagar } from "../services/notasapi";
 import { converterParaNumero } from "../lib/dinheiro";
 
@@ -62,9 +68,13 @@ interface ContasPagarContextType {
   atualizarContas: () => Promise<void>;
 }
 
-const ContasPagarContext = createContext<ContasPagarContextType | undefined>(undefined);
+const ContasPagarContext = createContext<ContasPagarContextType | undefined>(
+  undefined,
+);
 
-export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [contas, setContas] = useState<ContaPagar[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -93,7 +103,11 @@ export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const dataEmissao = new Date(Number(ano), Number(mes) - 1, Number(dia));
 
       const [vAno, vMes, vDia] = conta.vencimento.split("-");
-      const dataVencimento = new Date(Number(vAno), Number(vMes) - 1, Number(vDia));
+      const dataVencimento = new Date(
+        Number(vAno),
+        Number(vMes) - 1,
+        Number(vDia),
+      );
 
       const situacaoLower = conta.situacao?.toLowerCase() ?? "";
       const vencida = dataVencimento < hoje && situacaoLower !== "pago";
@@ -114,7 +128,9 @@ export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [atualizarContas]);
 
   return (
-    <ContasPagarContext.Provider value={{ contas, contasEnriquecidas, carregando, erro, atualizarContas }}>
+    <ContasPagarContext.Provider
+      value={{ contas, contasEnriquecidas, carregando, erro, atualizarContas }}
+    >
       {children}
     </ContasPagarContext.Provider>
   );
@@ -123,7 +139,9 @@ export const ContasPagarProvider: React.FC<{ children: React.ReactNode }> = ({ c
 export const useContasPagar = () => {
   const context = useContext(ContasPagarContext);
   if (!context) {
-    throw new Error("useContasPagar deve ser usado dentro de um ContasPagarProvider");
+    throw new Error(
+      "useContasPagar deve ser usado dentro de um ContasPagarProvider",
+    );
   }
   return context;
 };

@@ -15,7 +15,10 @@ import ModalObservacoes from "./ModalObservacoes";
 describe("ModalObservacoes", () => {
   it("mostra o texto que recebe, num dialogo com nome", () => {
     render(
-      <ModalObservacoes observacoes="Entregue na portaria." onClose={vi.fn()} />,
+      <ModalObservacoes
+        observacoes="Entregue na portaria."
+        onClose={vi.fn()}
+      />,
     );
 
     expect(

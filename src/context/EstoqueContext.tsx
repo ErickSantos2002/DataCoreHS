@@ -23,7 +23,9 @@ interface EstoqueContextType {
 
 const EstoqueContext = createContext<EstoqueContextType | undefined>(undefined);
 
-export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [produtos, setProdutos] = useState<ProdutoEstoque[]>([]);
   const [carregando, setCarregando] = useState(true);
   // Sem isto o `catch` só escrevia no console: com a API caída a tela abria com
@@ -51,7 +53,9 @@ export const EstoqueProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <EstoqueContext.Provider value={{ produtos, carregando, erro, atualizarProdutos }}>
+    <EstoqueContext.Provider
+      value={{ produtos, carregando, erro, atualizarProdutos }}
+    >
       {children}
     </EstoqueContext.Provider>
   );

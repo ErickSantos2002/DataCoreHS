@@ -23,7 +23,12 @@ interface Props {
   solicitante: string;
 }
 
-const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, solicitante }) => {
+const SolicitacaoComprasModal: React.FC<Props> = ({
+  aberto,
+  fechar,
+  produtos,
+  solicitante,
+}) => {
   const [solicitacao, setSolicitacao] = useState<Solicitacao[]>([]);
   const [busca, setBusca] = useState("");
 
@@ -32,7 +37,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
       const existe = prev.find((item) => item.id === id);
       if (existe) {
         return prev.map((item) =>
-          item.id === id ? { ...item, quantidade } : item
+          item.id === id ? { ...item, quantidade } : item,
         );
       } else {
         return [...prev, { id, quantidade }];
@@ -70,13 +75,17 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
       body: dadosTabela,
       theme: "grid",
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, halign: "center" },
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255,
+        halign: "center",
+      },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
-        0: { cellWidth: 25, halign: "center" },  // Código
-        1: { cellWidth: 70, halign: "left" },    // Produto
-        2: { halign: "center" },                 // Saldo
-        3: { halign: "center" },                 // Quantidade
+        0: { cellWidth: 25, halign: "center" }, // Código
+        1: { cellWidth: 70, halign: "left" }, // Produto
+        2: { halign: "center" }, // Saldo
+        3: { halign: "center" }, // Quantidade
       },
     });
 
@@ -85,7 +94,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
     doc.text(
       `Solicitante: ${solicitante}`,
       14,
-      doc.internal.pageSize.height - 10
+      doc.internal.pageSize.height - 10,
     );
 
     // Salvar
@@ -104,9 +113,9 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
   if (!aberto) return null;
 
   return (
-    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50">
-      <div className="bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 transition-colors">
-        <h2 className="text-lg font-semibold text-conteudo mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay">
+      <div className="w-full max-w-2xl rounded-xl bg-surface p-6 shadow-lg transition-colors">
+        <h2 className="mb-4 text-lg font-semibold text-conteudo">
           Selecionar Produtos
         </h2>
 
@@ -114,25 +123,21 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
         <input
           type="text"
           placeholder="Pesquisar produto..."
-          className="w-full px-3 py-2 border rounded-lg mb-4
-                    bg-surface text-conteudo
-                    border-borda
-                    placeholder-conteudo-faint
-                    focus:outline-none focus:ring-2 focus:ring-focus"
+          className="mb-4 w-full rounded-lg border border-borda bg-surface px-3 py-2 text-conteudo placeholder-conteudo-faint focus:outline-none focus:ring-2 focus:ring-focus"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
 
         {/* Lista de produtos */}
-        <div className="max-h-64 overflow-y-auto divide-y divide-borda">
+        <div className="max-h-64 divide-y divide-borda overflow-y-auto">
           {produtosFiltrados.map((produto) => (
             <div
               key={produto.id}
-              className="flex items-center justify-between py-2
-                        text-conteudo"
+              className="flex items-center justify-between py-2 text-conteudo"
             >
               <span>
-                <span className="font-medium">{produto.codigo}</span> - {produto.nome}{" "}
+                <span className="font-medium">{produto.codigo}</span> -{" "}
+                {produto.nome}{" "}
                 <span className="text-sm text-conteudo-muted">
                   (Saldo: {produto.saldo})
                 </span>
@@ -140,10 +145,7 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
               <input
                 type="number"
                 min={0}
-                className="w-24 px-2 py-1 border rounded-lg
-                          bg-surface
-                          text-conteudo
-                          border-borda"
+                className="w-24 rounded-lg border border-borda bg-surface px-2 py-1 text-conteudo"
                 onChange={(e) =>
                   atualizarQuantidade(produto.id, Number(e.target.value))
                 }
@@ -153,20 +155,16 @@ const SolicitacaoComprasModal: React.FC<Props> = ({ aberto, fechar, produtos, so
         </div>
 
         {/* Botões */}
-        <div className="flex justify-end gap-2 mt-6">
+        <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={fechar}
-            className="px-4 py-2 rounded-lg
-                      border border-borda bg-surface text-conteudo hover:bg-surface-elevated
-                      transition-colors"
+            className="rounded-lg border border-borda bg-surface px-4 py-2 text-conteudo transition-colors hover:bg-surface-elevated"
           >
             Cancelar
           </button>
           <button
             onClick={gerarPDF}
-            className="px-4 py-2 rounded-lg
-                      bg-success text-on-success hover:bg-success-hover
-                      transition-colors"
+            className="rounded-lg bg-success px-4 py-2 text-on-success transition-colors hover:bg-success-hover"
           >
             Gerar PDF
           </button>

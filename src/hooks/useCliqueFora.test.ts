@@ -40,7 +40,9 @@ describe("useCliqueFora", () => {
   it("desregistra o listener ao desmontar", () => {
     const dentro = document.createElement("div");
     const aoFechar = vi.fn();
-    const { unmount } = renderHook(() => useCliqueFora(refPara(dentro), aoFechar, true));
+    const { unmount } = renderHook(() =>
+      useCliqueFora(refPara(dentro), aoFechar, true),
+    );
 
     unmount();
     fireEvent.mouseDown(document.body);
@@ -100,9 +102,12 @@ describe("useCliqueFora", () => {
     const ref = { current: dentro };
     const velho = vi.fn();
     const novo = vi.fn();
-    const { rerender } = renderHook(({ f }: { f: () => void }) => useCliqueFora(ref, f, true), {
-      initialProps: { f: velho },
-    });
+    const { rerender } = renderHook(
+      ({ f }: { f: () => void }) => useCliqueFora(ref, f, true),
+      {
+        initialProps: { f: velho },
+      },
+    );
     rerender({ f: novo });
     fireEvent.mouseDown(document.body);
     expect(velho).not.toHaveBeenCalled();

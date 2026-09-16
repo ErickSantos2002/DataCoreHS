@@ -22,7 +22,11 @@ interface HeaderProps {
  * `topbarActions`. É também o único lugar que ainda monta o `Switch` de
  * tema: antes ele estava duplicado aqui e na `Sidebar`.
  */
-const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar, onOpenMobileMenu }) => {
+const Header: React.FC<HeaderProps> = ({
+  collapsed,
+  onToggleSidebar,
+  onOpenMobileMenu,
+}) => {
   const { logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
@@ -30,7 +34,11 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar, onOpenMobil
 
   // Recolher uma sidebar que o celular nem mostra (`hidden sm:flex` no
   // AppShell) deixaria a pessoa sem caminho para a navegação.
-  const rotuloDoMenu = isMobile ? "Abrir menu" : collapsed ? "Expandir menu" : "Recolher menu";
+  const rotuloDoMenu = isMobile
+    ? "Abrir menu"
+    : collapsed
+      ? "Expandir menu"
+      : "Recolher menu";
 
   const handleLogout = () => {
     logout();
@@ -51,11 +59,26 @@ const Header: React.FC<HeaderProps> = ({ collapsed, onToggleSidebar, onOpenMobil
 
       <div className="flex items-center gap-2">
         {darkMode ? (
-          <Sun size={16} strokeWidth={1.75} aria-hidden="true" className="text-conteudo-muted" />
+          <Sun
+            size={16}
+            strokeWidth={1.75}
+            aria-hidden="true"
+            className="text-conteudo-muted"
+          />
         ) : (
-          <Moon size={16} strokeWidth={1.75} aria-hidden="true" className="text-conteudo-muted" />
+          <Moon
+            size={16}
+            strokeWidth={1.75}
+            aria-hidden="true"
+            className="text-conteudo-muted"
+          />
         )}
-        <Switch checked={darkMode} onChange={toggleDarkMode} size="sm" label="Tema escuro" />
+        <Switch
+          checked={darkMode}
+          onChange={toggleDarkMode}
+          size="sm"
+          label="Tema escuro"
+        />
       </div>
 
       <Button

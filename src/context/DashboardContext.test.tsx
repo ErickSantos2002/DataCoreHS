@@ -91,7 +91,9 @@ describe("DashboardContext lendo /faturamento/mensal", () => {
       </DashboardProvider>,
     );
 
-    await waitFor(() => expect(fetchFaturamentoMensal).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(fetchFaturamentoMensal).toHaveBeenCalledTimes(2),
+    );
     expect(fetchFaturamentoMensal).toHaveBeenCalledWith(2026);
     expect(fetchFaturamentoMensal).toHaveBeenCalledWith(2025);
   });

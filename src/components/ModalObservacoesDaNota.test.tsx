@@ -25,7 +25,9 @@ describe("ModalObservacoesDaNota", () => {
     fetchObservacoesDaVenda.mockResolvedValue("Entregue na portaria.");
     render(<ModalObservacoesDaNota idNota={42} onClose={vi.fn()} />);
 
-    expect(await screen.findByText("Entregue na portaria.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Entregue na portaria."),
+    ).toBeInTheDocument();
     expect(fetchObservacoesDaVenda).toHaveBeenCalledWith(42);
   });
 

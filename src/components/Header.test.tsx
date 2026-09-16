@@ -23,7 +23,10 @@ vi.mock("../context/ThemeContext", () => ({
 const larguraOriginal = window.innerWidth;
 
 function naLargura(largura: number) {
-  Object.defineProperty(window, "innerWidth", { configurable: true, value: largura });
+  Object.defineProperty(window, "innerWidth", {
+    configurable: true,
+    value: largura,
+  });
 }
 
 afterEach(() => naLargura(larguraOriginal));
@@ -33,7 +36,11 @@ function montar() {
   const onOpenMobileMenu = vi.fn();
   render(
     <MemoryRouter>
-      <Header collapsed={false} onToggleSidebar={onToggleSidebar} onOpenMobileMenu={onOpenMobileMenu} />
+      <Header
+        collapsed={false}
+        onToggleSidebar={onToggleSidebar}
+        onOpenMobileMenu={onOpenMobileMenu}
+      />
     </MemoryRouter>,
   );
   return { onToggleSidebar, onOpenMobileMenu };

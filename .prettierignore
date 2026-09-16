@@ -28,18 +28,9 @@ src/pages/comercial/hooksFalsos.ts
 src/pages/servicos/useServicos.ts
 src/pages/servicos/hooksFalsos.ts
 
-src/components
-# Os quatro que migraram para classe de token em 16/09/2026, junto da remocao
-# da ponte de paleta, saem da divida: cada arquivo limpo passa a ser formatado,
-# como as telas da Fase 3.
-!src/components/ModalObservacoes.tsx
-!src/components/ModalObservacoes.test.tsx
-!src/components/ModalObservacoesDaNota.tsx
-!src/components/ModalObservacoesDaNota.test.tsx
-!src/components/CentralButton.tsx
-!src/components/CentralButton.test.tsx
-src/context
-src/services
-src/hooks
+# 16/09/2026: o resto de `src` entra na formatacao. O que sobra ignorado e
+# `src/design-system`, que e copia verbatim do Health & Safety Design System
+# (ver ORIGEM.md) — reformatar ali faria o proximo sync divergir por espaco em
+# branco, e ha teste travando essa linha.
 docs
 index.html

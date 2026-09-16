@@ -35,7 +35,11 @@ const DashboardContext = createContext<DashboardContextType>({
   carregando: true,
 });
 
-export const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
+export const DashboardProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [dados, setDados] = useState<FaturamentoMensal[]>([]);
   const [total, setTotal] = useState(0);
   const [totalAno, setTotalAno] = useState(0);

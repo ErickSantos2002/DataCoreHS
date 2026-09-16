@@ -117,7 +117,10 @@ describe("guarda de planilha", () => {
             semEspaco.startsWith("//") ||
             semEspaco.startsWith("*") ||
             semEspaco.startsWith("/*");
-          if (!eComentario && /new Date\(\)\s*\.\s*toISOString\s*\(/.test(linha)) {
+          if (
+            !eComentario &&
+            /new Date\(\)\s*\.\s*toISOString\s*\(/.test(linha)
+          ) {
             infratores.push(`${caminho}:${i + 1}`);
           }
         });

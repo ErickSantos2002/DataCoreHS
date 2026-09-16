@@ -5,59 +5,61 @@ import React, {
   useState,
   useEffect,
   ReactNode,
-} from "react"
+} from "react";
 
 type ThemeContextType = {
-  darkMode: boolean
-  toggleDarkMode: () => void
-  setDarkModeOnLogin: () => void // 👈 nova função
-}
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+  setDarkModeOnLogin: () => void; // 👈 nova função
+};
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   // 🔹 Estado inicial com persistência
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const savedTheme = localStorage.getItem("theme")
-    return savedTheme === "dark"
-  })
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme === "dark";
+  });
 
   // 🔹 Sincroniza com <html> e localStorage sempre que darkMode mudar
   useEffect(() => {
-    const root = document.documentElement
+    const root = document.documentElement;
     if (darkMode) {
-      root.classList.add("dark")
-      localStorage.setItem("theme", "dark")
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      root.classList.remove("dark")
-      localStorage.setItem("theme", "light")
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-  }, [darkMode])
+  }, [darkMode]);
 
   // 🔹 Alterna o modo escuro manualmente (botão)
-  const toggleDarkMode = () => setDarkMode((prev) => !prev)
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
   // 🔹 Ativa o modo escuro automaticamente no login
-  const setDarkModeOnLogin = () => setDarkMode(true)
+  const setDarkModeOnLogin = () => setDarkMode(true);
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleDarkMode, setDarkModeOnLogin }}>
+    <ThemeContext.Provider
+      value={{ darkMode, toggleDarkMode, setDarkModeOnLogin }}
+    >
       <div
         className={
           darkMode
-            ? "dark bg-surface-base text-conteudo min-h-screen"
-            : "bg-surface-base text-conteudo min-h-screen"
+            ? "dark min-h-screen bg-surface-base text-conteudo"
+            : "min-h-screen bg-surface-base text-conteudo"
         }
       >
         {children}
       </div>
     </ThemeContext.Provider>
-  )
-}
+  );
+};
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext)
+  const context = useContext(ThemeContext);
   if (!context)
-    throw new Error("useTheme deve ser usado dentro de ThemeProvider")
-  return context
-}
+    throw new Error("useTheme deve ser usado dentro de ThemeProvider");
+  return context;
+};

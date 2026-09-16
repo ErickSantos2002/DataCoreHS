@@ -38,14 +38,18 @@ type Usuario = { id: number; username: string; role: string } | null;
 /** Papéis citados em alguma regra `papeis` da matriz. Deriva; não enumera. */
 const PAPEIS_DA_MATRIZ = [
   ...new Set(
-    Object.values(PERMISSOES).flatMap((regra) => (regra.tipo === "papeis" ? [...regra.papeis] : []))
+    Object.values(PERMISSOES).flatMap((regra) =>
+      regra.tipo === "papeis" ? [...regra.papeis] : [],
+    ),
   ),
 ];
 
 /** Ids citados em alguma regra `usuarios` — a liberação nominal da chefia. */
 const IDS_NOMEADOS = [
   ...new Set(
-    Object.values(PERMISSOES).flatMap((regra) => (regra.tipo === "usuarios" ? [...regra.ids] : []))
+    Object.values(PERMISSOES).flatMap((regra) =>
+      regra.tipo === "usuarios" ? [...regra.ids] : [],
+    ),
   ),
 ];
 
@@ -60,7 +64,10 @@ const ID_COMUM = Math.max(0, ...IDS_NOMEADOS) + 1000;
  */
 const PESSOAS: { nome: string; user: Usuario }[] = [
   ...PAPEIS_DA_MATRIZ.flatMap((papel) => [
-    { nome: `papel ${papel}, id comum`, user: { id: ID_COMUM, username: papel, role: papel } },
+    {
+      nome: `papel ${papel}, id comum`,
+      user: { id: ID_COMUM, username: papel, role: papel },
+    },
     ...IDS_NOMEADOS.map((id) => ({
       nome: `papel ${papel}, id nomeado ${id}`,
       user: { id, username: papel, role: papel },
@@ -68,11 +75,19 @@ const PESSOAS: { nome: string; user: Usuario }[] = [
   ]),
   {
     nome: "papel desconhecido, id comum",
-    user: { id: ID_COMUM, username: "estagiario", role: "papel-que-nao-existe" },
+    user: {
+      id: ID_COMUM,
+      username: "estagiario",
+      role: "papel-que-nao-existe",
+    },
   },
   {
     nome: `papel desconhecido, id nomeado ${IDS_NOMEADOS[0]}`,
-    user: { id: IDS_NOMEADOS[0], username: "estagiario", role: "papel-que-nao-existe" },
+    user: {
+      id: IDS_NOMEADOS[0],
+      username: "estagiario",
+      role: "papel-que-nao-existe",
+    },
   },
   { nome: "sem sessão", user: null },
 ];
@@ -81,7 +96,14 @@ function wrapperPara(user: Usuario) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <AuthContext.Provider
-        value={{ user, token: null, loading: false, login: vi.fn(), logout: vi.fn(), error: null }}
+        value={{
+          user,
+          token: null,
+          loading: false,
+          login: vi.fn(),
+          logout: vi.fn(),
+          error: null,
+        }}
       >
         {children}
       </AuthContext.Provider>
@@ -90,10 +112,18 @@ function wrapperPara(user: Usuario) {
 }
 
 /** Todo item de todo grupo, achatado, com o grupo junto para a mensagem de erro. */
-function itensDoMenu(user: Usuario): { grupo: string; label: string; path: string }[] {
-  const { result } = renderHook(() => useNavGroups(), { wrapper: wrapperPara(user) });
+function itensDoMenu(
+  user: Usuario,
+): { grupo: string; label: string; path: string }[] {
+  const { result } = renderHook(() => useNavGroups(), {
+    wrapper: wrapperPara(user),
+  });
   return result.current.flatMap((grupo) =>
-    grupo.items.map((item) => ({ grupo: grupo.label, label: item.label, path: item.path }))
+    grupo.items.map((item) => ({
+      grupo: grupo.label,
+      label: item.label,
+      path: item.path,
+    })),
   );
 }
 
@@ -106,11 +136,12 @@ describe("invariante: o menu nunca oferece o que a rota nega", () => {
     expect(oferecidosEBloqueados).toEqual([]);
   });
 
-  it.each(PESSOAS.filter((p) => p.user !== null))("$nome vê algum item — o teste não é vazio", ({
-    user,
-  }) => {
-    expect(itensDoMenu(user).length).toBeGreaterThan(0);
-  });
+  it.each(PESSOAS.filter((p) => p.user !== null))(
+    "$nome vê algum item — o teste não é vazio",
+    ({ user }) => {
+      expect(itensDoMenu(user).length).toBeGreaterThan(0);
+    },
+  );
 
   it("não monta menu nenhum sem sessão", () => {
     expect(itensDoMenu(null)).toEqual([]);
@@ -125,7 +156,9 @@ describe("invariante: o menu nunca oferece o que a rota nega", () => {
     const naMatriz = Object.entries(PERMISSOES)
       .filter(([, regra]) => regra.tipo !== "publico")
       .map(([rota]) => rota);
-    const noMenu = new Set(PESSOAS.flatMap(({ user }) => itensDoMenu(user).map((i) => i.path)));
+    const noMenu = new Set(
+      PESSOAS.flatMap(({ user }) => itensDoMenu(user).map((i) => i.path)),
+    );
 
     expect(naMatriz.filter((rota) => !noMenu.has(rota))).toEqual([]);
   });

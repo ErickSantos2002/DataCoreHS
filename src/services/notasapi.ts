@@ -488,9 +488,12 @@ export interface ResumoDeServicos {
 export const fetchResumoDeServicos = async (
   params: Params = {},
 ): Promise<ResumoDeServicos> => {
-  const response = await api.get<ResumoDeServicos>("/faturamento/servicos/resumo", {
-    params,
-  });
+  const response = await api.get<ResumoDeServicos>(
+    "/faturamento/servicos/resumo",
+    {
+      params,
+    },
+  );
   return response.data;
 };
 

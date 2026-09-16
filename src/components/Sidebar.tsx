@@ -2,7 +2,10 @@ import { KeyRound } from "lucide-react";
 
 import { useAuth } from "../hooks/useAuth";
 import { podeAcessar } from "../auth/permissoes";
-import type { NavGroup, NavItem } from "../design-system/ui/navigation/AppShell";
+import type {
+  NavGroup,
+  NavItem,
+} from "../design-system/ui/navigation/AppShell";
 
 interface ItemBruto {
   label: string;
@@ -72,7 +75,14 @@ export default function useNavGroups(): NavGroup[] {
           path: "/locacao",
           // "key" não existe no ICON_PATHS do Icon — pegando o equivalente
           // em Lucide, como a própria doc do design system recomenda.
-          icon: <KeyRound size={20} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />,
+          icon: (
+            <KeyRound
+              size={20}
+              strokeWidth={1.75}
+              aria-hidden="true"
+              className="shrink-0"
+            />
+          ),
         },
       ],
     },

@@ -42,7 +42,9 @@ describe("EstoqueContext", () => {
       </EstoqueProvider>,
     );
 
-    expect(await screen.findByText("Não foi possível carregar o estoque.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Não foi possível carregar o estoque."),
+    ).toBeInTheDocument();
   });
 
   it("nao inventa erro quando da certo", async () => {

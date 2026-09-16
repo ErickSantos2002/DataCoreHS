@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthContext } from "./AuthContext";
 import { ContasPagarProvider, useContasPagar } from "./ContasPagarContext";
 import { useResumoDeContas } from "../pages/contas/useContas";
-import { useResumoDeServicos, RECORTE_VAZIO } from "../pages/servicos/useServicos";
+import {
+  useResumoDeServicos,
+  RECORTE_VAZIO,
+} from "../pages/servicos/useServicos";
 import { useFaturamento } from "../pages/financeiro/useFaturamento";
 
 /**
@@ -146,20 +149,26 @@ afterEach(() => {
 });
 
 describe("os quatro contextos do Financeiro contam a falha de carga", () => {
-  it.each(CONTEXTOS)("$nome diz o que não carregou", async ({ busca, frase, montar }) => {
-    for (const outro of CONTEXTOS) outro.busca.mockResolvedValue([]);
-    busca.mockRejectedValue(new Error("500 da API"));
+  it.each(CONTEXTOS)(
+    "$nome diz o que não carregou",
+    async ({ busca, frase, montar }) => {
+      for (const outro of CONTEXTOS) outro.busca.mockResolvedValue([]);
+      busca.mockRejectedValue(new Error("500 da API"));
 
-    render(montar());
+      render(montar());
 
-    expect(await screen.findByText(frase)).toBeInTheDocument();
-  });
+      expect(await screen.findByText(frase)).toBeInTheDocument();
+    },
+  );
 
-  it.each(CONTEXTOS)("$nome não inventa erro quando dá certo", async ({ montar }) => {
-    for (const outro of CONTEXTOS) outro.busca.mockResolvedValue([]);
+  it.each(CONTEXTOS)(
+    "$nome não inventa erro quando dá certo",
+    async ({ montar }) => {
+      for (const outro of CONTEXTOS) outro.busca.mockResolvedValue([]);
 
-    render(montar());
+      render(montar());
 
-    expect(await screen.findByText("sem erro")).toBeInTheDocument();
-  });
+      expect(await screen.findByText("sem erro")).toBeInTheDocument();
+    },
+  );
 });

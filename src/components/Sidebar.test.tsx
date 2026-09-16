@@ -22,7 +22,14 @@ function wrapperPara(user: Usuario) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <AuthContext.Provider
-        value={{ user, token: null, loading: false, login: vi.fn(), logout: vi.fn(), error: null }}
+        value={{
+          user,
+          token: null,
+          loading: false,
+          login: vi.fn(),
+          logout: vi.fn(),
+          error: null,
+        }}
       >
         {children}
       </AuthContext.Provider>
@@ -61,7 +68,10 @@ describe("useNavGroups", () => {
       "Contas a receber",
       "Locação",
     ]);
-    expect(result.current[3].items.map((i) => i.label)).toEqual(["Usuários", "Configurações"]);
+    expect(result.current[3].items.map((i) => i.label)).toEqual([
+      "Usuários",
+      "Configurações",
+    ]);
   });
 
   it("usa o KeyRound do lucide para Locação, que não existe no ICON_PATHS do design system", () => {
@@ -78,7 +88,10 @@ describe("useNavGroups", () => {
     const { result } = renderHook(() => useNavGroups(), {
       wrapper: wrapperPara({ id: 99, username: "vendedor", role: "vendas" }),
     });
-    expect(result.current.map((g) => g.label)).toEqual(["Principal", "Comercial"]);
+    expect(result.current.map((g) => g.label)).toEqual([
+      "Principal",
+      "Comercial",
+    ]);
   });
 
   it("mostra Estoque em Principal mesmo para quem não tem papel nenhum conhecido", () => {
@@ -95,10 +108,17 @@ describe("useNavGroups", () => {
 
   it("mostra só Contas a pagar/receber no grupo Financeiro pro papel financeiro sem o id nomeado", () => {
     const { result } = renderHook(() => useNavGroups(), {
-      wrapper: wrapperPara({ id: 99, username: "financeiro", role: "financeiro" }),
+      wrapper: wrapperPara({
+        id: 99,
+        username: "financeiro",
+        role: "financeiro",
+      }),
     });
     const financeiro = result.current.find((g) => g.label === "Financeiro");
-    expect(financeiro?.items.map((i) => i.label)).toEqual(["Contas a pagar", "Contas a receber"]);
+    expect(financeiro?.items.map((i) => i.label)).toEqual([
+      "Contas a pagar",
+      "Contas a receber",
+    ]);
   });
 
   it("mostra só Serviços no grupo Comercial pro papel servicos", () => {

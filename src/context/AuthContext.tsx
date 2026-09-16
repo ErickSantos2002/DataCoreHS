@@ -10,10 +10,16 @@ type AuthContextType = {
   error: string | null;
 };
 
-export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+export const AuthContext = createContext<AuthContextType>(
+  {} as AuthContextType,
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<{ id: number; username: string; role: string } | null>(null);
+  const [user, setUser] = useState<{
+    id: number;
+    username: string;
+    role: string;
+  } | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +32,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const savedRole = localStorage.getItem("role");
 
     if (savedToken && savedId && savedUsername && savedRole) {
-      setUser({ id: Number(savedId), username: savedUsername, role: savedRole });
+      setUser({
+        id: Number(savedId),
+        username: savedUsername,
+        role: savedRole,
+      });
       setToken(savedToken);
     }
     setLoading(false);
@@ -68,7 +78,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else if (err.response.status >= 500) {
           setError("Erro no servidor. Tente novamente mais tarde.");
         } else {
-          setError("Erro ao realizar login. Verifique os dados e tente novamente.");
+          setError(
+            "Erro ao realizar login. Verifique os dados e tente novamente.",
+          );
         }
       } else {
         setError("Erro de conexão com o servidor.");
@@ -90,7 +102,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, error }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, logout, error }}
+    >
       {children}
     </AuthContext.Provider>
   );
