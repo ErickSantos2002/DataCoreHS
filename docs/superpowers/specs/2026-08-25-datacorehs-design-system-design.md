@@ -1636,3 +1636,51 @@ da formatação**. Os dois passaram a olhar o código normalizado.
 conjunto inteiro. A dívida levou treze telas para ser paga, e acrescentar uma linha é o
 caminho mais curto quando o `format` toca num arquivo que alguém não queria ver mexido —
 entrada nova agora derruba o teste, e quem quiser acrescentar tem de dizer por quê.
+
+## Estado em 16/09/2026 (noite) — o header no desenho do HelpHS
+
+Branch `fase-5-header`, três commits sobre `7e9a6495`. Suíte em **1911 testes / 150
+arquivos**; lint 24; `tsc` limpo.
+
+Pedido do Erick: deixar o header igual ao do HelpHS — o interruptor de tema e o "Sair"
+dentro do menu que a foto do usuário abre, e o botão de menu na ponta esquerda, junto da
+sidebar. Sem "Meu perfil" (não há tela de perfil) e sem o sino de notificações (não há
+serviço de notificações no DataCoreHS).
+
+| Commit     | O quê                                                                                                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0f9f9fcc` | `AppShell` ganha `topbarStart`. A topbar tinha um lugar só para conteúdo do app — `topbarActions`, à direita —, e o botão de menu pertence ao lado da sidebar que ele recolhe.                                                                                                                          |
+| `7354c1fb` | `Switch` passa a aceitar rótulo como nó do React e `className` no invólucro. Sem isso a linha "🌙 Modo escuro" não teria como pôr o ícone dentro do `<label>` (clicar nele não alternaria) nem virar a ordem para o interruptor ficar na ponta direita — e `style={{}}` o guarda dos primitivos proíbe. |
+| `48a14758` | `Header.tsx` vira `BotaoDeMenu.tsx` (só o botão, no `topbarStart`) e nasce `MenuDoUsuario.tsx`: a foto é o gatilho de um painel com nome, papel, "Modo escuro" e "Sair".                                                                                                                                |
+
+### O que o menu promete, e o que não promete
+
+Fecha no clique fora (`useCliqueFora`, o mesmo dos multiselects) e no `Escape`, e nos dois
+casos **devolve o foco à foto** — fechar sem devolver deixa quem navega por teclado no
+começo do documento, porque o elemento focado saiu da árvore e o navegador recua para o
+`<body>`.
+
+**Não é `role="menu"`**, de propósito: esse papel promete navegação por seta entre
+`menuitem`s, que não existe aqui, e o interruptor de tema não é item de menu. O painel é
+um `<div>` ligado ao gatilho por `aria-controls`, e o "Sair" continua sendo anunciado como
+o botão que é. Também não prende o `Tab` dentro dele: prender muda mais do que o pedido, e
+um painel que não prende continua utilizável — um que prende e erra, não.
+
+### Um teste que mudou de dono
+
+O "Sair" tinha um teste de que o nome acessível sobrevivia ao texto sumir no celular —
+ele era ícone puro abaixo de `sm`. Agora o "Sair" vive no painel, sempre com texto, e quem
+esconde conteúdo em tela pequena é o gatilho (nome e papel somem, fica a foto). O teste
+foi para lá, com a mesma pergunta.
+
+### Conferência no navegador (16/09)
+
+Claro e escuro, em 1440px: hambúrguer na ponta esquerda, painel abrindo na foto,
+alternando o tema pelo interruptor de dentro dele e fechando no `Escape` com o foco de
+volta na foto. Em 400px: só a foto no gatilho, e o painel cabendo na tela (160–384 de 400).
+
+### Detalhe para quem vier depois
+
+A prop `user` do `AppShell` **deixou de ser usada por este app** — ela desenha nome, papel
+e avatar como texto fixo, e passar junto duplicaria o bloco. Continua no primitivo para
+quem quiser o desenho simples.
