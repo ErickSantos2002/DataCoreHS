@@ -1590,3 +1590,49 @@ O `CentralButton` pulsa em laço (`animate-ping`, 2 s) o tempo todo, em todas as
 é o único elemento que anima sem parar fora de spinner, e contraria o item 10 do
 checklist de tela migrada. Não foi mexido: é decisão de produto, e o botão é a porta para
 a Central HS.
+
+## Estado em 16/09/2026 (tarde) — a dívida do prettier foi paga
+
+Branch `fase-4-prettier`, seis commits sobre `39acd3f9`. Suíte em **1899 testes / 149
+arquivos**, verde nos dois fusos; lint 24; `tsc` limpo; `npm run build` passa. E, pela
+primeira vez, **`prettier --check .` fica limpo**.
+
+A lista de isenções nasceu na Fase 0 com uma razão boa: formatar uma tela ANTES de
+migrá-la afogaria o diff da migração em espaço em branco. Cada tela saía da lista ao ser
+migrada — da sexta (Financeiro) em diante, porque a regra entrou na receita depois de as
+cinco primeiras já terem passado.
+
+| Commit     | O quê                                                                                                                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `29969e62` | `src/pages` inteiro — 75 arquivos, incluindo as seis telas anteriores à regra (Dashboard, Locação, Usuários, Contas, Produtos e Serviços).                                          |
+| `4826a961` | O guarda do `useIsMobile`, consertado antes de formatar `src/hooks` (abaixo).                                                                                                       |
+| `2a3ded50` | `src/components`, `src/context`, `src/hooks`, `src/services` e `src/test` — 26 arquivos.                                                                                            |
+| `0b374b5a` | `docs` e o `index.html`: só alinhamento de tabela e o marcador de ênfase (`*x*` vira `_x_`).                                                                                        |
+| `92a63af0` | `vite.config.ts`, `postcss.config.js`, os dois scripts avulsos e o README — nunca estiveram na lista, só nunca tinham sido formatados. O `.prettierignore` volta a caber numa tela. |
+| `96a98254` | O guarda da lista, agora fechada.                                                                                                                                                   |
+
+### O que sobrou ignorado, e por quê
+
+- **`src/design-system`** — cópia verbatim, ver `ORIGEM.md`. É a isenção permanente.
+- **Os quatro arquivos da outra frente** (`comercial/useComercial.ts`,
+  `comercial/hooksFalsos.ts`, `servicos/useServicos.ts`, `servicos/hooksFalsos.ts`):
+  formatar arquivo de outra sessão vira colisão de diff sem ninguém ter mudado lógica.
+  Estão fora do padrão hoje — conferido — e saem quando aquela frente quiser.
+
+### O guarda que a formatação quebrou
+
+`guarda-usemobile` exigia `window.innerWidth` e a palavra `useState` **na mesma linha**.
+Ao formatar `src/hooks`, o prettier quebrou as duas linhas em duas cada: o código não
+mudou e o guarda acusou. Consertado ANTES, em commit próprio, para o commit de formatação
+seguir sendo só formatação — agora casa sobre o corpo sem comentário e com o espaço
+achatado, e continua exigindo as duas leituras nomeadamente (plantadas as duas).
+
+É a mesma armadilha de `guarda-cores` na véspera: **guarda que casa texto cru fica refém
+da formatação**. Os dois passaram a olhar o código normalizado.
+
+### A lista agora é fechada
+
+`prettierignore.test.ts` afirmava só que `src/design-system` estava lá; passa a afirmar o
+conjunto inteiro. A dívida levou treze telas para ser paga, e acrescentar uma linha é o
+caminho mais curto quando o `format` toca num arquivo que alguém não queria ver mexido —
+entrada nova agora derruba o teste, e quem quiser acrescentar tem de dizer por quê.
