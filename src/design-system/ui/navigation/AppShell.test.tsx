@@ -249,6 +249,80 @@ describe("AppShell", () => {
 //
 // O jsdom não avalia media query, então "a sidebar fixa some no celular" só
 // pode ser afirmado pela classe. É o mesmo limite dos testes de classe acima.
+describe("AppShell: os dois lados da topbar", () => {
+  /**
+   * A topbar tinha um lugar só para conteúdo do app — `topbarActions`, à
+   * direita —, e o DataCoreHS punha ali o botão de menu junto do resto. O
+   * botão de menu pertence ao lado da sidebar que ele recolhe, então o
+   * `topbarStart` existe para o app pôr conteúdo à ESQUERDA.
+   */
+  function montarComOsDoisLados() {
+    return render(
+      <MemoryRouter>
+        <AppShell
+          groups={grupos}
+          activePath="/inicio"
+          onNavigate={() => {}}
+          topbarStart={<button>menu</button>}
+          topbarActions={<button>usuário</button>}
+        >
+          <p>conteúdo da página</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+  }
+
+  it("o topbarStart vem ANTES do topbarActions na topbar", () => {
+    montarComOsDoisLados();
+    const topo = screen.getByRole("banner");
+    const menu = screen.getByRole("button", { name: "menu" });
+    const usuario = screen.getByRole("button", { name: "usuário" });
+
+    expect(topo).toContainElement(menu);
+    expect(topo).toContainElement(usuario);
+    // `compareDocumentPosition` em vez de olhar classe: o que importa é a
+    // ordem no documento, que é a ordem de leitura e a de tabulação.
+    expect(
+      menu.compareDocumentPosition(usuario) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("sem topbarStart, o titulo continua abrindo a topbar", () => {
+    render(
+      <MemoryRouter>
+        <AppShell groups={grupos} pageTitle="Vendas" activePath="/inicio">
+          <p>conteúdo da página</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Vendas" }),
+    ).toBeInTheDocument();
+  });
+
+  it("com os dois, o titulo fica depois do topbarStart", () => {
+    render(
+      <MemoryRouter>
+        <AppShell
+          groups={grupos}
+          pageTitle="Vendas"
+          activePath="/inicio"
+          topbarStart={<button>menu</button>}
+        >
+          <p>conteúdo da página</p>
+        </AppShell>
+      </MemoryRouter>,
+    );
+    const menu = screen.getByRole("button", { name: "menu" });
+    const titulo = screen.getByRole("heading", { level: 1, name: "Vendas" });
+
+    expect(
+      menu.compareDocumentPosition(titulo) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+});
+
 describe("AppShell no celular", () => {
   function montarComGaveta(aberta: boolean, extras: { onNavigate?: (p: string) => void; onCloseMobileMenu?: () => void } = {}) {
     return render(

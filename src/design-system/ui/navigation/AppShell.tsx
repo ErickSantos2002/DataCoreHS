@@ -39,6 +39,10 @@ export interface AppShellProps {
    *  sobreposta; quem decide abrir é o app (o botão de menu é dele). */
   mobileMenuOpen?: boolean;
   onCloseMobileMenu?: () => void;
+  /** Conteúdo do app à ESQUERDA da topbar, antes do título — é onde mora o
+   *  botão que recolhe a sidebar, do lado da sidebar que ele recolhe. */
+  topbarStart?: ReactNode;
+  /** Conteúdo do app à direita da topbar. */
   topbarActions?: ReactNode;
   pageTitle?: ReactNode;
   children?: ReactNode;
@@ -357,6 +361,7 @@ export function AppShell({
   collapsed = false,
   mobileMenuOpen = false,
   onCloseMobileMenu,
+  topbarStart,
   topbarActions,
   pageTitle,
   children,
@@ -412,8 +417,16 @@ export function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-topbar shrink-0 items-center justify-between gap-4 border-b border-borda bg-surface px-4 sm:px-6">
-          {pageTitle ? (
-            <h1 className="truncate text-base font-semibold text-conteudo-heading">{pageTitle}</h1>
+          {/* O lado esquerdo: o que o app puser (o botão de menu) e o
+              título. O `justify-between` precisa de dois filhos diretos; sem
+              nada à esquerda, o `<span/>` vazio segura a posição. */}
+          {topbarStart || pageTitle ? (
+            <div className="flex min-w-0 items-center gap-3">
+              {topbarStart}
+              {pageTitle ? (
+                <h1 className="truncate text-base font-semibold text-conteudo-heading">{pageTitle}</h1>
+              ) : null}
+            </div>
           ) : (
             <span />
           )}
