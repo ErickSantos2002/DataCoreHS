@@ -69,6 +69,7 @@ describe("useNavGroups", () => {
       "Locação",
     ]);
     expect(result.current[3].items.map((i) => i.label)).toEqual([
+      "Importações",
       "Usuários",
       "Configurações",
     ]);

@@ -27,6 +27,7 @@ const GerenciamentoFinanceiro = lazy(
   () => import("./pages/GerenciamentoFinanceiro"),
 );
 const Usuarios = lazy(() => import("./pages/Usuarios"));
+const Importacoes = lazy(() => import("./pages/Importacoes"));
 const ContasPagar = lazy(() => import("./pages/ContasPagar"));
 const ContasReceber = lazy(() => import("./pages/ContasReceber"));
 
@@ -123,6 +124,17 @@ const AppRoutes: React.FC = () => (
           <ProtectedRoute>
             <RequirePermissao rota="/locacao">
               <Locacao />
+            </RequirePermissao>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/importacoes"
+        element={
+          <ProtectedRoute>
+            <RequirePermissao rota="/importacoes">
+              <Importacoes />
             </RequirePermissao>
           </ProtectedRoute>
         }

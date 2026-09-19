@@ -1,4 +1,4 @@
-import { KeyRound } from "lucide-react";
+import { KeyRound, RefreshCw } from "lucide-react";
 
 import { useAuth } from "../hooks/useAuth";
 import { podeAcessar } from "../auth/permissoes";
@@ -89,6 +89,20 @@ export default function useNavGroups(): NavGroup[] {
     {
       label: "Administração",
       itens: [
+        {
+          label: "Importações",
+          path: "/importacoes",
+          // Como a Locação: "refresh" não existe no ICON_PATHS do `Icon`, e o
+          // campo aceita string — o ícone sumiria sem erro nenhum.
+          icon: (
+            <RefreshCw
+              size={20}
+              strokeWidth={1.75}
+              aria-hidden="true"
+              className="shrink-0"
+            />
+          ),
+        },
         { label: "Usuários", path: "/usuarios", icon: "groups" },
         { label: "Configurações", path: "/configuracoes", icon: "shield" },
       ],

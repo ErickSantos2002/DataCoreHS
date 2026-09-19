@@ -56,6 +56,10 @@ export const PERMISSOES: Record<string, Regra> = {
   "/contas-receber": { tipo: "papeis", papeis: ["admin", "financeiro"] },
 
   "/usuarios": { tipo: "papeis", papeis: ["admin"] },
+  // Tela de operação: horário de timer, duração de carga, erro de API do Tiny.
+  // Só admin, por decisão do Erick — quem lê número não precisa dela, e quem
+  // precisa dela mexe na VPS.
+  "/importacoes": { tipo: "papeis", papeis: ["admin"] },
   "/configuracoes": { tipo: "papeis", papeis: ["admin"] },
 
   // NÃO TROQUE POR `{ tipo: "papeis", papeis: ["financeiro"] }`.
